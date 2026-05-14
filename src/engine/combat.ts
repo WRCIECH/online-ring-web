@@ -48,6 +48,8 @@ export interface CombatState {
   timerExpired: boolean
   pendingDefenseAction: DefenseAction | null
   defenseParryStep: number
+  // XP accumulated this combat (flushed to store on end)
+  weaponXpAccumulated: Record<string, number>
   // Log
   log: LogEntry[]
   logId: number
@@ -164,6 +166,7 @@ export function initCombatState(
     stepTimer: 0, stepTotal: 1, stepStarted: false,
     timerIsDefense: false, timerExpired: false,
     pendingDefenseAction: null, defenseParryStep: 0,
+    weaponXpAccumulated: {},
     log: [], logId: 0,
   }, `You face ${enemyData.name}.`, '#c9a93a')
   return log(first, enemyData.description, '#7a7570')
@@ -317,9 +320,14 @@ export function combatReducer(state: CombatState, action: CombatAction): CombatS
       const newChainId  = nextIdx < allSteps.length ? usedId : ''
       const newChainIdx = nextIdx < allSteps.length ? nextIdx : 0
 
+      const xpGain = step.time / 10
+      const prevXp = state.weaponXpAccumulated[state.pendingWeaponId] ?? 0
+      const newXpAcc = { ...state.weaponXpAccumulated, [state.pendingWeaponId]: prevXp + xpGain }
+
       let s = log(
         { ...state, enemyHp: newEnemyHp, enemyPoise: newEnemyPoise, playerStamina: newStamina,
-          chainMovesetId: newChainId, chainStepIdx: newChainIdx, timerExpired: false, stepStarted: false },
+          chainMovesetId: newChainId, chainStepIdx: newChainIdx, timerExpired: false, stepStarted: false,
+          weaponXpAccumulated: newXpAcc },
         `You complete ${step.name} — ${dmg} damage!`, '#ffffff'
       )
 

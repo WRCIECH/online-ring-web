@@ -12,6 +12,26 @@ export const WEAPONS: Record<string, Weapon> = {
     xp_thresholds: [100, 300, 700, 1500],
     defense_movesets: { block: 'unarmed_block', parry: 'unarmed_parry' },
   },
+  dagger: {
+    name: 'Pen',
+    description: 'Fast, sharp, opinionated. A weapon for writers who commit without second-guessing.',
+    stat_req: {},
+    scaling: { END: 'D', MIND: 'C' },
+    constant_movesets: ['question_jab', 'raw_take'],
+    moveset_slots: 1,
+    xp_thresholds: [100, 300, 700, 1500],
+    defense_movesets: { block: 'unarmed_block', parry: 'unarmed_parry' },
+  },
+  greatsword: {
+    name: 'Manuscript',
+    description: 'Heavy and slow, but each completed page hits like a reckoning.',
+    stat_req: {},
+    scaling: { END: 'B' },
+    constant_movesets: ['no_backspace', 'momentum_combo'],
+    moveset_slots: 2,
+    xp_thresholds: [100, 300, 700, 1500],
+    defense_movesets: { block: 'unarmed_block', parry: 'unarmed_parry' },
+  },
 }
 
 export const GRADE_MULT: Record<string, number> = {

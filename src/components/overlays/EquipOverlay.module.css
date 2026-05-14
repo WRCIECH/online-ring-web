@@ -1,0 +1,248 @@
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: var(--color-bg-overlay);
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.panel {
+  background: var(--color-bg-panel);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: 24px;
+  width: 760px;
+  max-width: 96vw;
+  max-height: 88vh;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  overflow: hidden;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.title {
+  font-size: 0.75rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--color-gold-text);
+}
+
+.body {
+  flex: 1;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* ── Weapon card ──────────────────────────────────────────────────────────── */
+.weaponCard {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+
+.weaponHeader {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 14px;
+  background: rgba(255,255,255,0.02);
+  border-bottom: 1px solid var(--color-sep);
+}
+
+.weaponName {
+  font-size: 1rem;
+  color: var(--color-gold-text);
+  flex: 1;
+}
+
+.weaponLevel {
+  font-size: 0.75rem;
+  color: var(--color-gold-dim);
+  letter-spacing: 0.08em;
+}
+
+.xpBar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.xpTrack {
+  width: 100px;
+  height: 4px;
+  background: #0d0b13;
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.xpFill {
+  height: 100%;
+  background: var(--color-gold);
+  border-radius: 2px;
+}
+
+.xpLabel {
+  font-size: 0.68rem;
+  color: var(--color-text-dim);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+/* ── Moveset slots ────────────────────────────────────────────────────────── */
+.slots {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 8px 12px 12px;
+}
+
+.slot {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  border-radius: var(--radius);
+  min-height: 42px;
+}
+
+.slotConstant {
+  background: rgba(255,255,255,0.02);
+  border: 1px solid rgba(255,255,255,0.04);
+  opacity: 0.6;
+}
+
+.slotFilled {
+  background: rgba(230,191,51,0.04);
+  border: 1px solid var(--color-border);
+}
+
+.slotEmpty {
+  background: rgba(255,255,255,0.01);
+  border: 1px dashed var(--color-sep);
+  cursor: pointer;
+}
+
+.slotEmpty:hover { border-color: var(--color-gold-dim); background: rgba(230,191,51,0.04); }
+
+.slotDot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.dotConstant { background: var(--color-text-dim); }
+.dotFilled   { background: var(--color-gold); }
+.dotEmpty    { background: transparent; border: 1px solid var(--color-text-dim); }
+
+.slotInfo { flex: 1; min-width: 0; }
+
+.slotName {
+  font-size: 0.88rem;
+  color: var(--color-text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.slotDesc {
+  font-size: 0.72rem;
+  color: var(--color-text-dim);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.slotTag {
+  font-size: 0.65rem;
+  color: var(--color-text-dim);
+  background: rgba(255,255,255,0.04);
+  border-radius: 3px;
+  padding: 1px 5px;
+  flex-shrink: 0;
+}
+
+.removeBtn {
+  font-size: 0.72rem;
+  padding: 2px 8px;
+  color: var(--color-text-dim);
+  border-color: var(--color-sep);
+}
+
+.removeBtn:hover { color: var(--color-text-danger); border-color: #5a1515; }
+
+.addLabel {
+  font-size: 0.82rem;
+  color: var(--color-text-dim);
+  flex: 1;
+}
+
+/* ── Picker ───────────────────────────────────────────────────────────────── */
+.pickerOverlay {
+  position: fixed;
+  inset: 0;
+  z-index: 25;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0,0,0,0.6);
+}
+
+.picker {
+  background: var(--color-bg-panel);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: 20px;
+  width: 500px;
+  max-width: 95vw;
+  max-height: 70vh;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.pickerTitle {
+  font-size: 0.72rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--color-text-dim);
+}
+
+.pickerList {
+  flex: 1;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.pickerItem {
+  width: 100%;
+  text-align: left;
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.pickerItem:hover { border-color: var(--color-gold-dim); background: #1e1a2a; }
+
+.pickerName { font-size: 0.9rem; color: var(--color-gold-text); }
+.pickerStep { font-size: 0.75rem; color: var(--color-text-dim); }
+
+.noMovesets {
+  font-size: 0.82rem;
+  color: var(--color-text-dim);
+  padding: 12px 0;
+  text-align: center;
+}

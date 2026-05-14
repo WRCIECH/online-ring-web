@@ -4,6 +4,8 @@ import { combatReducer, initCombatState, STAGGER_PAUSE_MS } from '../engine/comb
 import { useGameStore } from '../store/gameStore'
 import { ENEMIES } from '../data/enemies'
 import { playSound } from '../engine/sound'
+import { WEAPONS } from '../data/weapons'
+import EquipOverlay from '../components/overlays/EquipOverlay'
 import StepPanel    from '../components/combat/StepPanel'
 import DefensePanel from '../components/combat/DefensePanel'
 import TimerOverlay from '../components/combat/TimerOverlay'
@@ -81,12 +83,14 @@ export default function CombatScreen() {
   const handleVictoryContinue = useCallback(() => {
     if (!loc) return
     store.syncCombatResult(state.playerHp, state.playerEstus)
+    store.flushWeaponXp(state.weaponXpAccumulated)
     const enemy = ENEMIES[loc.enemy_id]
     const defeatedBefore = store.run_defeated_enemies.includes(loc.enemy_id)
     enemy.drops.forEach(drop => {
       const chance = defeatedBefore ? drop.repeat_chance : drop.first_kill_chance
       if (Math.random() < chance) {
-        store.unlockMoveset(drop.id)
+        if (WEAPONS[drop.id]) store.unlockWeapon(drop.id)
+        else store.unlockMoveset(drop.id)
         playSound('LOOT_DROP')
       }
     })
@@ -101,16 +105,18 @@ export default function CombatScreen() {
       store.setPendingEncounter(null)
       navigate('/map')
     }
-  }, [loc, store, navigate, state.playerHp, state.playerEstus])
+  }, [loc, store, navigate, state.playerHp, state.playerEstus, state.weaponXpAccumulated])
 
   // ── Defeat handler ─────────────────────────────────────────────────────
   const handleDefeat = useCallback(() => {
     store.syncCombatResult(state.playerHp, state.playerEstus)
+    store.flushWeaponXp(state.weaponXpAccumulated)
     store.endRunFailure()
     navigate('/')
-  }, [store, navigate, state.playerHp, state.playerEstus])
+  }, [store, navigate, state.playerHp, state.playerEstus, state.weaponXpAccumulated])
 
   const [confirmEstus, setConfirmEstus] = useState(false)
+  const [showEquip, setShowEquip]       = useState(false)
 
   if (!loc || !enemyData) return null
 
@@ -130,7 +136,12 @@ export default function CombatScreen() {
           </div>
         )}
 
-        {/* Estus button — available during player turn */}
+        {/* Equipment button */}
+        <div className={s.equipArea}>
+          <button className={s.equipBtn} onClick={() => setShowEquip(true)}>⚙ Equipment</button>
+        </div>
+
+      {/* Estus button — available during player turn */}
         {(state.phase === 'PLAYER_ATTACK' || state.phase === 'ENEMY_ATTACK') && (
           <div className={s.estusArea}>
             {confirmEstus ? (
@@ -183,6 +194,9 @@ export default function CombatScreen() {
           />
         </div>
       </div>
+
+      {/* ── Equip overlay ────────────────────────────────────────────── */}
+      {showEquip && <EquipOverlay onClose={() => setShowEquip(false)} />}
 
       {/* ── Timer overlay ────────────────────────────────────────────── */}
       {state.phase === 'STEP_TIMER' && (

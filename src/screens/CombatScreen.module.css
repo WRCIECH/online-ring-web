@@ -117,6 +117,21 @@
 
 .endBtn:hover { background: rgba(230,191,51,0.16); box-shadow: var(--glow-gold); }
 
+/* ── Equip button ─────────────────────────────────────────────────────────── */
+.equipArea {
+  padding: 6px 12px 0;
+}
+
+.equipBtn {
+  width: 100%;
+  font-size: 0.78rem;
+  padding: 6px 12px;
+  color: var(--color-text-dim);
+  border-style: dashed;
+}
+
+.equipBtn:hover { border-color: var(--color-gold-dim); color: var(--color-gold-text); }
+
 /* ── Estus area ───────────────────────────────────────────────────────────── */
 .estusArea {
   border-top: 1px solid var(--color-sep);

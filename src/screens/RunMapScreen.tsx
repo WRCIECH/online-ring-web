@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { useGameStore, selectRunRemainingSeconds } from '../store/gameStore'
 import { ENEMIES } from '../data/enemies'
 import NotepadOverlay from '../components/overlays/NotepadOverlay'
+import EquipOverlay   from '../components/overlays/EquipOverlay'
 import s from './RunMapScreen.module.css'
 
 // ── Map geometry (mirrors Godot constants) ────────────────────────────────
@@ -52,7 +53,9 @@ export default function RunMapScreen() {
   const [popupIdx, setPopupIdx]     = useState(-1)
   const [popupPos, setPopupPos]     = useState({ x: 0, y: 0 })
   const [showNotepad, setShowNotepad] = useState(false)
-  const [remaining, setRemaining]   = useState(0)
+  const [showEquip, setShowEquip]     = useState(false)
+  const [remaining, setRemaining]     = useState(0)
+  const expiredRef = useRef(false)
 
   const seq     = store.run_location_sequence
   const current = store.run_current_index
@@ -62,11 +65,20 @@ export default function RunMapScreen() {
     if (!store.run_active) navigate('/')
   }, [store.run_active, navigate])
 
-  // Timer tick
+  // Timer tick + expiry check
   useEffect(() => {
-    const id = setInterval(() => setRemaining(selectRunRemainingSeconds(store as Parameters<typeof selectRunRemainingSeconds>[0])), 1000)
+    const id = setInterval(() => {
+      const rem = selectRunRemainingSeconds(store as Parameters<typeof selectRunRemainingSeconds>[0])
+      setRemaining(rem)
+      if (rem <= 0 && store.run_active && !expiredRef.current) {
+        expiredRef.current = true
+        store.endRunFailure()
+        store.save()
+        setTimeout(() => navigate('/'), 2500)
+      }
+    }, 1000)
     return () => clearInterval(id)
-  }, [store])
+  }, [store, navigate])
 
   // Build nodes when sequence changes
   useEffect(() => {
@@ -224,7 +236,8 @@ export default function RunMapScreen() {
           {fmtRemaining(remaining)}
         </span>
         <div className={s.topButtons}>
-          <button className={s.topBtn} onClick={() => setShowNotepad(true)}>Notepad</button>
+          <button className={s.topBtn} onClick={() => setShowEquip(true)}>⚙ Equip</button>
+          <button className={s.topBtn} onClick={() => setShowNotepad(true)}>✏ Notes</button>
         </div>
       </div>
 
@@ -274,6 +287,19 @@ export default function RunMapScreen() {
 
       {/* Overlays */}
       {showNotepad && <NotepadOverlay onClose={() => setShowNotepad(false)} />}
+      {showEquip   && <EquipOverlay   onClose={() => setShowEquip(false)} />}
+
+      {/* Run expired banner */}
+      {remaining <= 0 && (
+        <div style={{
+          position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.85)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          zIndex: 30, flexDirection: 'column', gap: 16,
+        }}>
+          <div style={{ fontSize: '2rem', letterSpacing: '0.2em', color: '#e85555' }}>RUN EXPIRED</div>
+          <div style={{ fontSize: '0.88rem', color: 'var(--color-text-dim)' }}>The 48 hours are up. Returning…</div>
+        </div>
+      )}
     </div>
   )
 }

@@ -105,7 +105,7 @@ function initialState(): GameState {
   }
 }
 
-interface GameStore extends GameState {
+export interface GameStore extends GameState {
   // Computed
   maxHp: () => number
   maxStamina: () => number
@@ -131,8 +131,10 @@ interface GameStore extends GameState {
 
   // Weapon progression
   addWeaponXp: (weaponId: string, amount: number) => boolean
+  flushWeaponXp: (gains: Record<string, number>) => void
   setWeaponExtraMovesets: (weaponId: string, ids: string[]) => void
   unlockMoveset: (id: string) => void
+  unlockWeapon: (id: string) => void
 
   // Stat level-up
   levelUpStat: (stat: keyof Stats) => boolean
@@ -247,12 +249,47 @@ export const useGameStore = create<GameStore>((set, get) => ({
     return levelled
   },
 
+  flushWeaponXp: (gains) => {
+    const s = get()
+    let updates: Partial<GameState> = {
+      weapon_xp: { ...s.weapon_xp },
+      weapon_level: { ...s.weapon_level },
+      weapon_extra_movesets: { ...s.weapon_extra_movesets },
+    }
+    for (const [weaponId, amount] of Object.entries(gains)) {
+      if (amount <= 0) continue
+      const newXp = ((updates.weapon_xp as Record<string, number>)[weaponId] ?? 0) + amount
+      const currentLevel = ((updates.weapon_level as Record<string, number>)[weaponId] ?? 1)
+      const thresholds = [100, 300, 700, 1500]
+      let newLevel = currentLevel
+      for (let i = currentLevel - 1; i < thresholds.length; i++) {
+        if (newXp >= thresholds[i]) newLevel = i + 2
+      }
+      ;(updates.weapon_xp as Record<string, number>)[weaponId] = newXp
+      ;(updates.weapon_level as Record<string, number>)[weaponId] = newLevel
+      if (newLevel > currentLevel) {
+        const slots = (updates.weapon_extra_movesets as Record<string, string[]>)[weaponId] ?? []
+        ;(updates.weapon_extra_movesets as Record<string, string[]>)[weaponId] = [...slots, '']
+      }
+    }
+    set(updates as Partial<typeof s>)
+  },
+
   setWeaponExtraMovesets: (weaponId, ids) => set(s => ({
     weapon_extra_movesets: { ...s.weapon_extra_movesets, [weaponId]: ids },
   })),
 
   unlockMoveset: (id) => set(s => ({
     owned_movesets: s.owned_movesets.includes(id) ? s.owned_movesets : [...s.owned_movesets, id],
+  })),
+
+  unlockWeapon: (id) => set(s => ({
+    owned_weapons: s.owned_weapons.includes(id) ? s.owned_weapons : [...s.owned_weapons, id],
+    weapon_xp:     s.weapon_xp[id] !== undefined    ? s.weapon_xp    : { ...s.weapon_xp,    [id]: 0 },
+    weapon_level:  s.weapon_level[id] !== undefined  ? s.weapon_level  : { ...s.weapon_level,  [id]: 1 },
+    weapon_extra_movesets: s.weapon_extra_movesets[id]
+      ? s.weapon_extra_movesets
+      : { ...s.weapon_extra_movesets, [id]: [] },
   })),
 
   levelUpStat: (stat) => {
