@@ -63,6 +63,7 @@ export type CombatAction =
   | { type: 'DEFENSE_CHOSEN'; action: DefenseAction }
   | { type: 'ENTER_PHASE'; phase: CombatPhase }
   | { type: 'SET_WEAPON'; idx: number }
+  | { type: 'USE_ESTUS' }
 
 // ── Helpers ───────────────────────────────────────────────────────────────
 
@@ -172,6 +173,16 @@ export function initCombatState(
 
 export function combatReducer(state: CombatState, action: CombatAction): CombatState {
   switch (action.type) {
+
+    case 'USE_ESTUS': {
+      if (state.playerEstus <= 0) return state
+      const heal = Math.floor(state.playerMaxHp * 0.40)
+      const newHp = Math.min(state.playerMaxHp, state.playerHp + heal)
+      return log(
+        { ...state, playerHp: newHp, playerEstus: state.playerEstus - 1 },
+        `You drink an estus flask — restored ${newHp - state.playerHp} HP.`, '#44aa88'
+      )
+    }
 
     case 'SET_WEAPON':
       return { ...state, activeWeaponIdx: action.idx }

@@ -1,0 +1,124 @@
+.root {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  padding: 40px 20px;
+  background: var(--color-bg);
+  position: relative;
+  overflow: hidden;
+}
+
+.root::before {
+  content: '';
+  position: absolute;
+  width: 700px;
+  height: 400px;
+  top: 40%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: radial-gradient(ellipse, rgba(230,191,51,0.05) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+.title {
+  font-size: 2.2rem;
+  font-weight: 300;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--color-gold);
+  text-shadow: var(--glow-gold);
+  margin-bottom: 4px;
+}
+
+.subtitle {
+  font-size: 0.8rem;
+  letter-spacing: 0.2em;
+  color: var(--color-text-dim);
+  text-transform: uppercase;
+  margin-bottom: 48px;
+}
+
+.card {
+  background: var(--color-bg-panel);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: 36px 44px;
+  width: 100%;
+  max-width: 500px;
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+}
+
+/* ── Stat level-up ────────────────────────────────────────────────────────── */
+.section { display: flex; flex-direction: column; gap: 12px; }
+
+.sectionTitle {
+  font-size: 0.7rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--color-text-dim);
+}
+
+.statBtns { display: flex; gap: 10px; }
+
+.statBtn {
+  flex: 1;
+  padding: 14px 8px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.85rem;
+}
+
+.statBtn:hover:not(:disabled) { border-color: var(--color-gold-dim); background: rgba(230,191,51,0.07); }
+.statBtn.chosen { border-color: var(--color-gold); background: rgba(230,191,51,0.10); box-shadow: var(--glow-gold); }
+
+.statKey { font-size: 1rem; color: var(--color-gold-text); letter-spacing: 0.08em; }
+.statVal { font-size: 0.72rem; color: var(--color-text-dim); }
+.statArrow { font-size: 0.72rem; color: var(--color-text-success); }
+
+/* ── Moosesets unlocked ───────────────────────────────────────────────────── */
+.unlocks {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.unlockItem {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  font-size: 0.83rem;
+}
+
+.unlockDot { color: var(--color-gold); }
+.unlockName { color: var(--color-gold-text); }
+.unlockDesc { font-size: 0.75rem; color: var(--color-text-dim); }
+
+.none { font-size: 0.82rem; color: var(--color-text-dim); }
+
+/* ── Footer ────────────────────────────────────────────────────────────────── */
+.footer { display: flex; flex-direction: column; gap: 12px; }
+
+.btnBegin {
+  width: 100%;
+  font-size: 1rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  padding: 16px;
+  background: rgba(230,191,51,0.08);
+  border-color: var(--color-gold-dim);
+  color: var(--color-gold);
+}
+
+.btnBegin:hover:not(:disabled) { background: rgba(230,191,51,0.16); box-shadow: var(--glow-gold); }
+
+.skipHint {
+  text-align: center;
+  font-size: 0.75rem;
+  color: var(--color-text-dim);
+}

@@ -1,4 +1,4 @@
-import { useReducer, useEffect, useCallback } from 'react'
+import { useReducer, useEffect, useCallback, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { combatReducer, initCombatState, STAGGER_PAUSE_MS } from '../engine/combat'
 import { useGameStore } from '../store/gameStore'
@@ -80,7 +80,7 @@ export default function CombatScreen() {
   // ── Victory handler ────────────────────────────────────────────────────
   const handleVictoryContinue = useCallback(() => {
     if (!loc) return
-    // Process drops
+    store.syncCombatResult(state.playerHp, state.playerEstus)
     const enemy = ENEMIES[loc.enemy_id]
     const defeatedBefore = store.run_defeated_enemies.includes(loc.enemy_id)
     enemy.drops.forEach(drop => {
@@ -91,23 +91,26 @@ export default function CombatScreen() {
       }
     })
     store.addDefeatedEnemy(loc.enemy_id)
+    // Check before advancing whether this is the last location
+    const isLast = store.run_current_index >= store.run_location_sequence.length - 1
     store.advanceRun()
-
-    const newIdx = store.run_current_index + 1
-    if (newIdx >= store.run_location_sequence.length || enemy.is_remembrance) {
+    if (isLast || enemy.is_remembrance) {
       store.endRunVictory()
       navigate('/run-complete')
     } else {
-      store.setPendingEncounter(null as unknown as typeof loc)
+      store.setPendingEncounter(null)
       navigate('/map')
     }
-  }, [loc, store, navigate])
+  }, [loc, store, navigate, state.playerHp, state.playerEstus])
 
   // ── Defeat handler ─────────────────────────────────────────────────────
   const handleDefeat = useCallback(() => {
+    store.syncCombatResult(state.playerHp, state.playerEstus)
     store.endRunFailure()
     navigate('/')
-  }, [store, navigate])
+  }, [store, navigate, state.playerHp, state.playerEstus])
+
+  const [confirmEstus, setConfirmEstus] = useState(false)
 
   if (!loc || !enemyData) return null
 
@@ -124,6 +127,32 @@ export default function CombatScreen() {
         {state.phase === 'ENEMY_STAGGERED' && (
           <div style={{ padding: 20, color: 'var(--color-text-dim)', fontSize: '0.85rem' }}>
             Enemy is staggered…
+          </div>
+        )}
+
+        {/* Estus button — available during player turn */}
+        {(state.phase === 'PLAYER_ATTACK' || state.phase === 'ENEMY_ATTACK') && (
+          <div className={s.estusArea}>
+            {confirmEstus ? (
+              <>
+                <span className={s.estusConfirmLabel}>Drink estus? (heals 40% HP)</span>
+                <div className={s.estusConfirmBtns}>
+                  <button className={s.estusYes} onClick={() => {
+                    dispatch({ type: 'USE_ESTUS' })
+                    setConfirmEstus(false)
+                  }}>Yes</button>
+                  <button onClick={() => setConfirmEstus(false)}>Cancel</button>
+                </div>
+              </>
+            ) : (
+              <button
+                className={s.estusBtn}
+                disabled={state.playerEstus <= 0}
+                onClick={() => setConfirmEstus(true)}
+              >
+                🧪 Drink Estus ({state.playerEstus})
+              </button>
+            )}
           </div>
         )}
       </div>

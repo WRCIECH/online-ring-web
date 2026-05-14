@@ -116,3 +116,39 @@
 }
 
 .endBtn:hover { background: rgba(230,191,51,0.16); box-shadow: var(--glow-gold); }
+
+/* ── Estus area ───────────────────────────────────────────────────────────── */
+.estusArea {
+  border-top: 1px solid var(--color-sep);
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.estusBtn {
+  width: 100%;
+  font-size: 0.82rem;
+  padding: 8px 12px;
+  color: #44aa88;
+  border-color: #1a3a2a;
+}
+
+.estusBtn:hover:not(:disabled) { border-color: #44aa88; background: rgba(68,170,136,0.08); }
+
+.estusConfirmLabel {
+  font-size: 0.78rem;
+  color: var(--color-text-dim);
+}
+
+.estusConfirmBtns { display: flex; gap: 8px; }
+
+.estusYes {
+  flex: 1;
+  font-size: 0.82rem;
+  color: #44aa88;
+  border-color: #1a3a2a;
+  padding: 6px;
+}
+
+.estusYes:hover { border-color: #44aa88; background: rgba(68,170,136,0.1); }

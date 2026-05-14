@@ -116,9 +116,10 @@ interface GameStore extends GameState {
   advanceRun: () => void
   endRunVictory: () => void
   endRunFailure: () => void
-  setPendingEncounter: (loc: LocationData) => void
+  setPendingEncounter: (loc: LocationData | null) => void
   setPendingReward: (id: string) => void
   addDefeatedEnemy: (id: string) => void
+  syncCombatResult: (hp: number, estus: number) => void
 
   // HP / resources
   takePlayerDamage: (amount: number) => void
@@ -184,6 +185,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
 
   setPendingEncounter: (loc) => set({ pending_encounter: loc }),
   setPendingReward:    (id)  => set({ pending_run_reward: id }),
+  syncCombatResult:    (hp, estus) => set({ current_hp: hp, run_estus_count: estus }),
 
   addDefeatedEnemy: (id) => set(s => ({
     run_defeated_enemies: [...s.run_defeated_enemies, id],
