@@ -40,7 +40,7 @@ function getNodeAt(x: number, y: number, nodes: NodePos[]): number {
 // ── Background particles (computed once) ─────────────────────────────────
 const BG_PARTICLES = Array.from({ length: 140 }, () => ({
   x: Math.random() * 1200, y: Math.random() * 800,
-  r: 0.2 + Math.random() * 1.0, a: 0.03 + Math.random() * 0.13,
+  r: 0.2 + Math.random() * 0.9, a: 0.02 + Math.random() * 0.09,
 }))
 
 export default function RunMapScreen() {
@@ -94,19 +94,19 @@ export default function RunMapScreen() {
     const ctx = canvas.getContext('2d')!
     ctx.clearRect(0, 0, canvas.width, canvas.height)
 
-    // Background particles — subtle star field
+    // Background particles — dust motes, barely visible
     BG_PARTICLES.forEach(p => {
       ctx.beginPath()
       ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2)
-      ctx.fillStyle = `rgba(190,200,240,${p.a})`
+      ctx.fillStyle = `rgba(120,132,170,${p.a})`
       ctx.fill()
     })
 
-    // Corner atmosphere
+    // Corner atmosphere — very faint depth vignette
     const corners = [[0,0],[1200,0],[0,800],[1200,800]]
     corners.forEach(([cx,cy]) => {
-      const g = ctx.createRadialGradient(cx, cy, 0, cx, cy, 320)
-      g.addColorStop(0, 'rgba(60,30,100,0.07)')
+      const g = ctx.createRadialGradient(cx, cy, 0, cx, cy, 340)
+      g.addColorStop(0, 'rgba(30,14,60,0.08)')
       g.addColorStop(1, 'transparent')
       ctx.fillStyle = g
       ctx.fillRect(0, 0, 1200, 800)
@@ -121,7 +121,7 @@ export default function RunMapScreen() {
       ctx.beginPath()
       ctx.moveTo(ns[i].x, ns[i].y)
       ctx.lineTo(ns[i+1].x, ns[i+1].y)
-      ctx.strokeStyle = beaten ? 'rgba(22,100,58,0.6)' : 'rgba(24,20,40,0.9)'
+      ctx.strokeStyle = beaten ? 'rgba(14,62,42,0.65)' : 'rgba(12,10,22,0.95)'
       ctx.lineWidth = 1.5
       ctx.stroke()
     }
@@ -133,27 +133,31 @@ export default function RunMapScreen() {
       const isBoss  = i === ns.length - 1
       const isHover = i === hoverIdx
 
-      let fillColor  = '#0d0c18'
-      let ringColor  = '#22203a'
-      let labelColor = '#32305a'
+      let fillColor  = '#09091a'
+      let ringColor  = '#181628'
+      let labelColor = '#222038'
 
-      if (beaten)       { fillColor = '#0e2118'; ringColor = '#1a7048'; labelColor = '#32b878' }
-      else if (active)  { fillColor = '#221900'; ringColor = '#c89010'; labelColor = '#f0c030' }
-      else if (isBoss)  { fillColor = '#1c0808'; ringColor = '#741414'; labelColor = '#b83030' }
+      if (beaten)       { fillColor = '#081510'; ringColor = '#14503e'; labelColor = '#1e7a56' }
+      else if (active)  { fillColor = '#170f00'; ringColor = '#7a5a0c'; labelColor = '#a87e18' }
+      else if (isBoss)  { fillColor = '#130404'; ringColor = '#4a0e0e'; labelColor = '#7a2020' }
 
       const r = active ? NODE_R + 3 : NODE_R
 
-      // Glow for active
+      // Glow for active — primary visibility cue in dark mode
       if (active) {
         ctx.beginPath()
-        ctx.arc(n.x, n.y, r + 8, 0, Math.PI * 2)
-        ctx.fillStyle = 'rgba(200,144,16,0.18)'
+        ctx.arc(n.x, n.y, r + 10, 0, Math.PI * 2)
+        ctx.fillStyle = 'rgba(120,88,12,0.22)'
+        ctx.fill()
+        ctx.beginPath()
+        ctx.arc(n.x, n.y, r + 5, 0, Math.PI * 2)
+        ctx.fillStyle = 'rgba(140,104,16,0.18)'
         ctx.fill()
       }
       if (isHover && !beaten && i !== current) {
         ctx.beginPath()
         ctx.arc(n.x, n.y, r + 5, 0, Math.PI * 2)
-        ctx.fillStyle = 'rgba(200,144,16,0.10)'
+        ctx.fillStyle = 'rgba(100,75,10,0.14)'
         ctx.fill()
       }
 
@@ -176,7 +180,7 @@ export default function RunMapScreen() {
       // Boss crown
       if (isBoss && !beaten) {
         ctx.font = '10px system-ui'
-        ctx.fillStyle = '#c03030'
+        ctx.fillStyle = '#7a2020'
         ctx.fillText('★', n.x, n.y - r - 8)
       }
     })

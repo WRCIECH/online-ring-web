@@ -22,11 +22,11 @@
   --color-scarlet-rot:  #cc6600;
 
   /* Map nodes */
-  --color-node-beaten:  #1a7048;
-  --color-node-active:  #f0c030;
-  --color-node-future:  #22203a;
-  --color-node-boss:    #741414;
-  --color-connection:   #1a7048;
+  --color-node-beaten:  #14503e;
+  --color-node-active:  #a87e18;
+  --color-node-future:  #181628;
+  --color-node-boss:    #4a0e0e;
+  --color-connection:   #14503e;
 
   /* Text */
   --color-text:         #d4cfc4;
