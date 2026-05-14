@@ -1,0 +1,53 @@
+.root {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  padding: 8px 14px;
+}
+
+.name {
+  font-size: 1.1rem;
+  letter-spacing: 0.1em;
+  color: var(--color-text-danger);
+  margin-bottom: 4px;
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.label {
+  font-size: 0.65rem;
+  letter-spacing: 0.1em;
+  color: var(--color-text-dim);
+  width: 36px;
+  text-align: right;
+  flex-shrink: 0;
+}
+
+.bar {
+  flex: 1;
+  height: 8px;
+  border-radius: 4px;
+  background: #0d0b13;
+  overflow: hidden;
+  border: 1px solid rgba(255,255,255,0.06);
+}
+
+.fill {
+  height: 100%;
+  border-radius: 4px;
+  transition: width 0.3s ease;
+}
+
+.fillHp    { background: var(--color-hp); }
+.fillPoise { background: var(--color-poise); }
+
+.val {
+  font-size: 0.68rem;
+  color: var(--color-text-dim);
+  width: 52px;
+  font-variant-numeric: tabular-nums;
+}

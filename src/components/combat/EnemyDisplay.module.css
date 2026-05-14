@@ -1,0 +1,13 @@
+.root {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 1;
+  min-height: 0;
+}
+
+.svg {
+  width: 100%;
+  max-height: 300px;
+  transition: opacity 0.3s ease;
+}

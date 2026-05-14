@@ -1,0 +1,70 @@
+.root {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 10px 14px;
+  background: rgba(0,0,0,0.25);
+  border-radius: var(--radius);
+  border: 1px solid var(--color-sep);
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.label {
+  font-size: 0.68rem;
+  letter-spacing: 0.1em;
+  color: var(--color-text-dim);
+  width: 32px;
+  text-align: right;
+  flex-shrink: 0;
+}
+
+.bar {
+  flex: 1;
+  height: 8px;
+  border-radius: 4px;
+  background: #0d0b13;
+  overflow: hidden;
+  border: 1px solid rgba(255,255,255,0.06);
+}
+
+.fill {
+  height: 100%;
+  border-radius: 4px;
+  transition: width 0.2s ease;
+}
+
+.fillHp  { background: var(--color-hp); }
+.fillSta { background: var(--color-stamina); }
+.fillFp  { background: var(--color-fp); }
+
+.val {
+  font-size: 0.68rem;
+  color: var(--color-text-dim);
+  width: 48px;
+  font-variant-numeric: tabular-nums;
+}
+
+.estus {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding-top: 2px;
+}
+
+.flask {
+  font-size: 1rem;
+}
+
+.flaskEmpty {
+  opacity: 0.2;
+}
+
+.estusCount {
+  font-size: 0.75rem;
+  color: var(--color-gold-dim);
+}

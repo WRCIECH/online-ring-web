@@ -80,6 +80,7 @@ export interface Stats {
   VIG: number
   END: number
   MIND: number
+  [key: string]: number
 }
 
 export interface GameState {
