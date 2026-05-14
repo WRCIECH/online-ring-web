@@ -1,0 +1,147 @@
+.root {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  padding: 40px 20px;
+  background: var(--color-bg);
+}
+
+.header {
+  text-align: center;
+  margin-bottom: 40px;
+}
+
+.header h1 {
+  font-size: 1.4rem;
+  font-weight: 300;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--color-gold);
+  margin-bottom: 6px;
+}
+
+.header p {
+  font-size: 0.82rem;
+  letter-spacing: 0.12em;
+  color: var(--color-text-dim);
+}
+
+.weaponList {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+  max-width: 520px;
+  margin-bottom: 36px;
+}
+
+.weaponCard {
+  background: var(--color-bg-panel);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  padding: 18px 20px;
+  cursor: pointer;
+  text-align: left;
+  transition: border-color 0.15s, background 0.15s;
+  width: 100%;
+}
+
+.weaponCard:hover {
+  border-color: var(--color-gold-dim);
+  background: #1e1a2a;
+}
+
+.weaponCard.selected {
+  border-color: var(--color-gold);
+  background: rgba(230, 191, 51, 0.07);
+  box-shadow: var(--glow-gold);
+}
+
+.weaponCard.disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.weaponName {
+  font-size: 1rem;
+  letter-spacing: 0.08em;
+  color: var(--color-gold-text);
+  margin-bottom: 4px;
+}
+
+.weaponDesc {
+  font-size: 0.8rem;
+  color: var(--color-text-dim);
+  line-height: 1.5;
+  margin-bottom: 10px;
+}
+
+.weaponMeta {
+  display: flex;
+  gap: 16px;
+  font-size: 0.75rem;
+  color: var(--color-text-dim);
+}
+
+.weaponMeta span {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.scaling {
+  color: var(--color-stamina);
+}
+
+.level {
+  color: var(--color-gold-dim);
+}
+
+.movesetList {
+  margin-top: 8px;
+  font-size: 0.75rem;
+  color: var(--color-text-dim);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.movesetTag {
+  background: rgba(255,255,255,0.04);
+  border: 1px solid var(--color-sep);
+  border-radius: 3px;
+  padding: 2px 7px;
+}
+
+.footer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  max-width: 520px;
+}
+
+.selectionHint {
+  font-size: 0.78rem;
+  color: var(--color-text-dim);
+  letter-spacing: 0.08em;
+}
+
+.btnBegin {
+  width: 100%;
+  font-size: 1rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  padding: 16px;
+  background: rgba(230, 191, 51, 0.08);
+  border: 1px solid var(--color-gold-dim);
+  color: var(--color-gold);
+}
+
+.btnBegin:hover:not(:disabled) {
+  background: rgba(230, 191, 51, 0.16);
+  box-shadow: var(--glow-gold);
+}

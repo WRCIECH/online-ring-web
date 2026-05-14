@@ -1,0 +1,53 @@
+:root {
+  /* Background */
+  --color-bg:           #100d16;
+  --color-bg-panel:     #1a1624;
+  --color-bg-overlay:   rgba(0, 0, 0, 0.80);
+
+  /* Gold / accent */
+  --color-gold:         #e6bf33;
+  --color-gold-dim:     #a88a20;
+  --color-gold-text:    #c9a93a;
+
+  /* Combat colours */
+  --color-hp:           #ba0f0f;
+  --color-fp:           #1f46b3;
+  --color-stamina:      #479e2e;
+  --color-poise:        #5a4a8a;
+
+  /* Status effects */
+  --color-bleed:        #cc1111;
+  --color-frost:        #3399cc;
+  --color-madness:      #9933cc;
+  --color-scarlet-rot:  #cc6600;
+
+  /* Map nodes */
+  --color-node-beaten:  #2a7a2a;
+  --color-node-active:  #ffff73;
+  --color-node-future:  #383840;
+  --color-node-boss:    #cc3300;
+  --color-connection:   #59500f;
+
+  /* Text */
+  --color-text:         #d4cfc4;
+  --color-text-dim:     #7a7570;
+  --color-text-gold:    #c9a93a;
+  --color-text-danger:  #e85555;
+  --color-text-success: #55cc55;
+
+  /* Borders / separators */
+  --color-border:       #2e2840;
+  --color-sep:          #2a2535;
+
+  /* Fonts */
+  --font-main: 'Segoe UI', system-ui, sans-serif;
+  --font-mono: 'Courier New', Courier, monospace;
+
+  /* Sizes */
+  --radius:    6px;
+  --radius-lg: 12px;
+
+  /* Glow */
+  --glow-gold: 0 0 8px rgba(230, 191, 51, 0.5);
+  --glow-red:  0 0 8px rgba(200, 20, 20, 0.5);
+}

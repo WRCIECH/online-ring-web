@@ -1,0 +1,140 @@
+.root {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  gap: 0;
+  background: var(--color-bg);
+  position: relative;
+  overflow: hidden;
+}
+
+/* subtle radial glow behind title */
+.root::before {
+  content: '';
+  position: absolute;
+  width: 600px;
+  height: 300px;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -70%);
+  background: radial-gradient(ellipse, rgba(230,191,51,0.07) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+.title {
+  font-size: 4rem;
+  font-weight: 300;
+  letter-spacing: 0.25em;
+  color: var(--color-gold);
+  text-shadow: var(--glow-gold);
+  margin-bottom: 6px;
+  text-transform: uppercase;
+}
+
+.subtitle {
+  font-size: 0.85rem;
+  letter-spacing: 0.3em;
+  color: var(--color-text-dim);
+  text-transform: uppercase;
+  margin-bottom: 48px;
+}
+
+.runCount {
+  font-size: 0.75rem;
+  letter-spacing: 0.2em;
+  color: var(--color-gold-dim);
+  text-transform: uppercase;
+  margin-top: -36px;
+  margin-bottom: 36px;
+}
+
+.sep {
+  width: 200px;
+  border: none;
+  border-top: 1px solid var(--color-sep);
+  margin-bottom: 40px;
+}
+
+.buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  width: 260px;
+}
+
+.btnPrimary {
+  font-size: 1rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  padding: 14px 20px;
+  background: rgba(230, 191, 51, 0.08);
+  border: 1px solid var(--color-gold-dim);
+  color: var(--color-gold);
+}
+
+.btnPrimary:hover:not(:disabled) {
+  background: rgba(230, 191, 51, 0.16);
+  box-shadow: var(--glow-gold);
+}
+
+.btnSecondary {
+  font-size: 0.85rem;
+  letter-spacing: 0.08em;
+  padding: 10px 20px;
+  color: var(--color-text-dim);
+  border-color: var(--color-border);
+}
+
+/* Erase confirmation overlay */
+.confirmOverlay {
+  position: fixed;
+  inset: 0;
+  background: var(--color-bg-overlay);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+}
+
+.confirmBox {
+  background: var(--color-bg-panel);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: 36px 40px;
+  max-width: 380px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.confirmBox h2 {
+  font-size: 1rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--color-text-danger);
+}
+
+.confirmBox p {
+  font-size: 0.88rem;
+  color: var(--color-text-dim);
+  line-height: 1.7;
+}
+
+.confirmButtons {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+}
+
+.btnDanger {
+  color: var(--color-text-danger);
+  border-color: #5a1515;
+}
+
+.btnDanger:hover:not(:disabled) {
+  background: rgba(200, 20, 20, 0.12);
+  border-color: var(--color-text-danger);
+}

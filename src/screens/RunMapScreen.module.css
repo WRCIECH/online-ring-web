@@ -1,0 +1,153 @@
+.root {
+  position: relative;
+  width: 100vw;
+  height: 100vh;
+  background: var(--color-bg);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.canvas {
+  position: absolute;
+  inset: 0;
+  cursor: default;
+}
+
+/* ── Top bar ─────────────────────────────────────────────────────────────── */
+.topBar {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 20px;
+  background: rgba(16,13,22,0.85);
+  border-bottom: 1px solid var(--color-sep);
+  pointer-events: none;
+}
+
+.topBar > * { pointer-events: auto; }
+
+.runTitle {
+  font-size: 0.75rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--color-gold-dim);
+}
+
+.timer {
+  font-size: 0.85rem;
+  letter-spacing: 0.12em;
+  color: var(--color-text-dim);
+  font-variant-numeric: tabular-nums;
+}
+
+.timer.urgent { color: var(--color-text-danger); }
+
+.topButtons {
+  display: flex;
+  gap: 8px;
+}
+
+.topBtn {
+  font-size: 0.78rem;
+  padding: 6px 14px;
+}
+
+/* ── Hover tooltip ───────────────────────────────────────────────────────── */
+.tooltip {
+  position: fixed;
+  background: var(--color-bg-panel);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  padding: 10px 14px;
+  pointer-events: none;
+  z-index: 5;
+  max-width: 260px;
+}
+
+.tooltipName {
+  font-size: 0.88rem;
+  color: var(--color-gold-text);
+  margin-bottom: 2px;
+}
+
+.tooltipEnemy {
+  font-size: 0.78rem;
+  color: var(--color-text-dim);
+}
+
+.tooltipMult {
+  font-size: 0.72rem;
+  color: var(--color-text-dim);
+  margin-top: 4px;
+}
+
+/* ── Location popup ──────────────────────────────────────────────────────── */
+.popupOverlay {
+  position: fixed;
+  inset: 0;
+  z-index: 6;
+}
+
+.popup {
+  position: fixed;
+  background: var(--color-bg-panel);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: 24px 28px;
+  z-index: 7;
+  min-width: 300px;
+  max-width: 380px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.6);
+}
+
+.popupName {
+  font-size: 1.1rem;
+  letter-spacing: 0.08em;
+  color: var(--color-gold-text);
+}
+
+.popupEnemy {
+  font-size: 0.95rem;
+  color: var(--color-text-danger);
+}
+
+.popupMult {
+  font-size: 0.78rem;
+  color: var(--color-text-dim);
+}
+
+.popupDesc {
+  font-size: 0.82rem;
+  color: var(--color-text-dim);
+  line-height: 1.6;
+  border-top: 1px solid var(--color-sep);
+  padding-top: 10px;
+}
+
+.popupFooter {
+  display: flex;
+  gap: 10px;
+  padding-top: 4px;
+}
+
+.btnEnter {
+  flex: 1;
+  padding: 12px;
+  font-size: 0.9rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  background: rgba(230,191,51,0.08);
+  border-color: var(--color-gold-dim);
+  color: var(--color-gold);
+}
+
+.btnEnter:hover {
+  background: rgba(230,191,51,0.16);
+  box-shadow: var(--glow-gold);
+}
