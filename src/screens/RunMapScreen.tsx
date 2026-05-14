@@ -54,7 +54,9 @@ export default function RunMapScreen() {
   const [popupPos, setPopupPos]     = useState({ x: 0, y: 0 })
   const [showNotepad, setShowNotepad] = useState(false)
   const [showEquip, setShowEquip]     = useState(false)
-  const [remaining, setRemaining]     = useState(0)
+  const [remaining, setRemaining]     = useState(() =>
+    selectRunRemainingSeconds(store as Parameters<typeof selectRunRemainingSeconds>[0])
+  )
   const expiredRef = useRef(false)
 
   const seq     = store.run_location_sequence
