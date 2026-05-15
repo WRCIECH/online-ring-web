@@ -282,10 +282,10 @@ export default function RunMapScreen() {
             <div className={s.popupMult}>×{popupLoc.mult.toFixed(2)} difficulty</div>
             <div className={s.popupDesc}>{popupEnemy.description}</div>
             <div className={s.popupFooter}>
-              <button onClick={() => setPopupIdx(-1)}>Close</button>
               <button className={s.btnEnter} onClick={handleEnterLocation}>
                 Enter Location
               </button>
+              <button onClick={() => setPopupIdx(-1)}>Close</button>
             </div>
           </div>
         </>
