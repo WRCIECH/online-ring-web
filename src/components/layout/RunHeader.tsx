@@ -52,21 +52,21 @@ export default function RunHeader({ hp, maxHp, stamina, maxStamina, fp, maxFp }:
           <span className={[s.timer, isUrgent ? s.urgent : ''].join(' ')}>{fmtTime(remaining)}</span>
         </div>
 
-        {/* Resource bars */}
+        {/* Resource bars — scaled to game caps (HP 3000, STA/FP 500) */}
         <div className={s.bars}>
           <div className={s.barGroup}>
             <span className={s.barLabel}>HP</span>
-            <Bar pct={hp / maxHp} color="var(--color-hp)" />
+            <Bar pct={hp / 3000} color="var(--color-hp)" />
             <span className={s.barVal}>{hp}</span>
           </div>
           <div className={s.barGroup}>
             <span className={s.barLabel}>STA</span>
-            <Bar pct={stamina / maxStamina} color="var(--color-stamina)" />
+            <Bar pct={stamina / 500} color="var(--color-stamina)" />
             <span className={s.barVal}>{stamina}</span>
           </div>
           <div className={s.barGroup}>
             <span className={s.barLabel}>FP</span>
-            <Bar pct={fp / maxFp} color="var(--color-fp)" />
+            <Bar pct={fp / 500} color="var(--color-fp)" />
             <span className={s.barVal}>{fp}</span>
           </div>
         </div>
