@@ -13,8 +13,8 @@ function calcMaxHp(vig: number): number {
   if (vig <= 40) return 600 + (vig - 25) * 18
   return 870 + (vig - 40) * 8
 }
-function calcMaxStamina(end: number): number { return 80 + end * 5 }
-function calcMaxFp(mind: number): number { return 80 + mind * 6 }
+function calcMaxStamina(end: number): number { return end * 5 }
+function calcMaxFp(mind: number): number { return mind * 3 }
 
 // Named locations for the 22-node spiral map
 const LOCATION_NAMES = [
