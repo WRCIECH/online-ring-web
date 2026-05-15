@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import type { Moveset, Step } from '../../types/game'
 import MovesetIcon from '../icons/MovesetIcon'
 import s from './RadialMenu.module.css'
@@ -6,6 +6,8 @@ import s from './RadialMenu.module.css'
 export interface RadialItem {
   moveset: Moveset
   step: Step
+  stepIdx: number
+  totalSteps: number
   dmg: number
   canUse: boolean
   tx: number
@@ -20,7 +22,15 @@ interface Props {
   onClose: () => void
 }
 
+function fmtTime(secs: number): string {
+  const m = Math.floor(secs / 60), s = secs % 60
+  return m > 0 ? (s > 0 ? `${m}m ${s}s` : `${m}m`) : `${s}s`
+}
+
 export default function RadialMenu({ x, y, items, onSelect, onClose }: Props) {
+  const [hoveredId, setHoveredId] = useState<string | null>(null)
+  const hoveredItem = hoveredId ? items.find(it => it.moveset.id === hoveredId) ?? null : null
+
   useEffect(() => {
     function onKey(e: KeyboardEvent) { if (e.key === 'Escape') onClose() }
     window.addEventListener('keydown', onKey)
@@ -30,6 +40,7 @@ export default function RadialMenu({ x, y, items, onSelect, onClose }: Props) {
   return (
     <>
       <div className={s.backdrop} onClick={onClose} />
+
       {items.map((item, i) => (
         <button
           key={item.moveset.id}
@@ -42,7 +53,8 @@ export default function RadialMenu({ x, y, items, onSelect, onClose }: Props) {
             '--ty': `${item.ty}px`,
             animationDelay: `${i * 22}ms`,
           } as React.CSSProperties}
-          title={`${item.moveset.name} · ${item.dmg} dmg · ${item.moveset.stamina_cost} STA`}
+          onMouseEnter={() => setHoveredId(item.moveset.id)}
+          onMouseLeave={() => setHoveredId(null)}
           onClick={e => {
             e.stopPropagation()
             onSelect(item.step, item.moveset)
@@ -52,6 +64,27 @@ export default function RadialMenu({ x, y, items, onSelect, onClose }: Props) {
           <MovesetIcon movesetId={item.moveset.id} size={22} />
         </button>
       ))}
+
+      {hoveredItem && (
+        <div
+          className={s.tooltip}
+          style={{ top: y + hoveredItem.ty - 36, left: x + hoveredItem.tx }}
+          aria-hidden="true"
+        >
+          <div className={s.tooltipName}>
+            {hoveredItem.totalSteps > 1 && (
+              <span className={s.tooltipStep}>[{hoveredItem.stepIdx + 1}/{hoveredItem.totalSteps}] </span>
+            )}
+            {hoveredItem.moveset.name}
+          </div>
+          <div className={s.tooltipTask}>{hoveredItem.step.name}</div>
+          <div className={s.tooltipMeta}>
+            <span>{fmtTime(hoveredItem.step.time)}</span>
+            <span className={s.tooltipDmg}>{hoveredItem.dmg} dmg</span>
+            <span className={s.tooltipSta}>{hoveredItem.moveset.stamina_cost} STA</span>
+          </div>
+        </div>
+      )}
     </>
   )
 }

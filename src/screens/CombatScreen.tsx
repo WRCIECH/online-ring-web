@@ -185,7 +185,7 @@ export default function CombatScreen() {
         ? Math.floor(step.base_damage * (1 + state.playerStats[moveset.scaling_stat] * 0.004))
         : step.base_damage
       const angle = (i / N) * 2 * Math.PI - Math.PI / 2
-      return [{ moveset, step, canUse, dmg,
+      return [{ moveset, step, stepIdx: showIdx, totalSteps: moveset.steps.length, canUse, dmg,
         tx: Math.cos(angle) * RADIUS,
         ty: Math.sin(angle) * RADIUS,
       }]

@@ -36,6 +36,58 @@
   cursor: not-allowed;
 }
 
+/* ── Hover tooltip ───────────────────────────────────────────────────── */
+.tooltip {
+  position: fixed;
+  transform: translate(-50%, -100%);
+  margin-top: -8px;
+  z-index: 12;
+  pointer-events: none;
+  background: var(--color-bg-panel);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  padding: 7px 11px;
+  white-space: nowrap;
+  animation: tooltipFade 0.12s ease both;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5);
+  max-width: 300px;
+  white-space: normal;
+}
+
+@keyframes tooltipFade {
+  from { opacity: 0; transform: translate(-50%, calc(-100% + 4px)); }
+  to   { opacity: 1; transform: translate(-50%, -100%); }
+}
+
+.tooltipName {
+  font-size: 0.82rem;
+  color: var(--color-gold-text);
+  font-weight: 600;
+  margin-bottom: 3px;
+}
+
+.tooltipStep {
+  color: var(--color-text-dim);
+  font-weight: normal;
+}
+
+.tooltipTask {
+  font-size: 0.78rem;
+  color: var(--color-text-dim);
+  line-height: 1.4;
+  margin-bottom: 5px;
+}
+
+.tooltipMeta {
+  display: flex;
+  gap: 10px;
+  font-size: 0.75rem;
+  color: var(--color-text-dim);
+}
+
+.tooltipDmg { color: #cc6644; }
+.tooltipSta { color: var(--color-stamina); }
+
 @keyframes radialSpread {
   from {
     transform: translate(-50%, -50%) scale(0);
