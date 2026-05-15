@@ -16,6 +16,22 @@ import PlayerBars   from '../components/combat/PlayerBars'
 import CombatLog    from '../components/combat/CombatLog'
 import s from './CombatScreen.module.css'
 
+// Pre-computed once — consistent splatter pattern every fight
+const BLOOD_DROPS = Array.from({ length: 20 }, (_, i) => {
+  const angle = (i / 20) * Math.PI * 2 + (Math.random() * 0.5 - 0.25)
+  const dist  = 38 + Math.floor(Math.random() * 82)
+  return {
+    tx:    Math.round(Math.cos(angle) * dist),
+    ty:    Math.round(Math.sin(angle) * dist),
+    w:     3 + Math.floor(Math.random() * 10),
+    h:     3 + Math.floor(Math.random() * 10),
+    delay: Math.floor(Math.random() * 200),
+    hue:   Math.floor(350 + Math.random() * 16),
+    light: Math.floor(16 + Math.random() * 22),
+    dur:   650 + Math.floor(Math.random() * 380),
+  }
+})
+
 export default function CombatScreen() {
   const navigate = useNavigate()
   const store    = useGameStore()
@@ -84,6 +100,7 @@ export default function CombatScreen() {
   interface LootItem { id: string; name: string; type: 'weapon' | 'moveset'; obtained: boolean }
   const [lootItems, setLootItems]       = useState<LootItem[] | null>(null)
   const [lootRevealed, setLootRevealed] = useState(false)
+  const [bloodActive, setBloodActive]   = useState(false)
 
   useEffect(() => {
     if (state.phase !== 'VICTORY' || !loc || lootItems !== null) return
@@ -99,11 +116,12 @@ export default function CombatScreen() {
 
   function handleCorpseClick() {
     if (state.phase !== 'VICTORY' || lootRevealed || !lootItems) return
-    setLootRevealed(true)
+    setBloodActive(true)
     playSound('RUNE_GAIN')
     lootItems.forEach((item, i) => {
       if (item.obtained) setTimeout(() => playSound('LOOT_DROP'), i * 280 + 150)
     })
+    setTimeout(() => setLootRevealed(true), 420)
   }
 
   // ── Victory handler ────────────────────────────────────────────────────
@@ -222,6 +240,25 @@ export default function CombatScreen() {
               {state.phase === 'VICTORY' && !lootRevealed && (
                 <div className={s.corpsePrompt}>⚔ Examine corpse</div>
               )}
+              {bloodActive && (
+                <div className={s.bloodOverlay} aria-hidden="true">
+                  {BLOOD_DROPS.map((d, i) => (
+                    <span
+                      key={i}
+                      className={s.bloodDrop}
+                      style={{
+                        width:  d.w,
+                        height: d.h,
+                        animationDelay:    `${d.delay}ms`,
+                        animationDuration: `${d.dur}ms`,
+                        background: `hsl(${d.hue}, 85%, ${d.light}%)`,
+                        '--tx': `${d.tx}px`,
+                        '--ty': `${d.ty}px`,
+                      } as React.CSSProperties}
+                    />
+                  ))}
+                </div>
+              )}
             </div>
           </div>
           {state.currentMove && state.phase === 'ENEMY_ATTACK' && (
@@ -258,15 +295,15 @@ export default function CombatScreen() {
 
             <div className={s.lootRunes}>✦ {enemyData.rune_reward} runes</div>
 
-            {lootItems.length > 0 && (
+            {lootItems.some(item => item.obtained) && (
               <div className={s.lootSection}>
-                {lootItems.map((item, i) => (
+                {lootItems.filter(item => item.obtained).map((item, i) => (
                   <div
                     key={item.id}
-                    className={`${s.lootItem} ${item.obtained ? s.lootObtained : s.lootMissed}`}
+                    className={`${s.lootItem} ${s.lootObtained}`}
                     style={{ animationDelay: `${i * 220}ms` }}
                   >
-                    <span className={s.lootIcon}>{item.obtained ? '✓' : '○'}</span>
+                    <span className={s.lootIcon}>✓</span>
                     <span className={s.lootName}>{item.name}</span>
                     <span className={s.lootType}>{item.type}</span>
                   </div>

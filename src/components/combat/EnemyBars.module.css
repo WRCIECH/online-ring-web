@@ -10,6 +10,7 @@
   letter-spacing: 0.1em;
   color: var(--color-text-danger);
   margin-bottom: 4px;
+  text-align: center;
 }
 
 .row {
