@@ -146,7 +146,7 @@ export interface GameStore extends GameState {
 }
 
 export const useGameStore = create<GameStore>((set, get) => ({
-  ...initialState(),
+  ...(loadGame() ?? initialState()),
 
   maxHp:      () => calcMaxHp(get().stats.VIG),
   maxStamina: () => calcMaxStamina(get().stats.END),
