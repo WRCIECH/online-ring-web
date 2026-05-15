@@ -1,10 +1,10 @@
-import { useReducer, useEffect, useCallback, useState } from 'react'
+import { useReducer, useEffect, useCallback, useState, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { combatReducer, initCombatState, STAGGER_PAUSE_MS } from '../engine/combat'
 import { useGameStore } from '../store/gameStore'
 import { ENEMIES } from '../data/enemies'
 import { playSound } from '../engine/sound'
-import { WEAPONS } from '../data/weapons'
+import { WEAPONS, getWeaponMovesets } from '../data/weapons'
 import { MOVES } from '../data/movesets'
 import EquipOverlay from '../components/overlays/EquipOverlay'
 import StepPanel    from '../components/combat/StepPanel'
@@ -14,6 +14,7 @@ import EnemyDisplay from '../components/combat/EnemyDisplay'
 import EnemyBars    from '../components/combat/EnemyBars'
 import PlayerBars   from '../components/combat/PlayerBars'
 import CombatLog    from '../components/combat/CombatLog'
+import RadialMenu, { type RadialItem } from '../components/combat/RadialMenu'
 import s from './CombatScreen.module.css'
 
 // Pre-computed once — consistent splatter pattern every fight
@@ -158,6 +159,44 @@ export default function CombatScreen() {
   const [confirmEstus, setConfirmEstus] = useState(false)
   const [showEquip, setShowEquip]       = useState(false)
 
+  // ── Radial action menu ────────────────────────────────────────────────
+  const [radialPos, setRadialPos] = useState<{ x: number; y: number } | null>(null)
+
+  useEffect(() => {
+    if (state.phase !== 'PLAYER_ATTACK') setRadialPos(null)
+  }, [state.phase])
+
+  const radialItems = useMemo<RadialItem[]>(() => {
+    if (!radialPos || state.phase !== 'PLAYER_ATTACK') return []
+    const weaponId = state.equippedWeapons[state.activeWeaponIdx] ?? state.equippedWeapons[0]
+    const weapon   = WEAPONS[weaponId]
+    const extra    = state.weaponExtraMovesets[weaponId] ?? []
+    const movesets = getWeaponMovesets(weaponId, extra)
+    const N        = movesets.length
+    const RADIUS   = 94
+
+    return movesets.flatMap((moveset, i) => {
+      const isMidChain = state.chainMovesetId === moveset.id
+      const showIdx    = isMidChain ? state.chainStepIdx : 0
+      const step       = moveset.steps[showIdx]
+      if (!step) return []
+      const canUse = state.playerStamina >= moveset.stamina_cost
+      const dmg    = weapon
+        ? Math.floor(step.base_damage * (1 + state.playerStats[moveset.scaling_stat] * 0.004))
+        : step.base_damage
+      const angle = (i / N) * 2 * Math.PI - Math.PI / 2
+      return [{ moveset, step, canUse, dmg,
+        tx: Math.cos(angle) * RADIUS,
+        ty: Math.sin(angle) * RADIUS,
+      }]
+    })
+  }, [radialPos, state])
+
+  function handleDisplayClick(e: React.MouseEvent) {
+    if (state.phase !== 'PLAYER_ATTACK') return
+    setRadialPos({ x: e.clientX, y: e.clientY })
+  }
+
   if (!loc || !enemyData) return null
 
   return (
@@ -224,7 +263,11 @@ export default function CombatScreen() {
       {/* ── Right area ───────────────────────────────────────────────── */}
       <div className={s.right}>
         <div className={s.enemyZone}>
-          <div className={s.displayWrapper}>
+          <div
+            className={s.displayWrapper}
+            onClick={handleDisplayClick}
+            style={{ cursor: state.phase === 'PLAYER_ATTACK' ? 'crosshair' : 'default' }}
+          >
             <div
               className={`${s.enemyArena} ${state.phase === 'VICTORY' ? s.arenaDefeated : ''}`}
               onClick={state.phase === 'VICTORY' && !lootRevealed ? handleCorpseClick : undefined}
@@ -284,6 +327,20 @@ export default function CombatScreen() {
       {/* ── Stagger banner ────────────────────────────────────────────── */}
       {state.phase === 'ENEMY_STAGGERED' && (
         <div className={s.staggerBanner}>STAGGERED!</div>
+      )}
+
+      {/* ── Radial action menu ────────────────────────────────────────── */}
+      {radialPos && radialItems.length > 0 && (
+        <RadialMenu
+          x={radialPos.x}
+          y={radialPos.y}
+          items={radialItems}
+          onSelect={(step, moveset) => {
+            const weaponId = state.equippedWeapons[state.activeWeaponIdx] ?? state.equippedWeapons[0]
+            dispatch({ type: 'STEP_CLICKED', step, moveset, weaponId })
+          }}
+          onClose={() => setRadialPos(null)}
+        />
       )}
 
       {/* ── Victory / loot reveal ─────────────────────────────────────── */}
