@@ -194,9 +194,9 @@ export default function CombatScreen() {
 
   const radialItems = useMemo<RadialItem[]>(() => {
     if (!radialPos) return []
-    const MARGIN = 36          // px gap outside the oval edge
-    const rx = radialPos.rx + MARGIN
-    const ry = radialPos.ry + MARGIN
+    // Place icons at 78% of the oval's own radius — inside the bright arena ellipse
+    const rx = radialPos.rx * 0.78
+    const ry = radialPos.ry * 0.78
 
     // ── Attack phase: movesets + End Turn ──────────────────────────────
     if (state.phase === 'PLAYER_ATTACK') {
