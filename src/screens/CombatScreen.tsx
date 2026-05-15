@@ -329,11 +329,7 @@ export default function CombatScreen() {
       {/* ── Right area ───────────────────────────────────────────────── */}
       <div className={s.right}>
         <div className={s.enemyZone}>
-          <div
-            className={s.displayWrapper}
-            onClick={handleDisplayClick}
-            style={{ cursor: (state.phase === 'PLAYER_ATTACK' || state.phase === 'ENEMY_ATTACK') ? 'crosshair' : 'default' }}
-          >
+          <div className={s.displayWrapper}>
             <div
               className={`${s.enemyArena} ${state.phase === 'VICTORY' ? s.arenaDefeated : ''}`}
               onClick={state.phase === 'VICTORY' && !lootRevealed ? handleCorpseClick : undefined}
@@ -345,7 +341,13 @@ export default function CombatScreen() {
                   poise={state.enemyPoise} maxPoise={state.enemyMaxPoise}
                 />
               </div>
-              <EnemyDisplay enemyId={loc.enemy_id} hp={state.enemyHp} maxHp={state.enemyMaxHp} />
+              <EnemyDisplay
+                enemyId={loc.enemy_id}
+                hp={state.enemyHp}
+                maxHp={state.enemyMaxHp}
+                onClick={handleDisplayClick}
+                cursor={(state.phase === 'PLAYER_ATTACK' || state.phase === 'ENEMY_ATTACK') ? 'crosshair' : undefined}
+              />
               {state.phase === 'VICTORY' && !lootRevealed && (
                 <div className={s.corpsePrompt}>⚔ Examine corpse</div>
               )}

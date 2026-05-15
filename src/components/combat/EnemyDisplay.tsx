@@ -1,7 +1,13 @@
 import React from 'react'
 import s from './EnemyDisplay.module.css'
 
-interface Props { enemyId: string; hp: number; maxHp: number }
+interface Props {
+  enemyId: string
+  hp: number
+  maxHp: number
+  onClick?: React.MouseEventHandler<HTMLDivElement>
+  cursor?: string
+}
 
 const W = 260, H = 300
 
@@ -157,7 +163,7 @@ const ART: Record<string, () => React.ReactElement> = {
   perfectionism_knight:   PerfectionismKnight,
 }
 
-export default function EnemyDisplay({ enemyId, hp, maxHp }: Props) {
+export default function EnemyDisplay({ enemyId, hp, maxHp, onClick, cursor }: Props) {
   const Art = ART[enemyId] ?? BurnoutShade
   const hpPct = Math.max(0, hp / maxHp)
   const isDead = hp <= 0
@@ -165,7 +171,7 @@ export default function EnemyDisplay({ enemyId, hp, maxHp }: Props) {
   const gradId = `mobGlow-${enemyId}`
 
   return (
-    <div className={`${s.root} ${isDead ? s.corpse : ''}`}>
+    <div className={`${s.root} ${isDead ? s.corpse : ''}`} onClick={onClick} style={cursor ? { cursor } : undefined}>
       <svg viewBox={`${-W/2} ${-H*0.7} ${W} ${H}`} className={s.svg}
            style={{ opacity: isDead ? 0.3 : 0.85 + hpPct * 0.15 }}>
         <defs>
