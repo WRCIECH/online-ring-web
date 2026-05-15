@@ -2,8 +2,7 @@ import { useEffect, useRef, useState, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useGameStore, selectRunRemainingSeconds } from '../store/gameStore'
 import { ENEMIES } from '../data/enemies'
-import NotepadOverlay from '../components/overlays/NotepadOverlay'
-import EquipOverlay   from '../components/overlays/EquipOverlay'
+import RunHeader from '../components/layout/RunHeader'
 import s from './RunMapScreen.module.css'
 
 // ── Map geometry (mirrors Godot constants) ────────────────────────────────
@@ -21,13 +20,6 @@ function buildNodes(count: number): NodePos[] {
   })
 }
 
-function fmtRemaining(secs: number): string {
-  if (secs <= 0) return '00:00:00'
-  const h = Math.floor(secs / 3600)
-  const m = Math.floor((secs % 3600) / 60)
-  const sc = Math.floor(secs % 60)
-  return `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(sc).padStart(2,'0')}`
-}
 
 function getNodeAt(x: number, y: number, nodes: NodePos[]): number {
   for (const n of nodes) {
@@ -52,11 +44,6 @@ export default function RunMapScreen() {
   const [tooltipPos, setTooltipPos] = useState({ x: 0, y: 0 })
   const [popupIdx, setPopupIdx]     = useState(-1)
   const [popupPos, setPopupPos]     = useState({ x: 0, y: 0 })
-  const [showNotepad, setShowNotepad] = useState(false)
-  const [showEquip, setShowEquip]     = useState(false)
-  const [remaining, setRemaining]     = useState(() =>
-    selectRunRemainingSeconds(store as Parameters<typeof selectRunRemainingSeconds>[0])
-  )
   const expiredRef = useRef(false)
 
   const seq     = store.run_location_sequence
@@ -67,11 +54,10 @@ export default function RunMapScreen() {
     if (!store.run_active) navigate('/')
   }, [store.run_active, navigate])
 
-  // Timer tick + expiry check
+  // Expiry check — display timer is in RunHeader
   useEffect(() => {
     const id = setInterval(() => {
       const rem = selectRunRemainingSeconds(store as Parameters<typeof selectRunRemainingSeconds>[0])
-      setRemaining(rem)
       if (rem <= 0 && store.run_active && !expiredRef.current) {
         expiredRef.current = true
         store.endRunFailure()
@@ -231,21 +217,14 @@ export default function RunMapScreen() {
   const hoverEnemy = hoverLoc ? ENEMIES[hoverLoc.enemy_id] : null
   const popupLoc   = popupIdx >= 0 ? seq[popupIdx] : null
   const popupEnemy = popupLoc ? ENEMIES[popupLoc.enemy_id] : null
-  const isUrgent   = remaining < 7200  // < 2 hours
 
   return (
     <div className={s.root}>
-      {/* Top bar */}
-      <div className={s.topBar}>
-        <span className={s.runTitle}>Great Run #{store.run_count + 1}</span>
-        <span className={[s.timer, isUrgent ? s.urgent : ''].join(' ')}>
-          {fmtRemaining(remaining)}
-        </span>
-        <div className={s.topButtons}>
-          <button className={s.topBtn} onClick={() => setShowEquip(true)}>⚙ Equip</button>
-          <button className={s.topBtn} onClick={() => setShowNotepad(true)}>✏ Notes</button>
-        </div>
-      </div>
+      <RunHeader
+        hp={store.current_hp}       maxHp={store.maxHp()}
+        stamina={store.current_stamina} maxStamina={store.maxStamina()}
+        fp={store.current_fp}       maxFp={store.maxFp()}
+      />
 
       {/* Spiral map canvas */}
       <canvas
@@ -291,12 +270,9 @@ export default function RunMapScreen() {
         </>
       )}
 
-      {/* Overlays */}
-      {showNotepad && <NotepadOverlay onClose={() => setShowNotepad(false)} />}
-      {showEquip   && <EquipOverlay   onClose={() => setShowEquip(false)} />}
 
       {/* Run expired banner */}
-      {remaining <= 0 && (
+      {selectRunRemainingSeconds(store as Parameters<typeof selectRunRemainingSeconds>[0]) <= 0 && (
         <div style={{
           position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.85)',
           display: 'flex', alignItems: 'center', justifyContent: 'center',

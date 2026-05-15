@@ -1,0 +1,90 @@
+.header {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  padding: 8px 20px;
+  background: rgba(14, 11, 22, 0.92);
+  border-bottom: 1px solid var(--color-sep);
+  flex-shrink: 0;
+  z-index: 5;
+}
+
+/* ── Run info ─────────────────────────────────────────────────────────── */
+.runInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 130px;
+}
+
+.runTitle {
+  font-size: 0.72rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--color-gold-dim);
+}
+
+.timer {
+  font-size: 1.05rem;
+  letter-spacing: 0.1em;
+  color: var(--color-text-dim);
+  font-variant-numeric: tabular-nums;
+}
+
+.timer.urgent { color: var(--color-text-danger); }
+
+/* ── Resource bars ────────────────────────────────────────────────────── */
+.bars {
+  display: flex;
+  gap: 14px;
+  flex: 1;
+}
+
+.barGroup {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex: 1;
+}
+
+.barLabel {
+  font-size: 0.68rem;
+  letter-spacing: 0.1em;
+  color: var(--color-text-dim);
+  width: 28px;
+  text-align: right;
+  flex-shrink: 0;
+}
+
+.bar {
+  flex: 1;
+  height: 9px;
+  border-radius: 5px;
+  background: #0d0b13;
+  overflow: hidden;
+  border: 1px solid rgba(255,255,255,0.05);
+}
+
+.barFill {
+  height: 100%;
+  border-radius: 5px;
+  transition: width 0.2s ease;
+}
+
+.barVal {
+  font-size: 0.68rem;
+  color: var(--color-text-dim);
+  width: 32px;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ── Action buttons ───────────────────────────────────────────────────── */
+.actions {
+  display: flex;
+  gap: 8px;
+}
+
+.btn {
+  font-size: 0.82rem;
+  padding: 6px 14px;
+}

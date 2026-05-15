@@ -6,8 +6,7 @@ import { ENEMIES } from '../data/enemies'
 import { playSound } from '../engine/sound'
 import { WEAPONS, getWeaponMovesets } from '../data/weapons'
 import { MOVES } from '../data/movesets'
-import EquipOverlay   from '../components/overlays/EquipOverlay'
-import NotepadOverlay from '../components/overlays/NotepadOverlay'
+import RunHeader from '../components/layout/RunHeader'
 import TimerOverlay from '../components/combat/TimerOverlay'
 import EnemyDisplay from '../components/combat/EnemyDisplay'
 import EnemyBars    from '../components/combat/EnemyBars'
@@ -183,8 +182,6 @@ export default function CombatScreen() {
     navigate('/')
   }, [store, navigate, state.playerHp, state.playerEstus, state.weaponXpAccumulated])
 
-  const [showEquip, setShowEquip]     = useState(false)
-  const [showNotepad, setShowNotepad] = useState(false)
 
   // ── Radial action menu ────────────────────────────────────────────────
   const mobSvgRef = useRef<SVGSVGElement>(null)
@@ -319,27 +316,13 @@ export default function CombatScreen() {
 
   return (
     <div className={s.root}>
-      {/* ── Left panel ───────────────────────────────────────────────── */}
-      <div className={s.leftPanel}>
-        {/* Player stats — upper left */}
-        <div className={s.playerBarsSection}>
-          <PlayerBars
-            hp={state.playerHp} maxHp={state.playerMaxHp}
-            stamina={state.playerStamina} maxStamina={state.playerMaxStamina}
-            fp={state.playerFp} maxFp={state.playerMaxFp}
-            estus={state.playerEstus}
-          />
-        </div>
+      <RunHeader
+        hp={state.playerHp}      maxHp={state.playerMaxHp}
+        stamina={state.playerStamina} maxStamina={state.playerMaxStamina}
+        fp={state.playerFp}      maxFp={state.playerMaxFp}
+      />
 
-        {/* Equipment button */}
-        <div className={s.equipArea}>
-          <button className={s.equipBtn} onClick={() => setShowEquip(true)}>⚙ Equipment</button>
-          <button className={s.equipBtn} onClick={() => setShowNotepad(true)}>✏ Notes</button>
-        </div>
-
-      </div>
-
-      {/* ── Right area ───────────────────────────────────────────────── */}
+      {/* ── Main area ────────────────────────────────────────────────── */}
       <div className={s.right}>
         <div className={s.enemyZone}>
           <div className={s.displayWrapper}>
@@ -405,9 +388,6 @@ export default function CombatScreen() {
         </div>
       </div>
 
-      {/* ── Equip overlay ────────────────────────────────────────────── */}
-      {showEquip    && <EquipOverlay   onClose={() => setShowEquip(false)} />}
-      {showNotepad  && <NotepadOverlay onClose={() => setShowNotepad(false)} />}
 
       {/* ── Timer overlay ────────────────────────────────────────────── */}
       {state.phase === 'STEP_TIMER' && (
