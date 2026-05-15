@@ -185,7 +185,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
     get().save()
   },
 
-  setPendingEncounter: (loc) => set({ pending_encounter: loc }),
+  setPendingEncounter: (loc) => { set({ pending_encounter: loc }); get().save() },
   setPendingReward:    (id)  => set({ pending_run_reward: id }),
   syncCombatResult:    (hp, estus) => set({ current_hp: hp, run_estus_count: estus }),
 
