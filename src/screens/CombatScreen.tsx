@@ -1,14 +1,12 @@
 import { useReducer, useEffect, useCallback, useState, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { combatReducer, initCombatState, STAGGER_PAUSE_MS } from '../engine/combat'
+import { combatReducer, initCombatState, STAGGER_PAUSE_MS, STA_ROLL, STA_BLOCK, STA_PARRY } from '../engine/combat'
 import { useGameStore } from '../store/gameStore'
 import { ENEMIES } from '../data/enemies'
 import { playSound } from '../engine/sound'
 import { WEAPONS, getWeaponMovesets } from '../data/weapons'
 import { MOVES } from '../data/movesets'
 import EquipOverlay from '../components/overlays/EquipOverlay'
-import StepPanel    from '../components/combat/StepPanel'
-import DefensePanel from '../components/combat/DefensePanel'
 import TimerOverlay from '../components/combat/TimerOverlay'
 import EnemyDisplay from '../components/combat/EnemyDisplay'
 import EnemyBars    from '../components/combat/EnemyBars'
@@ -16,6 +14,33 @@ import PlayerBars   from '../components/combat/PlayerBars'
 import CombatLog    from '../components/combat/CombatLog'
 import RadialMenu, { type RadialItem } from '../components/combat/RadialMenu'
 import s from './CombatScreen.module.css'
+
+function fmtTime(secs: number): string {
+  const m = Math.floor(secs / 60), s = secs % 60
+  return m > 0 ? (s > 0 ? `${m}m ${s}s` : `${m}m`) : `${s}s`
+}
+
+// Static SVG icons for non-moveset radial actions
+const ICON_END_TURN = (
+  <svg viewBox="0 0 24 24" width={22} height={22} fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
+    <circle cx="12" cy="12" r="10"/>
+    <line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/>
+  </svg>
+)
+const ICON_TAKE_HIT = (
+  <svg viewBox="0 0 24 24" width={22} height={22} fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/>
+    <line x1="12" y1="9" x2="12" y2="13"/>
+    <circle cx="12" cy="17" r="1" fill="currentColor" stroke="none"/>
+  </svg>
+)
+const ICON_FLEE = (
+  <svg viewBox="0 0 24 24" width={22} height={22} fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/>
+    <polyline points="16 17 21 12 16 7"/>
+    <line x1="21" y1="12" x2="9" y2="12"/>
+  </svg>
+)
 
 // Pre-computed once — consistent splatter pattern every fight
 const BLOOD_DROPS = Array.from({ length: 20 }, (_, i) => {
@@ -163,37 +188,118 @@ export default function CombatScreen() {
   const [radialPos, setRadialPos] = useState<{ x: number; y: number } | null>(null)
 
   useEffect(() => {
-    if (state.phase !== 'PLAYER_ATTACK') setRadialPos(null)
+    if (state.phase !== 'PLAYER_ATTACK' && state.phase !== 'ENEMY_ATTACK') setRadialPos(null)
   }, [state.phase])
 
   const radialItems = useMemo<RadialItem[]>(() => {
-    if (!radialPos || state.phase !== 'PLAYER_ATTACK') return []
-    const weaponId = state.equippedWeapons[state.activeWeaponIdx] ?? state.equippedWeapons[0]
-    const weapon   = WEAPONS[weaponId]
-    const extra    = state.weaponExtraMovesets[weaponId] ?? []
-    const movesets = getWeaponMovesets(weaponId, extra)
-    const N        = movesets.length
-    const RADIUS   = 94
+    if (!radialPos) return []
+    const RADIUS = 94
 
-    return movesets.flatMap((moveset, i) => {
-      const isMidChain = state.chainMovesetId === moveset.id
-      const showIdx    = isMidChain ? state.chainStepIdx : 0
-      const step       = moveset.steps[showIdx]
-      if (!step) return []
-      const canUse = state.playerStamina >= moveset.stamina_cost
-      const dmg    = weapon
-        ? Math.floor(step.base_damage * (1 + state.playerStats[moveset.scaling_stat] * 0.004))
-        : step.base_damage
-      const angle = (i / N) * 2 * Math.PI - Math.PI / 2
-      return [{ moveset, step, stepIdx: showIdx, totalSteps: moveset.steps.length, canUse, dmg,
-        tx: Math.cos(angle) * RADIUS,
-        ty: Math.sin(angle) * RADIUS,
+    // ── Attack phase: movesets + End Turn ──────────────────────────────
+    if (state.phase === 'PLAYER_ATTACK') {
+      const weaponId = state.equippedWeapons[state.activeWeaponIdx] ?? state.equippedWeapons[0]
+      const weapon   = WEAPONS[weaponId]
+      const extra    = state.weaponExtraMovesets[weaponId] ?? []
+      const movesets = getWeaponMovesets(weaponId, extra)
+      const N        = movesets.length + 1  // +1 for End Turn
+
+      const attackItems: RadialItem[] = movesets.flatMap((moveset, i) => {
+        const isMidChain = state.chainMovesetId === moveset.id
+        const showIdx    = isMidChain ? state.chainStepIdx : 0
+        const step       = moveset.steps[showIdx]
+        if (!step) return []
+        const canUse = state.playerStamina >= moveset.stamina_cost
+        const dmg    = weapon
+          ? Math.floor(step.base_damage * (1 + state.playerStats[moveset.scaling_stat] * 0.004))
+          : step.base_damage
+        const prefix = moveset.steps.length > 1 ? `[${showIdx + 1}/${moveset.steps.length}] ` : ''
+        const angle  = (i / N) * 2 * Math.PI - Math.PI / 2
+        return [{
+          id: moveset.id, movesetId: moveset.id,
+          label: moveset.name,
+          sublabel: `${prefix}${step.name}`,
+          metaParts: [
+            { text: fmtTime(step.time) },
+            { text: `${dmg} dmg`, color: '#cc6644' },
+            { text: `${moveset.stamina_cost} STA`, color: 'var(--color-stamina)' },
+          ],
+          canUse, tx: Math.cos(angle) * RADIUS, ty: Math.sin(angle) * RADIUS,
+          onSelect: () => dispatch({ type: 'STEP_CLICKED', step, moveset, weaponId }),
+        }]
+      })
+
+      const endAngle = (movesets.length / N) * 2 * Math.PI - Math.PI / 2
+      return [...attackItems, {
+        id: 'end_turn', customIcon: ICON_END_TURN,
+        label: 'End Turn', sublabel: 'Pass to enemy', metaParts: [],
+        canUse: true,
+        tx: Math.cos(endAngle) * RADIUS, ty: Math.sin(endAngle) * RADIUS,
+        onSelect: () => dispatch({ type: 'END_TURN' }),
       }]
-    })
-  }, [radialPos, state])
+    }
+
+    // ── Defense phase ─────────────────────────────────────────────────
+    if (state.phase === 'ENEMY_ATTACK' && state.currentMove) {
+      const move      = state.currentMove
+      const guardBreak = state.playerStamina === 0
+      const wid       = state.equippedWeapons[0]
+      const weapon    = WEAPONS[wid]
+      const dodge     = move.dodge_task
+      const parryTask = move.parry_task
+      const blockMs   = weapon ? MOVES[weapon.defense_movesets.block]?.steps[0] : null
+      const parryMs   = weapon ? MOVES[weapon.defense_movesets.parry]?.steps[0] : null
+
+      const opts: Omit<RadialItem, 'tx' | 'ty'>[] = [
+        {
+          id: 'roll', movesetId: 'recovery_roll',
+          label: 'Roll',
+          sublabel: dodge ? `${dodge.name} · ${fmtTime(dodge.time)}` : '???',
+          metaParts: [{ text: `${STA_ROLL} STA` }, { text: '0 dmg', color: 'var(--color-text-success)' }],
+          canUse: !guardBreak && state.playerStamina >= STA_ROLL,
+          onSelect: () => dispatch({ type: 'DEFENSE_CHOSEN', action: 'roll' }),
+        },
+        {
+          id: 'block', movesetId: 'unarmed_block',
+          label: 'Block', sublabel: blockMs?.name,
+          metaParts: [{ text: `${STA_BLOCK} STA` }, { text: `${move.block_damage} dmg`, color: '#cc6644' }],
+          canUse: !guardBreak && state.playerStamina >= STA_BLOCK && !!blockMs,
+          onSelect: () => dispatch({ type: 'DEFENSE_CHOSEN', action: 'block' }),
+        },
+        {
+          id: 'parry', movesetId: 'unarmed_parry',
+          label: 'Parry',
+          sublabel: (parryTask && parryMs) ? `${parryTask.name} → ${parryMs.name}` : '???',
+          metaParts: [{ text: `${STA_PARRY} STA` }, { text: '0 dmg', color: 'var(--color-text-success)' }],
+          canUse: !guardBreak && state.playerStamina >= STA_PARRY && !!parryTask && !!parryMs,
+          onSelect: () => dispatch({ type: 'DEFENSE_CHOSEN', action: 'parry' }),
+        },
+        {
+          id: 'take', customIcon: ICON_TAKE_HIT,
+          label: 'Take Hit', sublabel: 'No task required',
+          metaParts: [{ text: `${move.damage} dmg`, color: '#cc6644' }],
+          canUse: true,
+          onSelect: () => dispatch({ type: 'DEFENSE_CHOSEN', action: 'take' }),
+        },
+        ...(!state.enemyData.is_boss ? [{
+          id: 'flee', customIcon: ICON_FLEE,
+          label: 'Flee', sublabel: 'Ends the run',
+          metaParts: [] as RadialItem['metaParts'],
+          canUse: true,
+          onSelect: () => dispatch({ type: 'DEFENSE_CHOSEN', action: 'flee' }),
+        }] : []),
+      ]
+
+      return opts.map((opt, i) => {
+        const angle = (i / opts.length) * 2 * Math.PI - Math.PI / 2
+        return { ...opt, tx: Math.cos(angle) * RADIUS, ty: Math.sin(angle) * RADIUS }
+      })
+    }
+
+    return []
+  }, [radialPos, state, dispatch])
 
   function handleDisplayClick(e: React.MouseEvent) {
-    if (state.phase !== 'PLAYER_ATTACK') return
+    if (state.phase !== 'PLAYER_ATTACK' && state.phase !== 'ENEMY_ATTACK') return
     setRadialPos({ x: e.clientX, y: e.clientY })
   }
 
@@ -211,21 +317,6 @@ export default function CombatScreen() {
             fp={state.playerFp} maxFp={state.playerMaxFp}
             estus={state.playerEstus}
           />
-        </div>
-
-        {/* Action panels */}
-        <div className={s.actionArea}>
-          {state.phase === 'PLAYER_ATTACK' && (
-            <StepPanel state={state} dispatch={dispatch} />
-          )}
-          {state.phase === 'ENEMY_ATTACK' && (
-            <DefensePanel state={state} dispatch={dispatch} />
-          )}
-          {state.phase === 'ENEMY_STAGGERED' && (
-            <div style={{ padding: 20, color: 'var(--color-text-dim)', fontSize: '0.85rem' }}>
-              Enemy is staggered…
-            </div>
-          )}
         </div>
 
         {/* Equipment button */}
@@ -266,7 +357,7 @@ export default function CombatScreen() {
           <div
             className={s.displayWrapper}
             onClick={handleDisplayClick}
-            style={{ cursor: state.phase === 'PLAYER_ATTACK' ? 'crosshair' : 'default' }}
+            style={{ cursor: (state.phase === 'PLAYER_ATTACK' || state.phase === 'ENEMY_ATTACK') ? 'crosshair' : 'default' }}
           >
             <div
               className={`${s.enemyArena} ${state.phase === 'VICTORY' ? s.arenaDefeated : ''}`}
@@ -335,10 +426,6 @@ export default function CombatScreen() {
           x={radialPos.x}
           y={radialPos.y}
           items={radialItems}
-          onSelect={(step, moveset) => {
-            const weaponId = state.equippedWeapons[state.activeWeaponIdx] ?? state.equippedWeapons[0]
-            dispatch({ type: 'STEP_CLICKED', step, moveset, weaponId })
-          }}
           onClose={() => setRadialPos(null)}
         />
       )}
