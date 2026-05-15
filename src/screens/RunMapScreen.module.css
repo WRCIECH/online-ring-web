@@ -34,14 +34,14 @@
 .topBar > * { pointer-events: auto; }
 
 .runTitle {
-  font-size: 0.75rem;
+  font-size: 1.05rem;
   letter-spacing: 0.2em;
   text-transform: uppercase;
   color: var(--color-gold-dim);
 }
 
 .timer {
-  font-size: 0.85rem;
+  font-size: 1.15rem;
   letter-spacing: 0.12em;
   color: var(--color-text-dim);
   font-variant-numeric: tabular-nums;
