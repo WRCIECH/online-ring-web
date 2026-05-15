@@ -17,13 +17,6 @@ export default function EnemyBars({ name, hp, maxHp, poise, maxPoise }: Props) {
         </div>
         <span className={s.val}>{hp}/{maxHp}</span>
       </div>
-      <div className={s.row}>
-        <span className={s.label}>POISE</span>
-        <div className={s.bar}>
-          <div className={`${s.fill} ${s.fillPoise}`} style={{ width: `${Math.max(0, poise / maxPoise * 100)}%` }} />
-        </div>
-        <span className={s.val}>{poise}/{maxPoise}</span>
-      </div>
     </div>
   )
 }

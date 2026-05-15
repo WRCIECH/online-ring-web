@@ -162,12 +162,23 @@ export default function EnemyDisplay({ enemyId, hp, maxHp }: Props) {
   const hpPct = Math.max(0, hp / maxHp)
   const isDead = hp <= 0
 
+  const gradId = `mobGlow-${enemyId}`
+
   return (
     <div className={s.root}>
       <svg viewBox={`${-W/2} ${-H*0.7} ${W} ${H}`} className={s.svg}
            style={{ opacity: isDead ? 0.3 : 0.85 + hpPct * 0.15 }}>
-        {/* ambient glow */}
-        <ellipse cx={0} cy={H*0.25} rx={90} ry={20} fill="rgba(100,60,160,0.12)"/>
+        <defs>
+          <radialGradient id={gradId} cx="50%" cy="45%" r="50%">
+            <stop offset="0%"   stopColor="#2e2255" stopOpacity="0.95"/>
+            <stop offset="60%"  stopColor="#1c1840" stopOpacity="0.70"/>
+            <stop offset="100%" stopColor="#1c1840" stopOpacity="0"/>
+          </radialGradient>
+        </defs>
+        {/* mob background halo */}
+        <ellipse cx={0} cy={-20} rx={108} ry={148} fill={`url(#${gradId})`}/>
+        {/* ground shadow */}
+        <ellipse cx={0} cy={H*0.25} rx={80} ry={16} fill="rgba(80,50,140,0.18)"/>
         <Art />
       </svg>
     </div>

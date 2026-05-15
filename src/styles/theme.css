@@ -1,7 +1,7 @@
 :root {
   /* Background */
-  --color-bg:           #100d16;
-  --color-bg-panel:     #1a1624;
+  --color-bg:           #161228;
+  --color-bg-panel:     #1e1a30;
   --color-bg-overlay:   rgba(0, 0, 0, 0.80);
 
   /* Gold / accent */

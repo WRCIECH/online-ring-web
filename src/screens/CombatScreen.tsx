@@ -124,24 +124,37 @@ export default function CombatScreen() {
     <div className={s.root}>
       {/* ── Left panel ───────────────────────────────────────────────── */}
       <div className={s.leftPanel}>
-        {state.phase === 'PLAYER_ATTACK' && (
-          <StepPanel state={state} dispatch={dispatch} />
-        )}
-        {state.phase === 'ENEMY_ATTACK' && (
-          <DefensePanel state={state} dispatch={dispatch} />
-        )}
-        {state.phase === 'ENEMY_STAGGERED' && (
-          <div style={{ padding: 20, color: 'var(--color-text-dim)', fontSize: '0.85rem' }}>
-            Enemy is staggered…
-          </div>
-        )}
+        {/* Player stats — upper left */}
+        <div className={s.playerBarsSection}>
+          <PlayerBars
+            hp={state.playerHp} maxHp={state.playerMaxHp}
+            stamina={state.playerStamina} maxStamina={state.playerMaxStamina}
+            fp={state.playerFp} maxFp={state.playerMaxFp}
+            estus={state.playerEstus}
+          />
+        </div>
+
+        {/* Action panels */}
+        <div className={s.actionArea}>
+          {state.phase === 'PLAYER_ATTACK' && (
+            <StepPanel state={state} dispatch={dispatch} />
+          )}
+          {state.phase === 'ENEMY_ATTACK' && (
+            <DefensePanel state={state} dispatch={dispatch} />
+          )}
+          {state.phase === 'ENEMY_STAGGERED' && (
+            <div style={{ padding: 20, color: 'var(--color-text-dim)', fontSize: '0.85rem' }}>
+              Enemy is staggered…
+            </div>
+          )}
+        </div>
 
         {/* Equipment button */}
         <div className={s.equipArea}>
           <button className={s.equipBtn} onClick={() => setShowEquip(true)}>⚙ Equipment</button>
         </div>
 
-      {/* Estus button — available during player turn */}
+        {/* Estus button */}
         {(state.phase === 'PLAYER_ATTACK' || state.phase === 'ENEMY_ATTACK') && (
           <div className={s.estusArea}>
             {confirmEstus ? (
@@ -171,12 +184,17 @@ export default function CombatScreen() {
       {/* ── Right area ───────────────────────────────────────────────── */}
       <div className={s.right}>
         <div className={s.enemyZone}>
-          <EnemyBars
-            name={enemyData.name}
-            hp={state.enemyHp} maxHp={state.enemyMaxHp}
-            poise={state.enemyPoise} maxPoise={state.enemyMaxPoise}
-          />
-          <EnemyDisplay enemyId={loc.enemy_id} hp={state.enemyHp} maxHp={state.enemyMaxHp} />
+          {/* Display wrapper: enemy art fills space, name+HP floats above it */}
+          <div className={s.displayWrapper}>
+            <EnemyDisplay enemyId={loc.enemy_id} hp={state.enemyHp} maxHp={state.enemyMaxHp} />
+            <div className={s.enemyBarOverlay}>
+              <EnemyBars
+                name={enemyData.name}
+                hp={state.enemyHp} maxHp={state.enemyMaxHp}
+                poise={state.enemyPoise} maxPoise={state.enemyMaxPoise}
+              />
+            </div>
+          </div>
           {state.currentMove && state.phase === 'ENEMY_ATTACK' && (
             <div className={s.moveLabel}>
               {state.currentMove.name} — {state.currentMove.description}
@@ -186,12 +204,6 @@ export default function CombatScreen() {
 
         <div className={s.bottomZone}>
           <CombatLog entries={state.log} />
-          <PlayerBars
-            hp={state.playerHp} maxHp={state.playerMaxHp}
-            stamina={state.playerStamina} maxStamina={state.playerMaxStamina}
-            fp={state.playerFp} maxFp={state.playerMaxFp}
-            estus={state.playerEstus}
-          />
         </div>
       </div>
 
