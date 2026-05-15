@@ -121,7 +121,7 @@ export default function RunMapScreen() {
       ctx.beginPath()
       ctx.moveTo(ns[i].x, ns[i].y)
       ctx.lineTo(ns[i+1].x, ns[i+1].y)
-      ctx.strokeStyle = beaten ? 'rgba(14,62,42,0.65)' : 'rgba(12,10,22,0.95)'
+      ctx.strokeStyle = beaten ? 'rgba(22,88,58,0.70)' : 'rgba(42,38,72,0.85)'
       ctx.lineWidth = 1.5
       ctx.stroke()
     }
@@ -133,13 +133,13 @@ export default function RunMapScreen() {
       const isBoss  = i === ns.length - 1
       const isHover = i === hoverIdx
 
-      let fillColor  = '#09091a'
-      let ringColor  = '#181628'
-      let labelColor = '#222038'
+      let fillColor  = '#12102a'
+      let ringColor  = '#38366a'
+      let labelColor = '#565490'
 
-      if (beaten)       { fillColor = '#081510'; ringColor = '#14503e'; labelColor = '#1e7a56' }
-      else if (active)  { fillColor = '#170f00'; ringColor = '#7a5a0c'; labelColor = '#a87e18' }
-      else if (isBoss)  { fillColor = '#130404'; ringColor = '#4a0e0e'; labelColor = '#7a2020' }
+      if (beaten)       { fillColor = '#0c1a14'; ringColor = '#1e6e50'; labelColor = '#2a9a6e' }
+      else if (active)  { fillColor = '#1a1200'; ringColor = '#8a6810'; labelColor = '#b89020' }
+      else if (isBoss)  { fillColor = '#160606'; ringColor = '#5c1212'; labelColor = '#8a2828' }
 
       const r = active ? NODE_R + 3 : NODE_R
 
