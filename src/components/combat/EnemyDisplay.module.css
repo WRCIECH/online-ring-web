@@ -10,5 +10,10 @@
 .svg {
   width: 100%;
   max-height: 300px;
-  transition: opacity 0.3s ease;
+  transition: opacity 0.3s ease, transform 0.25s ease, filter 0.25s ease;
+}
+
+.root:not(.corpse):hover .svg {
+  transform: scale(1.06);
+  filter: drop-shadow(0 0 10px rgba(180, 60, 60, 0.55)) brightness(1.15);
 }
