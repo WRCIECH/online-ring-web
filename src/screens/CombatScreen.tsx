@@ -184,15 +184,16 @@ export default function CombatScreen() {
       {/* ── Right area ───────────────────────────────────────────────── */}
       <div className={s.right}>
         <div className={s.enemyZone}>
-          {/* Display wrapper: enemy art fills space, name+HP floats above it */}
           <div className={s.displayWrapper}>
-            <EnemyDisplay enemyId={loc.enemy_id} hp={state.enemyHp} maxHp={state.enemyMaxHp} />
-            <div className={s.enemyBarOverlay}>
-              <EnemyBars
-                name={enemyData.name}
-                hp={state.enemyHp} maxHp={state.enemyMaxHp}
-                poise={state.enemyPoise} maxPoise={state.enemyMaxPoise}
-              />
+            <div className={s.enemyArena}>
+              <div className={s.enemyBarOverlay}>
+                <EnemyBars
+                  name={enemyData.name}
+                  hp={state.enemyHp} maxHp={state.enemyMaxHp}
+                  poise={state.enemyPoise} maxPoise={state.enemyMaxPoise}
+                />
+              </div>
+              <EnemyDisplay enemyId={loc.enemy_id} hp={state.enemyHp} maxHp={state.enemyMaxHp} />
             </div>
           </div>
           {state.currentMove && state.phase === 'ENEMY_ATTACK' && (
