@@ -6,7 +6,8 @@ import { ENEMIES } from '../data/enemies'
 import { playSound } from '../engine/sound'
 import { WEAPONS, getWeaponMovesets } from '../data/weapons'
 import { MOVES } from '../data/movesets'
-import EquipOverlay from '../components/overlays/EquipOverlay'
+import EquipOverlay   from '../components/overlays/EquipOverlay'
+import NotepadOverlay from '../components/overlays/NotepadOverlay'
 import TimerOverlay from '../components/combat/TimerOverlay'
 import EnemyDisplay from '../components/combat/EnemyDisplay'
 import EnemyBars    from '../components/combat/EnemyBars'
@@ -182,10 +183,11 @@ export default function CombatScreen() {
     navigate('/')
   }, [store, navigate, state.playerHp, state.playerEstus, state.weaponXpAccumulated])
 
-  const [showEquip, setShowEquip] = useState(false)
+  const [showEquip, setShowEquip]     = useState(false)
+  const [showNotepad, setShowNotepad] = useState(false)
 
   // ── Radial action menu ────────────────────────────────────────────────
-  const arenaRef = useRef<HTMLDivElement>(null)
+  const mobSvgRef = useRef<SVGSVGElement>(null)
   const [radialPos, setRadialPos] = useState<{ x: number; y: number; rx: number; ry: number } | null>(null)
 
   useEffect(() => {
@@ -303,7 +305,7 @@ export default function CombatScreen() {
 
   function handleDisplayClick() {
     if (state.phase !== 'PLAYER_ATTACK' && state.phase !== 'ENEMY_ATTACK') return
-    const rect = arenaRef.current?.getBoundingClientRect()
+    const rect = mobSvgRef.current?.getBoundingClientRect()
     if (!rect) return
     setRadialPos({
       x:  rect.left + rect.width  / 2,
@@ -332,6 +334,7 @@ export default function CombatScreen() {
         {/* Equipment button */}
         <div className={s.equipArea}>
           <button className={s.equipBtn} onClick={() => setShowEquip(true)}>⚙ Equipment</button>
+          <button className={s.equipBtn} onClick={() => setShowNotepad(true)}>✏ Notes</button>
         </div>
 
       </div>
@@ -341,7 +344,6 @@ export default function CombatScreen() {
         <div className={s.enemyZone}>
           <div className={s.displayWrapper}>
             <div
-              ref={arenaRef}
               className={`${s.enemyArena} ${state.phase === 'VICTORY' ? s.arenaDefeated : ''}`}
               onClick={state.phase === 'VICTORY' && !lootRevealed ? handleCorpseClick : undefined}
             >
@@ -358,6 +360,7 @@ export default function CombatScreen() {
                 maxHp={state.enemyMaxHp}
                 onClick={() => handleDisplayClick()}
                 cursor={(state.phase === 'PLAYER_ATTACK' || state.phase === 'ENEMY_ATTACK') ? 'crosshair' : undefined}
+                svgForwardRef={mobSvgRef}
               />
               {state.phase === 'VICTORY' && !lootRevealed && (
                 <div className={s.corpsePrompt}>⚔ Examine corpse</div>
@@ -403,7 +406,8 @@ export default function CombatScreen() {
       </div>
 
       {/* ── Equip overlay ────────────────────────────────────────────── */}
-      {showEquip && <EquipOverlay onClose={() => setShowEquip(false)} />}
+      {showEquip    && <EquipOverlay   onClose={() => setShowEquip(false)} />}
+      {showNotepad  && <NotepadOverlay onClose={() => setShowNotepad(false)} />}
 
       {/* ── Timer overlay ────────────────────────────────────────────── */}
       {state.phase === 'STEP_TIMER' && (

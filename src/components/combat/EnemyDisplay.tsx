@@ -9,6 +9,7 @@ interface Props {
   maxHp: number
   onClick?: React.MouseEventHandler<HTMLDivElement>
   cursor?: string
+  svgForwardRef?: React.RefObject<SVGSVGElement | null>
 }
 
 const W = 260, H = 300
@@ -182,7 +183,7 @@ const ART: Record<string, () => React.ReactElement> = {
 
 // ── Component ─────────────────────────────────────────────────────────────────
 
-export default function EnemyDisplay({ enemyId, hp, maxHp, onClick, cursor }: Props) {
+export default function EnemyDisplay({ enemyId, hp, maxHp, onClick, cursor, svgForwardRef }: Props) {
   const Art    = ART[enemyId] ?? BurnoutShade
   const hpPct  = Math.max(0, hp / maxHp)
   const isDead = hp <= 0
@@ -206,7 +207,10 @@ export default function EnemyDisplay({ enemyId, hp, maxHp, onClick, cursor }: Pr
       style={cursor ? { cursor } : undefined}
     >
       <svg
-        ref={svgRef}
+        ref={el => {
+          (svgRef as React.MutableRefObject<SVGSVGElement | null>).current = el
+          if (svgForwardRef) (svgForwardRef as React.MutableRefObject<SVGSVGElement | null>).current = el
+        }}
         viewBox={`${-W/2} ${-H*0.7} ${W} ${H}`}
         className={s.svg}
         style={{ opacity: isDead ? 0.3 : 0.85 + hpPct * 0.15 }}
