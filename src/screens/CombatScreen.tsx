@@ -1,4 +1,4 @@
-import { useReducer, useEffect, useCallback, useState, useMemo } from 'react'
+import { useReducer, useEffect, useCallback, useState, useMemo, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { combatReducer, initCombatState, STAGGER_PAUSE_MS, STA_ROLL, STA_BLOCK, STA_PARRY } from '../engine/combat'
 import { useGameStore } from '../store/gameStore'
@@ -185,7 +185,8 @@ export default function CombatScreen() {
   const [showEquip, setShowEquip] = useState(false)
 
   // ── Radial action menu ────────────────────────────────────────────────
-  const [radialPos, setRadialPos] = useState<{ x: number; y: number } | null>(null)
+  const arenaRef = useRef<HTMLDivElement>(null)
+  const [radialPos, setRadialPos] = useState<{ x: number; y: number; rx: number; ry: number } | null>(null)
 
   useEffect(() => {
     if (state.phase !== 'PLAYER_ATTACK' && state.phase !== 'ENEMY_ATTACK') setRadialPos(null)
@@ -193,7 +194,9 @@ export default function CombatScreen() {
 
   const radialItems = useMemo<RadialItem[]>(() => {
     if (!radialPos) return []
-    const RADIUS = 94
+    const MARGIN = 36          // px gap outside the oval edge
+    const rx = radialPos.rx + MARGIN
+    const ry = radialPos.ry + MARGIN
 
     // ── Attack phase: movesets + End Turn ──────────────────────────────
     if (state.phase === 'PLAYER_ATTACK') {
@@ -223,7 +226,7 @@ export default function CombatScreen() {
             { text: `${dmg} dmg`, color: '#cc6644' },
             { text: `${moveset.stamina_cost} STA`, color: 'var(--color-stamina)' },
           ],
-          canUse, tx: Math.cos(angle) * RADIUS, ty: Math.sin(angle) * RADIUS,
+          canUse, tx: Math.cos(angle) * rx, ty: Math.sin(angle) * ry,
           onSelect: () => dispatch({ type: 'STEP_CLICKED', step, moveset, weaponId }),
         }]
       })
@@ -233,7 +236,7 @@ export default function CombatScreen() {
         id: 'end_turn', customIcon: ICON_END_TURN,
         label: 'End Turn', sublabel: 'Pass to enemy', metaParts: [],
         canUse: true,
-        tx: Math.cos(endAngle) * RADIUS, ty: Math.sin(endAngle) * RADIUS,
+        tx: Math.cos(endAngle) * rx, ty: Math.sin(endAngle) * ry,
         onSelect: () => dispatch({ type: 'END_TURN' }),
       }]
     }
@@ -291,16 +294,23 @@ export default function CombatScreen() {
 
       return opts.map((opt, i) => {
         const angle = (i / opts.length) * 2 * Math.PI - Math.PI / 2
-        return { ...opt, tx: Math.cos(angle) * RADIUS, ty: Math.sin(angle) * RADIUS }
+        return { ...opt, tx: Math.cos(angle) * rx, ty: Math.sin(angle) * ry }
       })
     }
 
     return []
   }, [radialPos, state, dispatch])
 
-  function handleDisplayClick(e: React.MouseEvent) {
+  function handleDisplayClick() {
     if (state.phase !== 'PLAYER_ATTACK' && state.phase !== 'ENEMY_ATTACK') return
-    setRadialPos({ x: e.clientX, y: e.clientY })
+    const rect = arenaRef.current?.getBoundingClientRect()
+    if (!rect) return
+    setRadialPos({
+      x:  rect.left + rect.width  / 2,
+      y:  rect.top  + rect.height / 2,
+      rx: rect.width  / 2,
+      ry: rect.height / 2,
+    })
   }
 
   if (!loc || !enemyData) return null
@@ -331,6 +341,7 @@ export default function CombatScreen() {
         <div className={s.enemyZone}>
           <div className={s.displayWrapper}>
             <div
+              ref={arenaRef}
               className={`${s.enemyArena} ${state.phase === 'VICTORY' ? s.arenaDefeated : ''}`}
               onClick={state.phase === 'VICTORY' && !lootRevealed ? handleCorpseClick : undefined}
             >
@@ -345,7 +356,7 @@ export default function CombatScreen() {
                 enemyId={loc.enemy_id}
                 hp={state.enemyHp}
                 maxHp={state.enemyMaxHp}
-                onClick={handleDisplayClick}
+                onClick={() => handleDisplayClick()}
                 cursor={(state.phase === 'PLAYER_ATTACK' || state.phase === 'ENEMY_ATTACK') ? 'crosshair' : undefined}
               />
               {state.phase === 'VICTORY' && !lootRevealed && (
