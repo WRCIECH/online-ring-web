@@ -29,24 +29,6 @@
   color: var(--color-gold-text);
 }
 
-.tabBar {
-  display: flex;
-  gap: 4px;
-}
-
-.tab {
-  font-size: 0.82rem;
-  padding: 5px 18px;
-  border-radius: var(--radius) var(--radius) 0 0;
-  color: var(--color-text-dim);
-  border-color: var(--color-border);
-}
-
-.tab.active {
-  color: var(--color-gold-text);
-  border-color: var(--color-gold-dim);
-  background: rgba(230,191,51,0.06);
-}
 
 .textarea {
   flex: 1;

@@ -32,18 +32,21 @@ export function hasSave(): boolean {
   return localStorage.getItem(SAVE_KEY) !== null
 }
 
-// Notes storage (4 tabs)
-const NOTE_KEYS: Record<string, string> = {
-  Draft:    'notes_draft',
-  Ideas:    'notes_ideas',
-  Outline:  'notes_outline',
-  Research: 'notes_research',
+// Full notes log — append-only during gameplay, editable in the overlay
+const LOG_KEY = 'notes_log'
+
+export function loadLog(): string {
+  return localStorage.getItem(LOG_KEY) ?? ''
 }
 
-export function loadNote(tab: string): string {
-  return localStorage.getItem(NOTE_KEYS[tab] ?? 'notes_draft') ?? ''
+export function saveLog(content: string): void {
+  localStorage.setItem(LOG_KEY, content)
 }
 
-export function saveNote(tab: string, content: string): void {
-  localStorage.setItem(NOTE_KEYS[tab] ?? 'notes_draft', content)
+export function appendToLog(taskName: string, notes: string): void {
+  const text = notes.trim()
+  if (!text) return
+  const timestamp = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+  const header = `\n── ${taskName} · ${timestamp} ──\n`
+  localStorage.setItem(LOG_KEY, loadLog() + header + text + '\n')
 }

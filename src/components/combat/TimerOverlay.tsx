@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react'
 import type { CombatState, CombatAction } from '../../engine/combat'
-import { loadNote, saveNote } from '../../engine/save'
+import { appendToLog } from '../../engine/save'
 import s from './TimerOverlay.module.css'
 
 interface Props { state: CombatState; dispatch: React.Dispatch<CombatAction> }
@@ -13,7 +13,6 @@ function fmtTime(secs: number): string {
 export default function TimerOverlay({ state, dispatch }: Props) {
   const { stepTimer, stepTotal, stepStarted, timerExpired,
           timerIsDefense, pendingStep, defenseParryStep } = state
-  const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const textRef = useRef<HTMLTextAreaElement>(null)
 
   // rAF-based countdown
@@ -36,10 +35,9 @@ export default function TimerOverlay({ state, dispatch }: Props) {
     if (stepStarted && !timerExpired) textRef.current?.focus()
   }, [stepStarted, timerExpired])
 
-  // Debounced note save
-  function handleNoteChange(val: string) {
-    if (saveTimerRef.current) clearTimeout(saveTimerRef.current)
-    saveTimerRef.current = setTimeout(() => saveNote('Draft', val), 1500)
+  function flushNotes(accomplished: boolean) {
+    const text = textRef.current?.value ?? ''
+    if (accomplished && pendingStep) appendToLog(pendingStep.name, text)
   }
 
   const pct = stepTotal > 0 ? Math.max(0, stepTimer / stepTotal) : 0
@@ -69,8 +67,6 @@ export default function TimerOverlay({ state, dispatch }: Props) {
         <textarea
           ref={textRef}
           className={s.notes}
-          defaultValue={loadNote('Draft')}
-          onChange={e => handleNoteChange(e.target.value)}
           disabled={!isActive}
           placeholder={isActive ? 'Write your response here…' : 'Start the task to begin writing…'}
         />
@@ -96,8 +92,10 @@ export default function TimerOverlay({ state, dispatch }: Props) {
 
         {isActive && (
           <div className={s.actions}>
-            <button className={s.btnPrimary}
-              onClick={() => dispatch({ type: 'TIMER_RESULT', accomplished: true })}>
+            <button className={s.btnPrimary} onClick={() => {
+              flushNotes(true)
+              dispatch({ type: 'TIMER_RESULT', accomplished: true })
+            }}>
               Done!
             </button>
           </div>
@@ -107,12 +105,16 @@ export default function TimerOverlay({ state, dispatch }: Props) {
           <>
             <div className={s.expiredHint}>Did you complete the task?</div>
             <div className={s.confirmRow}>
-              <button className={s.btnYes}
-                onClick={() => dispatch({ type: 'TIMER_RESULT', accomplished: true })}>
+              <button className={s.btnYes} onClick={() => {
+                flushNotes(true)
+                dispatch({ type: 'TIMER_RESULT', accomplished: true })
+              }}>
                 Yes, I did it!
               </button>
-              <button className={s.btnNo}
-                onClick={() => dispatch({ type: 'TIMER_RESULT', accomplished: false })}>
+              <button className={s.btnNo} onClick={() => {
+                flushNotes(false)
+                dispatch({ type: 'TIMER_RESULT', accomplished: false })
+              }}>
                 No, I failed
               </button>
             </div>

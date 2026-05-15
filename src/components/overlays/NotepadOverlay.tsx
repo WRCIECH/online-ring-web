@@ -1,42 +1,21 @@
 import { useState, useCallback, useRef, useEffect } from 'react'
-import { loadNote, saveNote } from '../../engine/save'
+import { loadLog, saveLog } from '../../engine/save'
 import s from './NotepadOverlay.module.css'
-
-const TABS = ['Draft', 'Ideas', 'Outline', 'Research'] as const
-type Tab = typeof TABS[number]
-
-const HINTS: Record<Tab, string> = {
-  Draft:    'Write your piece here…',
-  Ideas:    'Dump raw ideas — no filter…',
-  Outline:  'Structure, sections, beats…',
-  Research: 'Facts, references, quotes…',
-}
 
 interface Props { onClose: () => void }
 
 export default function NotepadOverlay({ onClose }: Props) {
-  const [activeTab, setActiveTab] = useState<Tab>('Draft')
-  const [content, setContent]     = useState(() => loadNote('Draft'))
+  const [content, setContent] = useState(() => loadLog())
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
-  const currentTab = useRef<Tab>('Draft')
-
-  function switchTab(tab: Tab) {
-    // Flush current tab immediately before switching
-    saveNote(currentTab.current, content)
-    if (saveTimer.current) clearTimeout(saveTimer.current)
-    currentTab.current = tab
-    setActiveTab(tab)
-    setContent(loadNote(tab))
-  }
 
   const handleChange = useCallback((val: string) => {
     setContent(val)
     if (saveTimer.current) clearTimeout(saveTimer.current)
-    saveTimer.current = setTimeout(() => saveNote(currentTab.current, val), 1500)
+    saveTimer.current = setTimeout(() => saveLog(val), 1500)
   }, [])
 
   function handleClose() {
-    saveNote(currentTab.current, content)
+    saveLog(content)
     if (saveTimer.current) clearTimeout(saveTimer.current)
     onClose()
   }
@@ -45,36 +24,33 @@ export default function NotepadOverlay({ onClose }: Props) {
     navigator.clipboard.writeText(content)
   }
 
-  // Save on unmount
+  function handleClear() {
+    if (!confirm('Clear all notes? This cannot be undone.')) return
+    setContent('')
+    saveLog('')
+  }
+
   useEffect(() => () => {
-    saveNote(currentTab.current, content)
+    saveLog(content)
     if (saveTimer.current) clearTimeout(saveTimer.current)
   }, [content])
 
   return (
     <div className={s.overlay} onMouseDown={e => { if (e.target === e.currentTarget) handleClose() }}>
       <div className={s.panel}>
-        <div className={s.title}>✏ Notepad</div>
-        <div className={s.tabBar}>
-          {TABS.map(tab => (
-            <button
-              key={tab}
-              className={[s.tab, tab === activeTab ? s.active : ''].join(' ')}
-              onClick={() => switchTab(tab)}
-            >
-              {tab}
-            </button>
-          ))}
-        </div>
+        <div className={s.title}>✏ Notes</div>
         <hr />
         <textarea
           className={s.textarea}
           value={content}
           onChange={e => handleChange(e.target.value)}
-          placeholder={HINTS[activeTab]}
+          placeholder="Your notes will appear here after each completed task…"
         />
         <div className={s.footer}>
-          <button onClick={handleCopy}>Copy Tab</button>
+          <button onClick={handleClear} style={{ color: 'var(--color-text-danger)', marginRight: 'auto' }}>
+            Clear all
+          </button>
+          <button onClick={handleCopy}>Copy all</button>
           <button onClick={handleClose}>Close</button>
         </div>
       </div>
