@@ -81,8 +81,10 @@
 }
 
 .bottomZone {
-  padding: 8px 12px 12px;
+  display: flex;
+  flex-direction: column;
   border-top: 1px solid var(--color-sep);
+  min-height: 0;
 }
 
 /* ── Phase overlays ───────────────────────────────────────────────────────── */

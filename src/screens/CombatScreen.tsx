@@ -12,6 +12,7 @@ import EnemyDisplay from '../components/combat/EnemyDisplay'
 import EnemyBars    from '../components/combat/EnemyBars'
 import PlayerBars   from '../components/combat/PlayerBars'
 import CombatLog    from '../components/combat/CombatLog'
+import QuickBar     from '../components/combat/QuickBar'
 import RadialMenu, { type RadialItem } from '../components/combat/RadialMenu'
 import s from './CombatScreen.module.css'
 
@@ -181,8 +182,7 @@ export default function CombatScreen() {
     navigate('/')
   }, [store, navigate, state.playerHp, state.playerEstus, state.weaponXpAccumulated])
 
-  const [confirmEstus, setConfirmEstus] = useState(false)
-  const [showEquip, setShowEquip]       = useState(false)
+  const [showEquip, setShowEquip] = useState(false)
 
   // ── Radial action menu ────────────────────────────────────────────────
   const [radialPos, setRadialPos] = useState<{ x: number; y: number } | null>(null)
@@ -324,31 +324,6 @@ export default function CombatScreen() {
           <button className={s.equipBtn} onClick={() => setShowEquip(true)}>⚙ Equipment</button>
         </div>
 
-        {/* Estus button */}
-        {(state.phase === 'PLAYER_ATTACK' || state.phase === 'ENEMY_ATTACK') && (
-          <div className={s.estusArea}>
-            {confirmEstus ? (
-              <>
-                <span className={s.estusConfirmLabel}>Drink estus? (heals 40% HP)</span>
-                <div className={s.estusConfirmBtns}>
-                  <button className={s.estusYes} onClick={() => {
-                    dispatch({ type: 'USE_ESTUS' })
-                    setConfirmEstus(false)
-                  }}>Yes</button>
-                  <button onClick={() => setConfirmEstus(false)}>Cancel</button>
-                </div>
-              </>
-            ) : (
-              <button
-                className={s.estusBtn}
-                disabled={state.playerEstus <= 0}
-                onClick={() => setConfirmEstus(true)}
-              >
-                🧪 Drink Estus ({state.playerEstus})
-              </button>
-            )}
-          </div>
-        )}
       </div>
 
       {/* ── Right area ───────────────────────────────────────────────── */}
@@ -403,6 +378,13 @@ export default function CombatScreen() {
         </div>
 
         <div className={s.bottomZone}>
+          <QuickBar
+            equippedWeapons={state.equippedWeapons}
+            activeWeaponIdx={state.activeWeaponIdx}
+            playerEstus={state.playerEstus}
+            phase={state.phase}
+            dispatch={dispatch}
+          />
           <CombatLog entries={state.log} />
         </div>
       </div>
