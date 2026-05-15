@@ -6,7 +6,7 @@ import s from './TimerOverlay.module.css'
 interface Props { state: CombatState; dispatch: React.Dispatch<CombatAction> }
 
 function fmtTime(secs: number): string {
-  const m = Math.floor(secs / 60), sc = Math.ceil(secs % 60)
+  const m = Math.floor(secs / 60), sc = Math.floor(secs % 60)
   return m > 0 ? `${m}:${String(sc).padStart(2,'0')}` : String(sc)
 }
 
