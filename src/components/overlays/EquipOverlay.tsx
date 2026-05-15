@@ -3,6 +3,7 @@ import { useGameStore } from '../../store/gameStore'
 import type { GameStore } from '../../store/gameStore'
 import { WEAPONS } from '../../data/weapons'
 import { MOVES } from '../../data/movesets'
+import MovesetIcon from '../icons/MovesetIcon'
 import s from './EquipOverlay.module.css'
 
 type Store = GameStore
@@ -89,7 +90,7 @@ function WeaponCard({ weaponId, store, onPickSlot }: {
           const m = MOVES[mid]
           return (
             <div key={mid} className={`${s.slot} ${s.slotConstant}`}>
-              <div className={`${s.slotDot} ${s.dotConstant}`} />
+              <MovesetIcon movesetId={mid} size={22} className={s.slotIcon} />
               <div className={s.slotInfo}>
                 <div className={s.slotName}>{m?.name ?? mid}</div>
                 <div className={s.slotDesc}>{m?.steps[0]?.name}</div>
@@ -106,7 +107,7 @@ function WeaponCard({ weaponId, store, onPickSlot }: {
           if (m) {
             return (
               <div key={i} className={`${s.slot} ${s.slotFilled}`}>
-                <div className={`${s.slotDot} ${s.dotFilled}`} />
+                <MovesetIcon movesetId={assignedId} size={22} className={`${s.slotIcon} ${s.slotIconFilled}`} />
                 <div className={s.slotInfo}>
                   <div className={s.slotName}>{m.name}</div>
                   <div className={s.slotDesc}>{m.steps[0]?.name}</div>
@@ -172,8 +173,13 @@ function MovesetPicker({ weaponId, slotIdx, store, onClose }: {
               const m = MOVES[id]
               return (
                 <button key={id} className={s.pickerItem} onClick={() => pick(id)}>
-                  <span className={s.pickerName}>{m.name}</span>
-                  <span className={s.pickerStep}>{m.steps[0]?.name} · {m.stamina_cost} STA</span>
+                  <div className={s.pickerRow}>
+                    <MovesetIcon movesetId={id} size={20} className={s.pickerIcon} />
+                    <div>
+                      <div className={s.pickerName}>{m.name}</div>
+                      <div className={s.pickerStep}>{m.steps[0]?.name} · {m.stamina_cost} STA</div>
+                    </div>
+                  </div>
                 </button>
               )
             })

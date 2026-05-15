@@ -48,6 +48,9 @@
   letter-spacing: 0.08em;
   color: var(--color-text-dim);
   padding: 0 4px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
 }
 
 .stepBtn {

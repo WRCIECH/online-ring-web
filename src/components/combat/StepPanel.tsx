@@ -1,6 +1,7 @@
 import type { CombatState, CombatAction } from '../../engine/combat'
 import { getWeaponMovesets } from '../../data/weapons'
 import { WEAPONS } from '../../data/weapons'
+import MovesetIcon from '../icons/MovesetIcon'
 import s from './StepPanel.module.css'
 
 interface Props {
@@ -57,7 +58,10 @@ export default function StepPanel({ state, dispatch }: Props) {
 
           return (
             <div key={moveset.id} className={s.movesetGroup}>
-              <div className={s.movesetName}>{moveset.name}</div>
+              <div className={s.movesetName}>
+                <MovesetIcon movesetId={moveset.id} size={13} />
+                {moveset.name}
+              </div>
               <button
                 className={[s.stepBtn, !canUse ? s.disabled : '', isMidChain ? s.inChain : ''].join(' ')}
                 disabled={!canUse}

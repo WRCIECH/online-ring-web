@@ -145,6 +145,17 @@
 .dotFilled   { background: var(--color-gold); }
 .dotEmpty    { background: transparent; border: 1px solid var(--color-text-dim); }
 
+.slotIcon {
+  flex-shrink: 0;
+  color: var(--color-text-dim);
+  opacity: 0.75;
+}
+
+.slotIconFilled {
+  color: var(--color-gold-dim);
+  opacity: 1;
+}
+
 .slotInfo { flex: 1; min-width: 0; }
 
 .slotName {
@@ -230,15 +241,23 @@
   width: 100%;
   text-align: left;
   padding: 10px 12px;
-  display: flex;
-  flex-direction: column;
-  gap: 3px;
 }
 
 .pickerItem:hover { border-color: var(--color-gold-dim); background: #1e1a2a; }
 
+.pickerRow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.pickerIcon {
+  flex-shrink: 0;
+  color: var(--color-gold-dim);
+}
+
 .pickerName { font-size: 0.9rem; color: var(--color-gold-text); }
-.pickerStep { font-size: 0.75rem; color: var(--color-text-dim); }
+.pickerStep { font-size: 0.75rem; color: var(--color-text-dim); margin-top: 2px; }
 
 .noMovesets {
   font-size: 0.82rem;
