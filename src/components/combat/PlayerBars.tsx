@@ -4,7 +4,7 @@ interface Props {
   hp: number; maxHp: number
   stamina: number; maxStamina: number
   fp: number; maxFp: number
-  estus: number
+  estus?: number
 }
 
 function Bar({ pct, kind }: { pct: number; kind: string }) {
@@ -15,7 +15,7 @@ function Bar({ pct, kind }: { pct: number; kind: string }) {
   )
 }
 
-export default function PlayerBars({ hp, maxHp, stamina, maxStamina, fp, maxFp, estus }: Props) {
+export default function PlayerBars({ hp, maxHp, stamina, maxStamina, fp, maxFp }: Props) {
   return (
     <div className={s.root}>
       <div className={s.row}>

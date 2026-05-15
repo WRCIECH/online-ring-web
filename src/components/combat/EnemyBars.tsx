@@ -3,10 +3,10 @@ import s from './EnemyBars.module.css'
 interface Props {
   name: string
   hp: number; maxHp: number
-  poise: number; maxPoise: number
+  poise?: number; maxPoise?: number
 }
 
-export default function EnemyBars({ name, hp, maxHp, poise, maxPoise }: Props) {
+export default function EnemyBars({ name, hp, maxHp }: Props) {
   return (
     <div className={s.root}>
       <div className={s.name}>{name}</div>
