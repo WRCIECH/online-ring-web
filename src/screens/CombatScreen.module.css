@@ -7,7 +7,7 @@
 
 /* ── Left panel ───────────────────────────────────────────────────────────── */
 .leftPanel {
-  width: 320px;
+  width: 380px;
   flex-shrink: 0;
   border-right: 1px solid var(--color-sep);
   display: flex;
@@ -46,26 +46,26 @@
 
 .displayWrapper {
   flex: 1;
-  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
   min-height: 0;
+  padding: 12px 16px 0;
+  gap: 0;
 }
 
 .enemyBarOverlay {
-  position: absolute;
-  top: 10px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: min(380px, 88%);
-  z-index: 2;
-  pointer-events: none;
+  width: min(400px, 92%);
   background: rgba(8, 6, 18, 0.72);
   border-radius: var(--radius);
   border: 1px solid var(--color-border);
   backdrop-filter: blur(2px);
+  flex-shrink: 0;
 }
 
 .moveLabel {
-  font-size: 0.78rem;
+  font-size: 0.9rem;
   color: var(--color-text-dim);
   text-align: center;
   min-height: 2em;
@@ -153,8 +153,8 @@
 
 .equipBtn {
   width: 100%;
-  font-size: 0.78rem;
-  padding: 6px 12px;
+  font-size: 0.9rem;
+  padding: 8px 12px;
   color: var(--color-text-dim);
   border-style: dashed;
 }
@@ -172,8 +172,8 @@
 
 .estusBtn {
   width: 100%;
-  font-size: 0.82rem;
-  padding: 8px 12px;
+  font-size: 0.95rem;
+  padding: 10px 12px;
   color: #44aa88;
   border-color: #1a3a2a;
 }
@@ -181,7 +181,7 @@
 .estusBtn:hover:not(:disabled) { border-color: #44aa88; background: rgba(68,170,136,0.08); }
 
 .estusConfirmLabel {
-  font-size: 0.78rem;
+  font-size: 0.9rem;
   color: var(--color-text-dim);
 }
 
@@ -189,10 +189,10 @@
 
 .estusYes {
   flex: 1;
-  font-size: 0.82rem;
+  font-size: 0.95rem;
   color: #44aa88;
   border-color: #1a3a2a;
-  padding: 6px;
+  padding: 8px;
 }
 
 .estusYes:hover { border-color: #44aa88; background: rgba(68,170,136,0.1); }

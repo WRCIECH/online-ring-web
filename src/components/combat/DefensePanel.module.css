@@ -7,7 +7,7 @@
 }
 
 .header {
-  font-size: 0.65rem;
+  font-size: 0.75rem;
   letter-spacing: 0.2em;
   color: var(--color-text-dim);
   padding: 10px 8px 4px;
@@ -15,20 +15,20 @@
 }
 
 .attackName {
-  font-size: 1.1rem;
+  font-size: 1.25rem;
   color: var(--color-text-danger);
   padding: 0 8px 2px;
 }
 
 .attackDesc {
-  font-size: 0.78rem;
+  font-size: 0.9rem;
   color: var(--color-text-dim);
   padding: 0 8px 8px;
   line-height: 1.5;
 }
 
 .guardBreak {
-  font-size: 0.75rem;
+  font-size: 0.85rem;
   color: #ee9922;
   padding: 4px 8px;
   background: rgba(200,100,0,0.1);
@@ -60,5 +60,5 @@
 
 .disabled { opacity: 0.4; }
 
-.defTitle { font-size: 0.9rem; color: var(--color-text); }
-.defSub   { font-size: 0.72rem; color: var(--color-text-dim); line-height: 1.4; }
+.defTitle { font-size: 1.05rem; color: var(--color-text); }
+.defSub   { font-size: 0.85rem; color: var(--color-text-dim); line-height: 1.4; }

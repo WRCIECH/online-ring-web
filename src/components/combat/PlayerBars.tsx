@@ -33,12 +33,6 @@ export default function PlayerBars({ hp, maxHp, stamina, maxStamina, fp, maxFp, 
         <Bar pct={fp / maxFp} kind={s.fillFp} />
         <span className={s.val}>{fp}/{maxFp}</span>
       </div>
-      <div className={s.estus}>
-        {Array.from({ length: 3 }, (_, i) => (
-          <span key={i} className={`${s.flask} ${i < estus ? '' : s.flaskEmpty}`}>🧪</span>
-        ))}
-        <span className={s.estusCount}>{estus} remaining</span>
-      </div>
     </div>
   )
 }

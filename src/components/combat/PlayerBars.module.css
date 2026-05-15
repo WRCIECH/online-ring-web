@@ -15,18 +15,18 @@
 }
 
 .label {
-  font-size: 0.68rem;
+  font-size: 0.82rem;
   letter-spacing: 0.1em;
   color: var(--color-text-dim);
-  width: 32px;
+  width: 36px;
   text-align: right;
   flex-shrink: 0;
 }
 
 .bar {
   flex: 1;
-  height: 8px;
-  border-radius: 4px;
+  height: 10px;
+  border-radius: 5px;
   background: #0d0b13;
   overflow: hidden;
   border: 1px solid rgba(255,255,255,0.06);
@@ -43,9 +43,9 @@
 .fillFp  { background: var(--color-fp); }
 
 .val {
-  font-size: 0.68rem;
+  font-size: 0.82rem;
   color: var(--color-text-dim);
-  width: 48px;
+  width: 56px;
   font-variant-numeric: tabular-nums;
 }
 

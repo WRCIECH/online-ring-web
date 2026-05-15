@@ -6,7 +6,7 @@
 }
 
 .name {
-  font-size: 1.1rem;
+  font-size: 1.2rem;
   letter-spacing: 0.1em;
   color: var(--color-text-danger);
   margin-bottom: 4px;
@@ -19,7 +19,7 @@
 }
 
 .label {
-  font-size: 0.65rem;
+  font-size: 0.75rem;
   letter-spacing: 0.1em;
   color: var(--color-text-dim);
   width: 36px;
@@ -46,8 +46,8 @@
 .fillPoise { background: var(--color-poise); }
 
 .val {
-  font-size: 0.68rem;
+  font-size: 0.8rem;
   color: var(--color-text-dim);
-  width: 52px;
+  width: 58px;
   font-variant-numeric: tabular-nums;
 }
