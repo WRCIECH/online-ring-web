@@ -202,3 +202,97 @@
 }
 
 .estusYes:hover { border-color: #44aa88; background: rgba(68,170,136,0.1); }
+
+/* ── Corpse / arena defeated state ───────────────────────────────────────── */
+.arenaDefeated {
+  cursor: pointer;
+  border-color: rgba(100, 80, 20, 0.25);
+  box-shadow: 0 0 60px rgba(15, 10, 40, 0.5), inset 0 0 40px rgba(12, 8, 30, 0.3);
+}
+
+.corpsePrompt {
+  font-size: 0.85rem;
+  letter-spacing: 0.18em;
+  color: var(--color-gold-dim);
+  text-transform: uppercase;
+  cursor: pointer;
+  margin-top: 4px;
+  animation: corpsePromptPulse 1.6s ease-in-out infinite;
+}
+
+@keyframes corpsePromptPulse {
+  0%, 100% { opacity: 0.4; }
+  50%       { opacity: 1;   }
+}
+
+/* ── Loot reveal overlay ──────────────────────────────────────────────────── */
+.lootEnemyName {
+  font-size: 0.88rem;
+  color: var(--color-text-dim);
+  letter-spacing: 0.1em;
+}
+
+.lootRunes {
+  font-size: 1.15rem;
+  color: var(--color-gold);
+  letter-spacing: 0.12em;
+  animation: lootItemReveal 0.4s ease both;
+}
+
+.lootSection {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+  text-align: left;
+  border-top: 1px solid var(--color-sep);
+  border-bottom: 1px solid var(--color-sep);
+  padding: 12px 0;
+}
+
+.lootItem {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 0.92rem;
+  animation: lootItemReveal 0.35s ease both;
+  opacity: 0;
+  animation-fill-mode: both;
+}
+
+.lootObtained { color: var(--color-text); }
+.lootMissed   { color: var(--color-text-dim); filter: opacity(0.45); }
+
+.lootIcon { font-size: 0.85rem; width: 16px; flex-shrink: 0; }
+.lootObtained .lootIcon { color: var(--color-text-success); }
+.lootMissed .lootIcon   { color: var(--color-text-dim); }
+
+.lootName { flex: 1; }
+
+.lootType {
+  font-size: 0.72rem;
+  color: var(--color-text-dim);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.xpSection {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 0.82rem;
+  color: var(--color-gold-dim);
+  width: 100%;
+  text-align: left;
+}
+
+.xpItem {
+  opacity: 0;
+  animation: lootItemReveal 0.35s ease both;
+  animation-fill-mode: both;
+}
+
+@keyframes lootItemReveal {
+  from { transform: translateY(10px); opacity: 0; }
+  to   { transform: translateY(0);    opacity: 1; }
+}

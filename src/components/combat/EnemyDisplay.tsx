@@ -165,7 +165,7 @@ export default function EnemyDisplay({ enemyId, hp, maxHp }: Props) {
   const gradId = `mobGlow-${enemyId}`
 
   return (
-    <div className={s.root}>
+    <div className={`${s.root} ${isDead ? s.corpse : ''}`}>
       <svg viewBox={`${-W/2} ${-H*0.7} ${W} ${H}`} className={s.svg}
            style={{ opacity: isDead ? 0.3 : 0.85 + hpPct * 0.15 }}>
         <defs>

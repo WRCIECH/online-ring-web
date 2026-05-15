@@ -5,6 +5,7 @@ import { useGameStore } from '../store/gameStore'
 import { ENEMIES } from '../data/enemies'
 import { playSound } from '../engine/sound'
 import { WEAPONS } from '../data/weapons'
+import { MOVES } from '../data/movesets'
 import EquipOverlay from '../components/overlays/EquipOverlay'
 import StepPanel    from '../components/combat/StepPanel'
 import DefensePanel from '../components/combat/DefensePanel'
@@ -79,23 +80,44 @@ export default function CombatScreen() {
     if (state.timerExpired) playSound('TIMER_DONE')
   }, [state.timerExpired])
 
-  // ── Victory handler ────────────────────────────────────────────────────
-  const handleVictoryContinue = useCallback(() => {
-    if (!loc) return
-    store.syncCombatResult(state.playerHp, state.playerEstus)
-    store.flushWeaponXp(state.weaponXpAccumulated)
+  // ── Loot: compute drops once when VICTORY is entered ──────────────────
+  interface LootItem { id: string; name: string; type: 'weapon' | 'moveset'; obtained: boolean }
+  const [lootItems, setLootItems]       = useState<LootItem[] | null>(null)
+  const [lootRevealed, setLootRevealed] = useState(false)
+
+  useEffect(() => {
+    if (state.phase !== 'VICTORY' || !loc || lootItems !== null) return
     const enemy = ENEMIES[loc.enemy_id]
     const defeatedBefore = store.run_defeated_enemies.includes(loc.enemy_id)
-    enemy.drops.forEach(drop => {
-      const chance = defeatedBefore ? drop.repeat_chance : drop.first_kill_chance
-      if (Math.random() < chance) {
-        if (WEAPONS[drop.id]) store.unlockWeapon(drop.id)
-        else store.unlockMoveset(drop.id)
-        playSound('LOOT_DROP')
-      }
+    setLootItems(enemy.drops.map(drop => ({
+      id:       drop.id,
+      name:     WEAPONS[drop.id]?.name ?? MOVES[drop.id]?.name ?? drop.id,
+      type:     (WEAPONS[drop.id] ? 'weapon' : 'moveset') as 'weapon' | 'moveset',
+      obtained: Math.random() < (defeatedBefore ? drop.repeat_chance : drop.first_kill_chance),
+    })))
+  }, [state.phase, loc, store.run_defeated_enemies, lootItems])
+
+  function handleCorpseClick() {
+    if (state.phase !== 'VICTORY' || lootRevealed || !lootItems) return
+    setLootRevealed(true)
+    playSound('RUNE_GAIN')
+    lootItems.forEach((item, i) => {
+      if (item.obtained) setTimeout(() => playSound('LOOT_DROP'), i * 280 + 150)
+    })
+  }
+
+  // ── Victory handler ────────────────────────────────────────────────────
+  const handleVictoryContinue = useCallback(() => {
+    if (!loc || !lootItems) return
+    store.syncCombatResult(state.playerHp, state.playerEstus)
+    store.flushWeaponXp(state.weaponXpAccumulated)
+    lootItems.forEach(item => {
+      if (!item.obtained) return
+      if (item.type === 'weapon') store.unlockWeapon(item.id)
+      else store.unlockMoveset(item.id)
     })
     store.addDefeatedEnemy(loc.enemy_id)
-    // Check before advancing whether this is the last location
+    const enemy = ENEMIES[loc.enemy_id]
     const isLast = store.run_current_index >= store.run_location_sequence.length - 1
     store.advanceRun()
     if (isLast || enemy.is_remembrance) {
@@ -105,7 +127,7 @@ export default function CombatScreen() {
       store.setPendingEncounter(null)
       navigate('/map')
     }
-  }, [loc, store, navigate, state.playerHp, state.playerEstus, state.weaponXpAccumulated])
+  }, [loc, store, navigate, state.playerHp, state.playerEstus, state.weaponXpAccumulated, lootItems])
 
   // ── Defeat handler ─────────────────────────────────────────────────────
   const handleDefeat = useCallback(() => {
@@ -185,7 +207,10 @@ export default function CombatScreen() {
       <div className={s.right}>
         <div className={s.enemyZone}>
           <div className={s.displayWrapper}>
-            <div className={s.enemyArena}>
+            <div
+              className={`${s.enemyArena} ${state.phase === 'VICTORY' ? s.arenaDefeated : ''}`}
+              onClick={state.phase === 'VICTORY' && !lootRevealed ? handleCorpseClick : undefined}
+            >
               <div className={s.enemyBarOverlay}>
                 <EnemyBars
                   name={enemyData.name}
@@ -194,6 +219,9 @@ export default function CombatScreen() {
                 />
               </div>
               <EnemyDisplay enemyId={loc.enemy_id} hp={state.enemyHp} maxHp={state.enemyMaxHp} />
+              {state.phase === 'VICTORY' && !lootRevealed && (
+                <div className={s.corpsePrompt}>⚔ Examine corpse</div>
+              )}
             </div>
           </div>
           {state.currentMove && state.phase === 'ENEMY_ATTACK' && (
@@ -221,17 +249,45 @@ export default function CombatScreen() {
         <div className={s.staggerBanner}>STAGGERED!</div>
       )}
 
-      {/* ── Victory overlay ───────────────────────────────────────────── */}
-      {state.phase === 'VICTORY' && (
+      {/* ── Victory / loot reveal ─────────────────────────────────────── */}
+      {state.phase === 'VICTORY' && lootRevealed && lootItems && (
         <div className={s.endOverlay}>
           <div className={s.endBox}>
             <div className={`${s.endTitle} ${s.victoryTitle}`}>Victory</div>
-            <div className={s.endSub}>
-              {enemyData.name} has been defeated.<br/>
-              {enemyData.rune_reward} runes earned.
-            </div>
+            <div className={s.lootEnemyName}>{enemyData.name} defeated</div>
+
+            <div className={s.lootRunes}>✦ {enemyData.rune_reward} runes</div>
+
+            {lootItems.length > 0 && (
+              <div className={s.lootSection}>
+                {lootItems.map((item, i) => (
+                  <div
+                    key={item.id}
+                    className={`${s.lootItem} ${item.obtained ? s.lootObtained : s.lootMissed}`}
+                    style={{ animationDelay: `${i * 220}ms` }}
+                  >
+                    <span className={s.lootIcon}>{item.obtained ? '✓' : '○'}</span>
+                    <span className={s.lootName}>{item.name}</span>
+                    <span className={s.lootType}>{item.type}</span>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {Object.entries(state.weaponXpAccumulated).some(([, xp]) => xp > 0) && (
+              <div className={s.xpSection}>
+                {Object.entries(state.weaponXpAccumulated)
+                  .filter(([, xp]) => xp > 0)
+                  .map(([wid, xp], i) => (
+                    <div key={wid} className={s.xpItem} style={{ animationDelay: `${(lootItems.length + i) * 220}ms` }}>
+                      {WEAPONS[wid]?.name ?? wid} +{xp} XP
+                    </div>
+                  ))}
+              </div>
+            )}
+
             <button className={s.endBtn} onClick={handleVictoryContinue}>
-              {enemyData.is_remembrance ? 'Run Complete' : 'Continue'}
+              {enemyData.is_remembrance ? 'Run Complete' : 'Continue →'}
             </button>
           </div>
         </div>
