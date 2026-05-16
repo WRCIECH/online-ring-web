@@ -26,7 +26,7 @@ function Bar({ pct, color }: { pct: number; color: string }) {
   )
 }
 
-export default function RunHeader({ hp, stamina, fp }: Props) {
+export default function RunHeader({ hp, maxHp, stamina, maxStamina, fp, maxFp }: Props) {
   const store = useGameStore()
   const [remaining, setRemaining] = useState(() =>
     selectRunRemainingSeconds(store as Parameters<typeof selectRunRemainingSeconds>[0])
@@ -52,19 +52,19 @@ export default function RunHeader({ hp, stamina, fp }: Props) {
           <span className={[s.timer, isUrgent ? s.urgent : ''].join(' ')}>{fmtTime(remaining)}</span>
         </div>
 
-        {/* Resource bars — scaled to game caps (HP 3000, STA/FP 500) */}
+        {/* Resource bars — current / player's own max */}
         <div className={s.bars}>
           <div className={s.barGroup}>
             <span className={s.barLabel}>HP</span>
-            <Bar pct={hp / 3000} color="var(--color-hp)" />
+            <Bar pct={hp / maxHp} color="var(--color-hp)" />
           </div>
           <div className={s.barGroup}>
             <span className={s.barLabel}>STA</span>
-            <Bar pct={stamina / 500} color="var(--color-stamina)" />
+            <Bar pct={stamina / maxStamina} color="var(--color-stamina)" />
           </div>
           <div className={s.barGroup}>
             <span className={s.barLabel}>FP</span>
-            <Bar pct={fp / 500} color="var(--color-fp)" />
+            <Bar pct={fp / maxFp} color="var(--color-fp)" />
           </div>
         </div>
 
