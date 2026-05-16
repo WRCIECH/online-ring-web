@@ -18,10 +18,18 @@ function fmtTime(secs: number): string {
   return `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(sc).padStart(2,'0')}`
 }
 
-function Bar({ pct, color }: { pct: number; color: string }) {
+const HP_CAP  = 3000
+const STA_CAP = 500
+const FP_CAP  = 500
+
+function Bar({ current, playerMax, cap, color }: { current: number; playerMax: number; cap: number; color: string }) {
+  const maxPct  = Math.min(100, playerMax / cap * 100)
+  const fillPct = playerMax > 0 ? Math.min(100, current / playerMax * 100) : 0
   return (
-    <div className={s.bar}>
-      <div className={s.barFill} style={{ width: `${Math.max(0, Math.min(100, pct * 100))}%`, background: color }} />
+    <div className={s.barTrack}>
+      <div className={s.barMax} style={{ width: `${maxPct}%` }}>
+        <div className={s.barFill} style={{ width: `${fillPct}%`, background: color }} />
+      </div>
     </div>
   )
 }
@@ -52,19 +60,18 @@ export default function RunHeader({ hp, maxHp, stamina, maxStamina, fp, maxFp }:
           <span className={[s.timer, isUrgent ? s.urgent : ''].join(' ')}>{fmtTime(remaining)}</span>
         </div>
 
-        {/* Resource bars — current / player's own max */}
         <div className={s.bars}>
           <div className={s.barGroup}>
             <span className={s.barLabel}>HP</span>
-            <Bar pct={hp / maxHp} color="var(--color-hp)" />
+            <Bar current={hp} playerMax={maxHp} cap={HP_CAP} color="var(--color-hp)" />
           </div>
           <div className={s.barGroup}>
             <span className={s.barLabel}>STA</span>
-            <Bar pct={stamina / maxStamina} color="var(--color-stamina)" />
+            <Bar current={stamina} playerMax={maxStamina} cap={STA_CAP} color="var(--color-stamina)" />
           </div>
           <div className={s.barGroup}>
             <span className={s.barLabel}>FP</span>
-            <Bar pct={fp / maxFp} color="var(--color-fp)" />
+            <Bar current={fp} playerMax={maxFp} cap={FP_CAP} color="var(--color-fp)" />
           </div>
         </div>
 
