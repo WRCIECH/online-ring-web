@@ -277,9 +277,10 @@ export function combatReducer(state: CombatState, action: CombatAction): CombatS
               // Step 1 done — start step 2
               const task = getDefenseTask(state, 'parry', 1)
               const total = Math.max((task as Step)?.time ?? 20, 1)
+              const step2: Step = { name: (task as Step)?.name ?? '', time: total, base_damage: 0, poise_damage: 0 }
               let s = log({ ...state, playerStamina: Math.max(0, state.playerStamina - STA_PARRY / 2) },
                 'Parry step 1 done! Now the counter-move…', '#88cc44')
-              return { ...s, defenseParryStep: 1, stepTimer: total, stepTotal: total, stepStarted: false, timerExpired: false }
+              return { ...s, defenseParryStep: 1, pendingStep: step2, stepTimer: total, stepTotal: total, stepStarted: false, timerExpired: false }
             } else {
               // Step 2 done — perfect parry
               const sta = Math.max(0, state.playerStamina - STA_PARRY / 2)
