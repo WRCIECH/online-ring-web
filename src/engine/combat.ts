@@ -3,9 +3,9 @@ import { ENEMY_MOVES } from '../data/enemyMovesets'
 import { MOVES } from '../data/movesets'
 import { WEAPONS, calcStepDamage, getWeaponMovesets } from '../data/weapons'
 
-export const STA_ROLL        = 15
-export const STA_BLOCK       = 20
-export const STA_PARRY       = 25
+export const STA_ROLL        = 6
+export const STA_BLOCK       = 10
+export const STA_PARRY       = 12
 export const STAGGER_PAUSE_MS = 1500
 
 export interface LogEntry { id: number; text: string; color?: string }
@@ -282,12 +282,14 @@ export function combatReducer(state: CombatState, action: CombatAction): CombatS
                 'Parry step 1 done! Now the counter-move…', '#88cc44')
               return { ...s, defenseParryStep: 1, pendingStep: step2, stepTimer: total, stepTotal: total, stepStarted: false, timerExpired: false }
             } else {
-              // Step 2 done — perfect parry
-              const sta = Math.max(0, state.playerStamina - STA_PARRY / 2)
-              const poiseDmg = move.poise_damage
-              const newPoise = Math.max(0, state.enemyPoise - poiseDmg)
-              let s = log({ ...state, playerStamina: sta, enemyPoise: newPoise },
-                'Perfect parry! No damage — enemy poise broken.', '#44ee44')
+              // Step 2 done — perfect parry: counter-damage + poise break
+              const sta        = Math.max(0, state.playerStamina - STA_PARRY / 2)
+              const counterDmg = move.damage
+              const newHp      = Math.max(0, state.enemyHp - counterDmg)
+              const newPoise   = Math.max(0, state.enemyPoise - move.poise_damage)
+              let s = log({ ...state, playerStamina: sta, enemyHp: newHp, enemyPoise: newPoise },
+                `Perfect parry! ${counterDmg} counter-damage dealt.`, '#44ee44')
+              if (newHp <= 0) return { ...s, phase: 'VICTORY' }
               if (newPoise <= 0) return { ...s, enemyPoise: 0, phase: 'ENEMY_STAGGERED' }
               return enterPlayerAttack(s)
             }
