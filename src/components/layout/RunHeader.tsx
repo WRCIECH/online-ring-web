@@ -26,7 +26,7 @@ function Bar({ pct, color }: { pct: number; color: string }) {
   )
 }
 
-export default function RunHeader({ hp, maxHp, stamina, maxStamina, fp, maxFp }: Props) {
+export default function RunHeader({ hp, stamina, fp }: Props) {
   const store = useGameStore()
   const [remaining, setRemaining] = useState(() =>
     selectRunRemainingSeconds(store as Parameters<typeof selectRunRemainingSeconds>[0])
