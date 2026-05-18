@@ -3,7 +3,7 @@ import { useGameStore } from '../../store/gameStore'
 import type { GameStore } from '../../store/gameStore'
 import { WEAPONS } from '../../data/weapons'
 import { MOVES } from '../../data/movesets'
-import type { WeaponInstance, WeaponRarity } from '../../types/game'
+import type { WeaponInstance, WeaponRarity, GeneratedMoveset } from '../../types/game'
 import { WEAPON_KILL_THRESHOLDS } from '../../data/generators/weaponGenerator'
 import MovesetIcon from '../icons/MovesetIcon'
 import WeaponSprite from '../icons/WeaponSprite'
@@ -56,6 +56,11 @@ export default function EquipOverlay({ onClose }: Props) {
 
 // ── Weapon card ──────────────────────────────────────────────────────────────
 
+function fmtStepTime(secs: number): string {
+  const m = Math.floor(secs / 60), r = secs % 60
+  return m > 0 ? (r > 0 ? `${m}m ${r}s` : `${m}m`) : `${secs}s`
+}
+
 function WeaponCard({ weaponId, store, onPickSlot }: {
   weaponId: string
   store: Store
@@ -76,11 +81,21 @@ function WeaponCard({ weaponId, store, onPickSlot }: {
   const skillSlots  = wi.skill_slots ?? weapon.moveset_slots
   const totalExtra  = skillSlots
 
+  const [msTooltip, setMsTooltip] = useState<{ id: string; x: number; y: number } | null>(null)
+
+  function handleMsEnter(e: React.MouseEvent<HTMLDivElement>, movesetId: string) {
+    const rect = (e.currentTarget as HTMLDivElement).getBoundingClientRect()
+    setMsTooltip({ id: movesetId, x: rect.right + 10, y: rect.top })
+  }
+
   function removeSlot(idx: number) {
     const updated = [...extraSlots]
     updated[idx] = ''
     store.setWeaponExtraMovesets(weaponId, updated)
   }
+
+  const tipMoveset = msTooltip ? MOVES[msTooltip.id] : null
+  const tipGm = tipMoveset && 'variant_type' in tipMoveset ? tipMoveset as GeneratedMoveset : null
 
   return (
     <div className={s.weaponCard}>
@@ -118,7 +133,12 @@ function WeaponCard({ weaponId, store, onPickSlot }: {
         {weapon.constant_movesets.map(mid => {
           const m = MOVES[mid]
           return (
-            <div key={mid} className={`${s.slot} ${s.slotConstant}`}>
+            <div
+              key={mid}
+              className={`${s.slot} ${s.slotConstant}`}
+              onMouseEnter={e => m && handleMsEnter(e, mid)}
+              onMouseLeave={() => setMsTooltip(null)}
+            >
               <MovesetIcon movesetId={mid} size={22} className={s.slotIcon} />
               <div className={s.slotInfo}>
                 <div className={s.slotName}>{m?.name ?? mid}</div>
@@ -135,7 +155,12 @@ function WeaponCard({ weaponId, store, onPickSlot }: {
           const m = assignedId ? MOVES[assignedId] : null
           if (m) {
             return (
-              <div key={i} className={`${s.slot} ${s.slotFilled}`}>
+              <div
+                key={i}
+                className={`${s.slot} ${s.slotFilled}`}
+                onMouseEnter={e => handleMsEnter(e, assignedId)}
+                onMouseLeave={() => setMsTooltip(null)}
+              >
                 <MovesetIcon movesetId={assignedId} size={22} className={`${s.slotIcon} ${s.slotIconFilled}`} />
                 <div className={s.slotInfo}>
                   <div className={s.slotName}>{m.name}</div>
@@ -153,6 +178,32 @@ function WeaponCard({ weaponId, store, onPickSlot }: {
           )
         })}
       </div>
+
+      {/* Moveset hover tooltip */}
+      {msTooltip && tipMoveset && (
+        <div className={s.msTooltip} style={{ left: msTooltip.x, top: msTooltip.y }}>
+          <div className={s.msTipName}>{tipMoveset.name}</div>
+          {tipGm && (
+            <div className={s.msTipMeta}>
+              <span>{tipGm.variant_type}</span>
+              <span style={{ color: RARITY_COLOURS[tipGm.rarity] }}>{tipGm.rarity}</span>
+            </div>
+          )}
+          <div className={s.msTipSteps}>
+            {tipMoveset.steps.map((step, i) => (
+              <div key={i} className={s.msTipStep}>
+                <span className={s.msTipNum}>{i + 1}.</span>
+                <span className={s.msTipStepName}>{step.name}</span>
+                <span className={s.msTipTime}>{fmtStepTime(step.time)}</span>
+              </div>
+            ))}
+          </div>
+          <div className={s.msTipCost}>
+            <span style={{ color: 'var(--color-stamina)' }}>{tipMoveset.stamina_cost} STA</span>
+            {tipMoveset.fp_cost ? <span style={{ color: 'var(--color-fp)' }}>{tipMoveset.fp_cost} FP</span> : null}
+          </div>
+        </div>
+      )}
     </div>
   )
 }

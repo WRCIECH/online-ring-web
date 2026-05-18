@@ -289,3 +289,78 @@
   padding: 12px 0;
   text-align: center;
 }
+
+/* ── Moveset hover tooltip ───────────────────────────────────────────────── */
+.msTooltip {
+  position: fixed;
+  z-index: 40;
+  background: var(--color-bg-panel);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  padding: 10px 14px;
+  pointer-events: none;
+  min-width: 220px;
+  max-width: 320px;
+  box-shadow: 0 6px 24px rgba(0,0,0,0.55);
+}
+
+.msTipName {
+  font-size: 0.88rem;
+  color: var(--color-gold-text);
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.msTipMeta {
+  display: flex;
+  gap: 8px;
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--color-text-dim);
+  margin-bottom: 8px;
+}
+
+.msTipSteps {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  margin-bottom: 8px;
+  border-top: 1px solid var(--color-sep);
+  padding-top: 6px;
+}
+
+.msTipStep {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  font-size: 0.76rem;
+}
+
+.msTipNum {
+  color: var(--color-text-dim);
+  font-variant-numeric: tabular-nums;
+  flex-shrink: 0;
+  width: 14px;
+}
+
+.msTipStepName {
+  flex: 1;
+  color: var(--color-text);
+  line-height: 1.4;
+}
+
+.msTipTime {
+  color: var(--color-text-dim);
+  font-variant-numeric: tabular-nums;
+  flex-shrink: 0;
+  font-size: 0.7rem;
+}
+
+.msTipCost {
+  display: flex;
+  gap: 10px;
+  font-size: 0.72rem;
+  border-top: 1px solid var(--color-sep);
+  padding-top: 5px;
+}

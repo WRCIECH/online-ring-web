@@ -11,6 +11,7 @@ export interface RadialItem {
   sublabel?: string
   metaParts?: Array<{ text: string; color?: string }>
   canUse: boolean
+  disabledReason?: string
   tx: number
   ty: number
   onSelect: () => void
@@ -44,7 +45,6 @@ export default function RadialMenu({ x, y, items, onClose }: Props) {
         <button
           key={item.id}
           className={`${s.item} ${!item.canUse ? s.itemDisabled : ''}`}
-          disabled={!item.canUse}
           style={{
             top:  y,
             left: x,
@@ -54,7 +54,7 @@ export default function RadialMenu({ x, y, items, onClose }: Props) {
           } as React.CSSProperties}
           onMouseEnter={() => setHoveredId(item.id)}
           onMouseLeave={() => setHoveredId(null)}
-          onClick={e => { e.stopPropagation(); item.onSelect(); onClose() }}
+          onClick={e => { e.stopPropagation(); if (item.canUse) { item.onSelect(); onClose() } }}
         >
           {item.movesetId
             ? <MovesetIcon movesetId={item.movesetId} size={22} />
@@ -78,6 +78,9 @@ export default function RadialMenu({ x, y, items, onClose }: Props) {
                 <span key={i} style={p.color ? { color: p.color } : undefined}>{p.text}</span>
               ))}
             </div>
+          )}
+          {!hoveredItem.canUse && hoveredItem.disabledReason && (
+            <div className={s.tooltipDisabled}>{hoveredItem.disabledReason}</div>
           )}
         </div>
       )}

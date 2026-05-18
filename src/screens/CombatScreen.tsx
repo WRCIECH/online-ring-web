@@ -255,6 +255,8 @@ export default function CombatScreen() {
         const step       = moveset.steps[showIdx]
         if (!step) return []
         const canUse = state.playerStamina >= moveset.stamina_cost
+        const disabledReason = canUse ? undefined
+          : `Need ${moveset.stamina_cost} STA (have ${Math.floor(state.playerStamina)})`
         const dmg    = weapon
           ? Math.floor(step.base_damage * (1 + state.playerStats[moveset.scaling_stat] * 0.004))
           : step.base_damage
@@ -269,7 +271,7 @@ export default function CombatScreen() {
             { text: `${dmg} dmg`, color: '#cc6644' },
             { text: `${moveset.stamina_cost} STA`, color: 'var(--color-stamina)' },
           ],
-          canUse, tx: Math.cos(angle) * rx, ty: Math.sin(angle) * ry,
+          canUse, disabledReason, tx: Math.cos(angle) * rx, ty: Math.sin(angle) * ry,
           onSelect: () => dispatch({ type: 'STEP_CLICKED', step, moveset, weaponId }),
         }]
       })
@@ -295,6 +297,7 @@ export default function CombatScreen() {
       const blockMs   = weapon ? MOVES[weapon.defense_movesets.block]?.steps[0] : null
       const parryMs   = weapon ? MOVES[weapon.defense_movesets.parry]?.steps[0] : null
 
+      const sta = Math.floor(state.playerStamina)
       const opts: Omit<RadialItem, 'tx' | 'ty'>[] = [
         {
           id: 'roll', movesetId: 'recovery_roll',
@@ -302,6 +305,7 @@ export default function CombatScreen() {
           sublabel: dodge ? `${dodge.name} · ${fmtTime(dodge.time)}` : '???',
           metaParts: [{ text: `${STA_ROLL} STA` }, { text: '0 dmg', color: 'var(--color-text-success)' }],
           canUse: !guardBreak && state.playerStamina >= STA_ROLL,
+          disabledReason: guardBreak ? 'Guard broken' : state.playerStamina < STA_ROLL ? `Need ${STA_ROLL} STA (have ${sta})` : undefined,
           onSelect: () => dispatch({ type: 'DEFENSE_CHOSEN', action: 'roll' }),
         },
         {
@@ -309,6 +313,7 @@ export default function CombatScreen() {
           label: 'Block', sublabel: blockMs?.name,
           metaParts: [{ text: `${STA_BLOCK} STA` }, { text: `${move.block_damage} dmg`, color: '#cc6644' }],
           canUse: !guardBreak && state.playerStamina >= STA_BLOCK && !!blockMs,
+          disabledReason: guardBreak ? 'Guard broken' : state.playerStamina < STA_BLOCK ? `Need ${STA_BLOCK} STA (have ${sta})` : !blockMs ? 'No block moveset' : undefined,
           onSelect: () => dispatch({ type: 'DEFENSE_CHOSEN', action: 'block' }),
         },
         {
@@ -317,6 +322,7 @@ export default function CombatScreen() {
           sublabel: (parryTask && parryMs) ? `${parryTask.name} → ${parryMs.name}` : '???',
           metaParts: [{ text: `${STA_PARRY} STA` }, { text: '0 dmg', color: 'var(--color-text-success)' }],
           canUse: !guardBreak && state.playerStamina >= STA_PARRY && !!parryTask && !!parryMs,
+          disabledReason: guardBreak ? 'Guard broken' : state.playerStamina < STA_PARRY ? `Need ${STA_PARRY} STA (have ${sta})` : (!parryTask || !parryMs) ? 'No parry moveset' : undefined,
           onSelect: () => dispatch({ type: 'DEFENSE_CHOSEN', action: 'parry' }),
         },
         {

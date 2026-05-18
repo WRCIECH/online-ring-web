@@ -96,6 +96,40 @@
   line-height: 1;
 }
 
+/* Weapon hover tooltip */
+.weaponTooltip {
+  position: fixed;
+  transform: translate(-50%, -100%);
+  z-index: 20;
+  background: var(--color-bg-panel);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  padding: 7px 12px;
+  pointer-events: none;
+  white-space: nowrap;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.5);
+}
+
+.tipName {
+  font-size: 0.84rem;
+  color: var(--color-gold-text);
+  font-weight: 600;
+  margin-bottom: 2px;
+}
+
+.tipSub {
+  font-size: 0.72rem;
+  color: var(--color-text-dim);
+  text-transform: capitalize;
+}
+
+.tipHint {
+  font-size: 0.68rem;
+  color: var(--color-text-dim);
+  opacity: 0.6;
+  margin-top: 3px;
+}
+
 /* Separator between weapons and items */
 .divider {
   width: 1px;
