@@ -3,11 +3,15 @@ import type { GameState } from '../types/game'
 const SAVE_KEY = 'online_ring_save'
 const BACKUP_KEY = 'online_ring_save_backup'
 
+// Bump this whenever the GameState schema changes in a breaking way.
+// Any save with a different version is silently discarded.
+const SAVE_VERSION = 2
+
 export function saveGame(state: GameState): void {
   try {
     const existing = localStorage.getItem(SAVE_KEY)
     if (existing) localStorage.setItem(BACKUP_KEY, existing)
-    localStorage.setItem(SAVE_KEY, JSON.stringify({ ...state, saved_at: Date.now() }))
+    localStorage.setItem(SAVE_KEY, JSON.stringify({ ...state, save_version: SAVE_VERSION, saved_at: Date.now() }))
   } catch {
     console.warn('Save failed')
   }
@@ -17,7 +21,13 @@ export function loadGame(): GameState | null {
   try {
     const raw = localStorage.getItem(SAVE_KEY) ?? localStorage.getItem(BACKUP_KEY)
     if (!raw) return null
-    return JSON.parse(raw) as GameState
+    const parsed = JSON.parse(raw)
+    if (parsed.save_version !== SAVE_VERSION) {
+      localStorage.removeItem(SAVE_KEY)
+      localStorage.removeItem(BACKUP_KEY)
+      return null
+    }
+    return parsed as GameState
   } catch {
     return null
   }

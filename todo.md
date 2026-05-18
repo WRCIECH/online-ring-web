@@ -132,12 +132,6 @@ Spec §14 open question: bonus after N consecutive completed dungeons (e.g. unlo
 
 ## Technical debt & code quality
 
-### Old saves missing `sublocation_type` on location nodes
-Old `run_location_sequence` entries won't have `sublocation_type`. The code fallbacks gracefully with `?? 'mob'` in the map but the popup/event code will silently treat everything as a mob encounter. Add a migration check in `hydrateRegistries` or on `startRun`.
-
-### `weapon_cooldown` missing from old saves
-Old saves don't have `weapon_cooldown` in the JSON. The store uses `?? {}` defensively but it's not in the spread of `_savedOrFresh`. Add a default merge at store init: `weapon_cooldown: data.weapon_cooldown ?? {}`.
-
 ### RunCompleteScreen shows all owned movesets, not just new ones from this run
 The "Movesets earned this run" section shows `store.owned_movesets` filtered by `MOVES[id]` — this is the full owned list, not what was gained this run. Track `prev_owned_movesets` snapshot before the run starts, and diff on the complete screen.
 
@@ -149,9 +143,6 @@ Poise is tracked and drives stagger but the UI hides the enemy poise bar complet
 
 ### FP bar on player shows but is never depleted
 The FP bar in `RunHeader` ticks down with nothing and refills never happen in combat. Until FP drain is implemented this bar is confusing. Either hide it (remove from header) or implement FP cost in combat.
-
-### No save migration / version check
-`saveGame` / `loadGame` in `src/engine/save.ts` does a raw JSON parse with no version field. If a schema-breaking change ships, old saves will either crash or silently have missing fields. Add a `save_version: number` field and a migration function.
 
 ---
 

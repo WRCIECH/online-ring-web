@@ -119,7 +119,7 @@ export default function RunMapScreen() {
       const beaten  = i < current
       const active  = i === current
       const isHover = i === hoverIdx
-      const subloc  = seq[i]?.sublocation_type ?? 'mob'
+      const subloc  = seq[i].sublocation_type
 
       let fillColor  = '#0d0c18'
       let ringColor  = '#22203a'

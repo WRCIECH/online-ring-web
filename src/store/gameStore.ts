@@ -226,7 +226,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
 
   startRun: (weapons) => {
     const seq = generateLocationSequence()
-    const prevCooldown = get().weapon_cooldown ?? {}
+    const prevCooldown = get().weapon_cooldown
     const newCooldown = Object.fromEntries(
       Object.entries(prevCooldown).map(([k, v]) => [k, Math.max(0, v - 1)])
     )
@@ -390,7 +390,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
 
   applyWeaponHeat: (heat) => {
     set(s => {
-      const cooldown = { ...(s.weapon_cooldown ?? {}) }
+      const cooldown = { ...s.weapon_cooldown }
       for (const [wid, uses] of Object.entries(heat)) {
         const w = s.weapon_instances.find(x => x.instance_id === wid)
         if (!w) continue

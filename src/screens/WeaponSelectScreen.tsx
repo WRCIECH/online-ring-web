@@ -55,7 +55,7 @@ export default function WeaponSelectScreen() {
           const prevThresh = level === 0 ? 0 : (WEAPON_KILL_THRESHOLDS[level - 1] ?? 0)
           const xpPct  = isMax ? 1 : Math.max(0, (xp - prevThresh) / Math.max(1, nextThresh - prevThresh))
 
-          const cooldown   = (store.weapon_cooldown ?? {})[wid] ?? 0
+          const cooldown   = store.weapon_cooldown[wid] ?? 0
           const onCooldown = cooldown > 0
           const isSelected = selected.includes(wid)
           const isDisabled = onCooldown || (!isSelected && selected.length >= MAX_WEAPONS)
