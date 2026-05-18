@@ -45,6 +45,29 @@
   display: flex;
   align-items: center;
   gap: 6px;
+  position: relative;
+}
+
+.barGroup::after {
+  content: attr(data-tip);
+  position: absolute;
+  top: calc(100% + 5px);
+  left: 36px; /* aligns with the bar, past the label */
+  background: var(--color-bg-panel);
+  border: 1px solid var(--color-border);
+  border-radius: 3px;
+  padding: 2px 8px;
+  font-size: 0.72rem;
+  color: var(--color-text);
+  white-space: nowrap;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.12s;
+  z-index: 20;
+}
+
+.barGroup:hover::after {
+  opacity: 1;
 }
 
 .barLabel {

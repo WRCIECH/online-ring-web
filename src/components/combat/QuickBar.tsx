@@ -44,9 +44,8 @@ export default function QuickBar({ equippedWeapons, activeWeaponIdx, playerEstus
           <button
             key={idx}
             className={[s.slot, isActive ? s.slotActive : '', !weapon ? s.slotMissing : ''].join(' ')}
-            disabled={!isClickable}
-            onClick={() => dispatch({ type: 'SET_WEAPON', idx })}
-            onMouseEnter={e => handleWeaponEnter(e, idx)}
+            onClick={() => { if (isClickable) dispatch({ type: 'SET_WEAPON', idx }) }}
+            onMouseEnter={e => weapon ? handleWeaponEnter(e, idx) : undefined}
             onMouseLeave={() => setWeaponTip(null)}
           >
             {weapon ? (
