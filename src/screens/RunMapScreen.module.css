@@ -115,3 +115,71 @@
   background: rgba(230,191,51,0.16);
   box-shadow: var(--glow-gold);
 }
+
+.eliteBadge { color: #8a6810; }
+.bossBadge  { color: #8a2828; }
+
+/* ── Event overlay ───────────────────────────────────────────────────────── */
+.eventOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.72);
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.eventPanel {
+  background: var(--color-bg-panel);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: 36px 40px;
+  width: 380px;
+  max-width: 95vw;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  text-align: center;
+}
+
+.eventTitle {
+  font-size: 1.05rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.graceTitle { color: #2ecc88; }
+.trialTitle { color: var(--color-gold); }
+
+.eventDesc {
+  font-size: 0.86rem;
+  color: var(--color-text-dim);
+  line-height: 1.65;
+}
+
+.eventActions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.btnGrace {
+  padding: 12px;
+  font-size: 0.88rem;
+  letter-spacing: 0.1em;
+  background: rgba(46,204,136,0.08);
+  border-color: #1e6e50;
+  color: #2ecc88;
+}
+.btnGrace:hover { background: rgba(46,204,136,0.16); }
+
+.btnTrial {
+  padding: 12px;
+  font-size: 0.88rem;
+  letter-spacing: 0.1em;
+  background: rgba(230,191,51,0.08);
+  border-color: var(--color-gold-dim);
+  color: var(--color-gold);
+}
+.btnTrial:hover { background: rgba(230,191,51,0.16); box-shadow: var(--glow-gold); }

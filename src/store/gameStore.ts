@@ -1,5 +1,5 @@
 import { create } from 'zustand'
-import type { GameState, LocationData, Stats, GeneratedMoveset, WeaponInstance } from '../types/game'
+import type { GameState, LocationData, Stats, GeneratedMoveset, WeaponInstance, SublocationType } from '../types/game'
 import { ENEMIES } from '../data/enemies'
 import { saveGame, loadGame } from '../engine/save'
 import { registerWeapon } from '../data/weapons'
@@ -81,11 +81,42 @@ function generateLocationSequence(): LocationData[] {
   const tier3 = shuffle(ENCOUNTER_POOL.filter(e => e.tier === 3))
   const boss  = ENCOUNTER_POOL.filter(e => e.tier === 4)
   const ordered = [...tier1, ...tier2, ...tier3, ...boss]
-  return ordered.map((enc, i) => ({
-    enemy_id: enc.enemy_id,
-    name: LOCATION_NAMES[i] ?? `Location ${i + 1}`,
-    mult: TIER_MULTS[enc.tier] ?? 1.0,
-  }))
+
+  return ordered.map((enc, i) => {
+    const baseMult = TIER_MULTS[enc.tier] ?? 1.0
+    const isLast   = i === ordered.length - 1
+
+    if (isLast) {
+      return {
+        enemy_id: enc.enemy_id,
+        name: LOCATION_NAMES[i] ?? `Location ${i + 1}`,
+        mult: baseMult,
+        sublocation_type: 'boss' as SublocationType,
+      }
+    }
+
+    const position     = i / ordered.length
+    const eliteChance  = 0.15 + position * 0.1
+    const eventChance  = 0.10
+    const roll         = Math.random()
+
+    let type: SublocationType = 'mob'
+    if (roll < eventChance) type = 'event'
+    else if (roll < eventChance + eliteChance) type = 'elite'
+
+    const event_type   = type === 'event'
+      ? (Math.random() < 0.6 ? 'site_of_grace' : 'trial')
+      : undefined
+    const finalMult    = type === 'elite' ? baseMult * 1.3 : baseMult
+
+    return {
+      enemy_id: enc.enemy_id,
+      name: LOCATION_NAMES[i] ?? `Location ${i + 1}`,
+      mult: finalMult,
+      sublocation_type: type,
+      ...(event_type ? { event_type } : {}),
+    }
+  })
 }
 
 // Moveset XP thresholds in seconds (cumulative committed work time)
@@ -130,6 +161,7 @@ function initialState(): GameState {
     run_defeated_enemies: [],
     pending_encounter: null,
     pending_run_reward: '',
+    weapon_cooldown: {},
   }
 }
 
@@ -170,6 +202,9 @@ export interface GameStore extends GameState {
   // Moveset progression (time-based)
   flushMovesetXp: (gains: Record<string, number>) => void
 
+  // Weapon heat / overheat (applied at end of each combat)
+  applyWeaponHeat: (heat: Record<string, number>) => void
+
   // Stat level-up
   levelUpStat: (stat: keyof Stats) => boolean
 
@@ -191,6 +226,10 @@ export const useGameStore = create<GameStore>((set, get) => ({
 
   startRun: (weapons) => {
     const seq = generateLocationSequence()
+    const prevCooldown = get().weapon_cooldown ?? {}
+    const newCooldown = Object.fromEntries(
+      Object.entries(prevCooldown).map(([k, v]) => [k, Math.max(0, v - 1)])
+    )
     set({
       equipped_run_weapons: weapons,
       run_active: true,
@@ -203,6 +242,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
       current_hp: calcMaxHp(get().stats.VIG),
       current_stamina: calcMaxStamina(get().stats.END),
       current_fp: calcMaxFp(get().stats.MIND),
+      weapon_cooldown: newCooldown,
     })
     get().save()
   },
@@ -345,6 +385,22 @@ export const useGameStore = create<GameStore>((set, get) => ({
         lvl[id] = Math.min(10, newLevel)
       }
       return { moveset_xp: xp, moveset_level: lvl }
+    })
+  },
+
+  applyWeaponHeat: (heat) => {
+    set(s => {
+      const cooldown = { ...(s.weapon_cooldown ?? {}) }
+      for (const [wid, uses] of Object.entries(heat)) {
+        const w = s.weapon_instances.find(x => x.instance_id === wid)
+        if (!w) continue
+        const threshold = w.heat_threshold
+        if (uses < threshold) continue
+        const excess = uses - threshold
+        const cd = excess <= 2 ? 1 : excess <= 5 ? 2 : 3
+        cooldown[wid] = (cooldown[wid] ?? 0) + cd
+      }
+      return { weapon_cooldown: cooldown }
     })
   },
 

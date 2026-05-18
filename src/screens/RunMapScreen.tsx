@@ -2,6 +2,7 @@ import { useEffect, useRef, useState, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useGameStore, selectRunRemainingSeconds } from '../store/gameStore'
 import { ENEMIES } from '../data/enemies'
+import type { LocationData } from '../types/game'
 import RunHeader from '../components/layout/RunHeader'
 import s from './RunMapScreen.module.css'
 
@@ -44,6 +45,7 @@ export default function RunMapScreen() {
   const [tooltipPos, setTooltipPos] = useState({ x: 0, y: 0 })
   const [popupIdx, setPopupIdx]     = useState(-1)
   const [popupPos, setPopupPos]     = useState({ x: 0, y: 0 })
+  const [eventNode, setEventNode]   = useState<LocationData | null>(null)
   const expiredRef = useRef(false)
 
   const seq     = store.run_location_sequence
@@ -116,20 +118,28 @@ export default function RunMapScreen() {
     ns.forEach((n, i) => {
       const beaten  = i < current
       const active  = i === current
-      const isBoss  = i === ns.length - 1
       const isHover = i === hoverIdx
+      const subloc  = seq[i]?.sublocation_type ?? 'mob'
 
-      let fillColor  = '#12102a'
-      let ringColor  = '#38366a'
+      let fillColor  = '#0d0c18'
+      let ringColor  = '#22203a'
       let labelColor = '#565490'
 
-      if (beaten)       { fillColor = '#0c1a14'; ringColor = '#1e6e50'; labelColor = '#2a9a6e' }
-      else if (active)  { fillColor = '#1a1200'; ringColor = '#8a6810'; labelColor = '#b89020' }
-      else if (isBoss)  { fillColor = '#160606'; ringColor = '#5c1212'; labelColor = '#8a2828' }
+      if (beaten) {
+        fillColor = '#0c1a14'; ringColor = '#1e6e50'; labelColor = '#2a9a6e'
+      } else if (active) {
+        fillColor = '#1a1200'; ringColor = '#8a6810'; labelColor = '#b89020'
+      } else {
+        switch (subloc) {
+          case 'elite': fillColor = '#141000'; ringColor = '#6e5010'; labelColor = '#5a4210'; break
+          case 'event': fillColor = '#0a1810'; ringColor = '#1a5e40'; labelColor = '#1a5e40'; break
+          case 'boss':  fillColor = '#160606'; ringColor = '#5c1212'; labelColor = '#8a2828'; break
+          default:      fillColor = '#0d0c18'; ringColor = '#22203a'; labelColor = '#565490';
+        }
+      }
 
       const r = active ? NODE_R + 3 : NODE_R
 
-      // Glow for active — primary visibility cue in dark mode
       if (active) {
         ctx.beginPath()
         ctx.arc(n.x, n.y, r + 10, 0, Math.PI * 2)
@@ -163,11 +173,17 @@ export default function RunMapScreen() {
       const label = beaten ? String(i + 1) : (active ? String(i + 1) : (i > current ? '?' : String(i + 1)))
       ctx.fillText(label, n.x, n.y)
 
-      // Boss crown
-      if (isBoss && !beaten) {
-        ctx.font = '10px system-ui'
-        ctx.fillStyle = '#7a2020'
-        ctx.fillText('★', n.x, n.y - r - 8)
+      // Type marker above node (for unbeaten non-active nodes)
+      if (!beaten && !active) {
+        let marker = '', markerColor = ''
+        if (subloc === 'boss')  { marker = '★'; markerColor = '#7a2020' }
+        if (subloc === 'elite') { marker = '⚔'; markerColor = '#8a6810' }
+        if (subloc === 'event') { marker = '⬥'; markerColor = '#1e6e50' }
+        if (marker) {
+          ctx.font = '9px system-ui'
+          ctx.fillStyle = markerColor
+          ctx.fillText(marker, n.x, n.y - r - 8)
+        }
       }
     })
   }, [seq, current, hoverIdx])
@@ -196,9 +212,13 @@ export default function RunMapScreen() {
   function handleClick(e: React.MouseEvent<HTMLCanvasElement>) {
     const { x, y } = canvasCoords(e)
     const idx = getNodeAt(x, y, nodes.current)
-    if (idx < 0 || idx !== current) return  // only active node is clickable
+    if (idx < 0 || idx !== current) return
+    const loc = seq[idx]
+    if (loc?.sublocation_type === 'event') {
+      setEventNode(loc)
+      return
+    }
     setPopupIdx(idx)
-    // Position popup to the right of the node, or left if near edge
     const rect = canvasRef.current!.getBoundingClientRect()
     const scaleX = rect.width / 1200
     const nodeScreenX = nodes.current[idx].x * scaleX + rect.left
@@ -210,6 +230,22 @@ export default function RunMapScreen() {
     if (popupIdx < 0) return
     const loc = seq[popupIdx]
     store.setPendingEncounter(loc)
+    navigate('/combat')
+  }
+
+  function handleGraceRest() {
+    const maxHp  = store.maxHp()
+    const newHp  = Math.min(maxHp, store.current_hp + Math.floor(maxHp * 0.60))
+    const newEst = Math.min(3, store.run_estus_count + 1)
+    store.syncCombatResult(newHp, newEst)
+    store.advanceRun()
+    setEventNode(null)
+  }
+
+  function handleEnterTrial() {
+    if (!eventNode) return
+    store.setPendingEncounter({ ...eventNode, mult: eventNode.mult * 1.5 })
+    setEventNode(null)
     navigate('/combat')
   }
 
@@ -243,7 +279,13 @@ export default function RunMapScreen() {
         <div className={s.tooltip} style={{ left: tooltipPos.x, top: tooltipPos.y }}>
           <div className={s.tooltipName}>{hoverLoc.name}</div>
           <div className={s.tooltipEnemy}>
-            {hoverIdx < current ? hoverEnemy.name : '???'}
+            {hoverIdx < current
+              ? hoverEnemy.name
+              : hoverLoc.sublocation_type === 'event'
+                ? (hoverLoc.event_type === 'site_of_grace' ? '⬥ Site of Grace' : '⚔ Trial Gate')
+                : hoverLoc.sublocation_type === 'elite' ? '⚔ Elite'
+                : hoverLoc.sublocation_type === 'boss'  ? '★ Boss'
+                : '???'}
           </div>
           {hoverIdx <= current && (
             <div className={s.tooltipMult}>×{hoverLoc.mult.toFixed(2)} difficulty</div>
@@ -251,13 +293,17 @@ export default function RunMapScreen() {
         </div>
       )}
 
-      {/* Location popup */}
+      {/* Location popup (mob / elite / boss) */}
       {popupIdx >= 0 && popupLoc && popupEnemy && (
         <>
           <div className={s.popupOverlay} onClick={() => setPopupIdx(-1)} />
           <div className={s.popup} style={{ left: popupPos.x, top: popupPos.y }}>
             <div className={s.popupName}>{popupLoc.name}</div>
-            <div className={s.popupEnemy}>{popupEnemy.name}</div>
+            <div className={s.popupEnemy}>
+              {popupLoc.sublocation_type === 'elite' && <span className={s.eliteBadge}>⚔ ELITE · </span>}
+              {popupLoc.sublocation_type === 'boss'  && <span className={s.bossBadge}>★ BOSS · </span>}
+              {popupEnemy.name}
+            </div>
             <div className={s.popupMult}>×{popupLoc.mult.toFixed(2)} difficulty</div>
             <div className={s.popupDesc}>{popupEnemy.description}</div>
             <div className={s.popupFooter}>
@@ -268,6 +314,41 @@ export default function RunMapScreen() {
             </div>
           </div>
         </>
+      )}
+
+      {/* Event popup (site_of_grace / trial) */}
+      {eventNode && (
+        <div className={s.eventOverlay} onClick={e => { if (e.target === e.currentTarget) setEventNode(null) }}>
+          <div className={s.eventPanel}>
+            {eventNode.event_type === 'site_of_grace' ? (
+              <>
+                <div className={`${s.eventTitle} ${s.graceTitle}`}>⬥ Site of Grace</div>
+                <div className={s.eventDesc}>
+                  A calm clearing emanates warmth. Rest here to recover your strength.
+                </div>
+                <div className={s.eventActions}>
+                  <button className={s.btnGrace} onClick={handleGraceRest}>
+                    Rest (+60% HP, +1 Estus)
+                  </button>
+                  <button onClick={() => setEventNode(null)}>Leave</button>
+                </div>
+              </>
+            ) : (
+              <>
+                <div className={`${s.eventTitle} ${s.trialTitle}`}>⚔ Trial Gate</div>
+                <div className={s.eventDesc}>
+                  A spectral gate flickers with challenge. Defeat what lies within for a guaranteed rare drop.
+                </div>
+                <div className={s.eventActions}>
+                  <button className={s.btnTrial} onClick={handleEnterTrial}>
+                    Accept Trial
+                  </button>
+                  <button onClick={() => setEventNode(null)}>Refuse</button>
+                </div>
+              </>
+            )}
+          </div>
+        </div>
       )}
 
 

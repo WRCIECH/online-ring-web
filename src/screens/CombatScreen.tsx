@@ -156,7 +156,11 @@ export default function CombatScreen() {
     if (state.phase !== 'VICTORY' || !loc || lootItems !== null) return
     const enemy = ENEMIES[loc.enemy_id]
     const defeatedBefore = store.run_defeated_enemies.includes(loc.enemy_id)
-    const minRarity: WeaponRarity = enemy.is_boss ? 'rare' : 'magic'
+    const subtype = loc.sublocation_type
+    const minRarity: WeaponRarity =
+      subtype === 'boss'  ? 'rare'   :
+      subtype === 'elite' ? 'magic'  :
+      subtype === 'event' ? 'rare'   : 'common'
     const items: LootItem[] = enemy.drops.map(drop => {
       const obtained = Math.random() < (defeatedBefore ? drop.repeat_chance : drop.first_kill_chance)
       const meta = DROP_MAP[drop.id] ?? { type: 'moveset' as const, wclass: 'straight_swords' as WeaponClass }
@@ -186,6 +190,7 @@ export default function CombatScreen() {
   const handleVictoryContinue = useCallback(() => {
     if (!loc || !lootItems) return
     store.syncCombatResult(state.playerHp, state.playerEstus)
+    store.applyWeaponHeat(state.weaponHeatAccumulated)
     // Flush moveset XP (time-based, persistent through failure)
     store.flushMovesetXp(state.movesetXpAccumulated)
     // Record weapon kill
@@ -214,6 +219,7 @@ export default function CombatScreen() {
   // ── Defeat handler ─────────────────────────────────────────────────────
   const handleDefeat = useCallback(() => {
     store.syncCombatResult(state.playerHp, state.playerEstus)
+    store.applyWeaponHeat(state.weaponHeatAccumulated)
     // Moveset XP persists through defeat (per spec)
     store.flushMovesetXp(state.movesetXpAccumulated)
     store.endRunFailure()

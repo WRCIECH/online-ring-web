@@ -1,8 +1,24 @@
-import type { CombatPhase, DefenseAction, Enemy, EnemyMove, Moveset, Stats, Step } from '../types/game'
+import type { CombatPhase, DefenseAction, Enemy, EnemyMove, GeneratedMoveset, Moveset, Stats, Step, WeaponInstance } from '../types/game'
 import { ENEMY_MOVES } from '../data/enemyMovesets'
 import { MOVES } from '../data/movesets'
 import { WEAPONS, calcStepDamage, getWeaponMovesets } from '../data/weapons'
 export { getActiveSteps } from '../data/generators/movesetGenerator'
+
+const POISE_WEIGHT_MULT: Record<string, number> = {
+  light: 0.5, medium: 1.0, heavy: 1.5, colossal: 2.0,
+}
+const POISE_VARIANT_MULT: Record<string, number> = {
+  Light: 0.7, Heavy: 1.5, Skill: 1.0, Jump: 2.0,
+}
+
+function gapMultiplier(lastMs: number): number {
+  if (lastMs === 0) return 1.0
+  const gapMin = (Date.now() - lastMs) / 60000
+  if (gapMin < 15)  return 1.5
+  if (gapMin < 60)  return 1.0
+  if (gapMin < 240) return 0.5
+  return 0.0
+}
 
 export const STA_ROLL        = 6
 export const STA_BLOCK       = 10
@@ -55,6 +71,10 @@ export interface CombatState {
   movesetXpAccumulated: Record<string, number>
   // Weapon kills this combat
   weaponKillsAccumulated: number
+  // Timestamp of last moveset completion (for poise gap multiplier)
+  lastMovesetCompletionMs: number
+  // Heat accumulated this combat per weapon (flushed to store on end)
+  weaponHeatAccumulated: Record<string, number>
   // Log
   log: LogEntry[]
   logId: number
@@ -174,6 +194,8 @@ export function initCombatState(
     weaponXpAccumulated: {},
     movesetXpAccumulated: {},
     weaponKillsAccumulated: 0,
+    lastMovesetCompletionMs: 0,
+    weaponHeatAccumulated: {},
     log: [], logId: 0,
   }, `You face ${enemyData.name}.`, '#c9a93a')
   return log(first, enemyData.description, '#7a7570')
@@ -315,11 +337,20 @@ export function combatReducer(state: CombatState, action: CombatAction): CombatS
       const step    = state.pendingStep!
       const moveset = state.pendingMoveset!
       const weapon  = WEAPONS[state.pendingWeaponId]
+      const wi      = weapon as WeaponInstance | undefined
       const dmg     = weapon ? calcStepDamage(step, moveset, weapon, state.playerStats) : step.base_damage
-      const poiseDmg = step.poise_damage
+
+      // Poise: gap × weapon-weight × variant multipliers
+      const gapMult      = gapMultiplier(state.lastMovesetCompletionMs)
+      const weaponMult   = POISE_WEIGHT_MULT[wi?.poise_weight ?? 'medium'] ?? 1.0
+      const gm           = moveset as GeneratedMoveset | null
+      const variantMult  = gm?.variant_type ? (POISE_VARIANT_MULT[gm.variant_type] ?? 1.0) : 1.0
+      const poiseBase    = step.poise_damage
+      const poiseReset   = gapMult === 0 ? state.enemyMaxPoise : state.enemyPoise
+      const scaledPoise  = Math.round(poiseBase * gapMult * weaponMult * variantMult)
 
       const newEnemyHp    = Math.max(0, state.enemyHp - dmg)
-      const newEnemyPoise = Math.max(0, state.enemyPoise - poiseDmg)
+      const newEnemyPoise = Math.max(0, poiseReset - scaledPoise)
       const newStamina    = Math.max(0, state.playerStamina - moveset.stamina_cost)
 
       // Advance or reset chain
@@ -334,11 +365,19 @@ export function combatReducer(state: CombatState, action: CombatAction): CombatS
       const prevMsXp = state.movesetXpAccumulated[moveset.id] ?? 0
       const newMsXpAcc = { ...state.movesetXpAccumulated, [moveset.id]: prevMsXp + step.time }
 
+      // Heat: one increment per successful step
+      const prevHeat  = state.weaponHeatAccumulated[state.pendingWeaponId] ?? 0
+      const newHeatAcc = { ...state.weaponHeatAccumulated, [state.pendingWeaponId]: prevHeat + 1 }
+
+      const flowSuffix = gapMult === 1.5 ? ' [flow]' : (gapMult === 0.5 ? ' [stale]' : '')
+
       let s = log(
         { ...state, enemyHp: newEnemyHp, enemyPoise: newEnemyPoise, playerStamina: newStamina,
           chainMovesetId: newChainId, chainStepIdx: newChainIdx, timerExpired: false, stepStarted: false,
-          movesetXpAccumulated: newMsXpAcc },
-        `You complete ${step.name} — ${dmg} damage!`, '#ffffff'
+          movesetXpAccumulated: newMsXpAcc,
+          lastMovesetCompletionMs: Date.now(),
+          weaponHeatAccumulated: newHeatAcc },
+        `You complete ${step.name} — ${dmg} damage!${flowSuffix}`, '#ffffff'
       )
 
       if (s.enemyHp <= 0) return { ...s, phase: 'VICTORY', weaponKillsAccumulated: state.weaponKillsAccumulated + 1 }

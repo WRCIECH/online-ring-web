@@ -12,6 +12,8 @@ export type WeaponClass =
 
 export type PoiseWeight = 'light' | 'medium' | 'heavy' | 'colossal'
 
+export type SublocationType = 'mob' | 'elite' | 'event' | 'boss'
+
 export interface Affix {
   id: string
   label: string
@@ -140,6 +142,8 @@ export interface LocationData {
   enemy_id: string
   name: string
   mult: number
+  sublocation_type: SublocationType
+  event_type?: string   // 'site_of_grace' | 'trial'
 }
 
 export interface Stats {
@@ -178,4 +182,5 @@ export interface GameState {
   run_defeated_enemies: string[]
   pending_encounter: LocationData | null
   pending_run_reward: string
+  weapon_cooldown: Record<string, number>   // instance_id → runs remaining on cooldown
 }

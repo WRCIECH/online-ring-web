@@ -55,8 +55,10 @@ export default function WeaponSelectScreen() {
           const prevThresh = level === 0 ? 0 : (WEAPON_KILL_THRESHOLDS[level - 1] ?? 0)
           const xpPct  = isMax ? 1 : Math.max(0, (xp - prevThresh) / Math.max(1, nextThresh - prevThresh))
 
+          const cooldown   = (store.weapon_cooldown ?? {})[wid] ?? 0
+          const onCooldown = cooldown > 0
           const isSelected = selected.includes(wid)
-          const isDisabled = !isSelected && selected.length >= MAX_WEAPONS
+          const isDisabled = onCooldown || (!isSelected && selected.length >= MAX_WEAPONS)
           const rarity = (weapon as WeaponInstance).rarity
           const affixes = (weapon as WeaponInstance).affixes ?? []
 
@@ -78,6 +80,9 @@ export default function WeaponSelectScreen() {
                   <span className={s.rarityBadge} style={{ color: RARITY_COLOURS[rarity] }}>
                     {rarity.toUpperCase()}
                   </span>
+                )}
+                {onCooldown && (
+                  <span className={s.cooldownBadge}>🔥 Cool-down: {cooldown} run{cooldown !== 1 ? 's' : ''}</span>
                 )}
               </div>
               <div className={s.weaponDesc}>{weapon.description}</div>

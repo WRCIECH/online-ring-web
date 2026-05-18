@@ -192,3 +192,13 @@
   background: rgba(230, 191, 51, 0.16);
   box-shadow: var(--glow-gold);
 }
+
+.cooldownBadge {
+  font-size: 0.7rem;
+  color: #cc5533;
+  background: rgba(180,50,20,0.12);
+  border: 1px solid rgba(180,50,20,0.3);
+  border-radius: 3px;
+  padding: 1px 7px;
+  white-space: nowrap;
+}
