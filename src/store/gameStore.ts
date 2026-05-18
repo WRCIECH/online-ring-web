@@ -162,6 +162,7 @@ function initialState(): GameState {
     pending_encounter: null,
     pending_run_reward: '',
     weapon_cooldown: {},
+    run_location_name: '',
   }
 }
 
@@ -172,7 +173,7 @@ export interface GameStore extends GameState {
   maxFp: () => number
 
   // Run management
-  startRun: (weapons: string[]) => void
+  startRun: (weapons: string[], locationName?: string) => void
   advanceRun: () => void
   endRunVictory: () => void
   endRunFailure: () => void
@@ -224,7 +225,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
   maxStamina: () => calcMaxStamina(get().stats.END),
   maxFp:      () => calcMaxFp(get().stats.MIND),
 
-  startRun: (weapons) => {
+  startRun: (weapons, locationName = '') => {
     const seq = generateLocationSequence()
     const prevCooldown = get().weapon_cooldown
     const newCooldown = Object.fromEntries(
@@ -243,6 +244,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
       current_stamina: calcMaxStamina(get().stats.END),
       current_fp: calcMaxFp(get().stats.MIND),
       weapon_cooldown: newCooldown,
+      run_location_name: locationName,
     })
     get().save()
   },

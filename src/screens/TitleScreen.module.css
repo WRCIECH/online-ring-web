@@ -50,6 +50,30 @@
   margin-bottom: 36px;
 }
 
+.intro {
+  max-width: 420px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 36px;
+}
+
+.intro p {
+  font-size: 0.82rem;
+  color: var(--color-text-dim);
+  line-height: 1.75;
+  letter-spacing: 0.04em;
+}
+
+.introTagline {
+  font-size: 0.78rem !important;
+  color: var(--color-gold-dim) !important;
+  letter-spacing: 0.14em !important;
+  text-transform: uppercase;
+  margin-top: 4px;
+}
+
 .sep {
   width: 200px;
   border: none;

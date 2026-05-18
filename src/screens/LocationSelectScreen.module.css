@@ -1,0 +1,133 @@
+.root {
+  min-height: 100vh;
+  background: var(--color-bg);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 48px 24px 60px;
+}
+
+/* ── Header ──────────────────────────────────────────────────────────────── */
+.header {
+  text-align: center;
+  margin-bottom: 44px;
+}
+
+.title {
+  font-size: 1.5rem;
+  font-weight: 300;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--color-gold);
+  text-shadow: var(--glow-gold);
+  margin-bottom: 8px;
+}
+
+.subtitle {
+  font-size: 0.82rem;
+  letter-spacing: 0.12em;
+  color: var(--color-text-dim);
+}
+
+/* ── Card grid — 3 columns ───────────────────────────────────────────────── */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+  width: 100%;
+  max-width: 960px;
+}
+
+/* ── Card base ───────────────────────────────────────────────────────────── */
+.card {
+  background: var(--color-bg-panel);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  text-align: left;
+  padding: 0;
+  transition: border-color 0.15s, box-shadow 0.15s, transform 0.12s;
+  cursor: pointer;
+}
+
+/* Active / unlocked card */
+.cardUnlocked {
+  border-color: var(--color-gold-dim);
+}
+
+.cardUnlocked:hover {
+  border-color: var(--color-gold);
+  box-shadow: var(--glow-gold);
+  transform: translateY(-2px);
+}
+
+/* Locked card */
+.cardLocked {
+  opacity: 0.42;
+  cursor: not-allowed;
+}
+
+/* ── Illustration ─────────────────────────────────────────────────────────── */
+.illustration {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 200 / 120;
+  overflow: hidden;
+  background: #060808;
+}
+
+.illustration svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.lockOverlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0,0,0,0.35);
+  color: rgba(255,255,255,0.28);
+}
+
+.availableBadge {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  font-size: 0.62rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #2ecc88;
+  background: rgba(18,60,38,0.85);
+  border: 1px solid rgba(46,204,136,0.35);
+  border-radius: 3px;
+  padding: 2px 7px;
+}
+
+/* ── Card text ───────────────────────────────────────────────────────────── */
+.info {
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  border-top: 1px solid var(--color-sep);
+}
+
+.name {
+  font-size: 0.92rem;
+  letter-spacing: 0.07em;
+  color: var(--color-gold-text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.locationSubtitle {
+  font-size: 0.72rem;
+  letter-spacing: 0.06em;
+  color: var(--color-text-dim);
+}

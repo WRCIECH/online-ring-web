@@ -183,4 +183,5 @@ export interface GameState {
   pending_encounter: LocationData | null
   pending_run_reward: string
   weapon_cooldown: Record<string, number>   // instance_id → runs remaining on cooldown
+  run_location_name: string
 }

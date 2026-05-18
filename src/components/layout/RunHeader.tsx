@@ -56,7 +56,9 @@ export default function RunHeader({ hp, maxHp, stamina, maxStamina, fp, maxFp }:
       <header className={s.header}>
         {/* Run info */}
         <div className={s.runInfo}>
-          <span className={s.runTitle}>Great Run #{store.run_count + 1}</span>
+          <span className={s.runTitle}>
+            {store.run_location_name || `Run #${store.run_count + 1}`}
+          </span>
           <span className={[s.timer, isUrgent ? s.urgent : ''].join(' ')}>{fmtTime(remaining)}</span>
         </div>
 

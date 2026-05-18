@@ -15,7 +15,7 @@ export default function TitleScreen() {
     if (store.run_active) {
       navigate('/map')
     } else {
-      navigate('/weapons')
+      navigate('/locations')
     }
   }
 
@@ -30,7 +30,7 @@ export default function TitleScreen() {
   function startFresh() {
     eraseSave()
     store.reset()
-    navigate('/weapons')
+    navigate('/locations')
   }
 
   return (
@@ -41,6 +41,12 @@ export default function TitleScreen() {
       {store.run_count > 0 && (
         <p className={s.runCount}>Great Run #{store.run_count}</p>
       )}
+
+      <div className={s.intro}>
+        <p>Every piece of content you haven't made is an enemy waiting in a dungeon.</p>
+        <p>Pick your weapon — your creative form. Choose your dungeon — your 48-hour sprint. Fight through procrastination, perfectionism, and burnout to reach the final boss: publishing.</p>
+        <p className={s.introTagline}>Your output is your victory.</p>
+      </div>
 
       <hr className={s.sep} />
 

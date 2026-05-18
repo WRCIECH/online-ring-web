@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useLocation } from 'react-router-dom'
 import { useGameStore } from '../store/gameStore'
 import { WEAPONS } from '../data/weapons'
 import { MOVES } from '../data/movesets'
@@ -16,8 +16,10 @@ const RARITY_COLOURS: Record<WeaponRarity, string> = {
 }
 
 export default function WeaponSelectScreen() {
-  const navigate = useNavigate()
-  const store    = useGameStore()
+  const navigate   = useNavigate()
+  const routerLoc  = useLocation()
+  const store      = useGameStore()
+  const locationName: string = (routerLoc.state as { locationName?: string } | null)?.locationName ?? ''
   // Default to first owned weapon
   const [selected, setSelected] = useState<string[]>(
     () => store.owned_weapons.slice(0, 1)
@@ -33,7 +35,7 @@ export default function WeaponSelectScreen() {
 
   function handleBegin() {
     if (selected.length === 0) return
-    store.startRun(selected)
+    store.startRun(selected, locationName)
     store.save()
     navigate('/map')
   }
