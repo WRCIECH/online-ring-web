@@ -388,6 +388,7 @@ export default function CombatScreen() {
                 onClick={() => handleDisplayClick()}
                 cursor={(state.phase === 'PLAYER_ATTACK' || state.phase === 'ENEMY_ATTACK') ? 'crosshair' : undefined}
                 svgForwardRef={mobSvgRef}
+                sublocationtype={loc.sublocation_type}
               />
               {state.phase === 'VICTORY' && !lootRevealed && (
                 <div className={s.corpsePrompt}>⚔ Examine corpse</div>

@@ -6,6 +6,7 @@ import { MOVES } from '../../data/movesets'
 import type { WeaponInstance, WeaponRarity } from '../../types/game'
 import { WEAPON_KILL_THRESHOLDS } from '../../data/generators/weaponGenerator'
 import MovesetIcon from '../icons/MovesetIcon'
+import WeaponSprite from '../icons/WeaponSprite'
 import s from './EquipOverlay.module.css'
 
 const RARITY_COLOURS: Record<WeaponRarity, string> = {
@@ -84,6 +85,14 @@ function WeaponCard({ weaponId, store, onPickSlot }: {
   return (
     <div className={s.weaponCard}>
       <div className={s.weaponHeader}>
+        {wi.weapon_class && (
+          <WeaponSprite
+            weaponClass={wi.weapon_class}
+            rarity={wi.rarity}
+            poiseWeight={wi.poise_weight}
+            size={40}
+          />
+        )}
         <span className={s.weaponName}>{weapon.name}</span>
         {wi.rarity && (
           <span className={s.rarityBadge} style={{ color: RARITY_COLOURS[wi.rarity] }}>

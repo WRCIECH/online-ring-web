@@ -17,3 +17,18 @@
   transform: scale(1.06);
   filter: drop-shadow(0 0 10px rgba(180, 60, 60, 0.55)) brightness(1.15);
 }
+
+.eliteGlow {
+  filter: drop-shadow(0 0 12px #8a6810);
+  transform: scale(1.07);
+}
+
+.bossGlow {
+  transform: scale(1.14);
+  animation: bossPulse 2.8s ease-in-out infinite;
+}
+
+@keyframes bossPulse {
+  0%, 100% { filter: drop-shadow(0 0 14px #8a2020); }
+  50%       { filter: drop-shadow(0 0 24px #cc4444); }
+}

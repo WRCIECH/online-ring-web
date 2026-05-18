@@ -5,6 +5,7 @@ import { WEAPONS } from '../data/weapons'
 import { MOVES } from '../data/movesets'
 import type { WeaponInstance, WeaponRarity } from '../types/game'
 import { WEAPON_KILL_THRESHOLDS } from '../data/generators/weaponGenerator'
+import WeaponSprite from '../components/icons/WeaponSprite'
 import s from './WeaponSelectScreen.module.css'
 
 const MAX_WEAPONS = 2
@@ -75,6 +76,14 @@ export default function WeaponSelectScreen() {
               disabled={isDisabled && !isSelected}
             >
               <div className={s.weaponHeader}>
+                {rarity && (weapon as WeaponInstance).weapon_class && (
+                  <WeaponSprite
+                    weaponClass={(weapon as WeaponInstance).weapon_class}
+                    rarity={rarity}
+                    poiseWeight={(weapon as WeaponInstance).poise_weight}
+                    size={52}
+                  />
+                )}
                 <span className={s.weaponName}>{weapon.name}</span>
                 {rarity && (
                   <span className={s.rarityBadge} style={{ color: RARITY_COLOURS[rarity] }}>

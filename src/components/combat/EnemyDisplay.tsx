@@ -1,6 +1,7 @@
 import React, { useRef, useEffect } from 'react'
 import gsap from 'gsap'
 import { MOB_ANIMATIONS } from './mobAnimations'
+import type { SublocationType } from '../../types/game'
 import s from './EnemyDisplay.module.css'
 
 interface Props {
@@ -10,6 +11,7 @@ interface Props {
   onClick?: React.MouseEventHandler<HTMLDivElement>
   cursor?: string
   svgForwardRef?: React.RefObject<SVGSVGElement | null>
+  sublocationtype?: SublocationType
 }
 
 const W = 260, H = 300
@@ -183,7 +185,7 @@ const ART: Record<string, () => React.ReactElement> = {
 
 // ── Component ─────────────────────────────────────────────────────────────────
 
-export default function EnemyDisplay({ enemyId, hp, maxHp, onClick, cursor, svgForwardRef }: Props) {
+export default function EnemyDisplay({ enemyId, hp, maxHp, onClick, cursor, svgForwardRef, sublocationtype }: Props) {
   const Art    = ART[enemyId] ?? BurnoutShade
   const hpPct  = Math.max(0, hp / maxHp)
   const isDead = hp <= 0
@@ -212,7 +214,11 @@ export default function EnemyDisplay({ enemyId, hp, maxHp, onClick, cursor, svgF
           if (svgForwardRef) (svgForwardRef as React.MutableRefObject<SVGSVGElement | null>).current = el
         }}
         viewBox={`${-W/2} ${-H*0.7} ${W} ${H}`}
-        className={s.svg}
+        className={[
+          s.svg,
+          !isDead && sublocationtype === 'elite' ? s.eliteGlow : '',
+          !isDead && sublocationtype === 'boss'  ? s.bossGlow  : '',
+        ].join(' ')}
         style={{ opacity: isDead ? 0.3 : 0.85 + hpPct * 0.15 }}
       >
         <defs>
