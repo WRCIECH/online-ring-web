@@ -30,7 +30,7 @@ export default function TitleScreen() {
   function startFresh() {
     eraseSave()
     store.reset()
-    navigate('/locations')
+    navigate('/start-weapon')
   }
 
   return (

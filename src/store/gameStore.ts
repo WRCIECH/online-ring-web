@@ -206,6 +206,9 @@ export interface GameStore extends GameState {
   // Weapon heat / overheat (applied at end of each combat)
   applyWeaponHeat: (heat: Record<string, number>) => void
 
+  // Replace the single starting weapon (called from class-select screen)
+  replaceStartingWeapon: (w: WeaponInstance) => void
+
   // Stat level-up
   levelUpStat: (stat: keyof Stats) => boolean
 
@@ -388,6 +391,28 @@ export const useGameStore = create<GameStore>((set, get) => ({
       }
       return { moveset_xp: xp, moveset_level: lvl }
     })
+  },
+
+  replaceStartingWeapon: (w) => {
+    registerWeapon(w)
+    const msIds = [
+      ...w.constant_movesets,
+      w.defense_movesets.block,
+      w.defense_movesets.parry,
+    ]
+    const movesetInsts = msIds
+      .map(id => MOVES[id])
+      .filter((m): m is GeneratedMoveset => !!m && 'pipeline' in m)
+    set({
+      owned_weapons: [w.instance_id],
+      weapon_instances: [w],
+      equipped_run_weapons: [w.instance_id],
+      weapon_xp: { [w.instance_id]: 0 },
+      weapon_level: { [w.instance_id]: 0 },
+      weapon_extra_movesets: { [w.instance_id]: [] },
+      moveset_instances: movesetInsts,
+    })
+    get().save()
   },
 
   applyWeaponHeat: (heat) => {

@@ -1,0 +1,191 @@
+.root {
+  height: 100vh;
+  overflow-y: auto;
+  background: var(--color-bg);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 44px 24px 56px;
+}
+
+/* ── Header ──────────────────────────────────────────────────────────────── */
+.header {
+  text-align: center;
+  margin-bottom: 40px;
+}
+
+.title {
+  font-size: 1.5rem;
+  font-weight: 300;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--color-gold);
+  text-shadow: var(--glow-gold);
+  margin-bottom: 8px;
+}
+
+.subtitle {
+  font-size: 0.82rem;
+  letter-spacing: 0.1em;
+  color: var(--color-text-dim);
+}
+
+/* ── Cards — always 3 columns ────────────────────────────────────────────── */
+.cards {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 22px;
+  width: 100%;
+  max-width: 900px;
+}
+
+.card {
+  background: var(--color-bg-panel);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  text-align: left;
+  padding: 0;
+  cursor: pointer;
+  transition: border-color 0.15s, box-shadow 0.15s, transform 0.12s;
+}
+
+.card:hover {
+  border-color: var(--color-gold-dim);
+  transform: translateY(-2px);
+}
+
+.cardChosen {
+  border-color: var(--card-glow, var(--color-gold));
+  box-shadow: 0 0 20px color-mix(in srgb, var(--card-glow, var(--color-gold)) 30%, transparent);
+  transform: translateY(-3px);
+}
+
+/* ── Sprite area ─────────────────────────────────────────────────────────── */
+.spriteWrap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 160px;
+  border-bottom: 1px solid var(--color-sep);
+  padding: 16px;
+}
+
+/* ── Info area ───────────────────────────────────────────────────────────── */
+.info {
+  padding: 16px 18px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  flex: 1;
+}
+
+.weaponName {
+  font-size: 1rem;
+  letter-spacing: 0.07em;
+  color: var(--color-gold-text);
+}
+
+.className {
+  font-size: 0.72rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--color-text-dim);
+  margin-top: -4px;
+}
+
+.weightBadge {
+  font-size: 0.7rem;
+  letter-spacing: 0.09em;
+  border: 1px solid;
+  border-radius: 3px;
+  padding: 2px 8px;
+  display: inline-flex;
+  align-self: flex-start;
+}
+
+.desc {
+  font-size: 0.8rem;
+  color: var(--color-text-dim);
+  line-height: 1.6;
+}
+
+.stats {
+  display: flex;
+  gap: 14px;
+  font-size: 0.72rem;
+}
+
+.heat {
+  color: var(--color-text-dim);
+}
+
+/* ── Moveset list ────────────────────────────────────────────────────────── */
+.movesets {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  margin-top: 4px;
+  padding-top: 10px;
+  border-top: 1px solid var(--color-sep);
+}
+
+.movesetRow {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 0.76rem;
+}
+
+.msIcon {
+  flex-shrink: 0;
+  color: var(--color-text-dim);
+  opacity: 0.75;
+}
+
+.msName {
+  flex: 1;
+  color: var(--color-text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.msVariant {
+  font-size: 0.65rem;
+  color: var(--color-text-dim);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  flex-shrink: 0;
+}
+
+/* ── Footer ──────────────────────────────────────────────────────────────── */
+.footer {
+  margin-top: 36px;
+  width: 100%;
+  max-width: 900px;
+  display: flex;
+  justify-content: center;
+}
+
+.btnConfirm {
+  font-size: 1rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  padding: 16px 48px;
+  background: rgba(230,191,51,0.08);
+  border: 1px solid var(--color-gold-dim);
+  color: var(--color-gold);
+  min-width: 320px;
+}
+
+.btnConfirm:hover:not(:disabled) {
+  background: rgba(230,191,51,0.16);
+  box-shadow: var(--glow-gold);
+}
+
+.btnConfirm:disabled {
+  opacity: 0.35;
+}
