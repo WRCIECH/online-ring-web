@@ -102,7 +102,7 @@ const MODE_MULT: Record<AtomicMode, number> = {
 const PUB_MULT: Record<AtomicPub, number> = {
   just_work:0.4, private:0.6, draft_published:1.0, public:1.3,
 }
-const TIME_STA: Record<AtomicTime, number> = { Micro:2, Short:5, Medium:10, Long:20, Deep:40 }
+const TIME_STA: Record<AtomicTime, number> = { Micro:2, Short:4, Medium:7, Long:10, Deep:18 }
 const MEDIUM_STA: Record<AtomicMedium, number> = {
   Writing:1.0, Audio:1.1, Video:1.3, Image:0.9, Design:1.2, Outline:0.6, Hybrid:1.4,
 }
