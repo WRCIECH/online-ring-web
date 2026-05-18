@@ -3,14 +3,24 @@ import { useNavigate } from 'react-router-dom'
 import { useGameStore } from '../store/gameStore'
 import { WEAPONS } from '../data/weapons'
 import { MOVES } from '../data/movesets'
+import type { WeaponInstance, WeaponRarity } from '../types/game'
+import { WEAPON_KILL_THRESHOLDS } from '../data/generators/weaponGenerator'
 import s from './WeaponSelectScreen.module.css'
 
 const MAX_WEAPONS = 2
 
+const RARITY_COLOURS: Record<WeaponRarity, string> = {
+  common: '#aaaaaa', magic: '#4488cc', rare: '#ccaa22',
+  epic: '#9944cc', legendary: '#ee8822',
+}
+
 export default function WeaponSelectScreen() {
   const navigate = useNavigate()
   const store    = useGameStore()
-  const [selected, setSelected] = useState<string[]>(['unarmed'])
+  // Default to first owned weapon
+  const [selected, setSelected] = useState<string[]>(
+    () => store.owned_weapons.slice(0, 1)
+  )
 
   function toggle(id: string) {
     setSelected(prev => {
@@ -36,13 +46,19 @@ export default function WeaponSelectScreen() {
 
       <div className={s.weaponList}>
         {store.owned_weapons.map(wid => {
-          const weapon  = WEAPONS[wid]
+          const weapon = WEAPONS[wid] as WeaponInstance | undefined
           if (!weapon) return null
-          const level   = store.weapon_level[wid] ?? 1
-          const xp      = store.weapon_xp[wid] ?? 0
-          const thresh  = weapon.xp_thresholds[level - 1] ?? '—'
+          const level  = store.weapon_level[wid] ?? 0
+          const xp     = store.weapon_xp[wid] ?? 0
+          const isMax  = level >= 10
+          const nextThresh = isMax ? WEAPON_KILL_THRESHOLDS[9] : (WEAPON_KILL_THRESHOLDS[level] ?? 1)
+          const prevThresh = level === 0 ? 0 : (WEAPON_KILL_THRESHOLDS[level - 1] ?? 0)
+          const xpPct  = isMax ? 1 : Math.max(0, (xp - prevThresh) / Math.max(1, nextThresh - prevThresh))
+
           const isSelected = selected.includes(wid)
           const isDisabled = !isSelected && selected.length >= MAX_WEAPONS
+          const rarity = (weapon as WeaponInstance).rarity
+          const affixes = (weapon as WeaponInstance).affixes ?? []
 
           const allMovesetIds = [
             ...weapon.constant_movesets,
@@ -56,15 +72,36 @@ export default function WeaponSelectScreen() {
               onClick={() => !isDisabled && toggle(wid)}
               disabled={isDisabled && !isSelected}
             >
-              <div className={s.weaponName}>{weapon.name}</div>
+              <div className={s.weaponHeader}>
+                <span className={s.weaponName}>{weapon.name}</span>
+                {rarity && (
+                  <span className={s.rarityBadge} style={{ color: RARITY_COLOURS[rarity] }}>
+                    {rarity.toUpperCase()}
+                  </span>
+                )}
+              </div>
               <div className={s.weaponDesc}>{weapon.description}</div>
+
+              {affixes.length > 0 && (
+                <div className={s.affixList}>
+                  {affixes.map(a => <span key={a.id} className={s.affix}>{a.label}</span>)}
+                </div>
+              )}
+
               <div className={s.weaponMeta}>
-                <span className={s.level}>Lv {level}</span>
-                <span>XP {xp} / {thresh}</span>
+                <span className={s.level}>+{level}{isMax ? ' (MAX)' : ''}</span>
+                {!isMax && <span className={s.xpHint}>{xp - prevThresh} / {nextThresh - prevThresh} kills</span>}
                 {Object.entries(weapon.scaling).map(([stat, grade]) => (
                   <span key={stat} className={s.scaling}>{stat} {grade}</span>
                 ))}
               </div>
+
+              {!isMax && (
+                <div className={s.xpTrack}>
+                  <div className={s.xpFill} style={{ width: `${xpPct * 100}%` }} />
+                </div>
+              )}
+
               <div className={s.movesetList}>
                 {allMovesetIds.map(mid => {
                   const m = MOVES[mid]

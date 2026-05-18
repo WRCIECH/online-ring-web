@@ -3,8 +3,15 @@ import { useGameStore } from '../../store/gameStore'
 import type { GameStore } from '../../store/gameStore'
 import { WEAPONS } from '../../data/weapons'
 import { MOVES } from '../../data/movesets'
+import type { WeaponInstance, WeaponRarity } from '../../types/game'
+import { WEAPON_KILL_THRESHOLDS } from '../../data/generators/weaponGenerator'
 import MovesetIcon from '../icons/MovesetIcon'
 import s from './EquipOverlay.module.css'
+
+const RARITY_COLOURS: Record<WeaponRarity, string> = {
+  common: '#aaaaaa', magic: '#4488cc', rare: '#ccaa22',
+  epic: '#9944cc', legendary: '#ee8822',
+}
 
 type Store = GameStore
 
@@ -56,14 +63,17 @@ function WeaponCard({ weaponId, store, onPickSlot }: {
   const weapon  = WEAPONS[weaponId]
   if (!weapon) return null
 
-  const level   = store.weapon_level[weaponId] ?? 1
+  const wi      = weapon as WeaponInstance
+  const level   = store.weapon_level[weaponId] ?? 0
   const xp      = store.weapon_xp[weaponId] ?? 0
-  const thresh  = weapon.xp_thresholds[level - 1] ?? weapon.xp_thresholds[weapon.xp_thresholds.length - 1]
-  const xpPct   = Math.min(1, xp / (thresh ?? 1))
-  const isMax   = level >= weapon.xp_thresholds.length + 1
+  const isMax   = level >= 10
+  const nextThresh = isMax ? WEAPON_KILL_THRESHOLDS[9] : (WEAPON_KILL_THRESHOLDS[level] ?? 1)
+  const prevThresh = level === 0 ? 0 : (WEAPON_KILL_THRESHOLDS[level - 1] ?? 0)
+  const xpPct   = isMax ? 1 : Math.max(0, (xp - prevThresh) / Math.max(1, nextThresh - prevThresh))
 
   const extraSlots  = store.weapon_extra_movesets[weaponId] ?? []
-  const totalExtra  = weapon.moveset_slots + (level - 1)
+  const skillSlots  = wi.skill_slots ?? weapon.moveset_slots
+  const totalExtra  = skillSlots
 
   function removeSlot(idx: number) {
     const updated = [...extraSlots]
@@ -75,14 +85,24 @@ function WeaponCard({ weaponId, store, onPickSlot }: {
     <div className={s.weaponCard}>
       <div className={s.weaponHeader}>
         <span className={s.weaponName}>{weapon.name}</span>
-        <span className={s.weaponLevel}>Lv {level}{isMax ? ' (MAX)' : ''}</span>
+        {wi.rarity && (
+          <span className={s.rarityBadge} style={{ color: RARITY_COLOURS[wi.rarity] }}>
+            {wi.rarity.toUpperCase()}
+          </span>
+        )}
+        <span className={s.weaponLevel}>+{level}{isMax ? ' MAX' : ''}</span>
         {!isMax && (
           <div className={s.xpBar}>
             <div className={s.xpTrack}><div className={s.xpFill} style={{ width: `${xpPct * 100}%` }} /></div>
-            <span className={s.xpLabel}>{xp} / {thresh} XP</span>
+            <span className={s.xpLabel}>{xp - prevThresh} / {nextThresh - prevThresh} kills</span>
           </div>
         )}
       </div>
+      {wi.affixes && wi.affixes.length > 0 && (
+        <div className={s.affixRow}>
+          {wi.affixes.map(a => <span key={a.id} className={s.affix}>{a.label}</span>)}
+        </div>
+      )}
 
       <div className={s.slots}>
         {/* Constant movesets */}
