@@ -24,6 +24,7 @@ export default function QuickBar({ equippedWeapons, activeWeaponIdx, playerEstus
   const canSwitch = phase === 'PLAYER_ATTACK'
 
   const [weaponTip, setWeaponTip] = useState<{ idx: number; rect: DOMRect } | null>(null)
+  const [estusTip, setEstusTip]  = useState<DOMRect | null>(null)
 
   function handleWeaponEnter(e: React.MouseEvent<HTMLButtonElement>, idx: number) {
     setWeaponTip({ idx, rect: (e.currentTarget as HTMLButtonElement).getBoundingClientRect() })
@@ -65,10 +66,7 @@ export default function QuickBar({ equippedWeapons, activeWeaponIdx, playerEstus
       {weaponTip && tipWeapon && (
         <div
           className={s.weaponTooltip}
-          style={{
-            left: weaponTip.rect.left + weaponTip.rect.width / 2,
-            top:  weaponTip.rect.top - 8,
-          }}
+          style={{ left: weaponTip.rect.left, top: weaponTip.rect.top - 8 }}
         >
           <div className={s.tipName}>{tipWeapon.name}</div>
           <div className={s.tipSub}>
@@ -81,14 +79,26 @@ export default function QuickBar({ equippedWeapons, activeWeaponIdx, playerEstus
         </div>
       )}
 
+      {/* Estus tooltip */}
+      {estusTip && (
+        <div
+          className={s.weaponTooltip}
+          style={{ left: estusTip.left, top: estusTip.top - 8 }}
+        >
+          <div className={s.tipName}>Estus Flask</div>
+          <div className={s.tipSub}>{playerEstus} / 3 remaining</div>
+          <div className={s.tipHint}>Heals 40% HP</div>
+        </div>
+      )}
+
       <div className={s.divider} />
 
       {/* Estus flask */}
       <button
         className={[s.slot, s.estusSlot, playerEstus <= 0 ? s.slotDepleted : ''].join(' ')}
-        disabled={!canAct || playerEstus <= 0}
-        onClick={() => dispatch({ type: 'USE_ESTUS' })}
-        title={`Estus Flask — heals 40% HP (${playerEstus} remaining)`}
+        onClick={() => { if (canAct && playerEstus > 0) dispatch({ type: 'USE_ESTUS' }) }}
+        onMouseEnter={e => setEstusTip((e.currentTarget as HTMLButtonElement).getBoundingClientRect())}
+        onMouseLeave={() => setEstusTip(null)}
       >
         <span className={s.icon} style={{ fontSize: '1.5rem', lineHeight: 1 }}>🧪</span>
         <span className={s.label}>Estus</span>
