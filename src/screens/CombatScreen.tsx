@@ -6,6 +6,9 @@ import { ENEMIES } from '../data/enemies'
 import { playSound } from '../engine/sound'
 import { WEAPONS, getWeaponMovesets } from '../data/weapons'
 import { MOVES } from '../data/movesets'
+import type { WeaponRarity, WeaponClass, WeaponInstance, GeneratedMoveset } from '../types/game'
+import { rollWeapon } from '../data/generators/weaponGenerator'
+import { rollMoveset } from '../data/generators/movesetGenerator'
 import RunHeader from '../components/layout/RunHeader'
 import TimerOverlay from '../components/combat/TimerOverlay'
 import EnemyDisplay from '../components/combat/EnemyDisplay'
@@ -14,6 +17,23 @@ import CombatLog    from '../components/combat/CombatLog'
 import QuickBar     from '../components/combat/QuickBar'
 import RadialMenu, { type RadialItem } from '../components/combat/RadialMenu'
 import s from './CombatScreen.module.css'
+
+// Map legacy drop IDs → new generation instructions
+const DROP_MAP: Record<string, { type: 'weapon' | 'moveset'; wclass: WeaponClass }> = {
+  dagger:           { type: 'weapon',  wclass: 'daggers' },
+  greatsword:       { type: 'weapon',  wclass: 'greatswords' },
+  fast_publish:     { type: 'moveset', wclass: 'straight_swords' },
+  single_thought:   { type: 'moveset', wclass: 'straight_swords' },
+  raw_take:         { type: 'moveset', wclass: 'katanas' },
+  immediate_strike: { type: 'moveset', wclass: 'daggers' },
+  recovery_roll:    { type: 'moveset', wclass: 'fists' },
+  endurance_strike: { type: 'moveset', wclass: 'greatswords' },
+}
+
+const RARITY_COLOURS: Record<WeaponRarity, string> = {
+  common: '#aaaaaa', magic: '#4488cc', rare: '#ccaa22',
+  epic: '#9944cc', legendary: '#ee8822',
+}
 
 function fmtTime(secs: number): string {
   const m = Math.floor(secs / 60), s = secs % 60
@@ -123,7 +143,11 @@ export default function CombatScreen() {
   }, [state.timerExpired])
 
   // ── Loot: compute drops once when VICTORY is entered ──────────────────
-  interface LootItem { id: string; name: string; type: 'weapon' | 'moveset'; obtained: boolean }
+  interface LootItem {
+    id: string; name: string; type: 'weapon' | 'moveset'; obtained: boolean
+    rarity?: WeaponRarity
+    generated?: WeaponInstance | GeneratedMoveset
+  }
   const [lootItems, setLootItems]       = useState<LootItem[] | null>(null)
   const [lootRevealed, setLootRevealed] = useState(false)
   const [bloodActive, setBloodActive]   = useState(false)
@@ -132,12 +156,20 @@ export default function CombatScreen() {
     if (state.phase !== 'VICTORY' || !loc || lootItems !== null) return
     const enemy = ENEMIES[loc.enemy_id]
     const defeatedBefore = store.run_defeated_enemies.includes(loc.enemy_id)
-    setLootItems(enemy.drops.map(drop => ({
-      id:       drop.id,
-      name:     WEAPONS[drop.id]?.name ?? MOVES[drop.id]?.name ?? drop.id,
-      type:     (WEAPONS[drop.id] ? 'weapon' : 'moveset') as 'weapon' | 'moveset',
-      obtained: Math.random() < (defeatedBefore ? drop.repeat_chance : drop.first_kill_chance),
-    })))
+    const minRarity: WeaponRarity = enemy.is_boss ? 'rare' : 'magic'
+    const items: LootItem[] = enemy.drops.map(drop => {
+      const obtained = Math.random() < (defeatedBefore ? drop.repeat_chance : drop.first_kill_chance)
+      const meta = DROP_MAP[drop.id] ?? { type: 'moveset' as const, wclass: 'straight_swords' as WeaponClass }
+      if (!obtained) return { id: drop.id, name: drop.id, type: meta.type, obtained: false }
+      if (meta.type === 'weapon') {
+        const w = rollWeapon(meta.wclass, minRarity)
+        return { id: w.instance_id, name: w.name, type: 'weapon', obtained: true, rarity: w.rarity, generated: w }
+      } else {
+        const m = rollMoveset(meta.wclass, minRarity)
+        return { id: m.id, name: m.name, type: 'moveset', obtained: true, rarity: m.rarity, generated: m }
+      }
+    })
+    setLootItems(items)
   }, [state.phase, loc, store.run_defeated_enemies, lootItems])
 
   function handleCorpseClick() {
@@ -154,14 +186,19 @@ export default function CombatScreen() {
   const handleVictoryContinue = useCallback(() => {
     if (!loc || !lootItems) return
     store.syncCombatResult(state.playerHp, state.playerEstus)
-    store.flushWeaponXp(state.weaponXpAccumulated)
+    // Flush moveset XP (time-based, persistent through failure)
+    store.flushMovesetXp(state.movesetXpAccumulated)
+    // Record weapon kill
+    const activeWeaponId = state.equippedWeapons[state.activeWeaponIdx] ?? state.equippedWeapons[0]
+    const enemy = ENEMIES[loc.enemy_id]
+    store.recordWeaponKill(activeWeaponId, enemy.is_boss)
+    // Apply generated drops
     lootItems.forEach(item => {
-      if (!item.obtained) return
-      if (item.type === 'weapon') store.unlockWeapon(item.id)
-      else store.unlockMoveset(item.id)
+      if (!item.obtained || !item.generated) return
+      if (item.type === 'weapon') store.addWeaponInstance(item.generated as WeaponInstance)
+      else store.addMovesetInstance(item.generated as GeneratedMoveset)
     })
     store.addDefeatedEnemy(loc.enemy_id)
-    const enemy = ENEMIES[loc.enemy_id]
     const isLast = store.run_current_index >= store.run_location_sequence.length - 1
     store.advanceRun()
     if (isLast || enemy.is_remembrance) {
@@ -171,15 +208,17 @@ export default function CombatScreen() {
       store.setPendingEncounter(null)
       navigate('/map')
     }
-  }, [loc, store, navigate, state.playerHp, state.playerEstus, state.weaponXpAccumulated, lootItems])
+  }, [loc, store, navigate, state.playerHp, state.playerEstus, state.movesetXpAccumulated,
+      state.equippedWeapons, state.activeWeaponIdx, lootItems])
 
   // ── Defeat handler ─────────────────────────────────────────────────────
   const handleDefeat = useCallback(() => {
     store.syncCombatResult(state.playerHp, state.playerEstus)
-    store.flushWeaponXp(state.weaponXpAccumulated)
+    // Moveset XP persists through defeat (per spec)
+    store.flushMovesetXp(state.movesetXpAccumulated)
     store.endRunFailure()
     navigate('/')
-  }, [store, navigate, state.playerHp, state.playerEstus, state.weaponXpAccumulated])
+  }, [store, navigate, state.playerHp, state.playerEstus, state.movesetXpAccumulated])
 
 
   // ── Radial action menu ────────────────────────────────────────────────
@@ -426,8 +465,10 @@ export default function CombatScreen() {
                     style={{ animationDelay: `${i * 220}ms` }}
                   >
                     <span className={s.lootIcon}>✓</span>
-                    <span className={s.lootName}>{item.name}</span>
-                    <span className={s.lootType}>{item.type}</span>
+                    <span className={s.lootName} style={item.rarity ? { color: RARITY_COLOURS[item.rarity] } : undefined}>
+                      {item.name}
+                    </span>
+                    <span className={s.lootType}>{item.rarity ? `${item.rarity} ${item.type}` : item.type}</span>
                   </div>
                 ))}
               </div>

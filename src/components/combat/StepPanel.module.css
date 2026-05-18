@@ -53,6 +53,12 @@
   gap: 5px;
 }
 
+.msLevel {
+  font-size: 0.68rem;
+  color: var(--color-gold-dim);
+  margin-left: auto;
+}
+
 .stepBtn {
   width: 100%;
   text-align: left;

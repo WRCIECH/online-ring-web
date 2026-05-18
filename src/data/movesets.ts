@@ -1,5 +1,6 @@
-import type { Moveset } from '../types/game'
+import type { GeneratedMoveset, Moveset } from '../types/game'
 
+// Mutable registry — generators populate it at runtime; legacy static moves below
 export const MOVES: Record<string, Moveset> = {
   starter_chain: {
     id: 'starter_chain', name: 'Starter Chain', scaling_stat: 'END', stamina_cost: 24,
@@ -106,4 +107,9 @@ export const MOVES: Record<string, Moveset> = {
       { name: 'Write one strong opening sentence for your piece', time: 20, base_damage: 0, poise_damage: 5 },
     ],
   },
+}
+
+/** Register a generated moveset into the runtime registry. */
+export function registerMoveset(m: Moveset | GeneratedMoveset): void {
+  MOVES[m.id] = m
 }

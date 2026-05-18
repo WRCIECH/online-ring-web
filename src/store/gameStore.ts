@@ -1,7 +1,16 @@
 import { create } from 'zustand'
-import type { GameState, LocationData, Stats } from '../types/game'
+import type { GameState, LocationData, Stats, GeneratedMoveset, WeaponInstance } from '../types/game'
 import { ENEMIES } from '../data/enemies'
 import { saveGame, loadGame } from '../engine/save'
+import { registerWeapon } from '../data/weapons'
+import { MOVES, registerMoveset } from '../data/movesets'
+import { rollWeapon, WEAPON_KILL_THRESHOLDS } from '../data/generators/weaponGenerator'
+
+/** Re-populate WEAPONS/MOVES registries from persisted instances (called on load & init). */
+function hydrateRegistries(state: GameState): void {
+  state.weapon_instances.forEach(w => registerWeapon(w))
+  state.moveset_instances.forEach(m => registerMoveset(m))
+}
 
 const RUN_DURATION = 172800  // 48 hours in seconds
 const RUN_ESTUS_MAX = 3
@@ -79,16 +88,35 @@ function generateLocationSequence(): LocationData[] {
   }))
 }
 
+// Moveset XP thresholds in seconds (cumulative committed work time)
+const MOVESET_XP_THRESHOLDS = [1800,3600,7200,10800,18000,25200,36000,54000,72000] // lvl 1→10
+
 function initialState(): GameState {
+  // Generate a starting Common straight-sword for new players
+  const startWeapon = rollWeapon('straight_swords', 'common')
+  // Collect all movesets registered by the weapon roll
+  const movesetIds = [
+    ...startWeapon.constant_movesets,
+    startWeapon.defense_movesets.block,
+    startWeapon.defense_movesets.parry,
+  ]
+  const movesetInsts: GeneratedMoveset[] = movesetIds
+    .map(id => MOVES[id])
+    .filter((m): m is GeneratedMoveset => !!m && 'pipeline' in m)
+
   return {
     stats: { ...DEFAULT_STATS },
     level: 1,
-    owned_weapons: ['unarmed'],
+    owned_weapons: [startWeapon.instance_id],
+    weapon_instances: [startWeapon],
     owned_movesets: [],
-    equipped_run_weapons: ['unarmed'],
-    weapon_xp: { unarmed: 0 },
-    weapon_level: { unarmed: 1 },
-    weapon_extra_movesets: { unarmed: [] },
+    moveset_instances: movesetInsts,
+    equipped_run_weapons: [startWeapon.instance_id],
+    weapon_xp: { [startWeapon.instance_id]: 0 },
+    weapon_level: { [startWeapon.instance_id]: 0 },
+    weapon_extra_movesets: { [startWeapon.instance_id]: [] },
+    moveset_xp: {},
+    moveset_level: {},
     current_hp: calcMaxHp(DEFAULT_STATS.VIG),
     current_stamina: calcMaxStamina(DEFAULT_STATS.END),
     current_fp: calcMaxFp(DEFAULT_STATS.MIND),
@@ -129,12 +157,18 @@ export interface GameStore extends GameState {
   restoreStamina: () => void
   spendFp: (amount: number) => boolean
 
-  // Weapon progression
+  // Weapon progression (kill-based)
   addWeaponXp: (weaponId: string, amount: number) => boolean
   flushWeaponXp: (gains: Record<string, number>) => void
+  recordWeaponKill: (weaponId: string, isBoss: boolean) => void
   setWeaponExtraMovesets: (weaponId: string, ids: string[]) => void
   unlockMoveset: (id: string) => void
   unlockWeapon: (id: string) => void
+  addWeaponInstance: (w: WeaponInstance) => void
+  addMovesetInstance: (m: GeneratedMoveset) => void
+
+  // Moveset progression (time-based)
+  flushMovesetXp: (gains: Record<string, number>) => void
 
   // Stat level-up
   levelUpStat: (stat: keyof Stats) => boolean
@@ -145,8 +179,11 @@ export interface GameStore extends GameState {
   reset: () => void
 }
 
+const _savedOrFresh = loadGame() ?? initialState()
+hydrateRegistries(_savedOrFresh)
+
 export const useGameStore = create<GameStore>((set, get) => ({
-  ...(loadGame() ?? initialState()),
+  ..._savedOrFresh,
 
   maxHp:      () => calcMaxHp(get().stats.VIG),
   maxStamina: () => calcMaxStamina(get().stats.END),
@@ -279,6 +316,61 @@ export const useGameStore = create<GameStore>((set, get) => ({
     weapon_extra_movesets: { ...s.weapon_extra_movesets, [weaponId]: ids },
   })),
 
+  recordWeaponKill: (weaponId, isBoss) => {
+    const s = get()
+    const pts = isBoss ? 8 : 3
+    const newXp = (s.weapon_xp[weaponId] ?? 0) + pts
+    const curLevel = s.weapon_level[weaponId] ?? 0
+    let newLevel = curLevel
+    for (let i = curLevel; i < WEAPON_KILL_THRESHOLDS.length; i++) {
+      if (newXp >= WEAPON_KILL_THRESHOLDS[i]) newLevel = i + 1
+    }
+    set(prev => ({
+      weapon_xp:   { ...prev.weapon_xp,   [weaponId]: newXp },
+      weapon_level: { ...prev.weapon_level, [weaponId]: newLevel },
+    }))
+  },
+
+  flushMovesetXp: (gains) => {
+    set(s => {
+      const xp  = { ...s.moveset_xp }
+      const lvl = { ...s.moveset_level }
+      for (const [id, secs] of Object.entries(gains)) {
+        if (secs <= 0) continue
+        xp[id] = (xp[id] ?? 0) + secs
+        let newLevel = lvl[id] ?? 1
+        for (let i = newLevel - 1; i < MOVESET_XP_THRESHOLDS.length; i++) {
+          if (xp[id] >= MOVESET_XP_THRESHOLDS[i]) newLevel = i + 2
+        }
+        lvl[id] = Math.min(10, newLevel)
+      }
+      return { moveset_xp: xp, moveset_level: lvl }
+    })
+  },
+
+  addWeaponInstance: (w) => {
+    registerWeapon(w)
+    set(s => ({
+      weapon_instances: [...s.weapon_instances.filter(x => x.instance_id !== w.instance_id), w],
+      owned_weapons: s.owned_weapons.includes(w.instance_id) ? s.owned_weapons : [...s.owned_weapons, w.instance_id],
+      weapon_xp:   s.weapon_xp[w.instance_id]   !== undefined ? s.weapon_xp   : { ...s.weapon_xp,   [w.instance_id]: 0 },
+      weapon_level: s.weapon_level[w.instance_id] !== undefined ? s.weapon_level : { ...s.weapon_level, [w.instance_id]: 0 },
+      weapon_extra_movesets: s.weapon_extra_movesets[w.instance_id]
+        ? s.weapon_extra_movesets
+        : { ...s.weapon_extra_movesets, [w.instance_id]: [] },
+    }))
+    get().save()
+  },
+
+  addMovesetInstance: (m) => {
+    registerMoveset(m)
+    set(s => ({
+      moveset_instances: [...s.moveset_instances.filter(x => x.id !== m.id), m],
+      owned_movesets: s.owned_movesets.includes(m.id) ? s.owned_movesets : [...s.owned_movesets, m.id],
+    }))
+    get().save()
+  },
+
   unlockMoveset: (id) => set(s => ({
     owned_movesets: s.owned_movesets.includes(id) ? s.owned_movesets : [...s.owned_movesets, id],
   })),
@@ -286,7 +378,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
   unlockWeapon: (id) => set(s => ({
     owned_weapons: s.owned_weapons.includes(id) ? s.owned_weapons : [...s.owned_weapons, id],
     weapon_xp:     s.weapon_xp[id] !== undefined    ? s.weapon_xp    : { ...s.weapon_xp,    [id]: 0 },
-    weapon_level:  s.weapon_level[id] !== undefined  ? s.weapon_level  : { ...s.weapon_level,  [id]: 1 },
+    weapon_level:  s.weapon_level[id] !== undefined  ? s.weapon_level  : { ...s.weapon_level,  [id]: 0 },
     weapon_extra_movesets: s.weapon_extra_movesets[id]
       ? s.weapon_extra_movesets
       : { ...s.weapon_extra_movesets, [id]: [] },
@@ -310,11 +402,16 @@ export const useGameStore = create<GameStore>((set, get) => ({
   load: () => {
     const data = loadGame()
     if (!data) return false
+    hydrateRegistries(data)
     set({ ...data })
     return true
   },
 
-  reset: () => set(initialState()),
+  reset: () => {
+    const fresh = initialState()
+    hydrateRegistries(fresh)
+    set(fresh)
+  },
 }))
 
 // Selectors

@@ -2,6 +2,7 @@ import type { CombatPhase, DefenseAction, Enemy, EnemyMove, Moveset, Stats, Step
 import { ENEMY_MOVES } from '../data/enemyMovesets'
 import { MOVES } from '../data/movesets'
 import { WEAPONS, calcStepDamage, getWeaponMovesets } from '../data/weapons'
+export { getActiveSteps } from '../data/generators/movesetGenerator'
 
 export const STA_ROLL        = 6
 export const STA_BLOCK       = 10
@@ -50,6 +51,10 @@ export interface CombatState {
   defenseParryStep: number
   // XP accumulated this combat (flushed to store on end)
   weaponXpAccumulated: Record<string, number>
+  // Moveset XP (seconds of completed steps, per moveset id)
+  movesetXpAccumulated: Record<string, number>
+  // Weapon kills this combat
+  weaponKillsAccumulated: number
   // Log
   log: LogEntry[]
   logId: number
@@ -167,6 +172,8 @@ export function initCombatState(
     timerIsDefense: false, timerExpired: false,
     pendingDefenseAction: null, defenseParryStep: 0,
     weaponXpAccumulated: {},
+    movesetXpAccumulated: {},
+    weaponKillsAccumulated: 0,
     log: [], logId: 0,
   }, `You face ${enemyData.name}.`, '#c9a93a')
   return log(first, enemyData.description, '#7a7570')
@@ -289,7 +296,7 @@ export function combatReducer(state: CombatState, action: CombatAction): CombatS
               const newPoise   = Math.max(0, state.enemyPoise - move.poise_damage)
               let s = log({ ...state, playerStamina: sta, enemyHp: newHp, enemyPoise: newPoise },
                 `Perfect parry! ${counterDmg} counter-damage dealt.`, '#44ee44')
-              if (newHp <= 0) return { ...s, phase: 'VICTORY' }
+              if (newHp <= 0) return { ...s, phase: 'VICTORY', weaponKillsAccumulated: state.weaponKillsAccumulated + 1 }
               if (newPoise <= 0) return { ...s, enemyPoise: 0, phase: 'ENEMY_STAGGERED' }
               return enterPlayerAttack(s)
             }
@@ -323,18 +330,18 @@ export function combatReducer(state: CombatState, action: CombatAction): CombatS
       const newChainId  = nextIdx < allSteps.length ? usedId : ''
       const newChainIdx = nextIdx < allSteps.length ? nextIdx : 0
 
-      const xpGain = step.time / 10
-      const prevXp = state.weaponXpAccumulated[state.pendingWeaponId] ?? 0
-      const newXpAcc = { ...state.weaponXpAccumulated, [state.pendingWeaponId]: prevXp + xpGain }
+      // Moveset XP: accumulate step.time (seconds of committed work) per moveset
+      const prevMsXp = state.movesetXpAccumulated[moveset.id] ?? 0
+      const newMsXpAcc = { ...state.movesetXpAccumulated, [moveset.id]: prevMsXp + step.time }
 
       let s = log(
         { ...state, enemyHp: newEnemyHp, enemyPoise: newEnemyPoise, playerStamina: newStamina,
           chainMovesetId: newChainId, chainStepIdx: newChainIdx, timerExpired: false, stepStarted: false,
-          weaponXpAccumulated: newXpAcc },
+          movesetXpAccumulated: newMsXpAcc },
         `You complete ${step.name} — ${dmg} damage!`, '#ffffff'
       )
 
-      if (s.enemyHp <= 0) return { ...s, phase: 'VICTORY' }
+      if (s.enemyHp <= 0) return { ...s, phase: 'VICTORY', weaponKillsAccumulated: state.weaponKillsAccumulated + 1 }
       if (s.enemyPoise <= 0) return { ...s, enemyPoise: 0, phase: 'ENEMY_STAGGERED' }
 
       if (!anyMoveAffordable(s)) {
