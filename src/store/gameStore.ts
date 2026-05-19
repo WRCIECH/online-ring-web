@@ -25,7 +25,7 @@ export function calcMaxHp(vig: number): number {
 export function calcMaxStamina(end: number): number { return end * 10 }
 export function calcMaxFp(mind: number): number { return mind * 3 }
 
-// Named locations for the 22-node spiral map
+// Internal sublocation names for the spiral run map (30 max for very large locations)
 const LOCATION_NAMES = [
   'The Endless Feed', 'Deadline Flats', 'The Comparison Pit', 'Scroll Abyss',
   'Fear Marsh', 'Distraction Fields', 'The Blank Vista', 'Burnout Hollow',
@@ -33,36 +33,56 @@ const LOCATION_NAMES = [
   'The Hater\'s Reach', 'Overload Depths', 'Silence Archive', 'The Mirror Maze',
   'Momentum Ruins', 'The Unfinished Gallery', 'Visibility Peak', 'The Long Draft',
   'Perfectionism Gate', 'The Final Page',
+  'The Echo Chamber', 'Shadow Archive', 'The Forgotten Draft', 'Spiral Descent',
+  'Burnout Vale', 'Threshold Point', 'The Last Revision', 'Final Threshold',
 ]
 
+// Full 30-entry pool (supports up to very large locations)
 const ENCOUNTER_POOL: Array<{ enemy_id: string; tier: number }> = [
-  // Tier 1 (easy)
+  // Tier 1 (easy) — 10
   { enemy_id: 'procrastination_mob', tier: 1 },
   { enemy_id: 'procrastination_mob', tier: 1 },
-  { enemy_id: 'burnout_shade',       tier: 1 },
-  { enemy_id: 'burnout_shade',       tier: 1 },
+  { enemy_id: 'procrastination_mob', tier: 1 },
+  { enemy_id: 'procrastination_mob', tier: 1 },
   { enemy_id: 'procrastination_mob', tier: 1 },
   { enemy_id: 'burnout_shade',       tier: 1 },
-  { enemy_id: 'procrastination_mob', tier: 1 },
   { enemy_id: 'burnout_shade',       tier: 1 },
-  // Tier 2 (medium)
+  { enemy_id: 'burnout_shade',       tier: 1 },
+  { enemy_id: 'burnout_shade',       tier: 1 },
+  { enemy_id: 'burnout_shade',       tier: 1 },
+  // Tier 2 (medium) — 12
+  { enemy_id: 'fear_phantom',        tier: 2 },
+  { enemy_id: 'fear_phantom',        tier: 2 },
   { enemy_id: 'fear_phantom',        tier: 2 },
   { enemy_id: 'comparison_engine',   tier: 2 },
-  { enemy_id: 'hater',               tier: 2 },
-  { enemy_id: 'blank_page_omen',     tier: 2 },
-  { enemy_id: 'fear_phantom',        tier: 2 },
+  { enemy_id: 'comparison_engine',   tier: 2 },
   { enemy_id: 'comparison_engine',   tier: 2 },
   { enemy_id: 'hater',               tier: 2 },
+  { enemy_id: 'hater',               tier: 2 },
+  { enemy_id: 'hater',               tier: 2 },
   { enemy_id: 'blank_page_omen',     tier: 2 },
-  // Tier 3 (hard)
-  { enemy_id: 'blank_page_omen',      tier: 3 },
-  { enemy_id: 'comparison_engine',    tier: 3 },
-  { enemy_id: 'fear_phantom',         tier: 3 },
-  { enemy_id: 'hater',                tier: 3 },
-  { enemy_id: 'blank_page_omen',      tier: 3 },
-  // Boss (fixed)
+  { enemy_id: 'blank_page_omen',     tier: 2 },
+  { enemy_id: 'blank_page_omen',     tier: 2 },
+  // Tier 3 (hard) — 7
+  { enemy_id: 'blank_page_omen',     tier: 3 },
+  { enemy_id: 'blank_page_omen',     tier: 3 },
+  { enemy_id: 'comparison_engine',   tier: 3 },
+  { enemy_id: 'comparison_engine',   tier: 3 },
+  { enemy_id: 'fear_phantom',        tier: 3 },
+  { enemy_id: 'fear_phantom',        tier: 3 },
+  { enemy_id: 'hater',               tier: 3 },
+  // Boss (fixed) — 1
   { enemy_id: 'perfectionism_knight', tier: 4 },
 ]
+
+// Tier distribution per total sublocation count: [tier1, tier2, tier3]
+const TIER_DIST: Record<number, [number, number, number]> = {
+  10: [3,  4,  2],
+  15: [5,  6,  3],
+  20: [7,  8,  4],
+  25: [8,  10, 6],
+  30: [10, 12, 7],
+}
 
 const TIER_MULTS: Record<number, number> = { 1: 0.65, 2: 1.0, 3: 1.35, 4: 1.60 }
 
@@ -75,10 +95,11 @@ function shuffle<T>(arr: T[]): T[] {
   return a
 }
 
-function generateLocationSequence(): LocationData[] {
-  const tier1 = shuffle(ENCOUNTER_POOL.filter(e => e.tier === 1))
-  const tier2 = shuffle(ENCOUNTER_POOL.filter(e => e.tier === 2))
-  const tier3 = shuffle(ENCOUNTER_POOL.filter(e => e.tier === 3))
+function generateLocationSequence(numSublocations: number = 20): LocationData[] {
+  const [t1, t2, t3] = TIER_DIST[numSublocations] ?? TIER_DIST[20]
+  const tier1 = shuffle(ENCOUNTER_POOL.filter(e => e.tier === 1)).slice(0, t1)
+  const tier2 = shuffle(ENCOUNTER_POOL.filter(e => e.tier === 2)).slice(0, t2)
+  const tier3 = shuffle(ENCOUNTER_POOL.filter(e => e.tier === 3)).slice(0, t3)
   const boss  = ENCOUNTER_POOL.filter(e => e.tier === 4)
   const ordered = [...tier1, ...tier2, ...tier3, ...boss]
 
@@ -163,6 +184,7 @@ function initialState(): GameState {
     pending_run_reward: '',
     weapon_cooldown: {},
     run_location_name: '',
+    completed_locations: [],
   }
 }
 
@@ -173,7 +195,7 @@ export interface GameStore extends GameState {
   maxFp: () => number
 
   // Run management
-  startRun: (weapons: string[], locationName?: string) => void
+  startRun: (weapons: string[], locationName?: string, numSublocations?: number, runDuration?: number) => void
   advanceRun: () => void
   endRunVictory: () => void
   endRunFailure: () => void
@@ -228,8 +250,8 @@ export const useGameStore = create<GameStore>((set, get) => ({
   maxStamina: () => calcMaxStamina(get().stats.END),
   maxFp:      () => calcMaxFp(get().stats.MIND),
 
-  startRun: (weapons, locationName = '') => {
-    const seq = generateLocationSequence()
+  startRun: (weapons, locationName = '', numSublocations = 20, runDuration = RUN_DURATION) => {
+    const seq = generateLocationSequence(numSublocations)
     const prevCooldown = get().weapon_cooldown
     const newCooldown = Object.fromEntries(
       Object.entries(prevCooldown).map(([k, v]) => [k, Math.max(0, v - 1)])
@@ -240,7 +262,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
       run_location_sequence: seq,
       run_current_index: 0,
       run_start_time: Date.now() / 1000,
-      run_duration_seconds: RUN_DURATION,
+      run_duration_seconds: runDuration,
       run_estus_count: RUN_ESTUS_MAX,
       run_defeated_enemies: [],
       current_hp: calcMaxHp(get().stats.VIG),
@@ -258,7 +280,13 @@ export const useGameStore = create<GameStore>((set, get) => ({
   },
 
   endRunVictory: () => {
-    set(s => ({ run_active: false, run_count: s.run_count + 1 }))
+    set(s => ({
+      run_active: false,
+      run_count: s.run_count + 1,
+      completed_locations: s.completed_locations.includes(s.run_location_name)
+        ? s.completed_locations
+        : [...s.completed_locations, s.run_location_name],
+    }))
     get().save()
   },
 

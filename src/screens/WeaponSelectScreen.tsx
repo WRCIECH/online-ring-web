@@ -19,7 +19,10 @@ export default function WeaponSelectScreen() {
   const navigate   = useNavigate()
   const routerLoc  = useLocation()
   const store      = useGameStore()
-  const locationName: string = (routerLoc.state as { locationName?: string } | null)?.locationName ?? ''
+  const routerState  = routerLoc.state as { locationName?: string; numSublocations?: number; runDuration?: number } | null
+  const locationName    = routerState?.locationName    ?? ''
+  const numSublocations = routerState?.numSublocations ?? 20
+  const runDuration     = routerState?.runDuration     ?? 158400  // default: medium 44h
   // Default to first owned weapon
   const [selected, setSelected] = useState<string[]>(
     () => store.owned_weapons.slice(0, 1)
@@ -35,7 +38,7 @@ export default function WeaponSelectScreen() {
 
   function handleBegin() {
     if (selected.length === 0) return
-    store.startRun(selected, locationName)
+    store.startRun(selected, locationName, numSublocations, runDuration)
     store.save()
     navigate('/map')
   }

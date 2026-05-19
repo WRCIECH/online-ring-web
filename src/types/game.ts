@@ -189,4 +189,5 @@ export interface GameState {
   pending_run_reward: string
   weapon_cooldown: Record<string, number>   // instance_id → runs remaining on cooldown
   run_location_name: string
+  completed_locations: string[]             // location ids cleared (drives unlock DAG)
 }

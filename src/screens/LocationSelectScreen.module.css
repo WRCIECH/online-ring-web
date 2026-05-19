@@ -5,13 +5,13 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 48px 24px 60px;
+  padding: 40px 24px 56px;
 }
 
 /* ── Header ──────────────────────────────────────────────────────────────── */
 .header {
   text-align: center;
-  margin-bottom: 44px;
+  margin-bottom: 36px;
 }
 
 .title {
@@ -26,109 +26,129 @@
 
 .subtitle {
   font-size: 0.82rem;
-  letter-spacing: 0.12em;
+  letter-spacing: 0.1em;
   color: var(--color-text-dim);
 }
 
-/* ── Card grid — 3 columns ───────────────────────────────────────────────── */
+/* ── Grid — 3 columns ────────────────────────────────────────────────────── */
 .grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 20px;
+  gap: 10px;
   width: 100%;
   max-width: 960px;
 }
 
-/* ── Card base ───────────────────────────────────────────────────────────── */
+/* ── Card ─────────────────────────────────────────────────────────────────── */
 .card {
   background: var(--color-bg-panel);
   border: 1px solid var(--color-border);
-  border-radius: var(--radius-lg);
-  overflow: hidden;
+  border-radius: var(--radius);
   display: flex;
-  flex-direction: column;
+  align-items: stretch;
   text-align: left;
   padding: 0;
-  transition: border-color 0.15s, box-shadow 0.15s, transform 0.12s;
   cursor: pointer;
+  transition: border-color 0.14s, box-shadow 0.14s, transform 0.1s;
+  overflow: hidden;
+  min-height: 72px;
 }
 
-/* Active / unlocked card */
-.cardUnlocked {
-  border-color: var(--color-gold-dim);
-}
+.card:disabled { cursor: not-allowed; }
 
 .cardUnlocked:hover {
-  border-color: var(--color-gold);
-  box-shadow: var(--glow-gold);
-  transform: translateY(-2px);
+  border-color: var(--loc-colour, var(--color-gold-dim));
+  box-shadow: 0 0 12px color-mix(in srgb, var(--loc-colour, var(--color-gold)) 25%, transparent);
+  transform: translateY(-1px);
 }
 
-/* Locked card */
+.cardCompleted {
+  border-color: rgba(46,204,136,0.35);
+}
+
+.cardCompleted:hover {
+  border-color: rgba(46,204,136,0.7);
+  box-shadow: 0 0 10px rgba(46,204,136,0.2);
+  transform: translateY(-1px);
+}
+
 .cardLocked {
-  opacity: 0.42;
-  cursor: not-allowed;
+  opacity: 0.38;
 }
 
-/* ── Illustration ─────────────────────────────────────────────────────────── */
-.illustration {
-  position: relative;
-  width: 100%;
-  aspect-ratio: 200 / 120;
-  overflow: hidden;
-  background: #060808;
+/* ── Colour bar (left accent) ─────────────────────────────────────────────── */
+.colourBar {
+  width: 4px;
+  flex-shrink: 0;
 }
 
-.illustration svg {
-  display: block;
-  width: 100%;
-  height: 100%;
-}
-
-.lockOverlay {
-  position: absolute;
-  inset: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: rgba(0,0,0,0.35);
-  color: rgba(255,255,255,0.28);
-}
-
-.availableBadge {
-  position: absolute;
-  top: 8px;
-  right: 8px;
-  font-size: 0.62rem;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: #2ecc88;
-  background: rgba(18,60,38,0.85);
-  border: 1px solid rgba(46,204,136,0.35);
-  border-radius: 3px;
-  padding: 2px 7px;
-}
-
-/* ── Card text ───────────────────────────────────────────────────────────── */
-.info {
-  padding: 12px 14px;
+/* ── Text content ─────────────────────────────────────────────────────────── */
+.content {
+  flex: 1;
+  padding: 10px 12px;
   display: flex;
   flex-direction: column;
   gap: 3px;
-  border-top: 1px solid var(--color-sep);
+  min-width: 0;
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
 .name {
-  font-size: 0.92rem;
-  letter-spacing: 0.07em;
+  font-size: 0.82rem;
   color: var(--color-gold-text);
+  letter-spacing: 0.04em;
+  flex: 1;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
-.locationSubtitle {
+.sizeBadge {
+  font-size: 0.62rem;
+  letter-spacing: 0.1em;
+  border: 1px solid;
+  border-radius: 3px;
+  padding: 1px 5px;
+  flex-shrink: 0;
+}
+
+.boss {
   font-size: 0.72rem;
-  letter-spacing: 0.06em;
   color: var(--color-text-dim);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.meta {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.68rem;
+  color: var(--color-text-dim);
+  margin-top: 1px;
+}
+
+.doneTag {
+  color: #2ecc88;
+  font-weight: 600;
+  margin-left: auto;
+}
+
+.lockTag {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  color: var(--color-text-dim);
+  margin-left: auto;
+  font-size: 0.65rem;
+  max-width: 120px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }

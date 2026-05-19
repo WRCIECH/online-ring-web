@@ -45,7 +45,7 @@ export default function RunCompleteScreen() {
   return (
     <div className={s.root}>
       <h1 className={s.title}>Run Complete</h1>
-      <p className={s.subtitle}>Great Run #{store.run_count} — The Knight falls</p>
+      <p className={s.subtitle}>{store.run_location_name || `Run #${store.run_count}`} — Location cleared!</p>
 
       <div className={s.card}>
         {/* Stat level-up */}
