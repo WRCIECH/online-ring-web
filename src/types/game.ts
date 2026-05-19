@@ -9,6 +9,11 @@ export type WeaponRarity = 'common' | 'magic' | 'rare' | 'epic' | 'legendary'
 export type WeaponClass =
   | 'daggers' | 'straight_swords' | 'greatswords' | 'katanas'
   | 'hammers' | 'spears' | 'axes' | 'bows' | 'fists'
+  | 'colossal_swords' | 'thrusting_swords' | 'heavy_thrusting'
+  | 'curved_swords' | 'curved_greatswords' | 'twinblades'
+  | 'great_hammers' | 'great_axes' | 'flails' | 'colossal_weapons'
+  | 'great_spears' | 'halberds' | 'reapers' | 'whips'
+  | 'greatbows' | 'crossbows' | 'ballistas' | 'torches'
 
 export type PoiseWeight = 'light' | 'medium' | 'heavy' | 'colossal'
 

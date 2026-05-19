@@ -11,9 +11,11 @@ import s from './StartingWeaponScreen.module.css'
 
 // One candidate class from each weight tier — always obviously different
 const WEIGHT_GROUPS: WeaponClass[][] = [
-  ['daggers', 'fists', 'bows'],
-  ['straight_swords', 'katanas', 'spears', 'axes'],
-  ['greatswords', 'hammers'],
+  ['daggers', 'fists', 'bows', 'thrusting_swords', 'torches'],
+  ['straight_swords', 'katanas', 'spears', 'axes', 'curved_swords',
+   'heavy_thrusting', 'halberds', 'whips', 'twinblades', 'crossbows'],
+  ['greatswords', 'hammers', 'great_hammers', 'great_axes', 'curved_greatswords',
+   'flails', 'reapers', 'great_spears', 'colossal_swords', 'greatbows', 'ballistas'],
 ]
 
 const WEIGHT_COLOUR: Record<string, string> = {
