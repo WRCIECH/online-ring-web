@@ -217,7 +217,7 @@ export default function RunMapScreen() {
     const maxHp  = store.maxHp()
     const newHp  = Math.min(maxHp, store.current_hp + Math.floor(maxHp * 0.60))
     const newEst = Math.min(3, store.run_estus_count + 1)
-    store.syncCombatResult(newHp, newEst)
+    store.syncCombatResult(newHp, newEst, store.current_fp)
     store.advanceRun()
     setEventNode(null)
   }

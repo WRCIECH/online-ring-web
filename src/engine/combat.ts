@@ -380,6 +380,10 @@ export function combatReducer(state: CombatState, action: CombatAction): CombatS
       const newEnemyHp    = Math.max(0, state.enemyHp - dmg)
       const newEnemyPoise = Math.max(0, poiseReset - scaledPoise)
       const newStamina    = Math.max(0, state.playerStamina - moveset.stamina_cost)
+      // FP: skill movesets cost FP; constant (light/heavy) movesets do not
+      const isConstant = weapon?.constant_movesets?.includes(moveset.id) ?? false
+      const fpCost     = isConstant ? 0 : (moveset.fp_cost ?? 0)
+      const newFp      = Math.max(0, state.playerFp - fpCost)
 
       // Advance or reset chain
       const usedId = moveset.id
@@ -400,7 +404,8 @@ export function combatReducer(state: CombatState, action: CombatAction): CombatS
       const flowSuffix = gapMult === 1.5 ? ' [flow]' : (gapMult === 0.5 ? ' [stale]' : '')
 
       let s = log(
-        { ...state, enemyHp: newEnemyHp, enemyPoise: newEnemyPoise, playerStamina: newStamina,
+        { ...state, enemyHp: newEnemyHp, enemyPoise: newEnemyPoise,
+          playerStamina: newStamina, playerFp: newFp,
           chainMovesetId: newChainId, chainStepIdx: newChainIdx, timerExpired: false, stepStarted: false,
           movesetXpAccumulated: newMsXpAcc,
           lastMovesetCompletionMs: Date.now(),

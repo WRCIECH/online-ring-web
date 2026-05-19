@@ -204,7 +204,7 @@ export default function CombatScreen() {
   // ── Victory handler ────────────────────────────────────────────────────
   const handleVictoryContinue = useCallback(() => {
     if (!loc || !lootItems) return
-    store.syncCombatResult(state.playerHp, state.playerEstus)
+    store.syncCombatResult(state.playerHp, state.playerEstus, state.playerFp)
     store.applyWeaponHeat(state.weaponHeatAccumulated)
     // Flush moveset XP (time-based, persistent through failure)
     store.flushMovesetXp(state.movesetXpAccumulated)
@@ -233,7 +233,7 @@ export default function CombatScreen() {
 
   // ── Defeat handler ─────────────────────────────────────────────────────
   const handleDefeat = useCallback(() => {
-    store.syncCombatResult(state.playerHp, state.playerEstus)
+    store.syncCombatResult(state.playerHp, state.playerEstus, state.playerFp)
     store.applyWeaponHeat(state.weaponHeatAccumulated)
     // Moveset XP persists through defeat (per spec)
     store.flushMovesetXp(state.movesetXpAccumulated)
@@ -264,14 +264,26 @@ export default function CombatScreen() {
       const movesets = getWeaponMovesets(weaponId, extra)
       const N        = movesets.length + 1  // +1 for End Turn
 
+      const constantIds = new Set(weapon?.constant_movesets ?? [])
+
       const attackItems: RadialItem[] = movesets.flatMap((moveset, i) => {
         const isMidChain = state.chainMovesetId === moveset.id
         const showIdx    = isMidChain ? state.chainStepIdx : 0
         const step       = moveset.steps[showIdx]
         if (!step) return []
-        const canUse = state.playerStamina >= moveset.stamina_cost
-        const disabledReason = canUse ? undefined
-          : `Need ${moveset.stamina_cost} STA (have ${Math.floor(state.playerStamina)})`
+
+        // Skill movesets cost FP; constant (light/heavy) movesets do not
+        const isSkill  = !constantIds.has(moveset.id)
+        const fpCost   = isSkill ? (moveset.fp_cost ?? 0) : 0
+        const canSta   = state.playerStamina >= moveset.stamina_cost
+        const canFp    = state.playerFp >= fpCost
+        const canUse   = canSta && canFp
+        const disabledReason = !canSta
+          ? `Need ${moveset.stamina_cost} STA (have ${Math.floor(state.playerStamina)})`
+          : !canFp
+          ? `Need ${fpCost} FP (have ${Math.floor(state.playerFp)})`
+          : undefined
+
         const level  = state.weaponLevels[weaponId] ?? 0
         const dmg    = weapon ? calcStepDamage(step, weapon, level) : step.base_damage
         const prefix = moveset.steps.length > 1 ? `[${showIdx + 1}/${moveset.steps.length}] ` : ''
@@ -284,6 +296,7 @@ export default function CombatScreen() {
             { text: fmtTime(step.time) },
             { text: `${dmg} dmg`, color: '#cc6644' },
             { text: `${moveset.stamina_cost} STA`, color: 'var(--color-stamina)' },
+            ...(fpCost > 0 ? [{ text: `${fpCost} FP`, color: 'var(--color-fp)' }] : []),
           ],
           canUse, disabledReason, tx: Math.cos(angle) * rx, ty: Math.sin(angle) * ry,
           onSelect: () => dispatch({ type: 'STEP_CLICKED', step, moveset, weaponId }),
