@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { useGameStore } from '../store/gameStore'
-import { WEAPONS } from '../data/weapons'
+import { WEAPONS, LEVEL_MULT } from '../data/weapons'
 import { MOVES } from '../data/movesets'
 import type { WeaponInstance, WeaponRarity } from '../types/game'
 import { WEAPON_KILL_THRESHOLDS } from '../data/generators/weaponGenerator'
@@ -107,9 +107,11 @@ export default function WeaponSelectScreen() {
               <div className={s.weaponMeta}>
                 <span className={s.level}>+{level}{isMax ? ' (MAX)' : ''}</span>
                 {!isMax && <span className={s.xpHint}>{xp - prevThresh} / {nextThresh - prevThresh} kills</span>}
-                {Object.entries(weapon.scaling).map(([stat, grade]) => (
-                  <span key={stat} className={s.scaling}>{stat} {grade}</span>
-                ))}
+                {rarity && (
+                  <span className={s.scaling}>
+                    +{((LEVEL_MULT[rarity] ?? 0.03) * 100).toFixed(0)}% dmg/lvl
+                  </span>
+                )}
               </div>
 
               {!isMax && (

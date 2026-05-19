@@ -56,8 +56,9 @@ export default function StepPanel({ state, dispatch }: Props) {
           if (!step) return null
 
           const canUse  = playerStamina >= moveset.stamina_cost
+          const level   = state.weaponLevels[weaponId] ?? 0
           const dmg     = weapon
-            ? Math.floor(step.base_damage * (1 + state.playerStats[moveset.scaling_stat] * 0.004))
+            ? Math.floor(step.base_damage * (1 + level * 0.03))
             : step.base_damage
           const prefix  = activeSteps.length > 1
             ? `[${showIdx + 1}/${activeSteps.length}] ` : ''

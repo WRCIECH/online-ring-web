@@ -4,6 +4,7 @@ import { useGameStore } from '../store/gameStore'
 import { rollWeapon } from '../data/generators/weaponGenerator'
 import { WEAPON_CLASSES } from '../data/generators/weaponClasses'
 import { MOVES } from '../data/movesets'
+import { LEVEL_MULT } from '../data/weapons'
 import type { WeaponClass, WeaponInstance, GeneratedMoveset } from '../types/game'
 import WeaponSprite from '../components/icons/WeaponSprite'
 import MovesetIcon from '../components/icons/MovesetIcon'
@@ -30,10 +31,6 @@ const WEIGHT_LABEL: Record<string, string> = {
   heavy:  'Heavy — slow, powerful blows',
 }
 
-const STAT_COLOUR: Record<string, string> = {
-  END:  'var(--color-stamina)',
-  MIND: 'var(--color-fp)',
-}
 
 function pickOne<T>(arr: T[]): T {
   return arr[Math.floor(Math.random() * arr.length)]
@@ -101,8 +98,8 @@ export default function StartingWeaponScreen() {
                 <p className={s.desc}>{w.description}</p>
 
                 <div className={s.stats}>
-                  <span style={{ color: STAT_COLOUR[cls.scaling_primary] }}>
-                    {cls.scaling_primary} {cls.scaling_grade} scaling
+                  <span className={s.levelBonus}>
+                    +{((LEVEL_MULT[w.rarity] ?? 0.03) * 100).toFixed(0)}% dmg per level
                   </span>
                   <span className={s.heat}>🔥 {cls.heat_threshold} uses/run</span>
                 </div>

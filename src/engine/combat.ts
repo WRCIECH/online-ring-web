@@ -1,4 +1,4 @@
-import type { CombatPhase, DefenseAction, Enemy, EnemyMove, GeneratedMoveset, Moveset, Stats, Step, WeaponClass, WeaponInstance, WeaponRarity } from '../types/game'
+import type { CombatPhase, DefenseAction, Enemy, EnemyMove, GeneratedMoveset, Moveset, Step, WeaponClass, WeaponInstance, WeaponRarity } from '../types/game'
 import { ENEMY_MOVES } from '../data/enemyMovesets'
 import { MOVES } from '../data/movesets'
 import { WEAPONS, calcStepDamage, getWeaponMovesets } from '../data/weapons'
@@ -60,7 +60,7 @@ export interface CombatState {
   // Run context
   equippedWeapons: string[]
   weaponExtraMovesets: Record<string, string[]>
-  playerStats: Stats
+  weaponLevels: Record<string, number>
   activeWeaponIdx: number
   // Chain/combo
   chainMovesetId: string
@@ -186,7 +186,7 @@ export function initCombatState(
   enemyMult: number,
   equippedWeapons: string[],
   weaponExtraMovesets: Record<string, string[]>,
-  playerStats: Stats,
+  weaponLevels: Record<string, number>,
   playerHp: number, playerMaxHp: number,
   playerStamina: number, playerMaxStamina: number,
   playerFp: number, playerMaxFp: number,
@@ -205,7 +205,7 @@ export function initCombatState(
     playerStamina, playerMaxStamina,
     playerFp, playerMaxFp,
     playerEstus,
-    equippedWeapons, weaponExtraMovesets, playerStats,
+    equippedWeapons, weaponExtraMovesets, weaponLevels,
     activeWeaponIdx: 0,
     chainMovesetId: '', chainStepIdx: 0,
     pendingStep: null, pendingMoveset: null, pendingWeaponId: '',
@@ -365,7 +365,8 @@ export function combatReducer(state: CombatState, action: CombatAction): CombatS
       const moveset = state.pendingMoveset!
       const weapon  = WEAPONS[state.pendingWeaponId]
       const wi      = weapon as WeaponInstance | undefined
-      const dmg     = weapon ? calcStepDamage(step, moveset, weapon, state.playerStats) : step.base_damage
+      const level   = state.weaponLevels[state.pendingWeaponId] ?? 0
+      const dmg     = weapon ? calcStepDamage(step, weapon, level) : step.base_damage
 
       // Poise: gap × weapon-weight × variant multipliers
       const gapMult      = gapMultiplier(state.lastMovesetCompletionMs)

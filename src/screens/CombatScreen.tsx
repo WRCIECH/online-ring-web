@@ -4,7 +4,7 @@ import { combatReducer, initCombatState, STAGGER_PAUSE_MS, STA_BLOCK, STA_DEFENS
 import { useGameStore } from '../store/gameStore'
 import { ENEMIES } from '../data/enemies'
 import { playSound } from '../engine/sound'
-import { WEAPONS, getWeaponMovesets } from '../data/weapons'
+import { WEAPONS, getWeaponMovesets, calcStepDamage } from '../data/weapons'
 import { MOVES } from '../data/movesets'
 import type { WeaponRarity, WeaponClass, WeaponInstance, GeneratedMoveset } from '../types/game'
 import { rollWeapon } from '../data/generators/weaponGenerator'
@@ -97,7 +97,7 @@ export default function CombatScreen() {
           loc.enemy_id, enemyData, loc.mult,
           store.equipped_run_weapons,
           store.weapon_extra_movesets,
-          store.stats,
+          store.weapon_level,
           store.current_hp,  store.maxHp(),
           store.current_stamina, store.maxStamina(),
           store.current_fp,  store.maxFp(),
@@ -105,7 +105,7 @@ export default function CombatScreen() {
         )
       : initCombatState(
           'procrastination_mob', ENEMIES['procrastination_mob'], 1,
-          ['unarmed'], {}, { VIG:10,END:10,MIND:10 },
+          ['unarmed'], {}, {},
           300,300, 130,130, 140,140, 3,
         )
   )
@@ -272,9 +272,8 @@ export default function CombatScreen() {
         const canUse = state.playerStamina >= moveset.stamina_cost
         const disabledReason = canUse ? undefined
           : `Need ${moveset.stamina_cost} STA (have ${Math.floor(state.playerStamina)})`
-        const dmg    = weapon
-          ? Math.floor(step.base_damage * (1 + state.playerStats[moveset.scaling_stat] * 0.004))
-          : step.base_damage
+        const level  = state.weaponLevels[weaponId] ?? 0
+        const dmg    = weapon ? calcStepDamage(step, weapon, level) : step.base_damage
         const prefix = moveset.steps.length > 1 ? `[${showIdx + 1}/${moveset.steps.length}] ` : ''
         const angle  = (i / N) * 2 * Math.PI - Math.PI / 2
         return [{

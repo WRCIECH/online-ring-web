@@ -118,9 +118,9 @@
   font-size: 0.72rem;
 }
 
-.heat {
-  color: var(--color-text-dim);
-}
+.heat { color: var(--color-text-dim); }
+
+.levelBonus { color: var(--color-gold-dim); }
 
 /* ── Moveset list ────────────────────────────────────────────────────────── */
 .movesets {
