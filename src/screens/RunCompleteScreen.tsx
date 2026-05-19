@@ -1,38 +1,45 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { useGameStore } from '../store/gameStore'
+import { useGameStore, calcMaxHp, calcMaxStamina, calcMaxFp } from '../store/gameStore'
 import { MOVES } from '../data/movesets'
 import type { StatKey } from '../types/game'
 import s from './RunCompleteScreen.module.css'
 
-const STAT_LABELS: Record<StatKey, string> = {
-  VIG: 'Vigor',
-  END: 'Endurance',
-  MIND: 'Mind',
-}
+const STAT_RESOURCE: Record<StatKey, string> = { VIG: 'HP', END: 'Stamina', MIND: 'Focus' }
 
-const STAT_DESC: Record<StatKey, string> = {
-  VIG: 'Max HP',
-  END: 'Max Stamina',
-  MIND: 'Max FP',
+function currentMax(stat: StatKey, stats: Record<string, number>): number {
+  if (stat === 'VIG')  return calcMaxHp(stats.VIG)
+  if (stat === 'END')  return calcMaxStamina(stats.END)
+  return calcMaxFp(stats.MIND)
+}
+function nextMax(stat: StatKey, stats: Record<string, number>): number {
+  if (stat === 'VIG')  return calcMaxHp(stats.VIG + 1)
+  if (stat === 'END')  return calcMaxStamina(stats.END + 1)
+  return calcMaxFp(stats.MIND + 1)
 }
 
 export default function RunCompleteScreen() {
   const navigate  = useNavigate()
   const store     = useGameStore()
-  const [chosenStat, setChosenStat] = useState<StatKey | null>(null)
+  const [selectedStat,  setSelectedStat]  = useState<StatKey | null>(null)
+  const [confirmedStat, setConfirmedStat] = useState<StatKey | null>(null)
 
   const newMovesets = store.owned_movesets.filter(id => MOVES[id])
 
-  function pickStat(stat: StatKey) {
-    if (chosenStat) return
-    store.levelUpStat(stat)
+  function selectStat(stat: StatKey) {
+    if (confirmedStat) return
+    setSelectedStat(stat)
+  }
+
+  function confirmStat() {
+    if (!selectedStat || confirmedStat) return
+    store.levelUpStat(selectedStat)
     store.save()
-    setChosenStat(stat)
+    setConfirmedStat(selectedStat)
   }
 
   function handleNewRun() {
-    navigate('/weapons')
+    navigate('/locations')
   }
 
   return (
@@ -44,33 +51,41 @@ export default function RunCompleteScreen() {
         {/* Stat level-up */}
         <div className={s.section}>
           <div className={s.sectionTitle}>
-            {chosenStat ? 'Stat increased' : 'Choose one stat to level up'}
+            {confirmedStat ? 'Stat upgraded' : selectedStat ? 'Confirm your choice' : 'Choose one stat to level up'}
           </div>
           <div className={s.statBtns}>
             {(['VIG', 'END', 'MIND'] as StatKey[]).map(stat => {
-              const current = store.stats[stat]
-              const isChosen = chosenStat === stat
-              const isDimmed = chosenStat !== null && !isChosen
+              const isSelected  = selectedStat === stat
+              const isConfirmed = confirmedStat === stat
+              const isDimmed    = confirmedStat !== null && !isConfirmed
+              const cur = currentMax(stat, store.stats)
+              const nxt = nextMax(stat, store.stats)
               return (
                 <button
                   key={stat}
-                  className={[s.statBtn, isChosen ? s.chosen : ''].join(' ')}
-                  disabled={!!chosenStat}
-                  style={{ opacity: isDimmed ? 0.4 : 1 }}
-                  onClick={() => pickStat(stat)}
+                  className={[
+                    s.statBtn,
+                    isSelected && !confirmedStat ? s.selected : '',
+                    isConfirmed ? s.confirmed : '',
+                  ].join(' ')}
+                  disabled={!!confirmedStat}
+                  style={{ opacity: isDimmed ? 0.38 : 1 }}
+                  onClick={() => selectStat(stat)}
                 >
-                  <span className={s.statKey}>{stat}</span>
-                  <span className={s.statVal}>{STAT_LABELS[stat]}</span>
-                  <span className={s.statVal}>{STAT_DESC[stat]}</span>
-                  {isChosen ? (
-                    <span className={s.statArrow}>▲ {current} → {current + 1}</span>
-                  ) : (
-                    <span className={s.statVal}>currently {current}</span>
-                  )}
+                  <span className={s.statResource}>{STAT_RESOURCE[stat]}</span>
+                  <span className={s.statValues}>
+                    {isConfirmed ? `${nxt} ✓` : `${cur} → ${nxt}`}
+                  </span>
                 </button>
               )
             })}
           </div>
+
+          {selectedStat && !confirmedStat && (
+            <button className={s.btnConfirm} onClick={confirmStat}>
+              Upgrade {STAT_RESOURCE[selectedStat]} ({currentMax(selectedStat, store.stats)} → {nextMax(selectedStat, store.stats)})
+            </button>
+          )}
         </div>
 
         {/* Movesets unlocked this run */}
@@ -97,13 +112,15 @@ export default function RunCompleteScreen() {
         <div className={s.footer}>
           <button
             className={s.btnBegin}
-            disabled={!chosenStat}
+            disabled={!confirmedStat}
             onClick={handleNewRun}
           >
             Begin New Run
           </button>
-          {!chosenStat && (
-            <p className={s.skipHint}>Select a stat to continue</p>
+          {!confirmedStat && (
+            <p className={s.skipHint}>
+              {selectedStat ? 'Confirm your upgrade above to continue' : 'Select a stat to continue'}
+            </p>
           )}
         </div>
       </div>

@@ -206,7 +206,7 @@ export default function CombatScreen() {
     store.addDefeatedEnemy(loc.enemy_id)
     const isLast = store.run_current_index >= store.run_location_sequence.length - 1
     store.advanceRun()
-    if (isLast || enemy.is_remembrance) {
+    if (isLast) {
       store.endRunVictory()
       navigate('/run-complete')
     } else {

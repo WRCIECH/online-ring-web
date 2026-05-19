@@ -17,13 +17,13 @@ const RUN_ESTUS_MAX = 3
 
 const DEFAULT_STATS: Stats = { VIG: 10, END: 10, MIND: 10 }
 
-function calcMaxHp(vig: number): number {
+export function calcMaxHp(vig: number): number {
   if (vig <= 25) return 300 + vig * 12
   if (vig <= 40) return 600 + (vig - 25) * 18
   return 870 + (vig - 40) * 8
 }
-function calcMaxStamina(end: number): number { return end * 10 }
-function calcMaxFp(mind: number): number { return mind * 3 }
+export function calcMaxStamina(end: number): number { return end * 10 }
+export function calcMaxFp(mind: number): number { return mind * 3 }
 
 // Named locations for the 22-node spiral map
 const LOCATION_NAMES = [
@@ -55,7 +55,7 @@ const ENCOUNTER_POOL: Array<{ enemy_id: string; tier: number }> = [
   { enemy_id: 'hater',               tier: 2 },
   { enemy_id: 'blank_page_omen',     tier: 2 },
   // Tier 3 (hard)
-  { enemy_id: 'perfectionism_knight', tier: 3 },
+  { enemy_id: 'blank_page_omen',      tier: 3 },
   { enemy_id: 'comparison_engine',    tier: 3 },
   { enemy_id: 'fear_phantom',         tier: 3 },
   { enemy_id: 'hater',                tier: 3 },
