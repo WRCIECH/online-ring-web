@@ -1,5 +1,5 @@
 import type { CombatState, CombatAction } from '../../engine/combat'
-import { STA_ROLL, STA_BLOCK, STA_PARRY } from '../../engine/combat'
+import { STA_BLOCK, STA_DEFENSE_GAIN } from '../../engine/combat'
 import { MOVES } from '../../data/movesets'
 import { WEAPONS } from '../../data/weapons'
 import s from './DefensePanel.module.css'
@@ -15,7 +15,7 @@ export default function DefensePanel({ state, dispatch }: Props) {
   const { currentMove, playerStamina, enemyData, equippedWeapons } = state
   if (!currentMove) return null
 
-  const guardBreak = playerStamina === 0
+  const guardBreak = false // guard break removed — all actions have individual STA checks
   const wid        = equippedWeapons[0]
   const weapon     = WEAPONS[wid]
 
@@ -52,28 +52,28 @@ export default function DefensePanel({ state, dispatch }: Props) {
 
       <div className={s.list}>
         {btn(
-          `Roll  ·  ${STA_ROLL} STA  →  0 dmg`,
+          `Roll  →  +${STA_DEFENSE_GAIN} STA, 0 dmg`,
           dodge ? `${dodge.name}  ·  ${fmtTime(dodge.time)}` : '???',
-          guardBreak || playerStamina < STA_ROLL,
+          false,
           () => dispatch({ type: 'DEFENSE_CHOSEN', action: 'roll' }),
         )}
         {btn(
-          `Block  ·  ${STA_BLOCK} STA  →  ${currentMove.block_damage} dmg`,
-          blockMs ? `${blockMs.name}  ·  ${fmtTime(blockMs.time)}` : '???',
-          guardBreak || playerStamina < STA_BLOCK || !blockMs,
+          `Block  ·  −${STA_BLOCK} STA  →  0 dmg (instant)`,
+          'No task required',
+          playerStamina < STA_BLOCK || !blockMs,
           () => dispatch({ type: 'DEFENSE_CHOSEN', action: 'block' }),
         )}
         {btn(
-          `Parry  ·  ${STA_PARRY} STA  →  0 dmg`,
+          `Parry  →  Full STA on success`,
           (parry && parryMs)
-            ? `1: ${parry.name} (${fmtTime(parry.time)}) → 2: ${parryMs.name} (${fmtTime(parryMs.time)})`
+            ? `1: ${parry.name} → 2: ${parryMs.name}`
             : '???',
-          guardBreak || playerStamina < STA_PARRY || !parry || !parryMs,
+          !parry || !parryMs,
           () => dispatch({ type: 'DEFENSE_CHOSEN', action: 'parry' }),
         )}
         <hr />
         {btn(
-          `Take Hit  →  ${currentMove.damage} dmg`,
+          `Take Hit  →  ${currentMove.damage} dmg, +${STA_DEFENSE_GAIN} STA`,
           'No task required',
           false,
           () => dispatch({ type: 'DEFENSE_CHOSEN', action: 'take' }),

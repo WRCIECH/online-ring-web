@@ -1,6 +1,6 @@
 import { useReducer, useEffect, useCallback, useState, useMemo, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { combatReducer, initCombatState, STAGGER_PAUSE_MS, STA_ROLL, STA_BLOCK, STA_PARRY } from '../engine/combat'
+import { combatReducer, initCombatState, STAGGER_PAUSE_MS, STA_BLOCK, STA_DEFENSE_GAIN } from '../engine/combat'
 import { useGameStore } from '../store/gameStore'
 import { ENEMIES } from '../data/enemies'
 import { playSound } from '../engine/sound'
@@ -289,7 +289,6 @@ export default function CombatScreen() {
     // ── Defense phase ─────────────────────────────────────────────────
     if (state.phase === 'ENEMY_ATTACK' && state.currentMove) {
       const move      = state.currentMove
-      const guardBreak = state.playerStamina === 0
       const wid       = state.equippedWeapons[0]
       const weapon    = WEAPONS[wid]
       const dodge     = move.dodge_task
@@ -303,32 +302,47 @@ export default function CombatScreen() {
           id: 'roll', movesetId: 'recovery_roll',
           label: 'Roll',
           sublabel: dodge ? `${dodge.name} · ${fmtTime(dodge.time)}` : '???',
-          metaParts: [{ text: `${STA_ROLL} STA` }, { text: '0 dmg', color: 'var(--color-text-success)' }],
-          canUse: !guardBreak && state.playerStamina >= STA_ROLL,
-          disabledReason: guardBreak ? 'Guard broken' : state.playerStamina < STA_ROLL ? `Need ${STA_ROLL} STA (have ${sta})` : undefined,
+          metaParts: [
+            { text: `+${STA_DEFENSE_GAIN} STA on success`, color: 'var(--color-stamina)' },
+            { text: '0 dmg', color: 'var(--color-text-success)' },
+          ],
+          canUse: true,
+          disabledReason: undefined,
           onSelect: () => dispatch({ type: 'DEFENSE_CHOSEN', action: 'roll' }),
         },
         {
           id: 'block', movesetId: 'unarmed_block',
-          label: 'Block', sublabel: blockMs?.name,
-          metaParts: [{ text: `${STA_BLOCK} STA` }, { text: `${move.block_damage} dmg`, color: '#cc6644' }],
-          canUse: !guardBreak && state.playerStamina >= STA_BLOCK && !!blockMs,
-          disabledReason: guardBreak ? 'Guard broken' : state.playerStamina < STA_BLOCK ? `Need ${STA_BLOCK} STA (have ${sta})` : !blockMs ? 'No block moveset' : undefined,
+          label: 'Block',
+          sublabel: 'Instant — no task',
+          metaParts: [
+            { text: `−${STA_BLOCK} STA` },
+            { text: '0 dmg', color: 'var(--color-text-success)' },
+          ],
+          canUse: state.playerStamina >= STA_BLOCK && !!blockMs,
+          disabledReason: state.playerStamina < STA_BLOCK
+            ? `Need ${STA_BLOCK} STA (have ${sta})` : !blockMs ? 'No block style' : undefined,
           onSelect: () => dispatch({ type: 'DEFENSE_CHOSEN', action: 'block' }),
         },
         {
           id: 'parry', movesetId: 'unarmed_parry',
           label: 'Parry',
           sublabel: (parryTask && parryMs) ? `${parryTask.name} → ${parryMs.name}` : '???',
-          metaParts: [{ text: `${STA_PARRY} STA` }, { text: '0 dmg', color: 'var(--color-text-success)' }],
-          canUse: !guardBreak && state.playerStamina >= STA_PARRY && !!parryTask && !!parryMs,
-          disabledReason: guardBreak ? 'Guard broken' : state.playerStamina < STA_PARRY ? `Need ${STA_PARRY} STA (have ${sta})` : (!parryTask || !parryMs) ? 'No parry moveset' : undefined,
+          metaParts: [
+            { text: 'Full STA on success', color: 'var(--color-stamina)' },
+            { text: `${move.damage} dmg if fail`, color: '#cc6644' },
+          ],
+          canUse: !!parryTask && !!parryMs,
+          disabledReason: (!parryTask || !parryMs) ? 'No parry style' : undefined,
           onSelect: () => dispatch({ type: 'DEFENSE_CHOSEN', action: 'parry' }),
         },
         {
           id: 'take', customIcon: ICON_TAKE_HIT,
-          label: 'Take Hit', sublabel: 'No task required',
-          metaParts: [{ text: `${move.damage} dmg`, color: '#cc6644' }],
+          label: 'Take Hit',
+          sublabel: 'No task required',
+          metaParts: [
+            { text: `${move.damage} dmg`, color: '#cc6644' },
+            { text: `+${STA_DEFENSE_GAIN} STA`, color: 'var(--color-stamina)' },
+          ],
           canUse: true,
           onSelect: () => dispatch({ type: 'DEFENSE_CHOSEN', action: 'take' }),
         },

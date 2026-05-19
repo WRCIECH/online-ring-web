@@ -20,9 +20,8 @@ function gapMultiplier(lastMs: number): number {
   return 0.0
 }
 
-export const STA_ROLL        = 6
-export const STA_BLOCK       = 10
-export const STA_PARRY       = 12
+export const STA_BLOCK        = 15   // STA cost to block (instant, no task)
+export const STA_DEFENSE_GAIN = 25   // STA gained from roll success or taking damage
 export const STAGGER_PAUSE_MS = 1500
 
 export interface LogEntry { id: number; text: string; color?: string }
@@ -145,7 +144,6 @@ function enterPlayerAttack(state: CombatState): CombatState {
     defenseParryStep: 0,
     stepStarted: false,
     timerExpired: false,
-    playerStamina: state.playerMaxStamina,  // full restore each round
   }
 }
 
@@ -275,12 +273,11 @@ export function combatReducer(state: CombatState, action: CombatAction): CombatS
         const move    = state.currentMove!
 
         if (!action.accomplished) {
-          // Failed defense
-          const isParryStep2 = action2 === 'parry' && state.defenseParryStep === 1
-          const dmg = isParryStep2 ? move.block_damage : move.damage
+          // All defense failures: full damage, no STA gain
+          const dmg   = move.damage
           const newHp = Math.max(0, state.playerHp - dmg)
-          const msg = isParryStep2
-            ? `Parry step 2 missed — ${dmg} damage (partial block).`
+          const msg   = action2 === 'parry' && state.defenseParryStep === 1
+            ? `Parry failed — ${dmg} damage, no stamina gain!`
             : `Defense failed — ${dmg} damage taken!`
           let s = log({ ...state, playerHp: newHp, timerIsDefense: false, timerExpired: false }, msg, '#e85555')
           if (newHp <= 0) return { ...s, phase: 'DEFEAT' }
@@ -290,36 +287,32 @@ export function combatReducer(state: CombatState, action: CombatAction): CombatS
         // Succeeded
         switch (action2) {
           case 'roll': {
-            const sta = Math.max(0, state.playerStamina - STA_ROLL)
-            return enterPlayerAttack(log({ ...state, playerStamina: sta }, 'You roll away — no damage.', '#55cc55'))
-          }
-          case 'block': {
-            const sta = Math.max(0, state.playerStamina - STA_BLOCK)
-            const dmg = move.block_damage
-            const newHp = Math.max(0, state.playerHp - dmg)
-            let s = log({ ...state, playerHp: newHp, playerStamina: sta }, `You block! Took ${dmg} damage.`, '#ccaa44')
-            if (newHp <= 0) return { ...s, phase: 'DEFEAT' }
-            return enterPlayerAttack(s)
+            // Roll success: gain STA, no damage
+            const newSta = Math.min(state.playerMaxStamina, state.playerStamina + STA_DEFENSE_GAIN)
+            return enterPlayerAttack(log(
+              { ...state, playerStamina: newSta },
+              `You roll away — no damage. (+${STA_DEFENSE_GAIN} STA)`, '#55cc55'
+            ))
           }
           case 'parry': {
             if (state.defenseParryStep === 0) {
-              // Step 1 done — start step 2
-              const task = getDefenseTask(state, 'parry', 1)
+              // Step 1 done — proceed to step 2, no STA cost
+              const task  = getDefenseTask(state, 'parry', 1)
               const total = Math.max((task as Step)?.time ?? 20, 1)
               const step2: Step = { name: (task as Step)?.name ?? '', time: total, base_damage: 0, poise_damage: 0 }
-              let s = log({ ...state, playerStamina: Math.max(0, state.playerStamina - STA_PARRY / 2) },
-                'Parry step 1 done! Now the counter-move…', '#88cc44')
+              let s = log(state, 'Parry step 1! Now the counter-move…', '#88cc44')
               return { ...s, defenseParryStep: 1, pendingStep: step2, stepTimer: total, stepTotal: total, stepStarted: false, timerExpired: false }
             } else {
-              // Step 2 done — perfect parry: counter-damage + poise break
-              const sta        = Math.max(0, state.playerStamina - STA_PARRY / 2)
+              // Step 2 done — counter-damage + full STA restore
               const counterDmg = move.damage
-              const newHp      = Math.max(0, state.enemyHp - counterDmg)
+              const newEnemyHp = Math.max(0, state.enemyHp - counterDmg)
               const newPoise   = Math.max(0, state.enemyPoise - move.poise_damage)
-              let s = log({ ...state, playerStamina: sta, enemyHp: newHp, enemyPoise: newPoise },
-                `Perfect parry! ${counterDmg} counter-damage dealt.`, '#44ee44')
-              if (newHp <= 0) return { ...s, phase: 'VICTORY', weaponKillsAccumulated: state.weaponKillsAccumulated + 1 }
-              if (newPoise <= 0) return { ...s, enemyPoise: 0, phase: 'ENEMY_STAGGERED' }
+              let s = log(
+                { ...state, playerStamina: state.playerMaxStamina, enemyHp: newEnemyHp, enemyPoise: newPoise },
+                `Perfect parry! ${counterDmg} counter-damage. Full stamina restored!`, '#44ee44'
+              )
+              if (newEnemyHp <= 0) return { ...s, phase: 'VICTORY', weaponKillsAccumulated: state.weaponKillsAccumulated + 1 }
+              if (newPoise <= 0)   return { ...s, enemyPoise: 0, phase: 'ENEMY_STAGGERED' }
               return enterPlayerAttack(s)
             }
           }
@@ -399,17 +392,30 @@ export function combatReducer(state: CombatState, action: CombatAction): CombatS
 
     case 'DEFENSE_CHOSEN': {
       const act = action.action
-      if (act === 'take') {
-        const dmg = state.currentMove?.damage ?? 0
-        const newHp = Math.max(0, state.playerHp - dmg)
-        let s = log({ ...state, playerHp: newHp }, `You take the full hit — ${dmg} damage!`, '#e85555')
-        if (newHp <= 0) return { ...s, phase: 'DEFEAT' }
-        return enterPlayerAttack(s)
-      }
       if (act === 'flee') {
         return log({ ...state, phase: 'DEFEAT' }, 'You retreat. The run is over.', '#7a7570')
       }
-      // Roll/Block/Parry — start defense timer
+      // Block — instant, no timer, costs STA
+      if (act === 'block') {
+        const newSta = Math.max(0, state.playerStamina - STA_BLOCK)
+        return enterPlayerAttack(log(
+          { ...state, playerStamina: newSta },
+          `You brace and absorb the blow. No damage. (−${STA_BLOCK} STA)`, '#ccaa44'
+        ))
+      }
+      // Take hit — instant, lose HP, gain STA
+      if (act === 'take') {
+        const dmg    = state.currentMove?.damage ?? 0
+        const newHp  = Math.max(0, state.playerHp - dmg)
+        const newSta = Math.min(state.playerMaxStamina, state.playerStamina + STA_DEFENSE_GAIN)
+        let s = log(
+          { ...state, playerHp: newHp, playerStamina: newSta },
+          `You take the full hit — ${dmg} damage. (+${STA_DEFENSE_GAIN} STA)`, '#e85555'
+        )
+        if (newHp <= 0) return { ...s, phase: 'DEFEAT' }
+        return enterPlayerAttack(s)
+      }
+      // Roll / Parry — start defense timer
       const task = getDefenseTask(state, act, 0)
       if (!task) return state
       const total = Math.max((task as Step).time ?? 20, 1)
