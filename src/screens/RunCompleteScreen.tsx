@@ -24,7 +24,8 @@ export default function RunCompleteScreen() {
   const [selectedStat,  setSelectedStat]  = useState<StatKey | null>(null)
   const [confirmedStat, setConfirmedStat] = useState<StatKey | null>(null)
 
-  const newMovesets = store.owned_movesets.filter(id => MOVES[id])
+  const startSet    = new Set(store.run_start_owned_movesets)
+  const newMovesets = store.owned_movesets.filter(id => MOVES[id] && !startSet.has(id))
 
   function selectStat(stat: StatKey) {
     if (confirmedStat) return

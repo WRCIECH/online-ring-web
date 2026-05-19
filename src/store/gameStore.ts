@@ -185,6 +185,7 @@ function initialState(): GameState {
     weapon_cooldown: {},
     run_location_name: '',
     completed_locations: [],
+    run_start_owned_movesets: [],
   }
 }
 
@@ -252,6 +253,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
 
   startRun: (weapons, locationName = '', numSublocations = 20, runDuration = RUN_DURATION) => {
     const seq = generateLocationSequence(numSublocations)
+    const runStartMovesets = get().owned_movesets
     const prevCooldown = get().weapon_cooldown
     const newCooldown = Object.fromEntries(
       Object.entries(prevCooldown).map(([k, v]) => [k, Math.max(0, v - 1)])
@@ -270,6 +272,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
       current_fp: calcMaxFp(get().stats.MIND),
       weapon_cooldown: newCooldown,
       run_location_name: locationName,
+      run_start_owned_movesets: runStartMovesets,
     })
     get().save()
   },
