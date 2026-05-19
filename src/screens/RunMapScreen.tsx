@@ -119,7 +119,6 @@ export default function RunMapScreen() {
       const beaten  = i < current
       const active  = i === current
       const isHover = i === hoverIdx
-      const subloc  = seq[i].sublocation_type
 
       let fillColor  = '#0d0c18'
       let ringColor  = '#22203a'
@@ -129,13 +128,6 @@ export default function RunMapScreen() {
         fillColor = '#0c1a14'; ringColor = '#1e6e50'; labelColor = '#2a9a6e'
       } else if (active) {
         fillColor = '#1a1200'; ringColor = '#8a6810'; labelColor = '#b89020'
-      } else {
-        switch (subloc) {
-          case 'elite': fillColor = '#141000'; ringColor = '#6e5010'; labelColor = '#5a4210'; break
-          case 'event': fillColor = '#0a1810'; ringColor = '#1a5e40'; labelColor = '#1a5e40'; break
-          case 'boss':  fillColor = '#160606'; ringColor = '#5c1212'; labelColor = '#8a2828'; break
-          default:      fillColor = '#0d0c18'; ringColor = '#22203a'; labelColor = '#565490';
-        }
       }
 
       const r = active ? NODE_R + 3 : NODE_R
@@ -173,18 +165,6 @@ export default function RunMapScreen() {
       const label = beaten ? String(i + 1) : (active ? String(i + 1) : (i > current ? '?' : String(i + 1)))
       ctx.fillText(label, n.x, n.y)
 
-      // Type marker above node (for unbeaten non-active nodes)
-      if (!beaten && !active) {
-        let marker = '', markerColor = ''
-        if (subloc === 'boss')  { marker = '★'; markerColor = '#7a2020' }
-        if (subloc === 'elite') { marker = '⚔'; markerColor = '#8a6810' }
-        if (subloc === 'event') { marker = '⬥'; markerColor = '#1e6e50' }
-        if (marker) {
-          ctx.font = '9px system-ui'
-          ctx.fillStyle = markerColor
-          ctx.fillText(marker, n.x, n.y - r - 8)
-        }
-      }
     })
   }, [seq, current, hoverIdx])
 
