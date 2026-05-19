@@ -173,6 +173,21 @@ export default function CombatScreen() {
         return { id: m.id, name: m.name, type: 'moveset', obtained: true, rarity: m.rarity, generated: m }
       }
     })
+
+    // Dynamic roll moveset drop — higher chance if player rolled at least once
+    if (state.enemyRollMoveset) {
+      const dropChance = state.hasRolledSuccessfully ? 0.60 : 0.20
+      const obtained   = Math.random() < dropChance
+      items.push({
+        id:        state.enemyRollMoveset.id,
+        name:      state.enemyRollMoveset.name,
+        type:      'moveset',
+        obtained,
+        rarity:    state.enemyRollMoveset.rarity,
+        generated: state.enemyRollMoveset,
+      })
+    }
+
     setLootItems(items)
   }, [state.phase, loc, store.run_defeated_enemies, lootItems])
 
@@ -291,17 +306,24 @@ export default function CombatScreen() {
       const move      = state.currentMove
       const wid       = state.equippedWeapons[0]
       const weapon    = WEAPONS[wid]
-      const dodge     = move.dodge_task
       const parryTask = move.parry_task
       const blockMs   = weapon ? MOVES[weapon.defense_movesets.block]?.steps[0] : null
       const parryMs   = weapon ? MOVES[weapon.defense_movesets.parry]?.steps[0] : null
 
+      // Roll sublabel: show current step of the generated mob roll moveset
+      const rollSteps  = state.enemyRollMoveset?.steps ?? []
+      const rollStep   = rollSteps[state.enemyRollStep]
+      const rollPrefix = rollSteps.length > 1 ? `[${state.enemyRollStep + 1}/${rollSteps.length}] ` : ''
+      const rollSublabel = rollStep
+        ? `${rollPrefix}${rollStep.name} · ${fmtTime(rollStep.time)}`
+        : (move.dodge_task ? `${move.dodge_task.name} · ${fmtTime(move.dodge_task.time)}` : '???')
+
       const sta = Math.floor(state.playerStamina)
       const opts: Omit<RadialItem, 'tx' | 'ty'>[] = [
         {
-          id: 'roll', movesetId: 'recovery_roll',
+          id: 'roll', movesetId: state.enemyRollMoveset?.id ?? 'recovery_roll',
           label: 'Roll',
-          sublabel: dodge ? `${dodge.name} · ${fmtTime(dodge.time)}` : '???',
+          sublabel: rollSublabel,
           metaParts: [
             { text: `+${STA_DEFENSE_GAIN} STA on success`, color: 'var(--color-stamina)' },
             { text: '0 dmg', color: 'var(--color-text-success)' },
@@ -326,7 +348,7 @@ export default function CombatScreen() {
         {
           id: 'parry', movesetId: 'unarmed_parry',
           label: 'Parry',
-          sublabel: (parryTask && parryMs) ? `${parryTask.name} → ${parryMs.name}` : '???',
+          sublabel: '??? — revealed on start',
           metaParts: [
             { text: 'Full STA on success', color: 'var(--color-stamina)' },
             { text: `${move.damage} dmg if fail`, color: '#cc6644' },

@@ -1,7 +1,8 @@
-import type { CombatPhase, DefenseAction, Enemy, EnemyMove, GeneratedMoveset, Moveset, Stats, Step, WeaponInstance } from '../types/game'
+import type { CombatPhase, DefenseAction, Enemy, EnemyMove, GeneratedMoveset, Moveset, Stats, Step, WeaponClass, WeaponInstance, WeaponRarity } from '../types/game'
 import { ENEMY_MOVES } from '../data/enemyMovesets'
 import { MOVES } from '../data/movesets'
 import { WEAPONS, calcStepDamage, getWeaponMovesets } from '../data/weapons'
+import { rollMoveset } from '../data/generators/movesetGenerator'
 export { getActiveSteps } from '../data/generators/movesetGenerator'
 
 const POISE_WEIGHT_MULT: Record<string, number> = {
@@ -20,9 +21,20 @@ function gapMultiplier(lastMs: number): number {
   return 0.0
 }
 
-export const STA_BLOCK        = 15   // STA cost to block (instant, no task)
-export const STA_DEFENSE_GAIN = 25   // STA gained from roll success or taking damage
+export const STA_BLOCK        = 15
+export const STA_DEFENSE_GAIN = 25
 export const STAGGER_PAUSE_MS = 1500
+
+// Generated roll moveset per enemy type (weapon class + rarity aligned with mob character)
+const ENEMY_ROLL_CONFIG: Record<string, { wclass: WeaponClass; rarity: WeaponRarity }> = {
+  procrastination_mob:  { wclass: 'daggers',         rarity: 'common' },
+  burnout_shade:        { wclass: 'fists',            rarity: 'common' },
+  hater:                { wclass: 'hammers',          rarity: 'magic'  },
+  blank_page_omen:      { wclass: 'straight_swords',  rarity: 'magic'  },
+  comparison_engine:    { wclass: 'thrusting_swords', rarity: 'rare'   },
+  fear_phantom:         { wclass: 'spears',           rarity: 'magic'  },
+  perfectionism_knight: { wclass: 'axes',             rarity: 'rare'   },
+}
 
 export interface LogEntry { id: number; text: string; color?: string }
 
@@ -74,6 +86,10 @@ export interface CombatState {
   lastMovesetCompletionMs: number
   // Heat accumulated this combat per weapon (flushed to store on end)
   weaponHeatAccumulated: Record<string, number>
+  // Enemy roll moveset (generated from mob's archetype; steps chain across rolls)
+  enemyRollMoveset: GeneratedMoveset | null
+  enemyRollStep: number       // next step index (advances on each successful roll)
+  hasRolledSuccessfully: boolean
   // Log
   log: LogEntry[]
   logId: number
@@ -116,7 +132,12 @@ function shouldInterrupt(state: CombatState, chainMovesetId: string): boolean {
 function getDefenseTask(state: CombatState, action: DefenseAction, parryStep: number) {
   const move = state.currentMove
   if (!move) return null
-  if (action === 'roll')  return move.dodge_task
+  if (action === 'roll') {
+    if (state.enemyRollMoveset) {
+      return state.enemyRollMoveset.steps[state.enemyRollStep] ?? move.dodge_task
+    }
+    return move.dodge_task
+  }
   if (action === 'block') {
     const wid = state.equippedWeapons[0]
     const weapon = WEAPONS[wid]
@@ -172,6 +193,8 @@ export function initCombatState(
   playerEstus: number,
 ): CombatState {
   const maxHp = Math.floor(enemyData.max_hp * enemyMult)
+  const rollCfg = ENEMY_ROLL_CONFIG[enemyId]
+  const enemyRollMoveset = rollCfg ? rollMoveset(rollCfg.wclass, rollCfg.rarity, 'Light') : null
   const first = log({
     phase: 'PLAYER_ATTACK',
     enemyId, enemyData,
@@ -194,6 +217,9 @@ export function initCombatState(
     weaponKillsAccumulated: 0,
     lastMovesetCompletionMs: 0,
     weaponHeatAccumulated: {},
+    enemyRollMoveset,
+    enemyRollStep: 0,
+    hasRolledSuccessfully: false,
     log: [], logId: 0,
   }, `You face ${enemyData.name}.`, '#c9a93a')
   return log(first, enemyData.description, '#7a7570')
@@ -287,11 +313,19 @@ export function combatReducer(state: CombatState, action: CombatAction): CombatS
         // Succeeded
         switch (action2) {
           case 'roll': {
-            // Roll success: gain STA, no damage
-            const newSta = Math.min(state.playerMaxStamina, state.playerStamina + STA_DEFENSE_GAIN)
+            const newSta   = Math.min(state.playerMaxStamina, state.playerStamina + STA_DEFENSE_GAIN)
+            const steps    = state.enemyRollMoveset?.steps ?? []
+            const nextStep = steps.length > 0
+              ? (state.enemyRollStep + 1) % steps.length
+              : 0
+            const stepLabel = steps.length > 1
+              ? ` [step ${state.enemyRollStep + 1}/${steps.length}]`
+              : ''
             return enterPlayerAttack(log(
-              { ...state, playerStamina: newSta },
-              `You roll away — no damage. (+${STA_DEFENSE_GAIN} STA)`, '#55cc55'
+              { ...state, playerStamina: newSta,
+                enemyRollStep: nextStep,
+                hasRolledSuccessfully: true },
+              `You roll away — no damage. (+${STA_DEFENSE_GAIN} STA)${stepLabel}`, '#55cc55'
             ))
           }
           case 'parry': {
