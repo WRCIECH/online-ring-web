@@ -1,4 +1,4 @@
-import type { CombatPhase, DefenseAction, Enemy, EnemyMove, GeneratedMoveset, Moveset, Step, WeaponClass, WeaponInstance, WeaponRarity } from '../types/game'
+import type { CombatPhase, DefenseAction, Enemy, EnemyMove, GeneratedMoveset, Moveset, Step, Stats, WeaponClass, WeaponInstance, WeaponRarity } from '../types/game'
 import { ENEMY_MOVES } from '../data/enemyMovesets'
 import { MOVES } from '../data/movesets'
 import { WEAPONS, calcStepDamage, getWeaponMovesets } from '../data/weapons'
@@ -24,6 +24,58 @@ function gapMultiplier(lastMs: number): number {
 export const STA_BLOCK        = 15
 export const STA_DEFENSE_GAIN = 25
 export const STAGGER_PAUSE_MS = 1500
+
+// ── Weapon-class mechanics ─────────────────────────────────────────────────
+export interface ClassMod {
+  dmgMult:     number        // HP damage multiplier on main hit
+  poiseMult:   number        // poise damage multiplier
+  staCoeff:    number        // stamina cost multiplier (< 1 = cheaper; 0 = free)
+  dualStrike:  boolean       // auto second hit at 40% of main damage
+  gapOverride: number | null // override flow-state gap (ranged = always 1.0)
+  selfDmg:     number        // damage dealt to self per hit (axes)
+  staGain:     number        // stamina restored after hit (fists)
+  tag:         string        // short UI label; empty = no bonus
+}
+
+// chainIdx: the step index being executed in the current chain (0 = first/not chaining)
+export function getClassMod(wclass: WeaponClass | undefined, chainIdx: number): ClassMod {
+  const b: ClassMod = { dmgMult: 1, poiseMult: 1, staCoeff: 1, dualStrike: false, gapOverride: null, selfDmg: 0, staGain: 0, tag: '' }
+  switch (wclass) {
+    case 'twinblades':
+      return { ...b, dualStrike: true, tag: '⚔ Dual' }
+    case 'spears': case 'great_spears': case 'halberds':
+      return { ...b, poiseMult: 1.5, tag: '⋯ Reach' }
+    case 'curved_swords': case 'curved_greatswords':
+      return chainIdx > 0 ? { ...b, staCoeff: 0.7, tag: '〜 Flow' } : { ...b, tag: '〜 Flow (combo)' }
+    case 'daggers': case 'thrusting_swords': case 'heavy_thrusting':
+      return { ...b, dmgMult: 1.2, tag: '◈ Precise' }
+    case 'katanas':
+      return { ...b, dmgMult: 1.15, tag: '⊘ Swift' }
+    case 'bows': case 'greatbows': case 'crossbows': case 'ballistas':
+      return { ...b, dmgMult: 1.5, poiseMult: 0, gapOverride: 1.0, tag: '⟶ Ranged' }
+    case 'reapers': case 'whips': case 'flails':
+      return { ...b, poiseMult: 1.6, tag: '⊛ Grim' }
+    case 'colossal_swords': case 'colossal_weapons': case 'great_hammers': case 'great_axes':
+      return { ...b, dmgMult: 0.85, poiseMult: 2.5, tag: '⊕ Crush' }
+    // ── Formerly unclassed ─────────────────────────────────────────────
+    case 'straight_swords':
+      return { ...b, dmgMult: 1.1, poiseMult: 1.1, tag: '≈ Balanced' }
+    case 'greatswords': {
+      const m = parseFloat((1 + chainIdx * 0.15).toFixed(2))
+      return { ...b, dmgMult: m, tag: chainIdx > 0 ? `↑ ×${m}` : '↑ Momentum' }
+    }
+    case 'hammers':
+      return { ...b, dmgMult: 0.8, poiseMult: 2.0, tag: '⊗ Stagger' }
+    case 'axes':
+      return { ...b, dmgMult: 1.25, selfDmg: 5, tag: '✗ Reckless' }
+    case 'fists':
+      return { ...b, staCoeff: 0, staGain: 8, tag: '◉ Relentless' }
+    case 'torches':
+      return { ...b, dmgMult: 1.2, poiseMult: 0, tag: '≋ Attrition' }
+    default:
+      return b
+  }
+}
 
 // Generated roll moveset per enemy type (weapon class + rarity aligned with mob character)
 const ENEMY_ROLL_CONFIG: Record<string, { wclass: WeaponClass; rarity: WeaponRarity }> = {
@@ -75,13 +127,8 @@ export interface CombatState {
   timerIsDefense: boolean
   timerExpired: boolean
   pendingDefenseAction: DefenseAction | null
-  defenseParryStep: number
-  // XP accumulated this combat (flushed to store on end)
-  weaponXpAccumulated: Record<string, number>
-  // Moveset XP (seconds of completed steps, per moveset id)
-  movesetXpAccumulated: Record<string, number>
-  // Weapon kills this combat
-  weaponKillsAccumulated: number
+  // Player stats (for stat-scaling damage)
+  playerStats: Stats
   // Timestamp of last moveset completion (for poise gap multiplier)
   lastMovesetCompletionMs: number
   // Heat accumulated this combat per weapon (flushed to store on end)
@@ -116,9 +163,12 @@ function log(state: CombatState, text: string, color?: string): CombatState {
 
 function anyMoveAffordable(state: CombatState): boolean {
   for (const wid of state.equippedWeapons) {
+    const wi    = WEAPONS[wid] as WeaponInstance | undefined
     const extra = state.weaponExtraMovesets[wid] ?? []
     for (const m of getWeaponMovesets(wid, extra)) {
-      if (state.playerStamina >= m.stamina_cost) return true
+      const cls = getClassMod(wi?.weapon_class, state.chainStepIdx)
+      const actualCost = Math.floor(m.stamina_cost * cls.staCoeff)
+      if (state.playerStamina >= actualCost) return true
     }
   }
   return false
@@ -129,7 +179,7 @@ function shouldInterrupt(state: CombatState, chainMovesetId: string): boolean {
   return Math.random() < state.enemyData.initiative / 20
 }
 
-function getDefenseTask(state: CombatState, action: DefenseAction, parryStep: number) {
+function getDefenseTask(state: CombatState, action: DefenseAction) {
   const move = state.currentMove
   if (!move) return null
   if (action === 'roll') {
@@ -145,27 +195,23 @@ function getDefenseTask(state: CombatState, action: DefenseAction, parryStep: nu
     const ms = MOVES[weapon.defense_movesets.block]
     return ms?.steps[0] ?? null
   }
-  if (action === 'parry') {
-    if (parryStep === 0) return move.parry_task
-    const wid = state.equippedWeapons[0]
-    const weapon = WEAPONS[wid]
-    if (!weapon) return null
-    const ms = MOVES[weapon.defense_movesets.parry]
-    return ms?.steps[0] ?? null
-  }
+  if (action === 'parry') return move.publish_task
   return null
 }
 
 function enterPlayerAttack(state: CombatState): CombatState {
-  return {
+  const next: CombatState = {
     ...state,
     phase: 'PLAYER_ATTACK',
     timerIsDefense: false,
     pendingDefenseAction: null,
-    defenseParryStep: 0,
     stepStarted: false,
     timerExpired: false,
   }
+  if (!anyMoveAffordable(next)) {
+    return enterEnemyAttack(log(next, 'No stamina to act — enemy seizes the moment.', '#ccaa44'))
+  }
+  return next
 }
 
 function enterEnemyAttack(state: CombatState): CombatState {
@@ -191,6 +237,7 @@ export function initCombatState(
   playerStamina: number, playerMaxStamina: number,
   playerFp: number, playerMaxFp: number,
   playerEstus: number,
+  playerStats: Stats,
 ): CombatState {
   const maxHp = Math.floor(enemyData.max_hp * enemyMult)
   const rollCfg = ENEMY_ROLL_CONFIG[enemyId]
@@ -211,10 +258,8 @@ export function initCombatState(
     pendingStep: null, pendingMoveset: null, pendingWeaponId: '',
     stepTimer: 0, stepTotal: 1, stepStarted: false,
     timerIsDefense: false, timerExpired: false,
-    pendingDefenseAction: null, defenseParryStep: 0,
-    weaponXpAccumulated: {},
-    movesetXpAccumulated: {},
-    weaponKillsAccumulated: 0,
+    pendingDefenseAction: null,
+    playerStats,
     lastMovesetCompletionMs: 0,
     weaponHeatAccumulated: {},
     enemyRollMoveset,
@@ -299,11 +344,10 @@ export function combatReducer(state: CombatState, action: CombatAction): CombatS
         const move    = state.currentMove!
 
         if (!action.accomplished) {
-          // All defense failures: full damage, no STA gain
           const dmg   = move.damage
           const newHp = Math.max(0, state.playerHp - dmg)
-          const msg   = action2 === 'parry' && state.defenseParryStep === 1
-            ? `Parry failed — ${dmg} damage, no stamina gain!`
+          const msg   = action2 === 'parry'
+            ? `Parry failed — ${dmg} damage taken!`
             : `Defense failed — ${dmg} damage taken!`
           let s = log({ ...state, playerHp: newHp, timerIsDefense: false, timerExpired: false }, msg, '#e85555')
           if (newHp <= 0) return { ...s, phase: 'DEFEAT' }
@@ -329,26 +373,16 @@ export function combatReducer(state: CombatState, action: CombatAction): CombatS
             ))
           }
           case 'parry': {
-            if (state.defenseParryStep === 0) {
-              // Step 1 done — proceed to step 2, no STA cost
-              const task  = getDefenseTask(state, 'parry', 1)
-              const total = Math.max((task as Step)?.time ?? 20, 1)
-              const step2: Step = { name: (task as Step)?.name ?? '', time: total, base_damage: 0, poise_damage: 0 }
-              let s = log(state, 'Parry step 1! Now the counter-move…', '#88cc44')
-              return { ...s, defenseParryStep: 1, pendingStep: step2, stepTimer: total, stepTotal: total, stepStarted: false, timerExpired: false }
-            } else {
-              // Step 2 done — counter-damage + full STA restore
-              const counterDmg = move.damage
-              const newEnemyHp = Math.max(0, state.enemyHp - counterDmg)
-              const newPoise   = Math.max(0, state.enemyPoise - move.poise_damage)
-              let s = log(
-                { ...state, playerStamina: state.playerMaxStamina, enemyHp: newEnemyHp, enemyPoise: newPoise },
-                `Perfect parry! ${counterDmg} counter-damage. Full stamina restored!`, '#44ee44'
-              )
-              if (newEnemyHp <= 0) return { ...s, phase: 'VICTORY', weaponKillsAccumulated: state.weaponKillsAccumulated + 1 }
-              if (newPoise <= 0)   return { ...s, enemyPoise: 0, phase: 'ENEMY_STAGGERED' }
-              return enterPlayerAttack(s)
-            }
+            const counterDmg = move.damage
+            const newEnemyHp = Math.max(0, state.enemyHp - counterDmg)
+            const newPoise   = Math.max(0, state.enemyPoise - move.poise_damage)
+            let s = log(
+              { ...state, playerStamina: state.playerMaxStamina, enemyHp: newEnemyHp, enemyPoise: newPoise },
+              `Published! ${counterDmg} counter-damage. Full stamina restored!`, '#44ee44'
+            )
+            if (newEnemyHp <= 0) return { ...s, phase: 'VICTORY' }
+            if (newPoise <= 0)   return { ...s, enemyPoise: 0, phase: 'ENEMY_STAGGERED' }
+            return enterPlayerAttack(s)
           }
           default: return enterPlayerAttack(state)
         }
@@ -366,65 +400,80 @@ export function combatReducer(state: CombatState, action: CombatAction): CombatS
       const weapon  = WEAPONS[state.pendingWeaponId]
       const wi      = weapon as WeaponInstance | undefined
       const level   = state.weaponLevels[state.pendingWeaponId] ?? 0
-      const dmg     = weapon ? calcStepDamage(step, weapon, level) : step.base_damage
+      const gm      = moveset as GeneratedMoveset | null
 
-      // Poise: gap × weapon-weight × variant multipliers
-      const gapMult      = gapMultiplier(state.lastMovesetCompletionMs)
-      const weaponMult   = POISE_WEIGHT_MULT[wi?.poise_weight ?? 'medium'] ?? 1.0
-      const gm           = moveset as GeneratedMoveset | null
-      const variantMult  = gm?.variant_type ? (POISE_VARIANT_MULT[gm.variant_type] ?? 1.0) : 1.0
-      const poiseBase    = step.poise_damage
-      const poiseReset   = gapMult === 0 ? state.enemyMaxPoise : state.enemyPoise
-      const scaledPoise  = Math.round(poiseBase * gapMult * weaponMult * variantMult)
+      // Chain depth for this step (used by momentum weapons and flow bonus)
+      const usedIdx = (state.chainMovesetId === moveset.id && moveset.id !== '') ? state.chainStepIdx : 0
 
-      const newEnemyHp    = Math.max(0, state.enemyHp - dmg)
-      const newEnemyPoise = Math.max(0, poiseReset - scaledPoise)
-      const newStamina    = Math.max(0, state.playerStamina - moveset.stamina_cost)
+      // Weapon-class mechanics
+      const cls = getClassMod(wi?.weapon_class, usedIdx)
+
+      // HP damage (class dmgMult × level-scaled base × stat scaling)
+      const baseDmg  = weapon ? calcStepDamage(step, weapon, level, state.playerStats) : step.base_damage
+      const finalDmg = Math.floor(baseDmg * cls.dmgMult)
+      const dualDmg  = cls.dualStrike ? Math.floor(finalDmg * 0.4) : 0
+      const totalDmg = finalDmg + dualDmg
+
+      // Poise: (gap override or real gap) × weight × variant × class poiseMult
+      const gapMult     = cls.gapOverride ?? gapMultiplier(state.lastMovesetCompletionMs)
+      const weaponMult  = POISE_WEIGHT_MULT[wi?.poise_weight ?? 'medium'] ?? 1.0
+      const variantMult = gm?.variant_type ? (POISE_VARIANT_MULT[gm.variant_type] ?? 1.0) : 1.0
+      const poiseReset  = gapMult === 0 ? state.enemyMaxPoise : state.enemyPoise
+      const scaledPoise = Math.round(step.poise_damage * gapMult * weaponMult * variantMult * cls.poiseMult)
+
+      // Stamina (class staCoeff reduces cost for flow weapons in-chain)
+      const newStamina = Math.max(0, state.playerStamina - Math.floor(moveset.stamina_cost * cls.staCoeff))
+
       // FP: skill movesets cost FP; constant (light/heavy) movesets do not
       const isConstant = weapon?.constant_movesets?.includes(moveset.id) ?? false
       const fpCost     = isConstant ? 0 : (moveset.fp_cost ?? 0)
       const newFp      = Math.max(0, state.playerFp - fpCost)
 
-      // Advance or reset chain
-      const usedId = moveset.id
-      const allSteps = moveset.steps
-      const usedIdx = (state.chainMovesetId === usedId && usedId !== '') ? state.chainStepIdx : 0
-      const nextIdx = usedIdx + 1
-      const newChainId  = nextIdx < allSteps.length ? usedId : ''
+      const newEnemyHp    = Math.max(0, state.enemyHp - totalDmg)
+      const newEnemyPoise = Math.max(0, poiseReset - scaledPoise)
+
+      // Self-effects: axes deal self-damage; fists restore stamina
+      const postHp      = cls.selfDmg > 0 ? Math.max(1, state.playerHp - cls.selfDmg) : state.playerHp
+      const postStamina = cls.staGain  > 0 ? Math.min(state.playerMaxStamina, newStamina + cls.staGain) : newStamina
+
+      // Advance or reset chain (usedIdx already computed above)
+      const allSteps    = moveset.steps
+      const nextIdx     = usedIdx + 1
+      const newChainId  = nextIdx < allSteps.length ? moveset.id : ''
       const newChainIdx = nextIdx < allSteps.length ? nextIdx : 0
 
-      // Moveset XP: accumulate step.time (seconds of committed work) per moveset
-      const prevMsXp = state.movesetXpAccumulated[moveset.id] ?? 0
-      const newMsXpAcc = { ...state.movesetXpAccumulated, [moveset.id]: prevMsXp + step.time }
-
       // Heat: one increment per successful step
-      const prevHeat  = state.weaponHeatAccumulated[state.pendingWeaponId] ?? 0
+      const prevHeat   = state.weaponHeatAccumulated[state.pendingWeaponId] ?? 0
       const newHeatAcc = { ...state.weaponHeatAccumulated, [state.pendingWeaponId]: prevHeat + 1 }
 
-      const flowSuffix = gapMult === 1.5 ? ' [flow]' : (gapMult === 0.5 ? ' [stale]' : '')
+      const flowSuffix  = gapMult === 1.5 ? ' [flow]' : (gapMult === 0.5 ? ' [stale]' : '')
+      const classSuffix = cls.dualStrike
+        ? ` ⚔ +${dualDmg} off-hand`
+        : cls.selfDmg > 0
+        ? ` ✗ -${cls.selfDmg}HP self`
+        : cls.staGain > 0
+        ? ` ◉ +${cls.staGain}STA`
+        : cls.staCoeff < 1
+        ? ` 〜 -${moveset.stamina_cost - Math.floor(moveset.stamina_cost * cls.staCoeff)}STA`
+        : ''
 
       let s = log(
-        { ...state, enemyHp: newEnemyHp, enemyPoise: newEnemyPoise,
-          playerStamina: newStamina, playerFp: newFp,
+        { ...state, enemyHp: newEnemyHp, enemyPoise: newEnemyPoise, playerHp: postHp,
+          playerStamina: postStamina, playerFp: newFp,
           chainMovesetId: newChainId, chainStepIdx: newChainIdx, timerExpired: false, stepStarted: false,
-          movesetXpAccumulated: newMsXpAcc,
           lastMovesetCompletionMs: Date.now(),
           weaponHeatAccumulated: newHeatAcc },
-        `You complete ${step.name} — ${dmg} damage!${flowSuffix}`, '#ffffff'
+        `You complete ${step.name} — ${finalDmg} damage!${flowSuffix}${classSuffix}`, '#ffffff'
       )
 
-      if (s.enemyHp <= 0) return { ...s, phase: 'VICTORY', weaponKillsAccumulated: state.weaponKillsAccumulated + 1 }
+      if (s.enemyHp <= 0) return { ...s, phase: 'VICTORY' }
       if (s.enemyPoise <= 0) return { ...s, enemyPoise: 0, phase: 'ENEMY_STAGGERED' }
 
-      if (!anyMoveAffordable(s)) {
-        s = log(s, 'Stamina exhausted — enemy seizes the moment.', '#ccaa44')
-        return enterEnemyAttack(s)
-      }
       if (shouldInterrupt(s, newChainId)) {
         s = log(s, `The ${s.enemyData.name} interrupts!`, '#e85555')
         return enterEnemyAttack(s)
       }
-      return { ...s, phase: 'PLAYER_ATTACK' }
+      return enterPlayerAttack(s)
     }
 
     case 'END_TURN':
@@ -433,7 +482,7 @@ export function combatReducer(state: CombatState, action: CombatAction): CombatS
     case 'DEFENSE_CHOSEN': {
       const act = action.action
       if (act === 'flee') {
-        return log({ ...state, phase: 'DEFEAT' }, 'You retreat. The run is over.', '#7a7570')
+        return log({ ...state, phase: 'FLED' }, 'You retreat safely. Runes are preserved.', '#7a7570')
       }
       // Block — instant, no timer, costs STA
       if (act === 'block') {
@@ -456,14 +505,13 @@ export function combatReducer(state: CombatState, action: CombatAction): CombatS
         return enterPlayerAttack(s)
       }
       // Roll / Parry — start defense timer
-      const task = getDefenseTask(state, act, 0)
+      const task = getDefenseTask(state, act)
       if (!task) return state
       const total = Math.max((task as Step).time ?? 20, 1)
       return {
         ...state,
         timerIsDefense: true,
         pendingDefenseAction: act,
-        defenseParryStep: 0,
         phase: 'STEP_TIMER',
         pendingStep: { name: (task as Step).name ?? '', time: total, base_damage: 0, poise_damage: 0 },
         stepTimer: total, stepTotal: total, stepStarted: false, timerExpired: false,

@@ -1,4 +1,4 @@
-export type StatKey = 'VIG' | 'END' | 'MIND'
+export type StatKey = 'VIG' | 'END' | 'MND' | 'STR' | 'DEX' | 'INT' | 'FAI' | 'ARC'
 export type Grade = 'S' | 'A' | 'B' | 'C' | 'D' | 'E'
 export type StatusType = 'bleed' | 'frost' | 'madness' | 'scarlet_rot'
 export type DefenseAction = 'roll' | 'block' | 'parry' | 'take' | 'flee'
@@ -25,19 +25,19 @@ export interface Affix {
   damage_mult?: number
   stamina_mult?: number
   fp_mult?: number
-  xp_mult?: number
   poise_mult?: number
 }
 
 // A generated weapon instance — stored in GameState and in the WEAPONS registry
 export interface WeaponInstance extends Weapon {
-  instance_id: string          // UUID key used everywhere
+  instance_id: string
   weapon_class: WeaponClass
   rarity: WeaponRarity
   affixes: Affix[]
-  skill_slots: number          // Ash-of-War slots from rarity
+  skill_slots: number
   heat_threshold: number
   poise_weight: PoiseWeight
+  base_damage_mult: number
 }
 
 // ── Atomic move / moveset generation types ─────────────────────────────────
@@ -60,11 +60,11 @@ export interface AtomicDimensions {
   planning:      AtomicPlanning
 }
 
-// Pipeline: what the full chain looks like; level filters which steps show
+// Pipeline kept for structural compatibility but no longer used for level-gating
 export interface MovesetPipeline {
-  all_steps:   Step[]    // complete sequence (e.g. Outline→Draft→Refine→Publish)
-  unlocked_at: number[]  // all_steps[i] appears from this moveset level
-  drops_at:    number[]  // all_steps[i] disappears ("masz w głowie") from this level; 0 = never drops
+  all_steps:   Step[]
+  unlocked_at: number[]
+  drops_at:    number[]
 }
 
 // Extended Moveset with generation metadata
@@ -74,9 +74,10 @@ export interface GeneratedMoveset extends Moveset {
   weapon_class?: WeaponClass
   pipeline:      MovesetPipeline
 }
+
 export type CombatPhase =
   | 'INIT' | 'PLAYER_ATTACK' | 'STEP_TIMER'
-  | 'ENEMY_ATTACK' | 'ENEMY_STAGGERED' | 'VICTORY' | 'DEFEAT'
+  | 'ENEMY_ATTACK' | 'ENEMY_STAGGERED' | 'VICTORY' | 'DEFEAT' | 'FLED'
 
 export interface Step {
   name: string
@@ -108,7 +109,7 @@ export interface EnemyMove {
   block_damage: number
   poise_damage: number
   dodge_task: Task
-  parry_task: Task
+  publish_task: Task
 }
 
 export interface EnemyDrop {
@@ -139,8 +140,7 @@ export interface Weapon {
   scaling: Partial<Record<StatKey, Grade>>
   constant_movesets: string[]
   moveset_slots: number
-  xp_thresholds: number[]
-  defense_movesets: { block: string; parry: string }
+  defense_movesets: { block: string }
 }
 
 export interface LocationData {
@@ -148,35 +148,45 @@ export interface LocationData {
   name: string
   mult: number
   sublocation_type: SublocationType
-  event_type?: string   // 'site_of_grace' | 'trial'
+  event_type?: string
+  boss_name?: string
 }
 
 export interface Stats {
   VIG: number
   END: number
-  MIND: number
-  [key: string]: number
+  MND: number
+  STR: number
+  DEX: number
+  INT: number
+  FAI: number
+  ARC: number
 }
 
 export interface GameState {
   stats: Stats
-  level: number
-  // Weapon inventory — owned_weapons holds instance_ids; weapon_instances holds the full objects
+  player_class: string
+  total_levels_spent: number
+  // Rune economy
+  runes: number
+  lost_runes: number
+  lost_rune_location: string
+  lost_rune_node_index: number
+  // Weapon inventory
   owned_weapons: string[]
   weapon_instances: WeaponInstance[]
   equipped_run_weapons: string[]
-  weapon_xp: Record<string, number>    // kill points (3/mob, 8/boss)
-  weapon_level: Record<string, number> // upgrade level 0-10
+  weapon_level: Record<string, number>
   weapon_extra_movesets: Record<string, string[]>
-  // Moveset inventory — standalone drops separate from weapons
+  weapon_cooldown: Record<string, number>
+  // Moveset inventory
   owned_movesets: string[]
   moveset_instances: GeneratedMoveset[]
-  // Moveset progression — independent of weapon level
-  moveset_xp: Record<string, number>    // accumulated step.time seconds per moveset
-  moveset_level: Record<string, number> // 1-10 per moveset id
+  // Player resources
   current_hp: number
   current_stamina: number
   current_fp: number
+  // Run state
   run_count: number
   run_active: boolean
   run_location_sequence: LocationData[]
@@ -187,8 +197,7 @@ export interface GameState {
   run_defeated_enemies: string[]
   pending_encounter: LocationData | null
   pending_run_reward: string
-  weapon_cooldown: Record<string, number>   // instance_id → runs remaining on cooldown
   run_location_name: string
-  completed_locations: string[]             // location ids cleared (drives unlock DAG)
-  run_start_owned_movesets: string[]        // snapshot of owned_movesets at run start (for diff on complete)
+  completed_locations: string[]
+  run_start_owned_movesets: string[]
 }

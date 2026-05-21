@@ -1,9 +1,7 @@
 import type { WeaponClass, WeaponRarity, WeaponInstance, Affix } from '../../types/game'
 import { WEAPON_CLASSES, ALL_WEAPON_CLASSES } from './weaponClasses'
-import { rollMoveset, rollBlockMoveset, rollParryMoveset } from './movesetGenerator'
+import { rollMoveset, rollBlockMoveset } from './movesetGenerator'
 import { registerWeapon } from '../weapons'
-
-// ── Helpers ───────────────────────────────────────────────────────────────
 
 function uid(): string {
   return 'w_' + Math.random().toString(36).slice(2, 10)
@@ -17,8 +15,6 @@ function pick<T>(items: T[], weights?: number[]): T {
   return items[items.length - 1]
 }
 
-// ── Rarity curve ──────────────────────────────────────────────────────────
-
 const RARITY_WEIGHTS: Record<WeaponRarity, number> = {
   common: 55, magic: 25, rare: 12, epic: 6, legendary: 2,
 }
@@ -31,8 +27,6 @@ function rollRarity(forceMin?: WeaponRarity): WeaponRarity {
   return pick(available, weights)
 }
 
-// ── Skill slots per rarity ────────────────────────────────────────────────
-
 function skillSlots(rarity: WeaponRarity): number {
   switch (rarity) {
     case 'common':    return 1
@@ -43,15 +37,12 @@ function skillSlots(rarity: WeaponRarity): number {
   }
 }
 
-// ── Affix pool ────────────────────────────────────────────────────────────
-
 const AFFIXES: Affix[] = [
   { id: 'dmg_15',    label: '+15% damage',      damage_mult: 1.15 },
   { id: 'dmg_25',    label: '+25% damage',      damage_mult: 1.25 },
   { id: 'sta_20',    label: '-20% stamina cost', stamina_mult: 0.80 },
   { id: 'sta_30',    label: '-30% stamina cost', stamina_mult: 0.70 },
   { id: 'fp_20',     label: '-20% FP cost',     fp_mult: 0.80 },
-  { id: 'xp_25',     label: '+25% weapon XP',   xp_mult: 1.25 },
   { id: 'poise_20',  label: '+20% poise damage', poise_mult: 1.20 },
   { id: 'dmg_10',    label: '+10% damage',      damage_mult: 1.10 },
   { id: 'sta_15',    label: '-15% stamina cost', stamina_mult: 0.85 },
@@ -68,8 +59,6 @@ function rollAffixes(rarity: WeaponRarity): Affix[] {
   return shuffled.slice(0, n)
 }
 
-// ── Names ────────────────────────────────────────────────────────────────
-
 const RARITY_PREFIXES: Record<WeaponRarity, string[]> = {
   common:    ['Crude','Plain','Common','Standard','Simple'],
   magic:     ['Sharp','Swift','Keen','Flowing','Measured'],
@@ -79,34 +68,27 @@ const RARITY_PREFIXES: Record<WeaponRarity, string[]> = {
 }
 
 function generateWeaponName(cls: WeaponClass, rarity: WeaponRarity): string {
-  const def     = WEAPON_CLASSES[cls]
-  const prefix  = pick(RARITY_PREFIXES[rarity])
+  const def    = WEAPON_CLASSES[cls]
+  const prefix = pick(RARITY_PREFIXES[rarity])
   return `${prefix} ${def.name}`
 }
-
-// ── XP kill thresholds (kill points to reach each +level) ────────────────
-
-export const WEAPON_KILL_THRESHOLDS = [3,7,15,28,50,80,120,170,230,300]
-
-// ── Main generator ────────────────────────────────────────────────────────
 
 export function rollWeapon(
   weaponClass?: WeaponClass,
   minRarity?: WeaponRarity,
 ): WeaponInstance {
-  const cls     = weaponClass ?? pick(ALL_WEAPON_CLASSES)
-  const rarity  = rollRarity(minRarity)
+  const cls      = weaponClass ?? pick(ALL_WEAPON_CLASSES)
+  const rarity   = rollRarity(minRarity)
   const classDef = WEAPON_CLASSES[cls]
-  const id      = uid()
+  const id       = uid()
 
-  const lightMs  = rollMoveset(cls, 'common', 'Light')
-  const heavyMs  = rollMoveset(cls, rarity,   'Heavy')
-  const blockMs  = rollBlockMoveset(cls)
-  const parryMs  = rollParryMoveset(cls)
+  const lightMs = rollMoveset(cls, 'common', 'Light')
+  const heavyMs = rollMoveset(cls, rarity,   'Heavy')
+  const blockMs = rollBlockMoveset(cls)
 
-  const slots    = skillSlots(rarity)
-  const affixes  = rollAffixes(rarity)
-  const heatT    = Math.round(classDef.heat_threshold * (rarity === 'legendary' ? 1.5 : 1.0))
+  const slots   = skillSlots(rarity)
+  const affixes = rollAffixes(rarity)
+  const heatT   = Math.round(classDef.heat_threshold * (rarity === 'legendary' ? 1.5 : 1.0))
 
   const weapon: WeaponInstance = {
     instance_id: id,
@@ -116,23 +98,22 @@ export function rollWeapon(
     skill_slots: slots,
     heat_threshold: heatT,
     poise_weight: classDef.poise_weight,
+    base_damage_mult: classDef.base_damage_mult,
 
     // Weapon interface fields
-    name:        generateWeaponName(cls, rarity),
-    description: classDef.description,
-    stat_req:    {},
-    scaling:     { [classDef.scaling_primary]: classDef.scaling_grade } as WeaponInstance['scaling'],
+    name:              generateWeaponName(cls, rarity),
+    description:       classDef.description,
+    stat_req:          {},
+    scaling:           classDef.scaling,
     constant_movesets: [lightMs.id, heavyMs.id],
-    moveset_slots: slots,
-    xp_thresholds: WEAPON_KILL_THRESHOLDS,
-    defense_movesets: { block: blockMs.id, parry: parryMs.id },
+    moveset_slots:     slots,
+    defense_movesets:  { block: blockMs.id },
   }
 
   registerWeapon(weapon)
   return weapon
 }
 
-/** Roll multiple Skill movesets for a weapon instance. */
 export function rollSkillMovesets(weaponClass: WeaponClass, rarity: WeaponRarity, count: number): string[] {
   return Array.from({ length: count }, () => rollMoveset(weaponClass, rarity, 'Skill').id)
 }

@@ -1,5 +1,5 @@
 import type {
-  GeneratedMoveset, MovesetVariant, WeaponClass, WeaponRarity, MovesetPipeline, Step,
+  GeneratedMoveset, MovesetVariant, WeaponClass, WeaponRarity, Step,
 } from '../../types/game'
 import {
   rollAtomicMove, pickStageChain, toStep, calcStaminaCost,
@@ -74,20 +74,7 @@ const RARITY_PUB: Record<WeaponRarity, AtomicPub> = {
   common: 'private', magic: 'draft_published', rare: 'public', epic: 'public', legendary: 'public',
 }
 
-// ── Pipeline construction for levelling ──────────────────────────────────
 
-function buildPipeline(steps: Step[]): MovesetPipeline {
-  const n = steps.length
-  // For a 4-step chain like [Outline,Draft,Refine,Publish]:
-  // unlocked_at: all start at level 1 (except later steps may require higher levels)
-  // drops_at: first step (prep/outline) drops at level 4 ("masz w głowie")
-  const unlocked_at = steps.map(() => 1)
-  const drops_at    = steps.map((_, i) => {
-    if (i === 0 && n >= 4) return 4   // first step drops at level 4 for long chains
-    return 0                           // 0 = never drops
-  })
-  return { all_steps: steps, unlocked_at, drops_at }
-}
 
 // ── Main roll function ────────────────────────────────────────────────────
 
@@ -136,11 +123,14 @@ export function rollMoveset(
   const variantLabel = variant.toLowerCase()
   const name = `${archetypeLabel} (${variantLabel})`
 
+  // Primary scaling stat = first key in the weapon class scaling map
+  const primaryStat = (Object.keys(classDef.scaling)[0] ?? 'STR') as import('../../types/game').StatKey
+
   const id = uid()
   const moveset: GeneratedMoveset = {
     id,
     name,
-    scaling_stat: classDef.scaling_primary,
+    scaling_stat: primaryStat,
     stamina_cost: Math.max(5, totalStamina),
     fp_cost: totalFp,
     types: [weaponClass, variant.toLowerCase(), rarity],
@@ -148,7 +138,7 @@ export function rollMoveset(
     rarity,
     variant_type: variant,
     weapon_class: weaponClass,
-    pipeline: buildPipeline(scaledSteps),
+    pipeline: { all_steps: [], unlocked_at: [], drops_at: [] },
   }
 
   registerMoveset(moveset)
@@ -168,27 +158,9 @@ export function rollBlockMoveset(weaponClass: WeaponClass): GeneratedMoveset {
   return m
 }
 
-export function rollParryMoveset(weaponClass: WeaponClass): GeneratedMoveset {
-  const id = uid()
-  const m: GeneratedMoveset = {
-    id, name: 'Parry', scaling_stat: 'END', stamina_cost: 0, fp_cost: 0,
-    types: ['defense','parry'], rarity: 'common', variant_type: 'Skill', weapon_class: weaponClass,
-    steps: [{ name: 'Write one strong opening sentence for your next piece', time: 20, base_damage: 0, poise_damage: 5 }],
-    pipeline: { all_steps: [], unlocked_at: [], drops_at: [] },
-  }
-  registerMoveset(m)
-  return m
-}
 
 /** Return active steps for a moveset at the given level (1-10). */
-export function getActiveSteps(moveset: GeneratedMoveset | { steps: Step[]; pipeline?: MovesetPipeline }, level: number): Step[] {
-  const pipeline = (moveset as GeneratedMoveset).pipeline
-  if (!pipeline || !pipeline.all_steps.length) return moveset.steps
-
-  const { all_steps, unlocked_at, drops_at } = pipeline
-  return all_steps.filter((_, i) => {
-    const unlockedOk = (unlocked_at[i] ?? 1) <= level
-    const droppedOk  = !drops_at[i] || drops_at[i] > level
-    return unlockedOk && droppedOk
-  })
+// Pipeline level-gating is removed — always return all steps
+export function getActiveSteps(moveset: GeneratedMoveset | { steps: Step[] }): Step[] {
+  return moveset.steps
 }

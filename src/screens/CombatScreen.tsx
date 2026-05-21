@@ -1,6 +1,6 @@
 import { useReducer, useEffect, useCallback, useState, useMemo, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { combatReducer, initCombatState, STAGGER_PAUSE_MS, STA_BLOCK, STA_DEFENSE_GAIN } from '../engine/combat'
+import { combatReducer, initCombatState, STAGGER_PAUSE_MS, STA_BLOCK, STA_DEFENSE_GAIN, getClassMod } from '../engine/combat'
 import { useGameStore } from '../store/gameStore'
 import { ENEMIES } from '../data/enemies'
 import { playSound } from '../engine/sound'
@@ -22,7 +22,7 @@ import s from './CombatScreen.module.css'
 const DROP_MAP: Record<string, { type: 'weapon' | 'moveset'; wclass: WeaponClass }> = {
   dagger:           { type: 'weapon',  wclass: 'daggers' },
   greatsword:       { type: 'weapon',  wclass: 'greatswords' },
-  fast_publish:     { type: 'moveset', wclass: 'straight_swords' },
+  tight_edit:       { type: 'moveset', wclass: 'straight_swords' },
   single_thought:   { type: 'moveset', wclass: 'straight_swords' },
   raw_take:         { type: 'moveset', wclass: 'katanas' },
   immediate_strike: { type: 'moveset', wclass: 'daggers' },
@@ -102,11 +102,13 @@ export default function CombatScreen() {
           store.current_stamina, store.maxStamina(),
           store.current_fp,  store.maxFp(),
           store.run_estus_count,
+          store.stats,
         )
       : initCombatState(
           'procrastination_mob', ENEMIES['procrastination_mob'], 1,
           ['unarmed'], {}, {},
           300,300, 130,130, 140,140, 3,
+          { VIG:10, END:10, MND:10, STR:8, DEX:8, INT:8, FAI:8, ARC:8 },
         )
   )
 
@@ -123,6 +125,9 @@ export default function CombatScreen() {
       case 'DEFEAT':
         playSound('DEFEAT')
         break
+      case 'FLED':
+        playSound('DEFEAT')
+        break
     }
   }, [state.phase])
 
@@ -134,7 +139,7 @@ export default function CombatScreen() {
     if (last.text.includes('damage!') && last.color === '#ffffff') playSound('HIT')
     if (last.text.includes('roll away'))  playSound('ROLL')
     if (last.text.includes('block'))      playSound('BLOCK')
-    if (last.text.includes('parry'))      playSound('PARRY')
+    if (last.text.includes('parry') || last.text.includes('Published!')) playSound('PARRY')
   }, [lastLogLen])
 
   // Timer expired → play alert
@@ -151,6 +156,8 @@ export default function CombatScreen() {
   const [lootItems, setLootItems]       = useState<LootItem[] | null>(null)
   const [lootRevealed, setLootRevealed] = useState(false)
   const [bloodActive, setBloodActive]   = useState(false)
+  const [runesEarned, setRunesEarned]   = useState(0)
+  const [runesRecovered, setRunesRecovered] = useState(0)
 
   useEffect(() => {
     if (state.phase !== 'VICTORY' || !loc || lootItems !== null) return
@@ -174,7 +181,6 @@ export default function CombatScreen() {
       }
     })
 
-    // Dynamic roll moveset drop — higher chance if player rolled at least once
     if (state.enemyRollMoveset) {
       const dropChance = state.hasRolledSuccessfully ? 0.60 : 0.20
       const obtained   = Math.random() < dropChance
@@ -189,6 +195,14 @@ export default function CombatScreen() {
     }
 
     setLootItems(items)
+    setRunesEarned(enemy.rune_reward)
+
+    // Check for rune recovery
+    if (store.lost_runes > 0
+        && store.run_location_name === store.lost_rune_location
+        && store.run_current_index === store.lost_rune_node_index) {
+      setRunesRecovered(store.lost_runes)
+    }
   }, [state.phase, loc, store.run_defeated_enemies, lootItems])
 
   function handleCorpseClick() {
@@ -206,12 +220,11 @@ export default function CombatScreen() {
     if (!loc || !lootItems) return
     store.syncCombatResult(state.playerHp, state.playerEstus, state.playerFp)
     store.applyWeaponHeat(state.weaponHeatAccumulated)
-    // Flush moveset XP (time-based, persistent through failure)
-    store.flushMovesetXp(state.movesetXpAccumulated)
-    // Record weapon kill
-    const activeWeaponId = state.equippedWeapons[state.activeWeaponIdx] ?? state.equippedWeapons[0]
+    // Earn runes from this kill
     const enemy = ENEMIES[loc.enemy_id]
-    store.recordWeaponKill(activeWeaponId, enemy.is_boss)
+    store.addRunes(enemy.rune_reward)
+    // Recover lost runes if at the right location+node
+    if (runesRecovered > 0) store.recoverRunes()
     // Apply generated drops
     lootItems.forEach(item => {
       if (!item.obtained || !item.generated) return
@@ -228,19 +241,27 @@ export default function CombatScreen() {
       store.setPendingEncounter(null)
       navigate('/map')
     }
-  }, [loc, store, navigate, state.playerHp, state.playerEstus, state.movesetXpAccumulated,
-      state.equippedWeapons, state.activeWeaponIdx, lootItems])
+  }, [loc, store, navigate, state.playerHp, state.playerEstus,
+      state.equippedWeapons, state.activeWeaponIdx, lootItems, runesRecovered])
 
-  // ── Defeat handler ─────────────────────────────────────────────────────
+  // ── Defeat handler (runes dropped) ────────────────────────────────────
   const handleDefeat = useCallback(() => {
     store.syncCombatResult(state.playerHp, state.playerEstus, state.playerFp)
     store.applyWeaponHeat(state.weaponHeatAccumulated)
-    // Moveset XP persists through defeat (per spec)
-    store.flushMovesetXp(state.movesetXpAccumulated)
+    // Drop runes at this location+node (recoverable next attempt)
+    store.dropRunes(store.run_location_name, store.run_current_index)
     store.endRunFailure()
     navigate('/')
-  }, [store, navigate, state.playerHp, state.playerEstus, state.movesetXpAccumulated])
+  }, [store, navigate, state.playerHp, state.playerEstus, state.playerFp])
 
+  // ── Flee handler (runes preserved) ────────────────────────────────────
+  const handleFlee = useCallback(() => {
+    store.syncCombatResult(state.playerHp, state.playerEstus, state.playerFp)
+    store.applyWeaponHeat(state.weaponHeatAccumulated)
+    // No rune drop on flee
+    store.endRunFailure()
+    navigate('/')
+  }, [store, navigate, state.playerHp, state.playerEstus, state.playerFp])
 
   // ── Radial action menu ────────────────────────────────────────────────
   const mobSvgRef = useRef<SVGSVGElement>(null)
@@ -272,20 +293,30 @@ export default function CombatScreen() {
         const step       = moveset.steps[showIdx]
         if (!step) return []
 
+        // Per-moveset chain depth (greatsword momentum scales per-step)
+        const chainIdx = isMidChain ? state.chainStepIdx : 0
+        const cls      = getClassMod((weapon as WeaponInstance | undefined)?.weapon_class, chainIdx)
+
         // Skill movesets cost FP; constant (light/heavy) movesets do not
-        const isSkill  = !constantIds.has(moveset.id)
-        const fpCost   = isSkill ? (moveset.fp_cost ?? 0) : 0
-        const canSta   = state.playerStamina >= moveset.stamina_cost
-        const canFp    = state.playerFp >= fpCost
-        const canUse   = canSta && canFp
+        const isSkill = !constantIds.has(moveset.id)
+        const fpCost  = isSkill ? (moveset.fp_cost ?? 0) : 0
+
+        // Class-adjusted values for display
+        const level      = state.weaponLevels[weaponId] ?? 0
+        const baseDmg    = weapon ? calcStepDamage(step, weapon, level) : step.base_damage
+        const mainDmg    = Math.floor(baseDmg * cls.dmgMult)
+        const displayDmg = cls.dualStrike ? Math.floor(mainDmg * 1.4) : mainDmg
+        const actualSta  = Math.floor(moveset.stamina_cost * cls.staCoeff)
+
+        const canSta = state.playerStamina >= actualSta
+        const canFp  = state.playerFp >= fpCost
+        const canUse = canSta && canFp
         const disabledReason = !canSta
-          ? `Need ${moveset.stamina_cost} STA (have ${Math.floor(state.playerStamina)})`
+          ? `Need ${actualSta} STA (have ${Math.floor(state.playerStamina)})`
           : !canFp
           ? `Need ${fpCost} FP (have ${Math.floor(state.playerFp)})`
           : undefined
 
-        const level  = state.weaponLevels[weaponId] ?? 0
-        const dmg    = weapon ? calcStepDamage(step, weapon, level) : step.base_damage
         const prefix = moveset.steps.length > 1 ? `[${showIdx + 1}/${moveset.steps.length}] ` : ''
         const angle  = (i / N) * 2 * Math.PI - Math.PI / 2
         return [{
@@ -294,9 +325,13 @@ export default function CombatScreen() {
           sublabel: `${prefix}${step.name}`,
           metaParts: [
             { text: fmtTime(step.time) },
-            { text: `${dmg} dmg`, color: '#cc6644' },
-            { text: `${moveset.stamina_cost} STA`, color: 'var(--color-stamina)' },
+            { text: `${displayDmg} dmg`, color: '#cc6644' },
+            ...(actualSta > 0
+              ? [{ text: `${actualSta} STA`, color: 'var(--color-stamina)' }]
+              : [{ text: `+${cls.staGain} STA`, color: '#44aa77' }]),
             ...(fpCost > 0 ? [{ text: `${fpCost} FP`, color: 'var(--color-fp)' }] : []),
+            ...(cls.selfDmg > 0 ? [{ text: `-${cls.selfDmg}HP self`, color: '#cc4444' }] : []),
+            ...(cls.tag ? [{ text: cls.tag, color: '#a09030' }] : []),
           ],
           canUse, disabledReason, tx: Math.cos(angle) * rx, ty: Math.sin(angle) * ry,
           onSelect: () => dispatch({ type: 'STEP_CLICKED', step, moveset, weaponId }),
@@ -318,9 +353,8 @@ export default function CombatScreen() {
       const move      = state.currentMove
       const wid       = state.equippedWeapons[0]
       const weapon    = WEAPONS[wid]
-      const parryTask = move.parry_task
-      const blockMs   = weapon ? MOVES[weapon.defense_movesets.block]?.steps[0] : null
-      const parryMs   = weapon ? MOVES[weapon.defense_movesets.parry]?.steps[0] : null
+      const publishTask = move.publish_task
+      const blockMs     = weapon ? MOVES[weapon.defense_movesets.block]?.steps[0] : null
 
       // Roll sublabel: show current step of the generated mob roll moveset
       const rollSteps  = state.enemyRollMoveset?.steps ?? []
@@ -358,15 +392,15 @@ export default function CombatScreen() {
           onSelect: () => dispatch({ type: 'DEFENSE_CHOSEN', action: 'block' }),
         },
         {
-          id: 'parry', movesetId: 'unarmed_parry',
+          id: 'parry',
           label: 'Parry',
-          sublabel: '??? — revealed on start',
+          sublabel: publishTask ? `${publishTask.name} · ${fmtTime(publishTask.time)}` : '???',
           metaParts: [
             { text: 'Full STA on success', color: 'var(--color-stamina)' },
             { text: `${move.damage} dmg if fail`, color: '#cc6644' },
           ],
-          canUse: !!parryTask && !!parryMs,
-          disabledReason: (!parryTask || !parryMs) ? 'No parry style' : undefined,
+          canUse: !!publishTask,
+          disabledReason: !publishTask ? 'No publish task' : undefined,
           onSelect: () => dispatch({ type: 'DEFENSE_CHOSEN', action: 'parry' }),
         },
         {
@@ -430,7 +464,7 @@ export default function CombatScreen() {
             >
               <div className={s.enemyBarOverlay}>
                 <EnemyBars
-                  name={enemyData.name}
+                  name={loc?.boss_name ?? enemyData.name}
                   hp={state.enemyHp} maxHp={state.enemyMaxHp}
                   poise={state.enemyPoise} maxPoise={state.enemyMaxPoise}
                 />
@@ -513,9 +547,7 @@ export default function CombatScreen() {
         <div className={s.endOverlay}>
           <div className={s.endBox}>
             <div className={`${s.endTitle} ${s.victoryTitle}`}>Victory</div>
-            <div className={s.lootEnemyName}>{enemyData.name} defeated</div>
-
-            <div className={s.lootRunes}>✦ {enemyData.rune_reward} runes</div>
+            <div className={s.lootEnemyName}>{loc?.boss_name ?? enemyData.name} defeated</div>
 
             {lootItems.some(item => item.obtained) && (
               <div className={s.lootSection}>
@@ -535,17 +567,10 @@ export default function CombatScreen() {
               </div>
             )}
 
-            {Object.entries(state.weaponXpAccumulated).some(([, xp]) => xp > 0) && (
-              <div className={s.xpSection}>
-                {Object.entries(state.weaponXpAccumulated)
-                  .filter(([, xp]) => xp > 0)
-                  .map(([wid, xp], i) => (
-                    <div key={wid} className={s.xpItem} style={{ animationDelay: `${(lootItems.length + i) * 220}ms` }}>
-                      {WEAPONS[wid]?.name ?? wid} +{xp} XP
-                    </div>
-                  ))}
-              </div>
-            )}
+            <div className={s.lootRunes}>
+              ✦ {runesEarned} runes earned
+              {runesRecovered > 0 && <span className={s.runesRecovered}> · +{runesRecovered} recovered!</span>}
+            </div>
 
             <button className={s.endBtn} onClick={handleVictoryContinue}>
               {enemyData.is_remembrance ? 'Run Complete' : 'Continue →'}
@@ -554,15 +579,31 @@ export default function CombatScreen() {
         </div>
       )}
 
-      {/* ── Defeat overlay ────────────────────────────────────────────── */}
+      {/* ── Defeat overlay (runes dropped) ───────────────────────────── */}
       {state.phase === 'DEFEAT' && (
         <div className={s.endOverlay}>
           <div className={s.endBox}>
             <div className={`${s.endTitle} ${s.defeatTitle}`}>Defeated</div>
             <div className={s.endSub}>
-              You have been overcome.<br/>The run ends here.
+              You have been overcome.<br/>
+              {store.runes > 0
+                ? `✦ ${store.runes} runes dropped here. Recover them next attempt.`
+                : 'The run ends here.'}
             </div>
             <button className={s.endBtn} onClick={handleDefeat}>Return</button>
+          </div>
+        </div>
+      )}
+
+      {/* ── Fled overlay (runes safe) ─────────────────────────────────── */}
+      {state.phase === 'FLED' && (
+        <div className={s.endOverlay}>
+          <div className={s.endBox}>
+            <div className={`${s.endTitle} ${s.fleedTitle}`}>Retreated</div>
+            <div className={s.endSub}>
+              You escaped safely.<br/>Runes are preserved.
+            </div>
+            <button className={s.endBtn} onClick={handleFlee}>Return</button>
           </div>
         </div>
       )}

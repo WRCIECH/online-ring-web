@@ -20,9 +20,8 @@ export default function DefensePanel({ state, dispatch }: Props) {
   const weapon     = WEAPONS[wid]
 
   const dodge  = currentMove.dodge_task
-  const parry  = currentMove.parry_task
-  const blockMs = weapon ? MOVES[weapon.defense_movesets.block]?.steps[0] : null
-  const parryMs = weapon ? MOVES[weapon.defense_movesets.parry]?.steps[0] : null
+  const publish = currentMove.publish_task
+  const blockMs  = weapon ? MOVES[weapon.defense_movesets.block]?.steps[0] : null
 
   function btn(
     title: string, subtitle: string,
@@ -65,10 +64,8 @@ export default function DefensePanel({ state, dispatch }: Props) {
         )}
         {btn(
           `Parry  →  Full STA on success`,
-          (parry && parryMs)
-            ? `1: ${parry.name} → 2: ${parryMs.name}`
-            : '???',
-          !parry || !parryMs,
+          publish ? publish.name : '???',
+          !publish,
           () => dispatch({ type: 'DEFENSE_CHOSEN', action: 'parry' }),
         )}
         <hr />

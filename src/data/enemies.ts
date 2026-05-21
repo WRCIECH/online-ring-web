@@ -54,7 +54,7 @@ export const ENEMIES: Record<string, Enemy> = {
     description: 'The final guardian. It will never let you call anything finished.',
     max_hp: 200, initiative: 10, max_poise: 80, rune_reward: 500,
     is_boss: true, is_remembrance: true, unlocks_area: 'second_area',
-    drops: [{ id: 'fast_publish', first_kill_chance: 1.0, repeat_chance: 0.0 }],
+    drops: [{ id: 'tight_edit', first_kill_chance: 1.0, repeat_chance: 0.0 }],
     status_multipliers: { bleed: 0.5, frost: 0.5, madness: 0.5, scarlet_rot: 0.5 },
     moveset: ['revision_spiral', 'not_good_enough', 'one_more_source'],
   },

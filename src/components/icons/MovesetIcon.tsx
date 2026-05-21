@@ -130,22 +130,14 @@ const ICONS: Record<string, React.ReactElement> = {
   endurance_strike: (
     <path d="M12 2c0 4-4 5-4 9a4 4 0 008 0c0-4-4-5-4-9zM9.5 14.5c.5 1 1.5 1.5 2.5 1.5"/>
   ),
-  fast_publish: (
+  tight_edit: (
     <>
-      <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/>
-      <polyline points="17 8 12 3 7 8"/>
-      <line x1="12" y1="3" x2="12" y2="15"/>
+      <path d="M17 3a2.83 2.83 0 114 4L7.5 20.5 2 22l1.5-5.5L17 3z"/>
+      <line x1="15" y1="5" x2="19" y2="9"/>
     </>
   ),
   unarmed_block: (
     <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
-  ),
-  unarmed_parry: (
-    <>
-      <polyline points="15 18 21 12 15 6"/>
-      <path d="M3 12h18"/>
-      <path d="M3 7.5A10.5 10.5 0 0013.5 18"/>
-    </>
   ),
 }
 

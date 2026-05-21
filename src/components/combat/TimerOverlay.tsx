@@ -12,7 +12,7 @@ function fmtTime(secs: number): string {
 
 export default function TimerOverlay({ state, dispatch }: Props) {
   const { stepTimer, stepTotal, stepStarted, timerExpired,
-          timerIsDefense, pendingStep, defenseParryStep } = state
+          timerIsDefense, pendingStep, pendingDefenseAction } = state
   const textRef = useRef<HTMLTextAreaElement>(null)
 
   // rAF-based countdown
@@ -49,7 +49,7 @@ export default function TimerOverlay({ state, dispatch }: Props) {
   let headerColor = '#7a7570'
   if (isActive && !timerIsDefense) { header = 'TASK IN PROGRESS';       headerColor = '#c9a93a' }
   if (isActive && timerIsDefense)  { header = 'DEFEND — COMPLETE IN TIME'; headerColor = '#cc4422' }
-  if (timerIsDefense && defenseParryStep === 1) header = 'PARRY — STEP 2 / 2'
+  if (isActive && timerIsDefense && pendingDefenseAction === 'parry') { header = 'PARRY — COMMIT TO PUBLISH'; headerColor = '#cc4422' }
   if (isExpired) { header = "TIME'S UP!"; headerColor = '#c9a93a' }
 
   const taskName = pendingStep?.name ?? ''

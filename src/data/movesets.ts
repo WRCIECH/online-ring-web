@@ -86,11 +86,11 @@ export const MOVES: Record<string, Moveset> = {
       { name: 'Write continuously without switching tabs', time: 1800, base_damage: 140, poise_damage: 50 },
     ],
   },
-  fast_publish: {
-    id: 'fast_publish', name: 'Fast Publish', scaling_stat: 'END', stamina_cost: 42,
-    types: ['unarmed', 'publishing', 'rare'],
+  tight_edit: {
+    id: 'tight_edit', name: 'Tight Edit', scaling_stat: 'END', stamina_cost: 30,
+    types: ['unarmed', 'revision', 'rare'],
     steps: [
-      { name: 'Create and publish one short post in under 20 minutes', time: 1200, base_damage: 100, poise_damage: 38 },
+      { name: 'Cut your last paragraph by half — keep only the strongest sentences', time: 300, base_damage: 50, poise_damage: 20 },
     ],
   },
   unarmed_block: {
@@ -98,13 +98,6 @@ export const MOVES: Record<string, Moveset> = {
     types: ['defense', 'block'],
     steps: [
       { name: 'Write 3 words that describe what you are building right now', time: 25, base_damage: 0, poise_damage: 0 },
-    ],
-  },
-  unarmed_parry: {
-    id: 'unarmed_parry', name: 'Precision Counter', scaling_stat: 'END', stamina_cost: 35,
-    types: ['defense', 'parry'],
-    steps: [
-      { name: 'Write one strong opening sentence for your piece', time: 20, base_damage: 0, poise_damage: 5 },
     ],
   },
 }
