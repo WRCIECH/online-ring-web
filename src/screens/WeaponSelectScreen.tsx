@@ -4,7 +4,6 @@ import { useGameStore } from '../store/gameStore'
 import { WEAPONS, LEVEL_MULT } from '../data/weapons'
 import { MOVES } from '../data/movesets'
 import type { WeaponInstance, WeaponRarity } from '../types/game'
-import { WEAPON_KILL_THRESHOLDS } from '../data/generators/weaponGenerator'
 import WeaponSprite from '../components/icons/WeaponSprite'
 import s from './WeaponSelectScreen.module.css'
 
@@ -23,9 +22,8 @@ export default function WeaponSelectScreen() {
   const locationName    = routerState?.locationName    ?? ''
   const numSublocations = routerState?.numSublocations ?? 20
   const runDuration     = routerState?.runDuration     ?? 158400  // default: medium 44h
-  // Default to first owned weapon
   const [selected, setSelected] = useState<string[]>(
-    () => store.owned_weapons.slice(0, 1)
+    () => store.owned_weapons.filter(id => !(store.weapon_cooldown[id] ?? 0 > 0)).slice(0, 1)
   )
 
   function toggle(id: string) {
@@ -55,11 +53,6 @@ export default function WeaponSelectScreen() {
           const weapon = WEAPONS[wid] as WeaponInstance | undefined
           if (!weapon) return null
           const level  = store.weapon_level[wid] ?? 0
-          const xp     = store.weapon_xp[wid] ?? 0
-          const isMax  = level >= 10
-          const nextThresh = isMax ? WEAPON_KILL_THRESHOLDS[9] : (WEAPON_KILL_THRESHOLDS[level] ?? 1)
-          const prevThresh = level === 0 ? 0 : (WEAPON_KILL_THRESHOLDS[level - 1] ?? 0)
-          const xpPct  = isMax ? 1 : Math.max(0, (xp - prevThresh) / Math.max(1, nextThresh - prevThresh))
 
           const cooldown   = store.weapon_cooldown[wid] ?? 0
           const onCooldown = cooldown > 0
@@ -108,8 +101,7 @@ export default function WeaponSelectScreen() {
               )}
 
               <div className={s.weaponMeta}>
-                <span className={s.level}>+{level}{isMax ? ' (MAX)' : ''}</span>
-                {!isMax && <span className={s.xpHint}>{xp - prevThresh} / {nextThresh - prevThresh} kills</span>}
+                <span className={s.level}>+{level}{level >= 10 ? ' (MAX)' : ''}</span>
                 {rarity && (
                   <span className={s.scaling}>
                     +{((LEVEL_MULT[rarity] ?? 0.03) * 100).toFixed(0)}% dmg/lvl
@@ -117,11 +109,6 @@ export default function WeaponSelectScreen() {
                 )}
               </div>
 
-              {!isMax && (
-                <div className={s.xpTrack}>
-                  <div className={s.xpFill} style={{ width: `${xpPct * 100}%` }} />
-                </div>
-              )}
 
               <div className={s.movesetList}>
                 {allMovesetIds.map(mid => {
