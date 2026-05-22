@@ -28,6 +28,35 @@
   color: var(--color-text-dim);
 }
 
+.headerActions {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.runeDisplay {
+  font-size: 0.82rem;
+  color: var(--color-gold-dim);
+  letter-spacing: 0.06em;
+}
+
+.btnStats {
+  font-size: 0.78rem;
+  letter-spacing: 0.08em;
+  padding: 6px 16px;
+  background: rgba(230,191,51,0.07);
+  border: 1px solid var(--color-gold-dim);
+  color: var(--color-gold);
+  border-radius: var(--radius);
+}
+
+.btnStats:hover {
+  background: rgba(230,191,51,0.14);
+  box-shadow: var(--glow-gold);
+}
+
 .weaponList {
   display: flex;
   flex-direction: column;

@@ -5,6 +5,7 @@ import { WEAPONS, LEVEL_MULT } from '../data/weapons'
 import { MOVES } from '../data/movesets'
 import type { WeaponInstance, WeaponRarity } from '../types/game'
 import WeaponSprite from '../components/icons/WeaponSprite'
+import StatsOverlay from '../components/overlays/StatsOverlay'
 import s from './WeaponSelectScreen.module.css'
 
 const MAX_WEAPONS = 2
@@ -25,6 +26,7 @@ export default function WeaponSelectScreen() {
   const [selected, setSelected] = useState<string[]>(
     () => store.owned_weapons.filter(id => !(store.weapon_cooldown[id] ?? 0 > 0)).slice(0, 1)
   )
+  const [showStats, setShowStats] = useState(false)
 
   function toggle(id: string) {
     setSelected(prev => {
@@ -43,9 +45,14 @@ export default function WeaponSelectScreen() {
 
   return (
     <div className={s.root}>
+      {showStats && <StatsOverlay onClose={() => setShowStats(false)} />}
       <div className={s.header}>
         <h1>Select Weapons</h1>
         <p>Choose up to {MAX_WEAPONS} weapons for this run</p>
+        <div className={s.headerActions}>
+          <span className={s.runeDisplay}>✦ {store.runes.toLocaleString()}</span>
+          <button className={s.btnStats} onClick={() => setShowStats(true)}>Stats &amp; Level Up</button>
+        </div>
       </div>
 
       <div className={s.weaponList}>

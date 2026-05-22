@@ -6,6 +6,7 @@
   padding: 40px 20px 60px;
   background: var(--color-bg);
   overflow-y: auto;
+  gap: 0;
 }
 
 .title {
@@ -40,90 +41,54 @@
   background: var(--color-bg-panel);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-lg);
-  padding: 32px 36px;
+  padding: 24px 28px;
   width: 100%;
-  max-width: 600px;
-  display: flex;
-  flex-direction: column;
-  gap: 28px;
+  max-width: 520px;
+  margin-bottom: 20px;
 }
-
-.section { display: flex; flex-direction: column; gap: 12px; }
 
 .sectionTitle {
   font-size: 0.68rem;
   letter-spacing: 0.2em;
   text-transform: uppercase;
   color: var(--color-text-dim);
+  margin-bottom: 12px;
 }
 
-/* ── Stat grid ────────────────────────────────────────────────────────────── */
-.statGrid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 8px;
-}
-
-.statBtn {
-  padding: 10px 6px;
+.movesetList {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  gap: 4px;
-  transition: border-color 0.12s, background 0.12s;
-}
-.statBtn:hover:not(:disabled) {
-  border-color: var(--color-gold-dim);
-  background: rgba(230,191,51,0.07);
-}
-.statBtnDisabled { opacity: 0.35; cursor: not-allowed; }
-
-.statName  { font-size: 0.62rem; letter-spacing: 0.1em; color: var(--color-text-dim); text-transform: uppercase; }
-.statValue { font-size: 1.1rem; color: var(--color-gold-text); font-weight: 600; }
-.statEffect { font-size: 0.6rem; color: var(--color-text-dim); }
-
-.hint { font-size: 0.72rem; color: var(--color-text-dim); }
-
-/* ── Weapon upgrade ───────────────────────────────────────────────────────── */
-.weaponList {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
+  gap: 6px;
 }
 
-.weaponRow {
+.movesetRow {
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 8px 12px;
+  justify-content: space-between;
+  padding: 6px 10px;
   background: rgba(255,255,255,0.03);
   border: 1px solid var(--color-border);
   border-radius: var(--radius);
 }
-.weaponName  { flex: 1; font-size: 0.82rem; color: var(--color-gold-text); }
-.weaponLevel { font-size: 0.78rem; color: var(--color-text-dim); }
 
-.btnUpgrade {
+.movesetName { font-size: 0.82rem; color: var(--color-gold-text); }
+.movesetMeta { font-size: 0.72rem; color: var(--color-text-dim); }
+
+.hint {
   font-size: 0.72rem;
-  padding: 4px 10px;
-  color: var(--color-gold);
-  border-color: var(--color-gold-dim);
-  background: rgba(230,191,51,0.05);
+  color: var(--color-text-dim);
+  margin-bottom: 24px;
+  opacity: 0.7;
 }
-.btnUpgrade:hover:not(:disabled) { background: rgba(230,191,51,0.14); }
-.btnUpgradeDisabled { opacity: 0.35; cursor: not-allowed; }
-
-/* ── Footer ───────────────────────────────────────────────────────────────── */
-.footer { display: flex; }
 
 .btnContinue {
-  flex: 1;
   font-size: 1rem;
   letter-spacing: 0.14em;
   text-transform: uppercase;
-  padding: 16px;
+  padding: 14px 48px;
   background: rgba(230,191,51,0.08);
   border-color: var(--color-gold-dim);
   color: var(--color-gold);
+  border-radius: var(--radius);
 }
 .btnContinue:hover { background: rgba(230,191,51,0.16); box-shadow: var(--glow-gold); }

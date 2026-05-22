@@ -1,6 +1,8 @@
+import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useGameStore } from '../store/gameStore'
 import { LOCATION_DEFINITIONS, getUnlockedLocationIds, SIZE_LABEL, SIZE_COLOUR } from '../data/locations'
+import StatsOverlay from '../components/overlays/StatsOverlay'
 import s from './LocationSelectScreen.module.css'
 
 const SIZE_TIME: Record<string, string> = {
@@ -17,8 +19,9 @@ function LockIcon() {
 }
 
 export default function LocationSelectScreen() {
-  const navigate = useNavigate()
-  const store    = useGameStore()
+  const navigate   = useNavigate()
+  const store      = useGameStore()
+  const [showStats, setShowStats] = useState(false)
 
   const completedSet = new Set(store.completed_locations)
   const unlockedSet  = getUnlockedLocationIds(store.completed_locations)
@@ -29,6 +32,7 @@ export default function LocationSelectScreen() {
 
   return (
     <div className={s.root}>
+      {showStats && <StatsOverlay onClose={() => setShowStats(false)} />}
       <div className={s.header}>
         <h1 className={s.title}>Choose Your Dungeon</h1>
         <p className={s.subtitle}>
@@ -39,6 +43,10 @@ export default function LocationSelectScreen() {
         <p className={s.progress}>
           {store.completed_locations.length} / {LOCATION_DEFINITIONS.length} locations finished
         </p>
+        <div className={s.headerActions}>
+          <span className={s.runeDisplay}>✦ {store.runes.toLocaleString()}</span>
+          <button className={s.btnStats} onClick={() => setShowStats(true)}>Stats &amp; Level Up</button>
+        </div>
       </div>
 
       <div className={s.grid}>

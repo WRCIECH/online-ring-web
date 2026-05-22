@@ -1,32 +1,19 @@
 import { useNavigate } from 'react-router-dom'
 import { useGameStore } from '../store/gameStore'
-import { statLevelCost, weaponUpgradeCost, WEAPONS } from '../data/weapons'
-import type { StatKey } from '../types/game'
+import { MOVES } from '../data/movesets'
+import type { GeneratedMoveset } from '../types/game'
 import s from './RunCompleteScreen.module.css'
-
-const STAT_LABELS: Record<StatKey, string> = {
-  VIG: 'Vigor', END: 'Endurance', MND: 'Mind',
-  STR: 'Strength', DEX: 'Dexterity', INT: 'Intelligence', FAI: 'Faith', ARC: 'Arcane',
-}
-const STAT_EFFECT: Record<StatKey, string> = {
-  VIG: 'HP', END: 'Stamina', MND: 'FP',
-  STR: 'STR scaling', DEX: 'DEX scaling', INT: 'INT scaling', FAI: 'FAI scaling', ARC: 'ARC scaling',
-}
-const ALL_STATS: StatKey[] = ['VIG','END','MND','STR','DEX','INT','FAI','ARC']
 
 export default function RunCompleteScreen() {
   const navigate = useNavigate()
   const store    = useGameStore()
 
-  const levelCost = statLevelCost(store.total_levels_spent)
-
-  function handleLevelStat(stat: StatKey) {
-    store.spendRunesOnStat(stat)
-  }
-
-  function handleUpgradeWeapon(weaponId: string) {
-    store.upgradeWeapon(weaponId)
-  }
+  // Movesets earned this run (newly unlocked since run started)
+  const runStartSet  = new Set(store.run_start_owned_movesets)
+  const newMovesetIds = store.owned_movesets.filter(id => !runStartSet.has(id))
+  const newMovesets   = newMovesetIds
+    .map(id => MOVES[id])
+    .filter((m): m is GeneratedMoveset => !!m && 'rarity' in m)
 
   return (
     <div className={s.root}>
@@ -39,68 +26,25 @@ export default function RunCompleteScreen() {
         <span className={s.runeLabel}>runes</span>
       </div>
 
-      <div className={s.card}>
-        {/* ── Level Up ──────────────────────────────────────────────── */}
-        <div className={s.section}>
-          <div className={s.sectionTitle}>Level Up — {levelCost} ✦ each</div>
-          <div className={s.statGrid}>
-            {ALL_STATS.map(stat => {
-              const canAfford = store.runes >= levelCost
-              return (
-                <button
-                  key={stat}
-                  className={[s.statBtn, !canAfford ? s.statBtnDisabled : ''].join(' ')}
-                  disabled={!canAfford}
-                  onClick={() => handleLevelStat(stat)}
-                >
-                  <span className={s.statName}>{STAT_LABELS[stat]}</span>
-                  <span className={s.statValue}>{store.stats[stat]}</span>
-                  <span className={s.statEffect}>{STAT_EFFECT[stat]}</span>
-                </button>
-              )
-            })}
-          </div>
-          {store.runes < levelCost && (
-            <p className={s.hint}>Need {levelCost} ✦ to level up</p>
-          )}
-        </div>
-
-        {/* ── Upgrade Weapons ───────────────────────────────────────── */}
-        <div className={s.section}>
-          <div className={s.sectionTitle}>Upgrade Weapons</div>
-          <div className={s.weaponList}>
-            {store.owned_weapons.map(wid => {
-              const weapon = WEAPONS[wid]
-              if (!weapon) return null
-              const level = store.weapon_level[wid] ?? 0
-              const isMax = level >= 10
-              const cost  = weaponUpgradeCost(level)
-              const canAfford = !isMax && store.runes >= cost
-              return (
-                <div key={wid} className={s.weaponRow}>
-                  <span className={s.weaponName}>{weapon.name}</span>
-                  <span className={s.weaponLevel}>+{level}{isMax ? ' MAX' : ''}</span>
-                  {!isMax && (
-                    <button
-                      className={[s.btnUpgrade, !canAfford ? s.btnUpgradeDisabled : ''].join(' ')}
-                      disabled={!canAfford}
-                      onClick={() => handleUpgradeWeapon(wid)}
-                    >
-                      ↑ {cost} ✦
-                    </button>
-                  )}
-                </div>
-              )
-            })}
+      {newMovesets.length > 0 && (
+        <div className={s.card}>
+          <div className={s.sectionTitle}>Movesets Earned</div>
+          <div className={s.movesetList}>
+            {newMovesets.map(m => (
+              <div key={m.id} className={s.movesetRow}>
+                <span className={s.movesetName}>{m.name}</span>
+                <span className={s.movesetMeta}>{m.rarity} · {m.steps.length} step{m.steps.length !== 1 ? 's' : ''}</span>
+              </div>
+            ))}
           </div>
         </div>
+      )}
 
-        <div className={s.footer}>
-          <button className={s.btnContinue} onClick={() => navigate('/locations')}>
-            Continue →
-          </button>
-        </div>
-      </div>
+      <p className={s.hint}>Stats &amp; Level Up are available at the start of your next run.</p>
+
+      <button className={s.btnContinue} onClick={() => navigate('/locations')}>
+        Continue →
+      </button>
     </div>
   )
 }

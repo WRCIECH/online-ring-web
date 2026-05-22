@@ -4,6 +4,7 @@ import { useGameStore, selectRunRemainingSeconds } from '../store/gameStore'
 import { ENEMIES } from '../data/enemies'
 import type { LocationData } from '../types/game'
 import RunHeader from '../components/layout/RunHeader'
+import StatsOverlay from '../components/overlays/StatsOverlay'
 import s from './RunMapScreen.module.css'
 
 // ── Map geometry (mirrors Godot constants) ────────────────────────────────
@@ -46,6 +47,7 @@ export default function RunMapScreen() {
   const [popupIdx, setPopupIdx]     = useState(-1)
   const [popupPos, setPopupPos]     = useState({ x: 0, y: 0 })
   const [eventNode, setEventNode]   = useState<LocationData | null>(null)
+  const [showStats, setShowStats]   = useState(false)
   const expiredRef = useRef(false)
 
   const seq     = store.run_location_sequence
@@ -310,6 +312,9 @@ export default function RunMapScreen() {
                   <button className={s.btnGrace} onClick={handleGraceRest}>
                     Rest (+60% HP, +1 Estus)
                   </button>
+                  <button className={s.btnGrace} onClick={() => setShowStats(true)}>
+                    Stats &amp; Level Up
+                  </button>
                   <button onClick={() => setEventNode(null)}>Leave</button>
                 </div>
               </>
@@ -331,6 +336,8 @@ export default function RunMapScreen() {
         </div>
       )}
 
+
+      {showStats && <StatsOverlay onClose={() => setShowStats(false)} />}
 
       {/* Run expired banner */}
       {selectRunRemainingSeconds(store as Parameters<typeof selectRunRemainingSeconds>[0]) <= 0 && (

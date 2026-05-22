@@ -1,0 +1,259 @@
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: var(--color-bg-overlay);
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  z-index: 20;
+  padding: 24px 16px;
+  overflow-y: auto;
+}
+
+.panel {
+  background: var(--color-bg-panel);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  width: 680px;
+  max-width: 98vw;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ── Header ────────────────────────────────────────────────────────────── */
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 24px 16px;
+}
+
+.runeBalance {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+}
+
+.runeIcon {
+  font-size: 1rem;
+  color: var(--color-gold);
+}
+
+.runeCount {
+  font-size: 1.6rem;
+  font-weight: 300;
+  color: var(--color-gold);
+  letter-spacing: 0.04em;
+  text-shadow: var(--glow-gold);
+}
+
+.runeLabel {
+  font-size: 0.75rem;
+  color: var(--color-text-dim);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.btnClose {
+  font-size: 0.78rem;
+  letter-spacing: 0.08em;
+  color: var(--color-text-dim);
+  border: 1px solid var(--color-border);
+  padding: 6px 14px;
+}
+
+.btnClose:hover { color: var(--color-text); border-color: var(--color-text-dim); }
+
+.sep {
+  border: none;
+  border-top: 1px solid var(--color-sep);
+  margin: 0;
+}
+
+/* ── Body ──────────────────────────────────────────────────────────────── */
+
+.body {
+  padding: 8px 0 24px;
+}
+
+.section {
+  padding: 16px 24px 8px;
+}
+
+.sectionTitle {
+  font-size: 0.72rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--color-gold-dim);
+  margin-bottom: 12px;
+}
+
+/* ── Stat rows ─────────────────────────────────────────────────────────── */
+
+.statBlock {
+  margin-bottom: 4px;
+}
+
+.statRow {
+  display: grid;
+  grid-template-columns: 100px 36px 1fr auto;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 6px;
+  border-radius: var(--radius);
+  transition: background 0.1s;
+}
+
+.statRow:hover { background: rgba(255,255,255,0.03); }
+
+.statName {
+  font-size: 0.82rem;
+  color: var(--color-text);
+  letter-spacing: 0.04em;
+}
+
+.statVal {
+  font-size: 1rem;
+  color: var(--color-gold);
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+
+.preview {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.previewLine {
+  font-size: 0.72rem;
+  color: var(--color-text-dim);
+  line-height: 1.4;
+}
+
+.btnLevel {
+  font-size: 0.75rem;
+  letter-spacing: 0.06em;
+  padding: 5px 10px;
+  white-space: nowrap;
+  background: rgba(230,191,51,0.08);
+  border: 1px solid var(--color-gold-dim);
+  color: var(--color-gold);
+  border-radius: var(--radius);
+}
+
+.btnLevel:hover:not(:disabled) {
+  background: rgba(230,191,51,0.18);
+  box-shadow: var(--glow-gold);
+}
+
+.btnPending {
+  background: rgba(230,191,51,0.18) !important;
+  border-color: var(--color-gold) !important;
+}
+
+/* ── Confirm row ───────────────────────────────────────────────────────── */
+
+.confirmRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 6px 8px 6px;
+  margin-bottom: 4px;
+  background: rgba(230,191,51,0.05);
+  border-radius: var(--radius);
+  border: 1px solid rgba(230,191,51,0.15);
+}
+
+.confirmText {
+  font-size: 0.75rem;
+  color: var(--color-text-dim);
+  flex: 1;
+}
+
+.btnConfirm {
+  font-size: 0.75rem;
+  padding: 4px 12px;
+  color: var(--color-text-success);
+  border: 1px solid #1a4a1a;
+  background: rgba(50,180,50,0.07);
+  border-radius: var(--radius);
+}
+
+.btnConfirm:hover { background: rgba(50,180,50,0.15); border-color: var(--color-text-success); }
+
+.btnCancel {
+  font-size: 0.75rem;
+  padding: 4px 10px;
+  color: var(--color-text-dim);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+}
+
+.btnCancel:hover { color: var(--color-text); }
+
+/* ── Weapon rows ───────────────────────────────────────────────────────── */
+
+.weaponBlock {
+  margin-bottom: 4px;
+}
+
+.weaponRow {
+  display: grid;
+  grid-template-columns: 1fr 90px 1fr auto;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 6px;
+  border-radius: var(--radius);
+  transition: background 0.1s;
+}
+
+.weaponRow:hover { background: rgba(255,255,255,0.03); }
+
+.weaponName {
+  font-size: 0.82rem;
+  color: var(--color-text);
+}
+
+.weaponLevel {
+  font-size: 0.78rem;
+  color: var(--color-gold-dim);
+  text-align: center;
+  white-space: nowrap;
+}
+
+.weaponPreview {
+  font-size: 0.72rem;
+  color: var(--color-text-dim);
+}
+
+.btnUpgrade {
+  font-size: 0.75rem;
+  letter-spacing: 0.06em;
+  padding: 5px 10px;
+  white-space: nowrap;
+  background: rgba(230,191,51,0.08);
+  border: 1px solid var(--color-gold-dim);
+  color: var(--color-gold);
+  border-radius: var(--radius);
+}
+
+.btnUpgrade:hover:not(:disabled) {
+  background: rgba(230,191,51,0.18);
+  box-shadow: var(--glow-gold);
+}
+
+.maxTag {
+  font-size: 0.68rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--color-text-dim);
+  opacity: 0.5;
+  text-align: right;
+}
+
+.disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
