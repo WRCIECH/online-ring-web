@@ -1,6 +1,15 @@
 export type StatKey = 'VIG' | 'END' | 'MND' | 'STR' | 'DEX' | 'INT' | 'FAI' | 'ARC'
 export type Grade = 'S' | 'A' | 'B' | 'C' | 'D' | 'E'
-export type StatusType = 'bleed' | 'frost' | 'madness' | 'scarlet_rot'
+
+export type DamageType =
+  | 'standard' | 'strike' | 'slash' | 'pierce' | 'lightning'
+  | 'fire' | 'magic' | 'holy' | 'occult' | 'grafting' | 'poison'
+
+export type StatusType =
+  | 'bleed' | 'scarlet_rot' | 'frostbite' | 'madness' | 'sleep'
+  | 'death_blight' | 'glintstone' | 'frenzy_flame' | 'devotion'
+  | 'yearning' | 'dread' | 'murmur' | 'grace'
+
 export type DefenseAction = 'roll' | 'block' | 'parry' | 'take' | 'flee'
 
 // ── Weapon generation types ────────────────────────────────────────────────
@@ -38,12 +47,15 @@ export interface WeaponInstance extends Weapon {
   heat_threshold: number
   poise_weight: PoiseWeight
   base_damage_mult: number
+  numeric_weight?: number
+  poise_value?: number
+  scaling_original?: Partial<Record<StatKey, Grade>>
 }
 
 // ── Atomic move / moveset generation types ─────────────────────────────────
 export type AtomicMedium    = 'Writing' | 'Audio' | 'Video' | 'Image' | 'Design' | 'Outline' | 'Hybrid'
 export type AtomicMode      = 'Creating' | 'Consuming' | 'Connecting' | 'Commentary' | 'Compressing' | 'Expanding' | 'Remixing'
-export type AtomicStage     = 'Ideate' | 'Outline' | 'Draft' | 'Produce' | 'Refine' | 'Publish' | 'Repurpose' | 'Consume' | 'React' | 'Connect'
+export type AtomicStage     = 'Ideate' | 'Research' | 'Outline' | 'Generate' | 'Glue' | 'Refine' | 'Publish' | 'Repurpose' | 'React' | 'Connect'
 export type AtomicTime      = 'Micro' | 'Short' | 'Medium' | 'Long' | 'Deep'
 export type AtomicPub       = 'just_work' | 'private' | 'draft_published' | 'public'
 export type AtomicOrigin    = 'New' | 'Compression' | 'Expansion' | 'Recycled' | 'Remastered' | 'Revamped' | 'Reboot'
@@ -69,10 +81,13 @@ export interface MovesetPipeline {
 
 // Extended Moveset with generation metadata
 export interface GeneratedMoveset extends Moveset {
-  rarity:        WeaponRarity
-  variant_type:  MovesetVariant
-  weapon_class?: WeaponClass
-  pipeline:      MovesetPipeline
+  rarity:               WeaponRarity
+  variant_type:         MovesetVariant
+  weapon_class?:        WeaponClass
+  pipeline:             MovesetPipeline
+  primary_damage_type?: DamageType
+  status_buildup?:      StatusType
+  infusion?:            Partial<Record<StatKey, Grade>>
 }
 
 export type CombatPhase =
@@ -84,6 +99,7 @@ export interface Step {
   time: number
   base_damage: number
   poise_damage: number
+  damage_type?: DamageType
 }
 
 export interface Task {
@@ -130,6 +146,8 @@ export interface Enemy {
   unlocks_area?: string
   drops: EnemyDrop[]
   status_multipliers: Partial<Record<StatusType, number>>
+  weaknesses: DamageType[]
+  resistances: DamageType[]
   moveset: string[]
 }
 

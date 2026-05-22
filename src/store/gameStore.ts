@@ -215,6 +215,8 @@ export interface GameStore extends GameState {
 
   // Weapon / moveset inventory
   setWeaponExtraMovesets: (weaponId: string, ids: string[]) => void
+  equipMovesetToWeaponSlot: (weaponId: string, slotIdx: number, movesetId: string) => void
+  removeMovesetFromWeaponSlot: (weaponId: string, slotIdx: number) => void
   unlockMoveset: (id: string) => void
   unlockWeapon: (id: string) => void
   addWeaponInstance: (w: WeaponInstance) => void
@@ -343,6 +345,38 @@ export const useGameStore = create<GameStore>((set, get) => ({
   setWeaponExtraMovesets: (weaponId, ids) => set(s => ({
     weapon_extra_movesets: { ...s.weapon_extra_movesets, [weaponId]: ids },
   })),
+
+  equipMovesetToWeaponSlot: (weaponId, slotIdx, movesetId) => {
+    const s = get()
+    const inst = s.weapon_instances.find(w => w.instance_id === weaponId)
+    if (!inst) return
+    const ms = MOVES[movesetId] as GeneratedMoveset | undefined
+    const newInsts = s.weapon_instances.map(w => {
+      if (w.instance_id !== weaponId) return w
+      const backed = w.scaling_original ?? { ...w.scaling }
+      const newScaling = ms?.infusion
+        ? { ...backed, ...ms.infusion }
+        : { ...backed }
+      return { ...w, scaling: newScaling, scaling_original: backed }
+    })
+    const slots = [...(s.weapon_extra_movesets[weaponId] ?? [])]
+    slots[slotIdx] = movesetId
+    set({ weapon_instances: newInsts, weapon_extra_movesets: { ...s.weapon_extra_movesets, [weaponId]: slots } })
+    get().save()
+  },
+
+  removeMovesetFromWeaponSlot: (weaponId, slotIdx) => {
+    const s = get()
+    const newInsts = s.weapon_instances.map(w => {
+      if (w.instance_id !== weaponId) return w
+      const original = w.scaling_original ?? w.scaling
+      return { ...w, scaling: { ...original }, scaling_original: undefined }
+    })
+    const slots = [...(s.weapon_extra_movesets[weaponId] ?? [])]
+    slots[slotIdx] = ''
+    set({ weapon_instances: newInsts, weapon_extra_movesets: { ...s.weapon_extra_movesets, [weaponId]: slots } })
+    get().save()
+  },
 
   applyWeaponHeat: (heat) => {
     set(s => {

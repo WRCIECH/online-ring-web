@@ -120,6 +120,22 @@
 
 .btnNo:hover { background: rgba(180,30,30,0.1); border-color: var(--color-text-danger); }
 
+.statusCheck {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.8rem;
+  color: var(--color-text-dim);
+  cursor: pointer;
+  padding: 4px 0;
+}
+
+.statusCheck input[type="checkbox"] {
+  accent-color: var(--color-gold);
+  width: 14px;
+  height: 14px;
+}
+
 .backRow { display: flex; justify-content: center; }
 
 .btnBack {

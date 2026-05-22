@@ -9,6 +9,7 @@ export default function TitleScreen() {
   const store     = useGameStore()
   const saveExists = hasSave()
   const [confirming, setConfirming] = useState(false)
+  const [showIntro, setShowIntro]   = useState(false)
 
   function handleContinue() {
     store.load()
@@ -30,7 +31,8 @@ export default function TitleScreen() {
   function startFresh() {
     eraseSave()
     store.reset()
-    navigate('/start-weapon')
+    setConfirming(false)
+    setShowIntro(true)
   }
 
   return (
@@ -41,14 +43,6 @@ export default function TitleScreen() {
       {store.run_count > 0 && (
         <p className={s.runCount}>Great Run #{store.run_count}</p>
       )}
-
-      <div className={s.intro}>
-        <p>Every piece of content you haven't made is an enemy waiting in a dungeon.</p>
-        <p>Pick your weapon — your creative form. Choose your dungeon — your 48-hour sprint. Fight through procrastination, perfectionism, and burnout to reach the final boss: publishing.</p>
-        <p className={s.introTagline}>Your output is your victory.</p>
-      </div>
-
-      <hr className={s.sep} />
 
       <div className={s.buttons}>
         {saveExists && (
@@ -70,6 +64,20 @@ export default function TitleScreen() {
               <button className={s.btnDanger} onClick={startFresh}>Erase &amp; Start</button>
               <button onClick={() => setConfirming(false)}>Cancel</button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {showIntro && (
+        <div className={s.introOverlay}>
+          <div className={s.introPanel}>
+            <p>Defeat Monsters &amp; Bosses.</p>
+            <p>Gain Weapons.</p>
+            <p>Produce &amp; Publish Content.</p>
+            <p className={s.introTagline}>Become Online Lord.</p>
+            <button className={s.btnPrimary} onClick={() => navigate('/start-class')}>
+              Enter the Ring
+            </button>
           </div>
         </div>
       )}

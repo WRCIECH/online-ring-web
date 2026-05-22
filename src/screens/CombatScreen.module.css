@@ -117,6 +117,7 @@
 
 .victoryTitle { color: var(--color-gold); text-shadow: var(--glow-gold); }
 .defeatTitle  { color: var(--color-text-danger); text-shadow: var(--glow-red); }
+.fleedTitle   { color: #7a9a7a; }
 
 .endSub {
   font-size: 0.88rem;
@@ -196,6 +197,8 @@
   animation: lootItemReveal 0.4s ease both;
 }
 
+.runesRecovered { color: #f0c040; font-weight: 700; }
+
 .lootSection {
   display: flex;
   flex-direction: column;
@@ -249,4 +252,95 @@
 @keyframes lootItemReveal {
   from { transform: translateY(10px); opacity: 0; }
   to   { transform: translateY(0);    opacity: 1; }
+}
+
+.levelUpSection {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  width: 100%;
+  margin-top: 4px;
+}
+
+.levelUpItem {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 12px;
+  background: rgba(200, 150, 0, 0.10);
+  border: 1px solid rgba(210, 160, 10, 0.45);
+  border-radius: 6px;
+  opacity: 0;
+  animation: levelUpReveal 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.levelUpIcon {
+  color: #f0c040;
+  font-size: 1rem;
+  flex-shrink: 0;
+}
+
+.levelUpName {
+  flex: 1;
+  color: #e8c060;
+  font-size: 0.84rem;
+  font-weight: 600;
+}
+
+.levelUpBadge {
+  color: #ffd84d;
+  font-size: 0.82rem;
+  font-weight: 700;
+  text-shadow: 0 0 10px rgba(255, 210, 0, 0.7);
+  animation: levelUpGlow 1.4s ease-in-out infinite alternate;
+}
+
+@keyframes levelUpReveal {
+  from { opacity: 0; transform: translateX(-10px) scale(0.96); }
+  to   { opacity: 1; transform: translateX(0)     scale(1); }
+}
+
+@keyframes levelUpGlow {
+  from { text-shadow: 0 0 6px rgba(255, 200, 0, 0.5); }
+  to   { text-shadow: 0 0 16px rgba(255, 220, 0, 0.95), 0 0 4px #fff; }
+}
+
+/* ── Status accumulation bars ────────────────────────────────────────────── */
+.statusBars {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 12px;
+  padding: 4px 12px;
+  background: rgba(0,0,0,0.3);
+  border-bottom: 1px solid var(--color-sep);
+}
+
+.statusBarRow {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 140px;
+}
+
+.statusBarLabel {
+  font-size: 0.6rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-text-dim);
+  white-space: nowrap;
+  min-width: 60px;
+}
+
+.statusBarTrack {
+  flex: 1;
+  height: 4px;
+  background: rgba(255,255,255,0.08);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.statusBarFill {
+  height: 100%;
+  border-radius: 2px;
+  transition: width 0.3s ease;
 }

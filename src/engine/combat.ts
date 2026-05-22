@@ -1,4 +1,4 @@
-import type { CombatPhase, DefenseAction, Enemy, EnemyMove, GeneratedMoveset, Moveset, Step, Stats, WeaponClass, WeaponInstance, WeaponRarity } from '../types/game'
+import type { CombatPhase, DefenseAction, Enemy, EnemyMove, GeneratedMoveset, Moveset, Step, Stats, WeaponClass, WeaponInstance, WeaponRarity, StatusType, DamageType } from '../types/game'
 import { ENEMY_MOVES } from '../data/enemyMovesets'
 import { MOVES } from '../data/movesets'
 import { WEAPONS, calcStepDamage, getWeaponMovesets } from '../data/weapons'
@@ -24,6 +24,19 @@ function gapMultiplier(lastMs: number): number {
 export const STA_BLOCK        = 15
 export const STA_DEFENSE_GAIN = 25
 export const STAGGER_PAUSE_MS = 1500
+
+// ── Status effect thresholds & buildup ────────────────────────────────────
+
+const STATUS_THRESHOLD: Record<StatusType, number> = {
+  bleed: 100, scarlet_rot: 80, frostbite: 80, madness: 100, sleep: 60,
+  death_blight: 100, glintstone: 80, frenzy_flame: 80, devotion: 60,
+  yearning: 60, dread: 80, murmur: 60, grace: 80,
+}
+const STATUS_BUILDUP_PER_HIT = 35
+
+// Damage type weakness/resistance multipliers
+const DMG_WEAKNESS_MULT   = 1.3
+const DMG_RESISTANCE_MULT = 0.7
 
 // ── Weapon-class mechanics ─────────────────────────────────────────────────
 export interface ClassMod {
@@ -137,6 +150,9 @@ export interface CombatState {
   enemyRollMoveset: GeneratedMoveset | null
   enemyRollStep: number       // next step index (advances on each successful roll)
   hasRolledSuccessfully: boolean
+  // Status effects
+  statusAccumulation: Partial<Record<import('../types/game').StatusType, number>>
+  activeStatuses: Partial<Record<import('../types/game').StatusType, { turnsLeft: number }>>
   // Log
   log: LogEntry[]
   logId: number
@@ -146,13 +162,127 @@ export type CombatAction =
   | { type: 'STEP_CLICKED'; step: Step; moveset: Moveset; weaponId: string }
   | { type: 'START_TIMER' }
   | { type: 'TICK'; delta: number }
-  | { type: 'TIMER_RESULT'; accomplished: boolean }
+  | { type: 'TIMER_RESULT'; accomplished: boolean; statusApplied?: boolean }
   | { type: 'CANCEL_TIMER' }
   | { type: 'END_TURN' }
   | { type: 'DEFENSE_CHOSEN'; action: DefenseAction }
   | { type: 'ENTER_PHASE'; phase: CombatPhase }
   | { type: 'SET_WEAPON'; idx: number }
   | { type: 'USE_ESTUS' }
+
+// ── Status effect helpers ──────────────────────────────────────────────────
+
+function triggerStatus(state: CombatState, status: StatusType): CombatState {
+  let s = state
+  const enemy = s.enemyData
+  switch (status) {
+    case 'bleed': {
+      const burst = Math.floor(s.enemyMaxHp * 0.15) + 20
+      const newHp = Math.max(0, s.enemyHp - burst)
+      s = { ...s, enemyHp: newHp, enemyPoise: s.enemyMaxPoise }
+      s = log(s, `BLEED triggered — ${burst} burst damage + poise reset!`, '#cc2244')
+      break
+    }
+    case 'scarlet_rot': {
+      s = { ...s, activeStatuses: { ...s.activeStatuses, scarlet_rot: { turnsLeft: 3 } } }
+      s = log(s, `SCARLET ROT triggers — DOT for 3 turns, enemy resists −20%!`, '#8b4513')
+      break
+    }
+    case 'frostbite': {
+      const burst = Math.floor(s.enemyMaxHp * 0.10)
+      const newHp = Math.max(0, s.enemyHp - burst)
+      s = { ...s, enemyHp: newHp, activeStatuses: { ...s.activeStatuses, frostbite: { turnsLeft: 2 } } }
+      s = log(s, `FROSTBITE — ${burst} burst, enemy takes +20% dmg for 2 turns!`, '#88ccee')
+      break
+    }
+    case 'madness': {
+      const burst = Math.floor(s.enemyMaxHp * 0.25)
+      const newHp = Math.max(0, s.enemyHp - burst)
+      s = { ...s, enemyHp: newHp, playerFp: 0 }
+      s = log(s, `MADNESS — ${burst} burst damage! Your FP is spent.`, '#9944cc')
+      break
+    }
+    case 'sleep': {
+      s = { ...s, enemySkipTurn: true, activeStatuses: { ...s.activeStatuses, sleep: { turnsLeft: 2 } } }
+      s = log(s, `SLEEP — enemy stunned for 2 turns! Stamina recovering fast.`, '#6688aa')
+      break
+    }
+    case 'death_blight': {
+      if (!enemy.is_boss) {
+        s = { ...s, enemyHp: 0 }
+        s = log(s, `DEATH BLIGHT — instant kill!`, '#440044')
+      } else {
+        const burst = Math.floor(s.enemyMaxHp * 0.30)
+        const newHp = Math.max(0, s.enemyHp - burst)
+        s = { ...s, enemyHp: newHp }
+        s = log(s, `DEATH BLIGHT — ${burst} massive damage to boss!`, '#440044')
+      }
+      break
+    }
+    case 'glintstone': {
+      s = { ...s, activeStatuses: { ...s.activeStatuses, glintstone: { turnsLeft: 3 } } }
+      s = log(s, `GLINTSTONE — INT bonus active for 3 turns!`, '#4488ff')
+      break
+    }
+    case 'frenzy_flame': {
+      const fpGain = Math.floor(s.playerMaxFp * 0.5)
+      s = { ...s, playerFp: Math.min(s.playerMaxFp, s.playerFp + fpGain) }
+      s = log(s, `FRENZY FLAME — enemy armor broken! +${fpGain} FP regained.`, '#ff6600')
+      break
+    }
+    case 'devotion': {
+      s = { ...s, activeStatuses: { ...s.activeStatuses, devotion: { turnsLeft: 3 } } }
+      s = log(s, `DEVOTION — enemy charmed, passive FP for 3 turns!`, '#ffaacc')
+      break
+    }
+    case 'yearning': {
+      s = { ...s, activeStatuses: { ...s.activeStatuses, yearning: { turnsLeft: 2 } } }
+      s = log(s, `YEARNING — task timers −30% for 2 turns!`, '#ffdd44')
+      break
+    }
+    case 'dread': {
+      s = { ...s, enemySkipTurn: true }
+      const staGain = Math.floor(s.playerMaxStamina * 0.3)
+      s = { ...s, playerStamina: Math.min(s.playerMaxStamina, s.playerStamina + staGain) }
+      s = log(s, `DREAD — enemy stunned, +${staGain} STA transferred!`, '#333366')
+      break
+    }
+    case 'murmur': {
+      s = { ...s, activeStatuses: { ...s.activeStatuses, murmur: { turnsLeft: 1 } } }
+      s = log(s, `MURMUR — next status builds 2× faster!`, '#886644')
+      break
+    }
+    case 'grace': {
+      s = { ...s, activeStatuses: { ...s.activeStatuses, grace: { turnsLeft: 2 } } }
+      s = log(s, `GRACE — lifesteal active for 2 turns!`, '#ffeeaa')
+      break
+    }
+  }
+  return s
+}
+
+export function processActiveStatuses(state: CombatState): CombatState {
+  let s = state
+  const next: typeof s.activeStatuses = {}
+  for (const [status, data] of Object.entries(s.activeStatuses) as [StatusType, { turnsLeft: number }][]) {
+    if (!data) continue
+    switch (status) {
+      case 'scarlet_rot': {
+        const dot = Math.floor(s.enemyMaxHp * 0.05)
+        s = { ...s, enemyHp: Math.max(0, s.enemyHp - dot) }
+        s = log(s, `Scarlet Rot deals ${dot} DOT damage!`, '#8b4513')
+        break
+      }
+      case 'devotion': {
+        const fpGain = 5
+        s = { ...s, playerFp: Math.min(s.playerMaxFp, s.playerFp + fpGain) }
+        break
+      }
+    }
+    if (data.turnsLeft > 1) next[status] = { turnsLeft: data.turnsLeft - 1 }
+  }
+  return { ...s, activeStatuses: next }
+}
 
 // ── Helpers ───────────────────────────────────────────────────────────────
 
@@ -215,11 +345,14 @@ function enterPlayerAttack(state: CombatState): CombatState {
 }
 
 function enterEnemyAttack(state: CombatState): CombatState {
-  // Select random enemy move immediately
-  const moveIds = state.enemyData.moveset
+  // Process ongoing status effects at start of enemy turn
+  let s = processActiveStatuses(state)
+  if (s.enemyHp <= 0) return { ...s, phase: 'VICTORY' }
+  // Select random enemy move
+  const moveIds = s.enemyData.moveset
   const moveId  = moveIds[Math.floor(Math.random() * moveIds.length)]
   const move    = ENEMY_MOVES[moveId] ?? null
-  let s: CombatState = { ...state, phase: 'ENEMY_ATTACK' as CombatPhase, currentMove: move }
+  s = { ...s, phase: 'ENEMY_ATTACK' as CombatPhase, currentMove: move }
   if (move) s = log(s, `The ${state.enemyData.name} uses ${move.name}!`, '#e85555')
   return s
 }
@@ -265,6 +398,8 @@ export function initCombatState(
     enemyRollMoveset,
     enemyRollStep: 0,
     hasRolledSuccessfully: false,
+    statusAccumulation: {},
+    activeStatuses: {},
     log: [], logId: 0,
   }, `You face ${enemyData.name}.`, '#c9a93a')
   return log(first, enemyData.description, '#7a7570')
@@ -321,7 +456,7 @@ export function combatReducer(state: CombatState, action: CombatAction): CombatS
         // Gave up mid-defense → full damage
         const dmg = state.currentMove?.damage ?? 0
         const newHp = Math.max(0, state.playerHp - dmg)
-        let s = log(
+        const s = log(
           { ...state, playerHp: newHp, stepStarted: false, timerExpired: false, timerIsDefense: false },
           'You gave up defending — full damage taken!', '#e85555'
         )
@@ -349,7 +484,7 @@ export function combatReducer(state: CombatState, action: CombatAction): CombatS
           const msg   = action2 === 'parry'
             ? `Parry failed — ${dmg} damage taken!`
             : `Defense failed — ${dmg} damage taken!`
-          let s = log({ ...state, playerHp: newHp, timerIsDefense: false, timerExpired: false }, msg, '#e85555')
+          const s = log({ ...state, playerHp: newHp, timerIsDefense: false, timerExpired: false }, msg, '#e85555')
           if (newHp <= 0) return { ...s, phase: 'DEFEAT' }
           return enterPlayerAttack(s)
         }
@@ -376,7 +511,7 @@ export function combatReducer(state: CombatState, action: CombatAction): CombatS
             const counterDmg = move.damage
             const newEnemyHp = Math.max(0, state.enemyHp - counterDmg)
             const newPoise   = Math.max(0, state.enemyPoise - move.poise_damage)
-            let s = log(
+            const s = log(
               { ...state, playerStamina: state.playerMaxStamina, enemyHp: newEnemyHp, enemyPoise: newPoise },
               `Published! ${counterDmg} counter-damage. Full stamina restored!`, '#44ee44'
             )
@@ -391,7 +526,7 @@ export function combatReducer(state: CombatState, action: CombatAction): CombatS
       // ── Attack result ──────────────────────────────────────────────────
       if (!action.accomplished) {
         const sta = Math.max(0, state.playerStamina - (state.pendingMoveset?.stamina_cost ?? 5))
-        let s = log({ ...state, playerStamina: sta, timerExpired: false }, 'Task failed — stamina drained.', '#cc8833')
+        const s = log({ ...state, playerStamina: sta, timerExpired: false }, 'Task failed — stamina drained.', '#cc8833')
         return { ...s, phase: 'PLAYER_ATTACK', stepStarted: false }
       }
 
@@ -408,11 +543,22 @@ export function combatReducer(state: CombatState, action: CombatAction): CombatS
       // Weapon-class mechanics
       const cls = getClassMod(wi?.weapon_class, usedIdx)
 
-      // HP damage (class dmgMult × level-scaled base × stat scaling)
-      const baseDmg  = weapon ? calcStepDamage(step, weapon, level, state.playerStats) : step.base_damage
-      const finalDmg = Math.floor(baseDmg * cls.dmgMult)
-      const dualDmg  = cls.dualStrike ? Math.floor(finalDmg * 0.4) : 0
-      const totalDmg = finalDmg + dualDmg
+      // HP damage (class dmgMult × level-scaled base × stat scaling × damage type)
+      const baseDmg   = weapon ? calcStepDamage(step, weapon, level, state.playerStats) : step.base_damage
+      const dmgType   = step.damage_type as DamageType | undefined
+      const typeMult  = dmgType && state.enemyData.weaknesses.includes(dmgType)  ? DMG_WEAKNESS_MULT
+                      : dmgType && state.enemyData.resistances.includes(dmgType) ? DMG_RESISTANCE_MULT
+                      : 1.0
+      const typeSuffix = dmgType && state.enemyData.weaknesses.includes(dmgType)  ? ' [+Weakness]'
+                       : dmgType && state.enemyData.resistances.includes(dmgType) ? ' [Resisted]'
+                       : ''
+      // Grace lifesteal: heal 5% of damage if active
+      const graceActive = !!state.activeStatuses.grace
+      // Frostbite bonus: +20% damage taken when active
+      const frostDebuff = state.activeStatuses.frostbite ? 1.2 : 1.0
+      const finalDmg  = Math.floor(baseDmg * cls.dmgMult * typeMult * frostDebuff)
+      const dualDmg   = cls.dualStrike ? Math.floor(finalDmg * 0.4) : 0
+      const totalDmg  = finalDmg + dualDmg
 
       // Poise: (gap override or real gap) × weight × variant × class poiseMult
       const gapMult     = cls.gapOverride ?? gapMultiplier(state.lastMovesetCompletionMs)
@@ -457,14 +603,39 @@ export function combatReducer(state: CombatState, action: CombatAction): CombatS
         ? ` 〜 -${moveset.stamina_cost - Math.floor(moveset.stamina_cost * cls.staCoeff)}STA`
         : ''
 
+      // Grace lifesteal
+      const graceHeal  = graceActive ? Math.floor(totalDmg * 0.05) : 0
+      const healedHp   = Math.min(state.playerMaxHp, postHp + graceHeal)
+
+      // Status accumulation (only on accomplished steps with statusApplied checkbox)
+      const statusMs       = gm as GeneratedMoveset | null
+      const statusType     = statusMs?.status_buildup
+      const murmurActive   = !!state.activeStatuses.murmur
+      const buildupPerHit  = murmurActive ? STATUS_BUILDUP_PER_HIT * 2 : STATUS_BUILDUP_PER_HIT
+      const prevAcc        = statusType ? (state.statusAccumulation[statusType] ?? 0) : 0
+      const newAcc         = statusType && action.statusApplied
+        ? prevAcc + buildupPerHit
+        : prevAcc
+      const threshold      = statusType ? (STATUS_THRESHOLD[statusType] ?? 100) : 100
+      const statusTriggered = statusType && newAcc >= threshold
+      const newAccRecord   = statusType
+        ? { ...state.statusAccumulation, [statusType]: statusTriggered ? 0 : newAcc }
+        : state.statusAccumulation
+
       let s = log(
-        { ...state, enemyHp: newEnemyHp, enemyPoise: newEnemyPoise, playerHp: postHp,
+        { ...state, enemyHp: newEnemyHp, enemyPoise: newEnemyPoise, playerHp: healedHp,
           playerStamina: postStamina, playerFp: newFp,
           chainMovesetId: newChainId, chainStepIdx: newChainIdx, timerExpired: false, stepStarted: false,
           lastMovesetCompletionMs: Date.now(),
-          weaponHeatAccumulated: newHeatAcc },
-        `You complete ${step.name} — ${finalDmg} damage!${flowSuffix}${classSuffix}`, '#ffffff'
+          weaponHeatAccumulated: newHeatAcc,
+          statusAccumulation: newAccRecord },
+        `You complete ${step.name} — ${finalDmg} damage!${typeSuffix}${flowSuffix}${classSuffix}`, '#ffffff'
       )
+
+      // Trigger status effect if threshold reached
+      if (statusTriggered && statusType) {
+        s = triggerStatus(s, statusType)
+      }
 
       if (s.enemyHp <= 0) return { ...s, phase: 'VICTORY' }
       if (s.enemyPoise <= 0) return { ...s, enemyPoise: 0, phase: 'ENEMY_STAGGERED' }
@@ -497,7 +668,7 @@ export function combatReducer(state: CombatState, action: CombatAction): CombatS
         const dmg    = state.currentMove?.damage ?? 0
         const newHp  = Math.max(0, state.playerHp - dmg)
         const newSta = Math.min(state.playerMaxStamina, state.playerStamina + STA_DEFENSE_GAIN)
-        let s = log(
+        const s = log(
           { ...state, playerHp: newHp, playerStamina: newSta },
           `You take the full hit — ${dmg} damage. (+${STA_DEFENSE_GAIN} STA)`, '#e85555'
         )

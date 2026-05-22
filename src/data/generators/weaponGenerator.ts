@@ -99,12 +99,14 @@ export function rollWeapon(
     heat_threshold: heatT,
     poise_weight: classDef.poise_weight,
     base_damage_mult: classDef.base_damage_mult,
+    numeric_weight: classDef.weight,
+    poise_value: classDef.poise_value,
 
     // Weapon interface fields
     name:              generateWeaponName(cls, rarity),
     description:       classDef.description,
     stat_req:          {},
-    scaling:           classDef.scaling,
+    scaling:           { ...classDef.scaling },
     constant_movesets: [lightMs.id, heavyMs.id],
     moveset_slots:     slots,
     defense_movesets:  { block: blockMs.id },

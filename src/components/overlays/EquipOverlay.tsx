@@ -1,10 +1,9 @@
 import { useState } from 'react'
 import { useGameStore } from '../../store/gameStore'
 import type { GameStore } from '../../store/gameStore'
-import { WEAPONS } from '../../data/weapons'
+import { WEAPONS, weaponUpgradeCost, GRADE_MULT } from '../../data/weapons'
 import { MOVES } from '../../data/movesets'
-import type { WeaponInstance, WeaponRarity, GeneratedMoveset } from '../../types/game'
-import { WEAPON_KILL_THRESHOLDS } from '../../data/generators/weaponGenerator'
+import type { WeaponInstance, WeaponRarity, GeneratedMoveset, StatKey, Grade } from '../../types/game'
 import MovesetIcon from '../icons/MovesetIcon'
 import WeaponSprite from '../icons/WeaponSprite'
 import s from './EquipOverlay.module.css'
@@ -71,11 +70,8 @@ function WeaponCard({ weaponId, store, onPickSlot }: {
 
   const wi      = weapon as WeaponInstance
   const level   = store.weapon_level[weaponId] ?? 0
-  const xp      = store.weapon_xp[weaponId] ?? 0
   const isMax   = level >= 10
-  const nextThresh = isMax ? WEAPON_KILL_THRESHOLDS[9] : (WEAPON_KILL_THRESHOLDS[level] ?? 1)
-  const prevThresh = level === 0 ? 0 : (WEAPON_KILL_THRESHOLDS[level - 1] ?? 0)
-  const xpPct   = isMax ? 1 : Math.max(0, (xp - prevThresh) / Math.max(1, nextThresh - prevThresh))
+  const upgradeCost = weaponUpgradeCost(level)
 
   const extraSlots  = store.weapon_extra_movesets[weaponId] ?? []
   const skillSlots  = wi.skill_slots ?? weapon.moveset_slots
@@ -115,13 +111,23 @@ function WeaponCard({ weaponId, store, onPickSlot }: {
           </span>
         )}
         <span className={s.weaponLevel}>+{level}{isMax ? ' MAX' : ''}</span>
-        {!isMax && (
-          <div className={s.xpBar}>
-            <div className={s.xpTrack}><div className={s.xpFill} style={{ width: `${xpPct * 100}%` }} /></div>
-            <span className={s.xpLabel}>{xp - prevThresh} / {nextThresh - prevThresh} kills</span>
-          </div>
-        )}
+        {!isMax && <span className={s.upgradeCost}>↑ {upgradeCost} ✦ to upgrade</span>}
       </div>
+
+      {/* Scaling grades */}
+      {wi.scaling && Object.keys(wi.scaling).length > 0 && (
+        <div className={s.scalingRow}>
+          {(Object.entries(wi.scaling) as [StatKey, Grade][]).map(([stat, grade]) => {
+            const pts = Math.max(0, (store.stats[stat] ?? 8) - 8)
+            const bonus = Math.round(pts * (GRADE_MULT[grade] ?? 0) * 100)
+            return (
+              <span key={stat} className={s.scalingTag}>
+                {stat} {grade} {bonus > 0 ? `+${bonus}%` : ''}
+              </span>
+            )
+          })}
+        </div>
+      )}
       {wi.affixes && wi.affixes.length > 0 && (
         <div className={s.affixRow}>
           {wi.affixes.map(a => <span key={a.id} className={s.affix}>{a.label}</span>)}
@@ -202,6 +208,19 @@ function WeaponCard({ weaponId, store, onPickSlot }: {
             <span style={{ color: 'var(--color-stamina)' }}>{tipMoveset.stamina_cost} STA</span>
             {tipMoveset.fp_cost ? <span style={{ color: 'var(--color-fp)' }}>{tipMoveset.fp_cost} FP</span> : null}
           </div>
+          {tipGm?.infusion && Object.keys(tipGm.infusion).length > 0 && (
+            <div className={s.msTipInfusion}>
+              <span className={s.msTipInfusionLabel}>Infusion:</span>
+              {Object.entries(tipGm.infusion).map(([stat, grade]) => (
+                <span key={stat} className={s.msTipInfusionStat}>{stat} {grade}</span>
+              ))}
+            </div>
+          )}
+          {tipGm?.status_buildup && (
+            <div className={s.msTipStatus}>
+              Builds: <span>{tipGm.status_buildup.replace(/_/g, ' ')}</span>
+            </div>
+          )}
         </div>
       )}
     </div>

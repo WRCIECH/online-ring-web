@@ -1,5 +1,6 @@
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import type { CombatState, CombatAction } from '../../engine/combat'
+import type { GeneratedMoveset } from '../../types/game'
 import { appendToLog } from '../../engine/save'
 import s from './TimerOverlay.module.css'
 
@@ -10,10 +11,27 @@ function fmtTime(secs: number): string {
   return m > 0 ? `${m}:${String(sc).padStart(2,'0')}` : String(sc)
 }
 
+const STATUS_LABELS: Record<string, string> = {
+  bleed: 'Bleed', scarlet_rot: 'Scarlet Rot', frostbite: 'Frostbite',
+  madness: 'Madness', sleep: 'Sleep', death_blight: 'Death Blight',
+  glintstone: 'Glintstone', frenzy_flame: 'Frenzy Flame',
+  devotion: 'Devotion', yearning: 'Yearning', dread: 'Dread',
+  murmur: 'Murmur', grace: 'Grace',
+}
+
 export default function TimerOverlay({ state, dispatch }: Props) {
   const { stepTimer, stepTotal, stepStarted, timerExpired,
-          timerIsDefense, pendingStep, pendingDefenseAction } = state
-  const textRef = useRef<HTMLTextAreaElement>(null)
+          timerIsDefense, pendingStep, pendingDefenseAction, pendingMoveset } = state
+  const textRef        = useRef<HTMLTextAreaElement>(null)
+  const prevStepRef    = useRef<string>('')
+  const [statusApplied, setStatusApplied] = useState(false)
+
+  // Reset checkbox when the step task changes
+  const currentStepName = pendingStep?.name ?? ''
+  if (prevStepRef.current !== currentStepName) {
+    prevStepRef.current = currentStepName
+    if (statusApplied) setStatusApplied(false)
+  }
 
   // rAF-based countdown
   useEffect(() => {
@@ -41,21 +59,26 @@ export default function TimerOverlay({ state, dispatch }: Props) {
   }
 
   const pct = stepTotal > 0 ? Math.max(0, stepTimer / stepTotal) : 0
-  const isPreview    = !stepStarted && !timerExpired
-  const isActive     = stepStarted && !timerExpired
-  const isExpired    = timerExpired
+  const isPreview = !stepStarted && !timerExpired
+  const isActive  = stepStarted && !timerExpired
+  const isExpired = timerExpired
 
   let header = 'TASK PREVIEW'
   let headerColor = '#7a7570'
-  if (isActive && !timerIsDefense) { header = 'TASK IN PROGRESS';       headerColor = '#c9a93a' }
+  if (isActive && !timerIsDefense) { header = 'TASK IN PROGRESS'; headerColor = '#c9a93a' }
   if (isActive && timerIsDefense)  { header = 'DEFEND — COMPLETE IN TIME'; headerColor = '#cc4422' }
   if (isActive && timerIsDefense && pendingDefenseAction === 'parry') { header = 'PARRY — COMMIT TO PUBLISH'; headerColor = '#cc4422' }
   if (isExpired) { header = "TIME'S UP!"; headerColor = '#c9a93a' }
 
-  const taskName = pendingStep?.name ?? ''
+  const taskName  = pendingStep?.name ?? ''
   const backLabel = timerIsDefense
     ? 'Give up  (take full damage)'
     : isActive ? 'Back  (costs stamina)' : 'Back'
+
+  // Determine if current moveset has a status buildup
+  const gm = pendingMoveset as GeneratedMoveset | null
+  const statusBuildup = gm?.status_buildup
+  const statusLabel   = statusBuildup ? (STATUS_LABELS[statusBuildup] ?? statusBuildup) : null
 
   return (
     <div className={s.overlay}>
@@ -82,6 +105,18 @@ export default function TimerOverlay({ state, dispatch }: Props) {
           )}
         </div>
 
+        {/* Status buildup checkbox — shown only for attack steps with a status moveset */}
+        {statusLabel && !timerIsDefense && (isActive || isExpired) && (
+          <label className={s.statusCheck}>
+            <input
+              type="checkbox"
+              checked={statusApplied}
+              onChange={e => setStatusApplied(e.target.checked)}
+            />
+            Applied {statusLabel}
+          </label>
+        )}
+
         {isPreview && (
           <div className={s.actions}>
             <button className={s.btnPrimary} onClick={() => dispatch({ type: 'START_TIMER' })}>
@@ -94,7 +129,7 @@ export default function TimerOverlay({ state, dispatch }: Props) {
           <div className={s.actions}>
             <button className={s.btnPrimary} onClick={() => {
               flushNotes(true)
-              dispatch({ type: 'TIMER_RESULT', accomplished: true })
+              dispatch({ type: 'TIMER_RESULT', accomplished: true, statusApplied })
             }}>
               Done!
             </button>
@@ -107,7 +142,7 @@ export default function TimerOverlay({ state, dispatch }: Props) {
             <div className={s.confirmRow}>
               <button className={s.btnYes} onClick={() => {
                 flushNotes(true)
-                dispatch({ type: 'TIMER_RESULT', accomplished: true })
+                dispatch({ type: 'TIMER_RESULT', accomplished: true, statusApplied })
               }}>
                 Yes, I did it!
               </button>

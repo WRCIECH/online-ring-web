@@ -446,6 +446,21 @@ export default function CombatScreen() {
 
   if (!loc || !enemyData) return null
 
+  // Status accumulation display
+  const STATUS_COLORS: Record<string, string> = {
+    bleed: '#cc2244', scarlet_rot: '#8b4513', frostbite: '#88ccee',
+    madness: '#9944cc', sleep: '#6688aa', death_blight: '#440044',
+    glintstone: '#4488ff', frenzy_flame: '#ff6600', devotion: '#ffaacc',
+    yearning: '#ffdd44', dread: '#333366', murmur: '#886644', grace: '#ffeeaa',
+  }
+  const STATUS_THRESHOLD_UI: Record<string, number> = {
+    bleed: 100, scarlet_rot: 80, frostbite: 80, madness: 100, sleep: 60,
+    death_blight: 100, glintstone: 80, frenzy_flame: 80, devotion: 60,
+    yearning: 60, dread: 80, murmur: 60, grace: 80,
+  }
+  const activeAccumulation = Object.entries(state.statusAccumulation)
+    .filter(([, v]) => (v ?? 0) > 0) as [string, number][]
+
   return (
     <div className={s.root}>
       <RunHeader
@@ -453,6 +468,23 @@ export default function CombatScreen() {
         stamina={state.playerStamina} maxStamina={state.playerMaxStamina}
         fp={state.playerFp}      maxFp={state.playerMaxFp}
       />
+      {activeAccumulation.length > 0 && (
+        <div className={s.statusBars}>
+          {activeAccumulation.map(([status, val]) => {
+            const threshold = STATUS_THRESHOLD_UI[status] ?? 100
+            const pct = Math.min(1, val / threshold)
+            const color = STATUS_COLORS[status] ?? '#888'
+            return (
+              <div key={status} className={s.statusBarRow} title={`${status}: ${val}/${threshold}`}>
+                <span className={s.statusBarLabel}>{status.replace(/_/g, ' ')}</span>
+                <div className={s.statusBarTrack}>
+                  <div className={s.statusBarFill} style={{ width: `${pct * 100}%`, background: color }} />
+                </div>
+              </div>
+            )
+          })}
+        </div>
+      )}
 
       {/* ── Main area ────────────────────────────────────────────────── */}
       <div className={s.right}>

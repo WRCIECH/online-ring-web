@@ -50,36 +50,6 @@
   margin-bottom: 36px;
 }
 
-.intro {
-  max-width: 420px;
-  text-align: center;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  margin-bottom: 36px;
-}
-
-.intro p {
-  font-size: 0.82rem;
-  color: var(--color-text-dim);
-  line-height: 1.75;
-  letter-spacing: 0.04em;
-}
-
-.introTagline {
-  font-size: 0.78rem !important;
-  color: var(--color-gold-dim) !important;
-  letter-spacing: 0.14em !important;
-  text-transform: uppercase;
-  margin-top: 4px;
-}
-
-.sep {
-  width: 200px;
-  border: none;
-  border-top: 1px solid var(--color-sep);
-  margin-bottom: 40px;
-}
 
 .buttons {
   display: flex;
@@ -109,6 +79,40 @@
   padding: 10px 20px;
   color: var(--color-text-dim);
   border-color: var(--color-border);
+}
+
+.introOverlay {
+  position: fixed;
+  inset: 0;
+  background: var(--color-bg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+}
+
+.introPanel {
+  max-width: 480px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+  padding: 0 24px;
+}
+
+.introPanel p {
+  font-size: 0.88rem;
+  color: var(--color-text-dim);
+  line-height: 1.85;
+  letter-spacing: 0.04em;
+}
+
+.introTagline {
+  font-size: 0.8rem !important;
+  color: var(--color-gold-dim) !important;
+  letter-spacing: 0.16em !important;
+  text-transform: uppercase;
 }
 
 /* Erase confirmation overlay */
