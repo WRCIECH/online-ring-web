@@ -2,24 +2,10 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
   min-height: 100vh;
-  padding: 40px 20px;
+  padding: 40px 20px 60px;
   background: var(--color-bg);
-  position: relative;
-  overflow: hidden;
-}
-
-.root::before {
-  content: '';
-  position: absolute;
-  width: 700px;
-  height: 400px;
-  top: 40%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  background: radial-gradient(ellipse, rgba(230,191,51,0.05) 0%, transparent 70%);
-  pointer-events: none;
+  overflow-y: auto;
 }
 
 .title {
@@ -37,86 +23,101 @@
   letter-spacing: 0.2em;
   color: var(--color-text-dim);
   text-transform: uppercase;
-  margin-bottom: 48px;
+  margin-bottom: 20px;
 }
+
+.runeBalance {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin-bottom: 32px;
+}
+.runeIcon  { font-size: 1.4rem; color: var(--color-gold); }
+.runeCount { font-size: 2rem; font-weight: 300; color: var(--color-gold); letter-spacing: 0.05em; }
+.runeLabel { font-size: 0.8rem; color: var(--color-text-dim); letter-spacing: 0.15em; text-transform: uppercase; }
 
 .card {
   background: var(--color-bg-panel);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-lg);
-  padding: 36px 44px;
+  padding: 32px 36px;
   width: 100%;
-  max-width: 500px;
+  max-width: 600px;
   display: flex;
   flex-direction: column;
   gap: 28px;
 }
 
-/* ── Stat level-up ────────────────────────────────────────────────────────── */
 .section { display: flex; flex-direction: column; gap: 12px; }
 
 .sectionTitle {
-  font-size: 0.7rem;
+  font-size: 0.68rem;
   letter-spacing: 0.2em;
   text-transform: uppercase;
   color: var(--color-text-dim);
 }
 
-.statBtns { display: flex; gap: 10px; }
+/* ── Stat grid ────────────────────────────────────────────────────────────── */
+.statGrid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+}
 
 .statBtn {
-  flex: 1;
-  padding: 16px 8px;
+  padding: 10px 6px;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 6px;
+  gap: 4px;
+  transition: border-color 0.12s, background 0.12s;
 }
-
-.statBtn:hover:not(:disabled)  { border-color: var(--color-gold-dim); background: rgba(230,191,51,0.07); }
-.statBtn.selected   { border-color: var(--color-gold); background: rgba(230,191,51,0.10); box-shadow: var(--glow-gold); }
-.statBtn.confirmed  { border-color: var(--color-text-success); background: rgba(46,204,136,0.07); cursor: default; }
-
-.statResource { font-size: 0.72rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--color-text-dim); }
-.statValues   { font-size: 0.92rem; color: var(--color-gold-text); font-variant-numeric: tabular-nums; }
-
-.btnConfirm {
-  width: 100%;
-  font-size: 0.88rem;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  padding: 12px;
-  background: rgba(230,191,51,0.10);
-  border-color: var(--color-gold);
-  color: var(--color-gold);
+.statBtn:hover:not(:disabled) {
+  border-color: var(--color-gold-dim);
+  background: rgba(230,191,51,0.07);
 }
-.btnConfirm:hover { background: rgba(230,191,51,0.18); box-shadow: var(--glow-gold); }
+.statBtnDisabled { opacity: 0.35; cursor: not-allowed; }
 
-/* ── Moosesets unlocked ───────────────────────────────────────────────────── */
-.unlocks {
+.statName  { font-size: 0.62rem; letter-spacing: 0.1em; color: var(--color-text-dim); text-transform: uppercase; }
+.statValue { font-size: 1.1rem; color: var(--color-gold-text); font-weight: 600; }
+.statEffect { font-size: 0.6rem; color: var(--color-text-dim); }
+
+.hint { font-size: 0.72rem; color: var(--color-text-dim); }
+
+/* ── Weapon upgrade ───────────────────────────────────────────────────────── */
+.weaponList {
   display: flex;
   flex-direction: column;
   gap: 8px;
 }
 
-.unlockItem {
+.weaponRow {
   display: flex;
-  align-items: baseline;
+  align-items: center;
   gap: 10px;
-  font-size: 0.83rem;
+  padding: 8px 12px;
+  background: rgba(255,255,255,0.03);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
 }
+.weaponName  { flex: 1; font-size: 0.82rem; color: var(--color-gold-text); }
+.weaponLevel { font-size: 0.78rem; color: var(--color-text-dim); }
 
-.unlockDot { color: var(--color-gold); }
-.unlockName { color: var(--color-gold-text); }
-.unlockDesc { font-size: 0.75rem; color: var(--color-text-dim); }
+.btnUpgrade {
+  font-size: 0.72rem;
+  padding: 4px 10px;
+  color: var(--color-gold);
+  border-color: var(--color-gold-dim);
+  background: rgba(230,191,51,0.05);
+}
+.btnUpgrade:hover:not(:disabled) { background: rgba(230,191,51,0.14); }
+.btnUpgradeDisabled { opacity: 0.35; cursor: not-allowed; }
 
-.none { font-size: 0.82rem; color: var(--color-text-dim); }
+/* ── Footer ───────────────────────────────────────────────────────────────── */
+.footer { display: flex; }
 
-/* ── Footer ────────────────────────────────────────────────────────────────── */
-.footer { display: flex; flex-direction: column; gap: 12px; }
-
-.btnBegin {
-  width: 100%;
+.btnContinue {
+  flex: 1;
   font-size: 1rem;
   letter-spacing: 0.14em;
   text-transform: uppercase;
@@ -125,11 +126,4 @@
   border-color: var(--color-gold-dim);
   color: var(--color-gold);
 }
-
-.btnBegin:hover:not(:disabled) { background: rgba(230,191,51,0.16); box-shadow: var(--glow-gold); }
-
-.skipHint {
-  text-align: center;
-  font-size: 0.75rem;
-  color: var(--color-text-dim);
-}
+.btnContinue:hover { background: rgba(230,191,51,0.16); box-shadow: var(--glow-gold); }

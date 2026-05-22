@@ -260,7 +260,7 @@ export default function RunMapScreen() {
           <div className={s.tooltipName}>{hoverLoc.name}</div>
           <div className={s.tooltipEnemy}>
             {hoverIdx < current
-              ? hoverEnemy.name
+              ? (hoverLoc.boss_name ?? hoverEnemy.name)
               : hoverLoc.sublocation_type === 'event'
                 ? (hoverLoc.event_type === 'site_of_grace' ? '⬥ Site of Grace' : '⚔ Trial Gate')
                 : hoverLoc.sublocation_type === 'elite' ? '⚔ Elite'

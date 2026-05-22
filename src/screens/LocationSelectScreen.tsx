@@ -9,7 +9,7 @@ const SIZE_TIME: Record<string, string> = {
 
 function LockIcon() {
   return (
-    <svg viewBox="0 0 24 24" width={18} height={18} fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
+    <svg viewBox="0 0 24 24" width={14} height={14} fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round">
       <rect x="3" y="11" width="18" height="11" rx="2"/>
       <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
     </svg>
@@ -34,7 +34,10 @@ export default function LocationSelectScreen() {
         <p className={s.subtitle}>
           {store.completed_locations.length === 0
             ? 'Begin your journey — only the first steps are open to you'
-            : `${store.completed_locations.length} / ${LOCATION_DEFINITIONS.length} locations cleared`}
+            : 'Choose your next challenge'}
+        </p>
+        <p className={s.progress}>
+          {store.completed_locations.length} / {LOCATION_DEFINITIONS.length} locations finished
         </p>
       </div>
 
@@ -56,30 +59,29 @@ export default function LocationSelectScreen() {
               disabled={isLocked}
               onClick={() => handleSelect(loc.id, loc.numSublocations, loc.runDuration)}
             >
-              {/* Left colour bar */}
-              <div className={s.colourBar} style={{ background: colour }}/>
+              {/* Top colour accent bar */}
+              <div className={s.topBar} style={{ background: isLocked ? 'rgba(255,255,255,0.06)' : colour }}/>
 
-              {/* Main content */}
-              <div className={s.content}>
-                <div className={s.row}>
+              <div className={s.body}>
+                <div className={s.nameRow}>
+                  {isLocked && <span className={s.lockIcon}><LockIcon/></span>}
                   <span className={s.name}>{loc.id}</span>
-                  <span className={s.sizeBadge} style={{ color: colour, borderColor: `${colour}55` }}>
-                    {SIZE_LABEL[loc.size]}
-                  </span>
+                  {isCompleted && <span className={s.doneTag}>✓</span>}
                 </div>
-                <div className={s.boss}>{loc.boss}</div>
-                <div className={s.meta}>
-                  <span>{loc.numSublocations} nodes</span>
-                  <span>·</span>
-                  <span>{SIZE_TIME[loc.size]}</span>
-                  {isCompleted && <span className={s.doneTag}>✓ Done</span>}
-                  {isLocked && (
-                    <span className={s.lockTag}>
-                      <LockIcon/>
-                      {loc.requires[0] ?? 'locked'}
-                    </span>
-                  )}
-                </div>
+
+                {!isLocked && (
+                  <>
+                    <div className={s.boss}>★ {loc.boss}</div>
+                    <div className={s.meta}>
+                      <span className={s.sizeBadge} style={{ color: colour, borderColor: `${colour}60` }}>
+                        {SIZE_LABEL[loc.size]}
+                      </span>
+                      <span>{loc.numSublocations} locations</span>
+                      <span>·</span>
+                      <span>{SIZE_TIME[loc.size]}</span>
+                    </div>
+                  </>
+                )}
               </div>
             </button>
           )

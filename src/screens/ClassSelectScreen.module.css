@@ -1,0 +1,124 @@
+.root {
+  height: 100vh;
+  overflow-y: auto;
+  background: var(--color-bg);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 40px 24px 56px;
+}
+
+.header { text-align: center; margin-bottom: 32px; }
+
+.title {
+  font-size: 1.5rem;
+  font-weight: 300;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--color-gold);
+  text-shadow: var(--glow-gold);
+  margin-bottom: 6px;
+}
+.subtitle { font-size: 0.82rem; color: var(--color-text-dim); letter-spacing: 0.1em; }
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  width: 100%;
+  max-width: 900px;
+  margin-bottom: 32px;
+}
+
+.card {
+  background: var(--color-bg-panel);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  display: flex;
+  flex-direction: row;
+  align-items: stretch;
+  text-align: left;
+  padding: 0;
+  cursor: pointer;
+  overflow: hidden;
+  transition: border-color 0.14s, box-shadow 0.14s, transform 0.1s;
+}
+.card:hover {
+  border-color: var(--accent, var(--color-gold-dim));
+  transform: translateY(-1px);
+  box-shadow: 0 0 12px color-mix(in srgb, var(--accent, var(--color-gold)) 22%, transparent);
+}
+.cardChosen {
+  border-color: var(--accent, var(--color-gold));
+  box-shadow: 0 0 14px color-mix(in srgb, var(--accent, var(--color-gold)) 30%, transparent);
+}
+
+.accentBar { width: 3px; flex-shrink: 0; }
+
+.cardBody {
+  flex: 1;
+  padding: 14px 14px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.className {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--color-gold-text);
+  letter-spacing: 0.04em;
+}
+.classDesc {
+  font-size: 0.72rem;
+  color: var(--color-text-dim);
+  line-height: 1.4;
+}
+.weaponBadge {
+  display: inline-block;
+  font-size: 0.62rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--accent, var(--color-gold-dim));
+  border: 1px solid;
+  border-color: color-mix(in srgb, var(--accent, var(--color-gold-dim)) 50%, transparent);
+  border-radius: 3px;
+  padding: 2px 6px;
+  align-self: flex-start;
+  margin-top: 2px;
+}
+
+.statsRow {
+  display: grid;
+  grid-template-columns: repeat(8, 1fr);
+  gap: 3px;
+  margin-top: 4px;
+}
+.statCell {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1px;
+  padding: 3px 0;
+  border-radius: 3px;
+  background: rgba(255,255,255,0.03);
+}
+.statHigh { background: color-mix(in srgb, var(--accent, #ccaa22) 18%, transparent); }
+.statMid  { background: color-mix(in srgb, var(--accent, #ccaa22) 8%, transparent); }
+.statKey { font-size: 0.52rem; color: var(--color-text-dim); letter-spacing: 0.05em; }
+.statVal { font-size: 0.78rem; color: var(--color-gold-text); font-weight: 600; }
+
+.footer { width: 100%; max-width: 900px; }
+
+.btnConfirm {
+  width: 100%;
+  font-size: 1rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  padding: 16px;
+  background: rgba(230,191,51,0.08);
+  border-color: var(--color-gold-dim);
+  color: var(--color-gold);
+}
+.btnConfirm:hover:not(:disabled) { background: rgba(230,191,51,0.16); box-shadow: var(--glow-gold); }
+.btnConfirm:disabled { opacity: 0.4; cursor: not-allowed; }

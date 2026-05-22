@@ -49,7 +49,7 @@ export default function StartingWeaponScreen() {
 
   function handleConfirm() {
     if (chosen === null) return
-    store.replaceStartingWeapon(options[chosen])
+    store.initClass('chronicler') // legacy screen no longer active — replaced by ClassSelectScreen
     navigate('/locations')
   }
 

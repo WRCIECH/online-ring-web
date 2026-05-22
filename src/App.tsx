@@ -2,7 +2,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { useEffect } from 'react'
 import { initSound } from './engine/sound'
 import TitleScreen from './screens/TitleScreen'
-import StartingWeaponScreen from './screens/StartingWeaponScreen'
+import ClassSelectScreen from './screens/ClassSelectScreen'
 import LocationSelectScreen from './screens/LocationSelectScreen'
 import WeaponSelectScreen from './screens/WeaponSelectScreen'
 import RunMapScreen from './screens/RunMapScreen'
@@ -19,7 +19,7 @@ export default function App() {
     <BrowserRouter>
       <Routes>
         <Route path="/"             element={<TitleScreen />} />
-        <Route path="/start-weapon" element={<StartingWeaponScreen />} />
+        <Route path="/start-class"  element={<ClassSelectScreen />} />
         <Route path="/locations"    element={<LocationSelectScreen />} />
         <Route path="/weapons"      element={<WeaponSelectScreen />} />
         <Route path="/map"          element={<RunMapScreen />} />

@@ -1,7 +1,6 @@
 import type { CombatState, CombatAction } from '../../engine/combat'
 import { getActiveSteps } from '../../engine/combat'
 import { getWeaponMovesets, WEAPONS } from '../../data/weapons'
-import { useGameStore } from '../../store/gameStore'
 import type { GeneratedMoveset } from '../../types/game'
 import MovesetIcon from '../icons/MovesetIcon'
 import s from './StepPanel.module.css'
@@ -19,8 +18,6 @@ function fmtTime(secs: number): string {
 export default function StepPanel({ state, dispatch }: Props) {
   const { equippedWeapons, weaponExtraMovesets, activeWeaponIdx,
           chainMovesetId, chainStepIdx, playerStamina } = state
-  const store = useGameStore()
-
   const weaponId  = equippedWeapons[activeWeaponIdx] ?? equippedWeapons[0]
   const weapon    = WEAPONS[weaponId]
   const extra     = weaponExtraMovesets[weaponId] ?? []
@@ -47,9 +44,7 @@ export default function StepPanel({ state, dispatch }: Props) {
 
       <div className={s.list}>
         {movesets.map(moveset => {
-          const msLevel = store.moveset_level[moveset.id] ?? 1
-          // Use active steps filtered by moveset level
-          const activeSteps = getActiveSteps(moveset as GeneratedMoveset, msLevel)
+          const activeSteps = getActiveSteps(moveset as GeneratedMoveset)
           const isMidChain = chainMovesetId === moveset.id && moveset.id !== ''
           const showIdx    = isMidChain ? Math.min(chainStepIdx, activeSteps.length - 1) : 0
           const step       = activeSteps[showIdx]
@@ -68,7 +63,6 @@ export default function StepPanel({ state, dispatch }: Props) {
               <div className={s.movesetName}>
                 <MovesetIcon movesetId={moveset.id} size={13} />
                 {moveset.name}
-                {msLevel > 1 && <span className={s.msLevel}>Lvl {msLevel}</span>}
               </div>
               <button
                 className={[s.stepBtn, !canUse ? s.disabled : '', isMidChain ? s.inChain : ''].join(' ')}
