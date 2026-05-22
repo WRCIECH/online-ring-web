@@ -5,7 +5,7 @@ import { MOVES } from '../../data/movesets'
 import type { StatKey, WeaponInstance, GeneratedMoveset } from '../../types/game'
 import s from './StatsOverlay.module.css'
 
-interface Props { onClose: () => void }
+interface Props { onClose: () => void; canLevel?: boolean }
 
 const STAT_LABELS: Record<StatKey, string> = {
   VIG: 'Vigor', END: 'Endurance', MND: 'Mind',
@@ -34,7 +34,7 @@ function statEffectPreview(stat: StatKey, val: number): string {
   return ''
 }
 
-export default function StatsOverlay({ onClose }: Props) {
+export default function StatsOverlay({ onClose, canLevel = true }: Props) {
   const store = useGameStore()
   const [confirming, setConfirming] = useState<Confirming | null>(null)
 
@@ -79,11 +79,16 @@ export default function StatsOverlay({ onClose }: Props) {
         <div className={s.body}>
 
           {/* ── Player Stats ──────────────────────────────────────────── */}
+          {!canLevel && (
+            <div className={s.lockedNotice}>
+              Leveling available at Site of Grace or between runs.
+            </div>
+          )}
           <div className={s.section}>
             <div className={s.sectionTitle}>Player Stats — {levelCost} ✦ each</div>
             {ALL_STATS.map(stat => {
               const val      = store.stats[stat]
-              const canAfford = store.runes >= levelCost
+              const canAfford = canLevel && store.runes >= levelCost
               const isConfirming = confirming?.type === 'stat' && confirming.stat === stat
 
               // Build preview lines
@@ -150,7 +155,7 @@ export default function StatsOverlay({ onClose }: Props) {
               const level      = store.weapon_level[wid] ?? 0
               const isMax      = level >= 10
               const cost       = weaponUpgradeCost(level)
-              const canAfford  = !isMax && store.runes >= cost
+              const canAfford  = canLevel && !isMax && store.runes >= cost
               const isConfirming = confirming?.type === 'weapon' && confirming.id === wid
               const wi         = weapon as WeaponInstance
               const rarity     = wi.rarity ?? 'common'

@@ -88,7 +88,7 @@ export default function RunHeader({ hp, maxHp, stamina, maxStamina, fp, maxFp }:
       </header>
 
       {showEquip   && <EquipOverlay   onClose={() => setShowEquip(false)} />}
-      {showStats   && <StatsOverlay   onClose={() => setShowStats(false)} />}
+      {showStats   && <StatsOverlay   onClose={() => setShowStats(false)} canLevel={false} />}
       {showNotepad && <NotepadOverlay onClose={() => setShowNotepad(false)} />}
     </>
   )
