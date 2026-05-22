@@ -1,7 +1,10 @@
 import { useEffect, useRef, useState } from 'react'
 import type { CombatState, CombatAction } from '../../engine/combat'
-import type { GeneratedMoveset } from '../../types/game'
+import { STA_DEFENSE_GAIN } from '../../engine/combat'
+import { WEAPONS, calcStepDamage } from '../../data/weapons'
+import type { GeneratedMoveset, WeaponInstance, DamageType } from '../../types/game'
 import { appendToLog } from '../../engine/save'
+import { CONTENT_ORIGIN_LABELS, DMG_TYPE_CONTENT, STATUS_CONTENT } from '../../data/contentDescriptions'
 import s from './TimerOverlay.module.css'
 
 interface Props { state: CombatState; dispatch: React.Dispatch<CombatAction> }
@@ -19,9 +22,17 @@ const STATUS_LABELS: Record<string, string> = {
   murmur: 'Murmur', grace: 'Grace',
 }
 
+const DMG_TYPE_COLOURS: Partial<Record<DamageType, string>> = {
+  standard: '#aaaaaa', strike: '#cc9944', slash: '#cc4444', pierce: '#44aacc',
+  lightning: '#eedd44', fire: '#ee6622', magic: '#8855ee', holy: '#eecc55',
+  occult: '#aa44aa', grafting: '#55aa55', poison: '#66aa44',
+}
+
 export default function TimerOverlay({ state, dispatch }: Props) {
   const { stepTimer, stepTotal, stepStarted, timerExpired,
-          timerIsDefense, pendingStep, pendingDefenseAction, pendingMoveset } = state
+          timerIsDefense, pendingStep, pendingDefenseAction, pendingMoveset,
+          pendingWeaponId, chainStepIdx, playerStats, weaponLevels,
+          currentMove } = state
   const textRef        = useRef<HTMLTextAreaElement>(null)
   const prevStepRef    = useRef<string>('')
   const [statusApplied, setStatusApplied] = useState(false)
@@ -80,11 +91,75 @@ export default function TimerOverlay({ state, dispatch }: Props) {
   const statusBuildup = gm?.status_buildup
   const statusLabel   = statusBuildup ? (STATUS_LABELS[statusBuildup] ?? statusBuildup) : null
 
+  // ── Context info strip ───────────────────────────────────────────────────
+  const weapon   = pendingWeaponId ? WEAPONS[pendingWeaponId] : null
+  const wi       = weapon as WeaponInstance | undefined
+  const wLevel   = weaponLevels[pendingWeaponId] ?? 0
+  const totalSteps   = pendingMoveset?.steps.length ?? 1
+  const stepNum      = (chainStepIdx ?? 0) + 1
+  const computedDmg  = (!timerIsDefense && pendingStep && weapon)
+    ? calcStepDamage(pendingStep, weapon, wLevel, playerStats)
+    : null
+  const dmgType = pendingStep?.damage_type
+  const dmgTypeColor = dmgType ? (DMG_TYPE_COLOURS[dmgType] ?? '#aaaaaa') : null
+
   return (
     <div className={s.overlay}>
       <div className={s.panel}>
         <div className={s.header} style={{ color: headerColor }}>{header}</div>
         <hr />
+
+        {/* ── Context strip ────────────────────────────────────────────── */}
+        <div className={s.contextStrip}>
+          {!timerIsDefense && pendingMoveset && (
+            <>
+              <span className={s.ctxMoveset}>{pendingMoveset.name}</span>
+              {totalSteps > 1 && (
+                <span className={s.ctxStep}>step {stepNum}/{totalSteps}</span>
+              )}
+              {computedDmg !== null && (
+                <span className={s.ctxDmg}>
+                  {dmgTypeColor && (
+                    <span style={{ color: dmgTypeColor }}>●</span>
+                  )}{' '}
+                  {computedDmg} dmg
+                </span>
+              )}
+              {pendingMoveset.stamina_cost > 0 && (
+                <span className={s.ctxSta}>−{pendingMoveset.stamina_cost} STA</span>
+              )}
+              {(pendingMoveset.fp_cost ?? 0) > 0 && (
+                <span className={s.ctxFp}>−{pendingMoveset.fp_cost} FP</span>
+              )}
+              {wi && (
+                <span className={s.ctxWeapon}>{wi.name}</span>
+              )}
+              {gm?.content_origin && (
+                <span className={s.ctxOrigin}>
+                  {CONTENT_ORIGIN_LABELS[gm.content_origin]}
+                </span>
+              )}
+              {dmgType && (
+                <span className={s.ctxDmgDesc} style={{ color: dmgTypeColor ?? '#888' }}>
+                  {DMG_TYPE_CONTENT[dmgType]}
+                </span>
+              )}
+            </>
+          )}
+          {timerIsDefense && pendingDefenseAction === 'roll' && (
+            <>
+              <span className={s.ctxOutcome}>✓ Success → +{STA_DEFENSE_GAIN} STA, 0 dmg taken</span>
+              <span className={s.ctxOutcomeFail}>✗ Fail → {currentMove?.damage ?? '?'} dmg taken</span>
+            </>
+          )}
+          {timerIsDefense && pendingDefenseAction === 'parry' && (
+            <>
+              <span className={s.ctxOutcome}>✓ Success → {currentMove?.damage ?? '?'} counter-dmg, full STA</span>
+              <span className={s.ctxOutcomeFail}>✗ Fail → {currentMove?.damage ?? '?'} dmg taken</span>
+            </>
+          )}
+        </div>
+
         <div className={s.taskName}>{taskName}</div>
 
         <textarea
@@ -106,14 +181,17 @@ export default function TimerOverlay({ state, dispatch }: Props) {
         </div>
 
         {/* Status buildup checkbox — shown only for attack steps with a status moveset */}
-        {statusLabel && !timerIsDefense && (isActive || isExpired) && (
+        {statusLabel && statusBuildup && !timerIsDefense && (isActive || isExpired) && (
           <label className={s.statusCheck}>
             <input
               type="checkbox"
               checked={statusApplied}
               onChange={e => setStatusApplied(e.target.checked)}
             />
-            Applied {statusLabel}
+            <span>
+              <span className={s.statusCheckName}>Applied {statusLabel}</span>
+              <span className={s.statusCheckDesc}>{STATUS_CONTENT[statusBuildup]}</span>
+            </span>
           </label>
         )}
 

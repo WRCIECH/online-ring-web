@@ -69,6 +69,9 @@ export default function StatsOverlay({ onClose }: Props) {
             <span className={s.runeCount}>{store.runes.toLocaleString()}</span>
             <span className={s.runeLabel}>runes</span>
           </div>
+          <div className={s.playerLevel}>
+            <span className={s.levelNum}>Lv {store.total_levels_spent}</span>
+          </div>
           <button className={s.btnClose} onClick={onClose}>Close</button>
         </div>
         <hr className={s.sep} />

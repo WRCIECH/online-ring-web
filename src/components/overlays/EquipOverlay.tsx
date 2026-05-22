@@ -1,10 +1,12 @@
 import { useState } from 'react'
 import { useGameStore } from '../../store/gameStore'
 import type { GameStore } from '../../store/gameStore'
-import { WEAPONS, weaponUpgradeCost, GRADE_MULT } from '../../data/weapons'
+import { WEAPONS, weaponUpgradeCost, GRADE_MULT, calcStepDamage } from '../../data/weapons'
 import { MOVES } from '../../data/movesets'
 import { WEAPON_CLASSES } from '../../data/generators/weaponClasses'
-import type { WeaponInstance, WeaponRarity, GeneratedMoveset, StatKey, Grade } from '../../types/game'
+import { getClassMod } from '../../engine/combat'
+import { CONTENT_ORIGIN_LABELS, DMG_TYPE_CONTENT, STATUS_CONTENT } from '../../data/contentDescriptions'
+import type { WeaponInstance, WeaponRarity, GeneratedMoveset, StatKey, Grade, DamageType } from '../../types/game'
 import MovesetIcon from '../icons/MovesetIcon'
 import WeaponSprite from '../icons/WeaponSprite'
 import s from './EquipOverlay.module.css'
@@ -12,6 +14,26 @@ import s from './EquipOverlay.module.css'
 const RARITY_COLOURS: Record<WeaponRarity, string> = {
   common: '#aaaaaa', magic: '#4488cc', rare: '#ccaa22',
   epic: '#9944cc', legendary: '#ee8822',
+}
+
+const DMG_TYPE_COLOURS: Record<DamageType, string> = {
+  standard: '#aaaaaa', strike: '#cc9944', slash: '#cc4444', pierce: '#44aacc',
+  lightning: '#eedd44', fire: '#ee6622', magic: '#8855ee', holy: '#eecc55',
+  occult: '#aa44aa', grafting: '#55aa55', poison: '#66aa44',
+}
+
+const DMG_TYPE_ICONS: Record<DamageType, string> = {
+  standard: '●', strike: '⊕', slash: '⚔', pierce: '◈',
+  lightning: '⚡', fire: '🔥', magic: '✦', holy: '☀',
+  occult: '◎', grafting: '⌬', poison: '☠',
+}
+
+function speedLabel(timeMod: number): string {
+  if (timeMod <= 0.75) return 'Very Fast'
+  if (timeMod <= 0.9)  return 'Fast'
+  if (timeMod <= 1.1)  return 'Normal'
+  if (timeMod <= 1.25) return 'Slow'
+  return 'Very Slow'
 }
 
 type Store = GameStore
@@ -94,6 +116,22 @@ function WeaponCard({ weaponId, store, onPickSlot }: {
   const tipMoveset = msTooltip ? MOVES[msTooltip.id] : null
   const tipGm = tipMoveset && 'variant_type' in tipMoveset ? tipMoveset as GeneratedMoveset : null
 
+  // Weapon class extra info
+  const classDef  = wi.weapon_class ? WEAPON_CLASSES[wi.weapon_class] : null
+  const classMod  = wi.weapon_class ? getClassMod(wi.weapon_class, 0) : null
+  const dmgType   = classDef?.base_damage_types[0]
+
+  // Mechanic line
+  let mechLine: string | null = null
+  if (classMod) {
+    if (classMod.dualStrike)        mechLine = '⚔ Dual strike: +40% off-hand hit on every step'
+    else if (classMod.selfDmg > 0)  mechLine = `✗ Reckless: deals ${classMod.selfDmg} HP self-damage per hit`
+    else if (classMod.staGain > 0)  mechLine = `◉ Relentless: restores ${classMod.staGain} STA per hit, 0 stamina cost`
+    else if (classMod.staCoeff < 1 && classMod.staCoeff > 0) mechLine = '〜 Flow: stamina −30% from step 2 onward'
+    else if (classMod.gapOverride !== null) mechLine = '⟶ Ranged: always full poise mult, ignores idle gap'
+    else if (classMod.poiseMult >= 2.0) mechLine = `⊕ Stance break: ${classMod.poiseMult}× poise damage`
+  }
+
   return (
     <div className={s.weaponCard}>
       <div className={s.weaponHeader}>
@@ -111,6 +149,14 @@ function WeaponCard({ weaponId, store, onPickSlot }: {
             {wi.rarity.toUpperCase()}
           </span>
         )}
+        {dmgType && (
+          <span className={s.dmgTypeBadge} style={{ color: DMG_TYPE_COLOURS[dmgType], borderColor: DMG_TYPE_COLOURS[dmgType] + '55' }}>
+            {DMG_TYPE_ICONS[dmgType]} {dmgType}
+          </span>
+        )}
+        {classMod?.tag && (
+          <span className={s.classMechanic}>{classMod.tag}</span>
+        )}
         {wi.weapon_class && WEAPON_CLASSES[wi.weapon_class]?.inherent_status && (
           <span className={s.statusBadge}>
             {WEAPON_CLASSES[wi.weapon_class]!.inherent_status!.replace(/_/g, ' ')}
@@ -119,6 +165,20 @@ function WeaponCard({ weaponId, store, onPickSlot }: {
         <span className={s.weaponLevel}>+{level}{isMax ? ' MAX' : ''}</span>
         {!isMax && <span className={s.upgradeCost}>↑ {upgradeCost} ✦ to upgrade</span>}
       </div>
+
+      {/* Traits row: heat · speed · poise */}
+      {classDef && (
+        <div className={s.traitsRow}>
+          <span className={s.traitItem}>
+            🔥 {classDef.heat_threshold >= 9999 ? '∞' : classDef.heat_threshold} uses
+          </span>
+          <span className={s.traitItem}>⏱ {speedLabel(classDef.time_mod)}</span>
+          <span className={s.traitItem}>💥 {classDef.poise_value} poise/hit</span>
+        </div>
+      )}
+
+      {/* Mechanic line */}
+      {mechLine && <div className={s.mechLine}>{mechLine}</div>}
 
       {/* Scaling grades */}
       {wi.scaling && Object.keys(wi.scaling).length > 0 && (
@@ -156,6 +216,11 @@ function WeaponCard({ weaponId, store, onPickSlot }: {
                 <div className={s.slotName}>{m?.name ?? mid}</div>
                 <div className={s.slotDesc}>{m?.steps[0]?.name}</div>
               </div>
+              {m?.steps[0] && (
+                <span className={s.stepDmg}>
+                  {calcStepDamage(m.steps[0], weapon, level, store.stats)} dmg
+                </span>
+              )}
               <span className={s.slotTag}>constant</span>
             </div>
           )
@@ -178,6 +243,11 @@ function WeaponCard({ weaponId, store, onPickSlot }: {
                   <div className={s.slotName}>{m.name}</div>
                   <div className={s.slotDesc}>{m.steps[0]?.name}</div>
                 </div>
+                {m.steps[0] && (
+                  <span className={s.stepDmg}>
+                    {calcStepDamage(m.steps[0], weapon, level, store.stats)} dmg
+                  </span>
+                )}
                 <button className={s.removeBtn} onClick={() => removeSlot(i)}>Remove</button>
               </div>
             )
@@ -207,6 +277,11 @@ function WeaponCard({ weaponId, store, onPickSlot }: {
                 <span className={s.msTipNum}>{i + 1}.</span>
                 <span className={s.msTipStepName}>{step.name}</span>
                 <span className={s.msTipTime}>{fmtStepTime(step.time)}</span>
+                {step.base_damage > 0 && (
+                  <span className={s.msTipDmg}>
+                    {calcStepDamage(step, weapon, level, store.stats)} dmg
+                  </span>
+                )}
               </div>
             ))}
           </div>
@@ -214,6 +289,21 @@ function WeaponCard({ weaponId, store, onPickSlot }: {
             <span style={{ color: 'var(--color-stamina)' }}>{tipMoveset.stamina_cost} STA</span>
             {tipMoveset.fp_cost ? <span style={{ color: 'var(--color-fp)' }}>{tipMoveset.fp_cost} FP</span> : null}
           </div>
+          {tipGm?.content_origin && (
+            <div className={s.msTipOrigin}>
+              {CONTENT_ORIGIN_LABELS[tipGm.content_origin]}
+            </div>
+          )}
+          {tipGm?.primary_damage_type && (
+            <div className={s.msTipDmgType}>
+              {DMG_TYPE_CONTENT[tipGm.primary_damage_type]}
+            </div>
+          )}
+          {tipGm?.status_buildup && (
+            <div className={s.msTipStatusDesc}>
+              {STATUS_CONTENT[tipGm.status_buildup]}
+            </div>
+          )}
           {tipGm?.infusion && Object.keys(tipGm.infusion).length > 0 && (
             <div className={s.msTipInfusion}>
               <span className={s.msTipInfusionLabel}>Infusion:</span>

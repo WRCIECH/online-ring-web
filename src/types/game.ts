@@ -58,7 +58,7 @@ export type AtomicMode      = 'Creating' | 'Consuming' | 'Connecting' | 'Comment
 export type AtomicStage     = 'Ideate' | 'Research' | 'Outline' | 'Generate' | 'Glue' | 'Refine' | 'Publish' | 'Repurpose' | 'React' | 'Connect'
 export type AtomicTime      = 'Micro' | 'Short' | 'Medium' | 'Long' | 'Deep'
 export type AtomicPub       = 'just_work' | 'private' | 'draft_published' | 'public'
-export type AtomicOrigin    = 'New' | 'Compression' | 'Expansion' | 'Recycled' | 'Remastered' | 'Revamped' | 'Reboot'
+export type AtomicOrigin    = 'New' | 'Compression' | 'Expansion' | 'Recycled' | 'Remastered' | 'Revamped' | 'Reboot' | 'ZoomIn' | 'ZoomOut' | 'AudienceAlter' | 'Commentary'
 export type AtomicPlanning  = 'Spontaneous' | 'Planned' | 'Scheduled'
 export type MovesetVariant  = 'Light' | 'Heavy' | 'Skill' | 'Jump'
 
@@ -88,6 +88,7 @@ export interface GeneratedMoveset extends Moveset {
   primary_damage_type?: DamageType
   status_buildup?:      StatusType
   infusion?:            Partial<Record<StatKey, Grade>>
+  content_origin?:      AtomicOrigin
 }
 
 export type CombatPhase =

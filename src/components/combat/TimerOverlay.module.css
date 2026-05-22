@@ -27,6 +27,90 @@
   text-align: center;
 }
 
+.contextStrip {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 14px;
+  padding: 6px 2px 2px;
+  min-height: 24px;
+}
+
+.ctxMoveset {
+  font-size: 0.75rem;
+  color: var(--color-gold-dim);
+  letter-spacing: 0.04em;
+  font-weight: 500;
+}
+
+.ctxStep {
+  font-size: 0.68rem;
+  color: var(--color-text-dim);
+  background: rgba(255,255,255,0.06);
+  border-radius: 3px;
+  padding: 1px 5px;
+}
+
+.ctxDmg {
+  font-size: 0.72rem;
+  color: var(--color-text-success);
+  letter-spacing: 0.02em;
+}
+
+.ctxSta {
+  font-size: 0.68rem;
+  color: var(--color-stamina);
+}
+
+.ctxFp {
+  font-size: 0.68rem;
+  color: var(--color-fp);
+}
+
+.ctxWeapon {
+  font-size: 0.65rem;
+  color: var(--color-text-dim);
+  opacity: 0.6;
+  margin-left: auto;
+}
+
+.ctxOutcome {
+  font-size: 0.7rem;
+  color: var(--color-text-success);
+}
+
+.ctxOutcomeFail {
+  font-size: 0.7rem;
+  color: var(--color-text-danger);
+}
+
+.ctxOrigin {
+  font-size: 0.68rem;
+  color: var(--color-text-dim);
+  flex-basis: 100%;
+  padding-top: 2px;
+}
+
+.ctxDmgDesc {
+  font-size: 0.68rem;
+  flex-basis: 100%;
+  opacity: 0.8;
+}
+
+.statusCheckName {
+  font-size: 0.8rem;
+  color: var(--color-text-dim);
+  display: block;
+}
+
+.statusCheckDesc {
+  font-size: 0.68rem;
+  color: var(--color-text-dim);
+  opacity: 0.65;
+  display: block;
+  margin-top: 1px;
+}
+
 .taskName {
   font-size: 1rem;
   text-align: center;

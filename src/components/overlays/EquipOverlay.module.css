@@ -387,6 +387,61 @@
   margin-left: auto;
 }
 
+.dmgTypeBadge {
+  font-size: 0.63rem;
+  letter-spacing: 0.06em;
+  border: 1px solid;
+  border-radius: 3px;
+  padding: 1px 6px;
+  white-space: nowrap;
+  text-transform: capitalize;
+  opacity: 0.9;
+}
+
+.classMechanic {
+  font-size: 0.65rem;
+  color: var(--color-gold-dim);
+  background: rgba(230,191,51,0.07);
+  border: 1px solid rgba(230,191,51,0.2);
+  border-radius: 3px;
+  padding: 1px 6px;
+  white-space: nowrap;
+}
+
+.traitsRow {
+  display: flex;
+  gap: 14px;
+  padding: 5px 2px 2px;
+  flex-wrap: wrap;
+}
+
+.traitItem {
+  font-size: 0.7rem;
+  color: var(--color-text-dim);
+  letter-spacing: 0.04em;
+}
+
+.mechLine {
+  font-size: 0.72rem;
+  color: var(--color-text-dim);
+  padding: 2px 2px 4px;
+  font-style: italic;
+}
+
+.stepDmg {
+  font-size: 0.68rem;
+  color: var(--color-text-success);
+  white-space: nowrap;
+  margin-right: 6px;
+}
+
+.msTipDmg {
+  font-size: 0.68rem;
+  color: var(--color-text-success);
+  white-space: nowrap;
+  margin-left: 4px;
+}
+
 .statusBadge {
   font-size: 0.65rem;
   color: #cc88aa;
@@ -396,6 +451,26 @@
   padding: 1px 6px;
   white-space: nowrap;
   text-transform: capitalize;
+}
+
+.msTipOrigin {
+  font-size: 0.68rem;
+  color: var(--color-gold-dim);
+  padding: 3px 0 1px;
+  border-top: 1px solid var(--color-sep);
+}
+
+.msTipDmgType {
+  font-size: 0.68rem;
+  color: var(--color-text-dim);
+  padding: 2px 0;
+}
+
+.msTipStatusDesc {
+  font-size: 0.68rem;
+  color: #cc88aa;
+  padding: 2px 0;
+  font-style: italic;
 }
 
 .msTipInfusion {

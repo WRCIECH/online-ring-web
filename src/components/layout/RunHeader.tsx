@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useGameStore, selectRunRemainingSeconds } from '../../store/gameStore'
 import EquipOverlay   from '../overlays/EquipOverlay'
 import NotepadOverlay from '../overlays/NotepadOverlay'
+import StatsOverlay   from '../overlays/StatsOverlay'
 import s from './RunHeader.module.css'
 
 interface Props {
@@ -41,6 +42,7 @@ export default function RunHeader({ hp, maxHp, stamina, maxStamina, fp, maxFp }:
   )
   const [showEquip,   setShowEquip]   = useState(false)
   const [showNotepad, setShowNotepad] = useState(false)
+  const [showStats,   setShowStats]   = useState(false)
 
   useEffect(() => {
     const id = setInterval(() => {
@@ -80,11 +82,13 @@ export default function RunHeader({ hp, maxHp, stamina, maxStamina, fp, maxFp }:
         {/* Actions */}
         <div className={s.actions}>
           <button className={s.btn} onClick={() => setShowEquip(true)}>⚙ Equip</button>
+          <button className={s.btn} onClick={() => setShowStats(true)}>📊 Stats</button>
           <button className={s.btn} onClick={() => setShowNotepad(true)}>✏ Notes</button>
         </div>
       </header>
 
       {showEquip   && <EquipOverlay   onClose={() => setShowEquip(false)} />}
+      {showStats   && <StatsOverlay   onClose={() => setShowStats(false)} />}
       {showNotepad && <NotepadOverlay onClose={() => setShowNotepad(false)} />}
     </>
   )

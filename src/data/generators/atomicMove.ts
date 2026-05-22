@@ -35,7 +35,7 @@ export function validateConsistency(d: AtomicDimensions): boolean {
   if (d.cognitive_mode === 'Compressing' && d.content_origin === 'New') return false
   if (d.cognitive_mode === 'Expanding'   && d.content_origin === 'New') return false
   if (d.cognitive_mode === 'Remixing' &&
-      !['Recycled','Remastered','Revamped','Reboot'].includes(d.content_origin)) return false
+      !['Recycled','Remastered','Revamped','Reboot','ZoomIn','ZoomOut','AudienceAlter'].includes(d.content_origin)) return false
   if (d.stage === 'Publish' && (d.time_budget === 'Long' || d.time_budget === 'Deep')) return false
   return true
 }

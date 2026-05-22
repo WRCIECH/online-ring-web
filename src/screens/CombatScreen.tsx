@@ -61,6 +61,12 @@ const ICON_FLEE = (
     <line x1="21" y1="12" x2="9" y2="12"/>
   </svg>
 )
+const ICON_PARRY = (
+  <svg viewBox="0 0 24 24" width={22} height={22} fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M22 2L11 13"/>
+    <path d="M22 2L15 22l-4-9-9-4 20-7z"/>
+  </svg>
+)
 
 // Pre-computed once — consistent splatter pattern every fight
 const BLOOD_DROPS = Array.from({ length: 20 }, (_, i) => {
@@ -392,7 +398,7 @@ export default function CombatScreen() {
           onSelect: () => dispatch({ type: 'DEFENSE_CHOSEN', action: 'block' }),
         },
         {
-          id: 'parry',
+          id: 'parry', customIcon: ICON_PARRY,
           label: 'Parry',
           sublabel: publishTask ? `${publishTask.name} · ${fmtTime(publishTask.time)}` : '???',
           metaParts: [

@@ -79,9 +79,16 @@ const ARCHETYPE_PLANNING: Record<MovesetArchetype, AtomicPlanning> = {
 }
 
 const ARCHETYPE_ORIGIN: Record<MovesetArchetype, AtomicOrigin> = {
-  long_form: 'New', micro: 'New', commentary: 'New',
-  research: 'New', compression: 'Compression', remix: 'Recycled',
-  storytelling: 'New', hot_take: 'New', async: 'New', editing: 'Compression',
+  long_form:    'New',
+  micro:        'New',
+  commentary:   'Commentary',
+  research:     'New',
+  compression:  'Compression',
+  remix:        'Recycled',
+  storytelling: 'New',
+  hot_take:     'New',
+  async:        'New',
+  editing:      'ZoomIn',
 }
 
 const RARITY_PUB: Record<WeaponRarity, AtomicPub> = {
@@ -193,6 +200,7 @@ export function rollMoveset(
     weapon_class: weaponClass,
     pipeline: { all_steps: [], unlocked_at: [], drops_at: [] },
     primary_damage_type: primaryDmgType,
+    content_origin: dominantOrigin,
     ...(infusion ? { infusion } : {}),
     ...(status_buildup ? { status_buildup } : {}),
   }
