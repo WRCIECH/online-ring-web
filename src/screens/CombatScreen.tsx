@@ -468,23 +468,6 @@ export default function CombatScreen() {
         stamina={state.playerStamina} maxStamina={state.playerMaxStamina}
         fp={state.playerFp}      maxFp={state.playerMaxFp}
       />
-      {activeAccumulation.length > 0 && (
-        <div className={s.statusBars}>
-          {activeAccumulation.map(([status, val]) => {
-            const threshold = STATUS_THRESHOLD_UI[status] ?? 100
-            const pct = Math.min(1, val / threshold)
-            const color = STATUS_COLORS[status] ?? '#888'
-            return (
-              <div key={status} className={s.statusBarRow} title={`${status}: ${val}/${threshold}`}>
-                <span className={s.statusBarLabel}>{status.replace(/_/g, ' ')}</span>
-                <div className={s.statusBarTrack}>
-                  <div className={s.statusBarFill} style={{ width: `${pct * 100}%`, background: color }} />
-                </div>
-              </div>
-            )
-          })}
-        </div>
-      )}
 
       {/* ── Main area ────────────────────────────────────────────────── */}
       <div className={s.right}>
@@ -500,6 +483,23 @@ export default function CombatScreen() {
                   hp={state.enemyHp} maxHp={state.enemyMaxHp}
                   poise={state.enemyPoise} maxPoise={state.enemyMaxPoise}
                 />
+                {activeAccumulation.length > 0 && (
+                  <div className={s.statusBars}>
+                    {activeAccumulation.map(([status, val]) => {
+                      const threshold = STATUS_THRESHOLD_UI[status] ?? 100
+                      const pct = Math.min(1, val / threshold)
+                      const color = STATUS_COLORS[status] ?? '#888'
+                      return (
+                        <div key={status} className={s.statusBarRow} title={`${status}: ${val}/${threshold}`}>
+                          <span className={s.statusBarLabel}>{status.replace(/_/g, ' ')}</span>
+                          <div className={s.statusBarTrack}>
+                            <div className={s.statusBarFill} style={{ width: `${pct * 100}%`, background: color }} />
+                          </div>
+                        </div>
+                      )
+                    })}
+                  </div>
+                )}
               </div>
               <EnemyDisplay
                 enemyId={loc.enemy_id}

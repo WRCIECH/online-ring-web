@@ -27,7 +27,7 @@ export interface WeaponClassDef {
 export const WEAPON_CLASSES: Record<WeaponClass, WeaponClassDef> = {
   daggers: {
     id: 'daggers', name: 'Dagger', description: 'Micro-content: tweets, shorts, quick reactions.',
-    poise_weight: 'light', heat_threshold: 20, base_damage_mult: 0.7,
+    poise_weight: 'light', heat_threshold: 60, base_damage_mult: 0.7,
     preferred_archetypes: ['micro','hot_take','commentary'],
     scaling: { DEX: 'S' },
     light_archetype: 'micro', heavy_archetype: 'hot_take',
@@ -38,7 +38,7 @@ export const WEAPON_CLASSES: Record<WeaponClass, WeaponClassDef> = {
   },
   straight_swords: {
     id: 'straight_swords', name: 'Straight Sword', description: 'Standard articles and blog posts.',
-    poise_weight: 'medium', heat_threshold: 12, base_damage_mult: 1.0,
+    poise_weight: 'medium', heat_threshold: 36, base_damage_mult: 1.0,
     preferred_archetypes: ['long_form','commentary','research'],
     scaling: { STR: 'D', DEX: 'D' },
     light_archetype: 'micro', heavy_archetype: 'long_form',
@@ -49,7 +49,7 @@ export const WEAPON_CLASSES: Record<WeaponClass, WeaponClassDef> = {
   },
   greatswords: {
     id: 'greatswords', name: 'Greatsword', description: 'Long-form essays and deep dives.',
-    poise_weight: 'heavy', heat_threshold: 6, base_damage_mult: 1.5,
+    poise_weight: 'heavy', heat_threshold: 18, base_damage_mult: 1.5,
     preferred_archetypes: ['long_form','storytelling','research'],
     scaling: { STR: 'B', DEX: 'D' },
     light_archetype: 'compression', heavy_archetype: 'long_form',
@@ -60,7 +60,7 @@ export const WEAPON_CLASSES: Record<WeaponClass, WeaponClassDef> = {
   },
   katanas: {
     id: 'katanas', name: 'Katana', description: 'Polished craft pieces — quality over quantity.',
-    poise_weight: 'medium', heat_threshold: 12, base_damage_mult: 1.1,
+    poise_weight: 'medium', heat_threshold: 36, base_damage_mult: 1.1,
     preferred_archetypes: ['long_form','storytelling','editing'],
     scaling: { DEX: 'A' },
     light_archetype: 'hot_take', heavy_archetype: 'long_form',
@@ -72,7 +72,7 @@ export const WEAPON_CLASSES: Record<WeaponClass, WeaponClassDef> = {
   },
   hammers: {
     id: 'hammers', name: 'Hammer', description: 'Hot takes and opinion pieces.',
-    poise_weight: 'heavy', heat_threshold: 10, base_damage_mult: 1.3,
+    poise_weight: 'heavy', heat_threshold: 30, base_damage_mult: 1.3,
     preferred_archetypes: ['hot_take','commentary'],
     scaling: { STR: 'A' },
     light_archetype: 'hot_take', heavy_archetype: 'commentary',
@@ -83,7 +83,7 @@ export const WEAPON_CLASSES: Record<WeaponClass, WeaponClassDef> = {
   },
   spears: {
     id: 'spears', name: 'Spear', description: 'Research-driven content.',
-    poise_weight: 'medium', heat_threshold: 11, base_damage_mult: 1.0,
+    poise_weight: 'medium', heat_threshold: 33, base_damage_mult: 1.0,
     preferred_archetypes: ['research','long_form'],
     scaling: { DEX: 'B', STR: 'D' },
     light_archetype: 'research', heavy_archetype: 'long_form',
@@ -94,7 +94,7 @@ export const WEAPON_CLASSES: Record<WeaponClass, WeaponClassDef> = {
   },
   axes: {
     id: 'axes', name: 'Axe', description: 'Editing and compression of existing content.',
-    poise_weight: 'medium', heat_threshold: 12, base_damage_mult: 0.9,
+    poise_weight: 'medium', heat_threshold: 36, base_damage_mult: 0.9,
     preferred_archetypes: ['editing','compression','remix'],
     scaling: { STR: 'C', DEX: 'D' },
     light_archetype: 'compression', heavy_archetype: 'editing',
@@ -105,7 +105,7 @@ export const WEAPON_CLASSES: Record<WeaponClass, WeaponClassDef> = {
   },
   bows: {
     id: 'bows', name: 'Bow', description: 'Async content — newsletters, scheduled posts.',
-    poise_weight: 'light', heat_threshold: 15, base_damage_mult: 0.85,
+    poise_weight: 'light', heat_threshold: 45, base_damage_mult: 0.85,
     preferred_archetypes: ['async','research'],
     scaling: { DEX: 'A' },
     light_archetype: 'async', heavy_archetype: 'long_form',
@@ -115,7 +115,7 @@ export const WEAPON_CLASSES: Record<WeaponClass, WeaponClassDef> = {
   },
   fists: {
     id: 'fists', name: 'Fists', description: 'Raw BTS content and vlogs.',
-    poise_weight: 'light', heat_threshold: 12, base_damage_mult: 0.65,
+    poise_weight: 'light', heat_threshold: 36, base_damage_mult: 0.65,
     preferred_archetypes: ['micro','hot_take','commentary'],
     scaling: { STR: 'C', DEX: 'C' },
     light_archetype: 'micro', heavy_archetype: 'commentary',
@@ -125,7 +125,7 @@ export const WEAPON_CLASSES: Record<WeaponClass, WeaponClassDef> = {
   },
   colossal_swords: {
     id: 'colossal_swords', name: 'Colossal Sword', description: 'Books, courses, and long-form products.',
-    poise_weight: 'colossal', heat_threshold: 3, base_damage_mult: 2.2,
+    poise_weight: 'colossal', heat_threshold: 9, base_damage_mult: 2.2,
     preferred_archetypes: ['long_form','storytelling'],
     scaling: { STR: 'S' },
     light_archetype: 'compression', heavy_archetype: 'long_form',
@@ -137,7 +137,7 @@ export const WEAPON_CLASSES: Record<WeaponClass, WeaponClassDef> = {
   },
   thrusting_swords: {
     id: 'thrusting_swords', name: 'Thrusting Sword', description: 'Comments and reply content.',
-    poise_weight: 'light', heat_threshold: 15, base_damage_mult: 0.75,
+    poise_weight: 'light', heat_threshold: 45, base_damage_mult: 0.75,
     preferred_archetypes: ['micro','commentary'],
     scaling: { INT: 'A', DEX: 'D' },
     light_archetype: 'micro', heavy_archetype: 'hot_take',
@@ -148,7 +148,7 @@ export const WEAPON_CLASSES: Record<WeaponClass, WeaponClassDef> = {
   },
   heavy_thrusting: {
     id: 'heavy_thrusting', name: 'Heavy Thrusting Sword', description: 'In-depth analysis and commentary.',
-    poise_weight: 'medium', heat_threshold: 10, base_damage_mult: 1.1,
+    poise_weight: 'medium', heat_threshold: 30, base_damage_mult: 1.1,
     preferred_archetypes: ['research','commentary'],
     scaling: { INT: 'B', STR: 'D' },
     light_archetype: 'commentary', heavy_archetype: 'research',
@@ -159,7 +159,7 @@ export const WEAPON_CLASSES: Record<WeaponClass, WeaponClassDef> = {
   },
   curved_swords: {
     id: 'curved_swords', name: 'Curved Sword', description: 'Storytelling and narrative content.',
-    poise_weight: 'medium', heat_threshold: 16, base_damage_mult: 1.0,
+    poise_weight: 'medium', heat_threshold: 48, base_damage_mult: 1.0,
     preferred_archetypes: ['storytelling','long_form'],
     scaling: { DEX: 'A' },
     light_archetype: 'micro', heavy_archetype: 'storytelling',
@@ -170,7 +170,7 @@ export const WEAPON_CLASSES: Record<WeaponClass, WeaponClassDef> = {
   },
   curved_greatswords: {
     id: 'curved_greatswords', name: 'Curved Greatsword', description: 'Epic series and narrative sagas.',
-    poise_weight: 'heavy', heat_threshold: 7, base_damage_mult: 1.4,
+    poise_weight: 'heavy', heat_threshold: 21, base_damage_mult: 1.4,
     preferred_archetypes: ['storytelling','long_form'],
     scaling: { DEX: 'B', STR: 'D' },
     light_archetype: 'compression', heavy_archetype: 'storytelling',
@@ -180,7 +180,7 @@ export const WEAPON_CLASSES: Record<WeaponClass, WeaponClassDef> = {
   },
   twinblades: {
     id: 'twinblades', name: 'Twinblade', description: 'Multi-platform cross-posting.',
-    poise_weight: 'medium', heat_threshold: 18, base_damage_mult: 0.9,
+    poise_weight: 'medium', heat_threshold: 54, base_damage_mult: 0.9,
     preferred_archetypes: ['remix','micro'],
     scaling: { DEX: 'S' },
     light_archetype: 'micro', heavy_archetype: 'remix',
@@ -192,7 +192,7 @@ export const WEAPON_CLASSES: Record<WeaponClass, WeaponClassDef> = {
   },
   great_hammers: {
     id: 'great_hammers', name: 'Great Hammer', description: 'Manifestos and major opinion pieces.',
-    poise_weight: 'heavy', heat_threshold: 5, base_damage_mult: 1.7,
+    poise_weight: 'heavy', heat_threshold: 15, base_damage_mult: 1.7,
     preferred_archetypes: ['hot_take','commentary'],
     scaling: { STR: 'A' },
     light_archetype: 'hot_take', heavy_archetype: 'hot_take',
@@ -204,7 +204,7 @@ export const WEAPON_CLASSES: Record<WeaponClass, WeaponClassDef> = {
   },
   great_axes: {
     id: 'great_axes', name: 'Great Axe', description: 'Recaps, roundups, and year-in-review content.',
-    poise_weight: 'heavy', heat_threshold: 6, base_damage_mult: 1.35,
+    poise_weight: 'heavy', heat_threshold: 18, base_damage_mult: 1.35,
     preferred_archetypes: ['compression','editing','remix'],
     scaling: { STR: 'A' },
     light_archetype: 'compression', heavy_archetype: 'editing',
@@ -214,7 +214,7 @@ export const WEAPON_CLASSES: Record<WeaponClass, WeaponClassDef> = {
   },
   flails: {
     id: 'flails', name: 'Flail', description: 'Spontaneous and improv content.',
-    poise_weight: 'medium', heat_threshold: 15, base_damage_mult: 0.95,
+    poise_weight: 'medium', heat_threshold: 45, base_damage_mult: 0.95,
     preferred_archetypes: ['micro','hot_take'],
     scaling: { DEX: 'B', STR: 'D' },
     light_archetype: 'micro', heavy_archetype: 'hot_take',
@@ -226,7 +226,7 @@ export const WEAPON_CLASSES: Record<WeaponClass, WeaponClassDef> = {
   },
   colossal_weapons: {
     id: 'colossal_weapons', name: 'Colossal Weapon', description: 'Mega-projects — documentaries, full series.',
-    poise_weight: 'colossal', heat_threshold: 2, base_damage_mult: 2.4,
+    poise_weight: 'colossal', heat_threshold: 6, base_damage_mult: 2.4,
     preferred_archetypes: ['long_form','storytelling'],
     scaling: { STR: 'S' },
     light_archetype: 'compression', heavy_archetype: 'long_form',
@@ -238,7 +238,7 @@ export const WEAPON_CLASSES: Record<WeaponClass, WeaponClassDef> = {
   },
   great_spears: {
     id: 'great_spears', name: 'Great Spear', description: 'Investigative content.',
-    poise_weight: 'heavy', heat_threshold: 6, base_damage_mult: 1.25,
+    poise_weight: 'heavy', heat_threshold: 18, base_damage_mult: 1.25,
     preferred_archetypes: ['research','long_form'],
     scaling: { STR: 'B', DEX: 'C' },
     light_archetype: 'research', heavy_archetype: 'research',
@@ -249,7 +249,7 @@ export const WEAPON_CLASSES: Record<WeaponClass, WeaponClassDef> = {
   },
   halberds: {
     id: 'halberds', name: 'Halberd', description: 'Hybrid research and opinion.',
-    poise_weight: 'medium', heat_threshold: 9, base_damage_mult: 1.1,
+    poise_weight: 'medium', heat_threshold: 27, base_damage_mult: 1.1,
     preferred_archetypes: ['research','commentary'],
     scaling: { STR: 'C', DEX: 'C' },
     light_archetype: 'commentary', heavy_archetype: 'research',
@@ -260,7 +260,7 @@ export const WEAPON_CLASSES: Record<WeaponClass, WeaponClassDef> = {
   },
   reapers: {
     id: 'reapers', name: 'Reaper', description: 'Commentary, takedowns, and critiques.',
-    poise_weight: 'heavy', heat_threshold: 6, base_damage_mult: 1.2,
+    poise_weight: 'heavy', heat_threshold: 18, base_damage_mult: 1.2,
     preferred_archetypes: ['commentary','hot_take'],
     scaling: { ARC: 'A', DEX: 'D' },
     light_archetype: 'hot_take', heavy_archetype: 'commentary',
@@ -271,7 +271,7 @@ export const WEAPON_CLASSES: Record<WeaponClass, WeaponClassDef> = {
   },
   whips: {
     id: 'whips', name: 'Whip', description: 'Series and content cycles.',
-    poise_weight: 'medium', heat_threshold: 14, base_damage_mult: 0.9,
+    poise_weight: 'medium', heat_threshold: 42, base_damage_mult: 0.9,
     preferred_archetypes: ['async','storytelling'],
     scaling: { ARC: 'B', DEX: 'C' },
     light_archetype: 'async', heavy_archetype: 'storytelling',
@@ -282,7 +282,7 @@ export const WEAPON_CLASSES: Record<WeaponClass, WeaponClassDef> = {
   },
   greatbows: {
     id: 'greatbows', name: 'Greatbow', description: 'Long-tail evergreen content.',
-    poise_weight: 'colossal', heat_threshold: 4, base_damage_mult: 1.6,
+    poise_weight: 'colossal', heat_threshold: 12, base_damage_mult: 1.6,
     preferred_archetypes: ['async','research'],
     scaling: { FAI: 'A', STR: 'D' },
     light_archetype: 'async', heavy_archetype: 'async',
@@ -303,7 +303,7 @@ export const WEAPON_CLASSES: Record<WeaponClass, WeaponClassDef> = {
   },
   ballistas: {
     id: 'ballistas', name: 'Ballista', description: 'Major product launches.',
-    poise_weight: 'colossal', heat_threshold: 1, base_damage_mult: 2.2,
+    poise_weight: 'colossal', heat_threshold: 3, base_damage_mult: 2.2,
     preferred_archetypes: ['long_form','async'],
     scaling: { STR: 'C', DEX: 'D' },
     light_archetype: 'async', heavy_archetype: 'long_form',

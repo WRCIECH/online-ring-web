@@ -308,32 +308,29 @@
 /* ── Status accumulation bars ────────────────────────────────────────────── */
 .statusBars {
   display: flex;
-  flex-wrap: wrap;
-  gap: 4px 12px;
-  padding: 4px 12px;
-  background: rgba(0,0,0,0.3);
-  border-bottom: 1px solid var(--color-sep);
+  flex-direction: column;
+  gap: 3px;
+  margin-top: 5px;
 }
 
 .statusBarRow {
   display: flex;
   align-items: center;
   gap: 6px;
-  min-width: 140px;
 }
 
 .statusBarLabel {
-  font-size: 0.6rem;
-  letter-spacing: 0.08em;
+  font-size: 0.58rem;
+  letter-spacing: 0.06em;
   text-transform: uppercase;
   color: var(--color-text-dim);
   white-space: nowrap;
-  min-width: 60px;
+  min-width: 68px;
 }
 
 .statusBarTrack {
   flex: 1;
-  height: 4px;
+  height: 3px;
   background: rgba(255,255,255,0.08);
   border-radius: 2px;
   overflow: hidden;

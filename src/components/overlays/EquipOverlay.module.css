@@ -387,6 +387,17 @@
   margin-left: auto;
 }
 
+.statusBadge {
+  font-size: 0.65rem;
+  color: #cc88aa;
+  background: rgba(180,80,120,0.12);
+  border: 1px solid rgba(180,80,120,0.3);
+  border-radius: 3px;
+  padding: 1px 6px;
+  white-space: nowrap;
+  text-transform: capitalize;
+}
+
 .msTipInfusion {
   display: flex;
   flex-wrap: wrap;

@@ -27,7 +27,7 @@ export const ENEMY_MOVES: Record<string, EnemyMove> = {
     description: 'Ridicules your content to undermine your confidence.',
     damage: 18, block_damage: 7, poise_damage: 8,
     dodge_task: { name: 'Write the next sentence of your piece', time: 20 },
-    publish_task: { name: "Write one line announcing your next piece — as if it's already published", time: 20 },
+    publish_task: { name: 'Write the publish date and platform for your next piece — commit to it now', time: 20 },
   },
   credibility_slash: {
     id: 'credibility_slash', name: 'Credibility Slash',
@@ -76,21 +76,21 @@ export const ENEMY_MOVES: Record<string, EnemyMove> = {
     description: 'You just need to read one more thing before it\'s done.',
     damage: 25, block_damage: 10, poise_damage: 15,
     dodge_task: { name: 'Write from what you already know — one sentence', time: 20 },
-    publish_task: { name: 'Name the piece you will publish without reading one more source', time: 20 },
+    publish_task: { name: 'Write the title, platform, and publish date for the piece you will stop researching and ship', time: 20 },
   },
   hollow_stare: {
     id: 'hollow_stare', name: 'Hollow Stare',
     description: 'Stares through you, draining your will to continue.',
     damage: 16, block_damage: 7, poise_damage: 9,
     dodge_task: { name: 'Write one sentence about why your topic matters to you', time: 20 },
-    publish_task: { name: 'Write one sentence announcing something you are about to publish', time: 20 },
+    publish_task: { name: 'Write your next scheduled publish: title, platform, and exact date', time: 20 },
   },
   drag_down: {
     id: 'drag_down', name: 'Drag Down',
     description: 'Heavy mental fog pulls your creativity underwater.',
     damage: 24, block_damage: 10, poise_damage: 13,
     dodge_task: { name: 'Write three words that describe what you enjoy about writing', time: 20 },
-    publish_task: { name: 'Name one thing you will publish or schedule before this session ends', time: 20 },
+    publish_task: { name: 'Write one publish or schedule commitment: title, platform, and date — before this session ends', time: 20 },
   },
   viral_post: {
     id: 'viral_post', name: 'Viral Post',
@@ -104,7 +104,7 @@ export const ENEMY_MOVES: Record<string, EnemyMove> = {
     description: 'Reduces your creative worth to a number you can never beat.',
     damage: 28, block_damage: 12, poise_damage: 15,
     dodge_task: { name: 'Write who you are writing for — name one specific person', time: 20 },
-    publish_task: { name: 'Name one piece you will publish regardless of how many people see it', time: 20 },
+    publish_task: { name: 'Write the title, platform, and publish date for a piece you will release regardless of reach', time: 20 },
   },
   trending_now: {
     id: 'trending_now', name: 'Trending Now',

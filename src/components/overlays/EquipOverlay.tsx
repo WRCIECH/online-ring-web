@@ -3,6 +3,7 @@ import { useGameStore } from '../../store/gameStore'
 import type { GameStore } from '../../store/gameStore'
 import { WEAPONS, weaponUpgradeCost, GRADE_MULT } from '../../data/weapons'
 import { MOVES } from '../../data/movesets'
+import { WEAPON_CLASSES } from '../../data/generators/weaponClasses'
 import type { WeaponInstance, WeaponRarity, GeneratedMoveset, StatKey, Grade } from '../../types/game'
 import MovesetIcon from '../icons/MovesetIcon'
 import WeaponSprite from '../icons/WeaponSprite'
@@ -108,6 +109,11 @@ function WeaponCard({ weaponId, store, onPickSlot }: {
         {wi.rarity && (
           <span className={s.rarityBadge} style={{ color: RARITY_COLOURS[wi.rarity] }}>
             {wi.rarity.toUpperCase()}
+          </span>
+        )}
+        {wi.weapon_class && WEAPON_CLASSES[wi.weapon_class]?.inherent_status && (
+          <span className={s.statusBadge}>
+            {WEAPON_CLASSES[wi.weapon_class]!.inherent_status!.replace(/_/g, ' ')}
           </span>
         )}
         <span className={s.weaponLevel}>+{level}{isMax ? ' MAX' : ''}</span>

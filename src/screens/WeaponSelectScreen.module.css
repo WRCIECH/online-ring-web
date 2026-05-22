@@ -222,6 +222,17 @@
   box-shadow: var(--glow-gold);
 }
 
+.statusBadge {
+  font-size: 0.68rem;
+  color: #cc88aa;
+  background: rgba(180,80,120,0.12);
+  border: 1px solid rgba(180,80,120,0.3);
+  border-radius: 3px;
+  padding: 1px 7px;
+  white-space: nowrap;
+  text-transform: capitalize;
+}
+
 .cooldownBadge {
   font-size: 0.7rem;
   color: #cc5533;

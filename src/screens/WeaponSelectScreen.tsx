@@ -3,6 +3,7 @@ import { useNavigate, useLocation } from 'react-router-dom'
 import { useGameStore } from '../store/gameStore'
 import { WEAPONS, LEVEL_MULT } from '../data/weapons'
 import { MOVES } from '../data/movesets'
+import { WEAPON_CLASSES } from '../data/generators/weaponClasses'
 import type { WeaponInstance, WeaponRarity } from '../types/game'
 import WeaponSprite from '../components/icons/WeaponSprite'
 import StatsOverlay from '../components/overlays/StatsOverlay'
@@ -61,12 +62,14 @@ export default function WeaponSelectScreen() {
           if (!weapon) return null
           const level  = store.weapon_level[wid] ?? 0
 
-          const cooldown   = store.weapon_cooldown[wid] ?? 0
-          const onCooldown = cooldown > 0
-          const isSelected = selected.includes(wid)
-          const isDisabled = onCooldown || (!isSelected && selected.length >= MAX_WEAPONS)
-          const rarity = (weapon as WeaponInstance).rarity
-          const affixes = (weapon as WeaponInstance).affixes ?? []
+          const cooldown        = store.weapon_cooldown[wid] ?? 0
+          const onCooldown      = cooldown > 0
+          const isSelected      = selected.includes(wid)
+          const isDisabled      = onCooldown || (!isSelected && selected.length >= MAX_WEAPONS)
+          const rarity          = (weapon as WeaponInstance).rarity
+          const affixes         = (weapon as WeaponInstance).affixes ?? []
+          const weaponClass     = (weapon as WeaponInstance).weapon_class
+          const inherentStatus  = weaponClass ? WEAPON_CLASSES[weaponClass]?.inherent_status : undefined
 
           const allMovesetIds = [
             ...weapon.constant_movesets,
@@ -94,6 +97,9 @@ export default function WeaponSelectScreen() {
                   <span className={s.rarityBadge} style={{ color: RARITY_COLOURS[rarity] }}>
                     {rarity.toUpperCase()}
                   </span>
+                )}
+                {inherentStatus && (
+                  <span className={s.statusBadge}>{inherentStatus.replace(/_/g, ' ')}</span>
                 )}
                 {onCooldown && (
                   <span className={s.cooldownBadge}>🔥 Cool-down: {cooldown} run{cooldown !== 1 ? 's' : ''}</span>
