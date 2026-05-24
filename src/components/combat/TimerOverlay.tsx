@@ -161,6 +161,22 @@ export default function TimerOverlay({ state, dispatch }: Props) {
           )}
         </div>
 
+        {/* Status buildup checkbox — shown below origin/dmg descriptions, always visible in preview */}
+        {statusLabel && statusBuildup && !timerIsDefense && (
+          <label className={s.statusCheck}>
+            <input
+              type="checkbox"
+              checked={statusApplied}
+              onChange={e => setStatusApplied(e.target.checked)}
+              disabled={isPreview}
+            />
+            <span>
+              <span className={s.statusCheckName}>Applied {statusLabel}</span>
+              <InfoTooltip entry={STATUS_INFO[statusBuildup]} className={s.statusCheckDesc} />
+            </span>
+          </label>
+        )}
+
         <div className={s.taskName}>{taskName}</div>
 
         <textarea
@@ -180,21 +196,6 @@ export default function TimerOverlay({ state, dispatch }: Props) {
             </div>
           )}
         </div>
-
-        {/* Status buildup checkbox — shown only for attack steps with a status moveset */}
-        {statusLabel && statusBuildup && !timerIsDefense && (isActive || isExpired) && (
-          <label className={s.statusCheck}>
-            <input
-              type="checkbox"
-              checked={statusApplied}
-              onChange={e => setStatusApplied(e.target.checked)}
-            />
-            <span>
-              <span className={s.statusCheckName}>Applied {statusLabel}</span>
-              <InfoTooltip entry={STATUS_INFO[statusBuildup]} className={s.statusCheckDesc} />
-            </span>
-          </label>
-        )}
 
         {isPreview && (
           <div className={s.actions}>

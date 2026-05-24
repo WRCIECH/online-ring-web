@@ -1,9 +1,6 @@
 .wrap {
   position: relative;
   cursor: help;
-  /* underline hint */
-  text-decoration: underline dotted 1px;
-  text-underline-offset: 3px;
 }
 
 /* ── Floating popup ─────────────────────────────────────────────────────── */

@@ -37,14 +37,14 @@
 }
 
 .ctxMoveset {
-  font-size: 1.5rem;
+  font-size: 1.4rem;
   color: var(--color-gold-dim);
   letter-spacing: 0.04em;
   font-weight: 500;
 }
 
 .ctxStep {
-  font-size: 1.36rem;
+  font-size: 1.4rem;
   color: var(--color-text-dim);
   background: rgba(255,255,255,0.06);
   border-radius: 3px;
@@ -52,23 +52,23 @@
 }
 
 .ctxDmg {
-  font-size: 1.44rem;
+  font-size: 1.4rem;
   color: var(--color-text-success);
   letter-spacing: 0.02em;
 }
 
 .ctxSta {
-  font-size: 1.36rem;
+  font-size: 1.4rem;
   color: var(--color-stamina);
 }
 
 .ctxFp {
-  font-size: 1.36rem;
+  font-size: 1.4rem;
   color: var(--color-fp);
 }
 
 .ctxWeapon {
-  font-size: 1.3rem;
+  font-size: 1.4rem;
   color: var(--color-text-dim);
   opacity: 0.6;
   margin-left: auto;
@@ -85,30 +85,30 @@
 }
 
 .ctxOrigin {
-  font-size: 1.36rem;
+  font-size: 1.4rem;
   color: var(--color-text-dim);
   flex-basis: 100%;
   padding-top: 2px;
 }
 
 .ctxDmgDesc {
-  font-size: 1.36rem;
+  font-size: 1.4rem;
   flex-basis: 100%;
   opacity: 0.8;
 }
 
 .statusCheckName {
-  font-size: 0.8rem;
+  font-size: 1.4rem;
   color: var(--color-text-dim);
   display: block;
 }
 
 .statusCheckDesc {
-  font-size: 0.68rem;
+  font-size: 1.4rem;
   color: var(--color-text-dim);
-  opacity: 0.65;
+  opacity: 0.8;
   display: block;
-  margin-top: 1px;
+  margin-top: 2px;
 }
 
 .taskName {
@@ -207,9 +207,9 @@
 
 .statusCheck {
   display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 0.8rem;
+  align-items: flex-start;
+  gap: 10px;
+  font-size: 1.4rem;
   color: var(--color-text-dim);
   cursor: pointer;
   padding: 4px 0;
@@ -217,8 +217,10 @@
 
 .statusCheck input[type="checkbox"] {
   accent-color: var(--color-gold);
-  width: 14px;
-  height: 14px;
+  width: 20px;
+  height: 20px;
+  margin-top: 4px;
+  flex-shrink: 0;
 }
 
 .backRow { display: flex; justify-content: center; }
