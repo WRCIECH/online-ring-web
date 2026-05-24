@@ -294,7 +294,7 @@ export function buildBadges(d: AtomicDimensions, damageType?: DamageType): StepB
     { label: stageInfo.badge_label,  detail: stageInfo.detail,  color: STAGE_BADGE_COLOR[d.stage]  },
     // 2. Medium — what format or channel is being used
     { label: mediumInfo.badge_label, detail: mediumInfo.detail, color: MEDIUM_BADGE_COLOR[d.medium] },
-    // 3. Content origin — new vs repurposed vs derivative
+    // 3. Content origin — new vs derivative vs recontextualised
     { label: originInfo.badge_label, detail: originInfo.detail, color: ORIGIN_BADGE_COLOR[d.content_origin] },
     // 4. Damage type — the content style that powers this move
     { label: dmgInfo.badge_label,    detail: dmgInfo.detail,    color: DMG_TYPE_BADGE_COLOR[dmgKey] },
