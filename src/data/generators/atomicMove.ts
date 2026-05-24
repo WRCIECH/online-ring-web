@@ -21,7 +21,7 @@ import type {
   AtomicTime, AtomicPub, AtomicOrigin, AtomicPlanning, MovesetVariant,
   Step, StepBadge, DamageType, StatusType,
 } from '../../types/game'
-import { CONTENT_ORIGIN_INFO, DMG_TYPE_INFO, STATUS_INFO } from '../contentDescriptions'
+import { CONTENT_ORIGIN_INFO, DMG_TYPE_INFO, STATUS_INFO, STAGE_INFO, MEDIUM_INFO } from '../contentDescriptions'
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -289,47 +289,24 @@ const STATUS_BADGE_COLOR: Record<StatusType, string> = {
   grace:        '#88cc66',
 }
 
-// ── Stage and medium details (workflow-specific, not in contentDescriptions) ──
-
-const STAGE_BADGE_DETAIL: Record<AtomicStage, string> = {
-  Ideate:    'Free-form idea generation — maximum volume, no self-editing.',
-  Research:  'Actively gather evidence, examples, and reference material.',
-  Outline:   'Plan the full structure before writing a word.',
-  Generate:  'Write your raw first draft — commit without stopping.',
-  Glue:      'Connect and order pieces into a coherent narrative.',
-  Refine:    'Cut the fat, tighten sentences, and elevate the writing.',
-  Publish:   'Format, finalise, and commit to releasing.',
-  Repurpose: 'Reshape for a new context, platform, or format.',
-  React:     'Write your honest take on existing content.',
-  Connect:   'Synthesise ideas or close the loop with collaborators.',
-}
-
-const MEDIUM_BADGE_DETAIL: Record<AtomicMedium, string> = {
-  Writing: 'Written content — articles, posts, essays, scripts, or any text-based format.',
-  Audio:   'Produce or record audio — podcast, voice note, or narration.',
-  Video:   'Create video content — record, edit, or script for video.',
-  Image:   'Create or source visuals — graphics, photos, or illustrations.',
-  Design:  'Visual design work — thumbnails, slides, or brand assets.',
-  Outline: 'Structural planning — wireframes, document maps, or schemas.',
-  Hybrid:  'Cross-format work combining two or more media types.',
-}
-
 // ── Badge assembly ────────────────────────────────────────────────────────────
 
 /** Builds the first 4 badges for a step. The 5th (status) is injected by movesetGenerator. */
 export function buildBadges(d: AtomicDimensions, damageType?: DamageType): StepBadge[] {
-  const dmgKey    = damageType ?? 'standard'
-  const dmgInfo   = DMG_TYPE_INFO[dmgKey]
+  const dmgKey     = damageType ?? 'standard'
+  const stageInfo  = STAGE_INFO[d.stage]
+  const mediumInfo = MEDIUM_INFO[d.medium]
   const originInfo = CONTENT_ORIGIN_INFO[d.content_origin]
+  const dmgInfo    = DMG_TYPE_INFO[dmgKey]
   return [
     // 1. Stage — what workflow phase this step belongs to
-    { label: d.stage,              detail: STAGE_BADGE_DETAIL[d.stage],   color: STAGE_BADGE_COLOR[d.stage]  },
+    { label: stageInfo.badge_label,  detail: stageInfo.detail,  color: STAGE_BADGE_COLOR[d.stage]  },
     // 2. Medium — what format or channel is being used
-    { label: d.medium,             detail: MEDIUM_BADGE_DETAIL[d.medium], color: MEDIUM_BADGE_COLOR[d.medium] },
+    { label: mediumInfo.badge_label, detail: mediumInfo.detail, color: MEDIUM_BADGE_COLOR[d.medium] },
     // 3. Content origin — new vs repurposed vs derivative
-    { label: originInfo.badge_label, detail: originInfo.detail,           color: ORIGIN_BADGE_COLOR[d.content_origin] },
+    { label: originInfo.badge_label, detail: originInfo.detail, color: ORIGIN_BADGE_COLOR[d.content_origin] },
     // 4. Damage type — the content style that powers this move
-    { label: dmgInfo.badge_label,  detail: dmgInfo.detail,                color: DMG_TYPE_BADGE_COLOR[dmgKey] },
+    { label: dmgInfo.badge_label,    detail: dmgInfo.detail,    color: DMG_TYPE_BADGE_COLOR[dmgKey] },
   ]
 }
 

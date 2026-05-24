@@ -1,4 +1,4 @@
-import type { AtomicOrigin, DamageType, StatusType } from '../types/game'
+import type { AtomicOrigin, AtomicStage, AtomicMedium, DamageType, StatusType } from '../types/game'
 
 export type ContentEntry = {
   /** Short chip label used in badge rendering */
@@ -233,6 +233,118 @@ export const STATUS_INFO: Record<StatusType, ContentEntry> = {
     label:       'Trigger Emotion on Wholesome/Inspiration/Hope',
     detail:      "Grace — Focus on philanthropy, good deeds, and pure motivation, fully restoring the viewer's faith in humanity.",
     example:     'Documenting a genuine community charity project where you help rebuild a local park, filling the audience with pure hope.',
+  },
+}
+
+// ─── Stage (Phase) ───────────────────────────────────────────────────────────
+
+export const STAGE_INFO: Record<AtomicStage, ContentEntry> = {
+  Ideate: {
+    badge_label: 'Ideate',
+    label:       'Ideation — generate ideas freely',
+    detail:      'Free-form idea generation — maximum volume, no self-editing.',
+    example:     'Writing down every possible angle, hook, and format without filtering.',
+  },
+  Research: {
+    badge_label: 'Research',
+    label:       'Research — gather evidence and reference',
+    detail:      'Actively gather evidence, examples, and reference material.',
+    example:     'Reading three competing articles before starting your own piece.',
+  },
+  Outline: {
+    badge_label: 'Outline',
+    label:       'Outline — map the structure first',
+    detail:      'Plan the full structure before writing a word.',
+    example:     'Creating a numbered list of sections and the key point of each before drafting.',
+  },
+  Generate: {
+    badge_label: 'Generate',
+    label:       'Generate — write the first draft',
+    detail:      'Write your raw first draft — commit without stopping.',
+    example:     'Setting a timer and writing continuously until the draft is done, no backspace.',
+  },
+  Glue: {
+    badge_label: 'Glue',
+    label:       'Glue — connect pieces into a whole',
+    detail:      'Connect and order pieces into a coherent narrative.',
+    example:     'Stitching together separate sections with transitions and a unifying thread.',
+  },
+  Refine: {
+    badge_label: 'Refine',
+    label:       'Refine — cut and elevate',
+    detail:      'Cut the fat, tighten sentences, and elevate the writing.',
+    example:     'Reading your draft out loud and cutting every sentence that slows the pace.',
+  },
+  Publish: {
+    badge_label: 'Publish',
+    label:       'Publish — release to the world',
+    detail:      'Format, finalise, and commit to releasing.',
+    example:     'Adding the thumbnail, writing the meta description, and hitting publish.',
+  },
+  Repurpose: {
+    badge_label: 'Repurpose',
+    label:       'Repurpose — reshape for new context',
+    detail:      'Reshape for a new context, platform, or format.',
+    example:     'Turning a blog post into a Twitter thread by extracting its core points.',
+  },
+  React: {
+    badge_label: 'React',
+    label:       'React — respond to existing content',
+    detail:      'Write your honest take on existing content.',
+    example:     'Writing a response piece to a popular opinion you disagree with.',
+  },
+  Connect: {
+    badge_label: 'Connect',
+    label:       'Connect — close the loop',
+    detail:      'Synthesise ideas or close the loop with collaborators.',
+    example:     'Sending a follow-up message to a creator whose work you referenced.',
+  },
+}
+
+// ─── Medium ───────────────────────────────────────────────────────────────────
+
+export const MEDIUM_INFO: Record<AtomicMedium, ContentEntry> = {
+  Writing: {
+    badge_label: 'Writing',
+    label:       'Writing — text-based format',
+    detail:      'Written content — articles, posts, essays, scripts, or any text-based format.',
+    example:     'A long-form newsletter issue, blog post, or Twitter/X thread.',
+  },
+  Audio: {
+    badge_label: 'Audio',
+    label:       'Audio — spoken or recorded sound',
+    detail:      'Produce or record audio — podcast, voice note, or narration.',
+    example:     'Recording a podcast episode or a voice-memo brain dump.',
+  },
+  Video: {
+    badge_label: 'Video',
+    label:       'Video — moving image content',
+    detail:      'Create video content — record, edit, or script for video.',
+    example:     'Filming and editing a YouTube video or a short-form Reel/TikTok.',
+  },
+  Image: {
+    badge_label: 'Image',
+    label:       'Image — visual or graphic',
+    detail:      'Create or source visuals — graphics, photos, or illustrations.',
+    example:     'Designing a single-image carousel slide or sourcing a hero photo.',
+  },
+  Design: {
+    badge_label: 'Design',
+    label:       'Design — visual layout and brand',
+    detail:      'Visual design work — thumbnails, slides, or brand assets.',
+    example:     'Creating a YouTube thumbnail or a slide deck for a presentation.',
+  },
+  Outline: {
+    badge_label: 'Outline',
+    label:       'Outline — structural planning',
+    detail:      'Structural planning — wireframes, document maps, or schemas.',
+    example:     'Mapping out a content series with titles, topics, and target dates.',
+  },
+  Hybrid: {
+    badge_label: 'Hybrid',
+    label:       'Hybrid — cross-format work',
+    detail:      'Cross-format work combining two or more media types.',
+    example:     'Writing a script, recording audio, and adding visuals for a video essay.',
   },
 }
 
