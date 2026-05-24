@@ -66,10 +66,71 @@
   color: var(--color-text-dim);
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 10px;
   padding-bottom: 2px;
   border-bottom: 1px solid var(--color-sep);
   margin-bottom: 2px;
+  position: relative;
+  cursor: help;
+}
+
+/* ── Weapon hover tooltip ─────────────────────────────────────────────────── */
+
+.weaponTip {
+  position: absolute;
+  bottom: calc(100% + 8px);
+  left: 0;
+  z-index: 200;
+  width: 260px;
+  padding: 10px 14px;
+  background: #1a1628;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  box-shadow: 0 4px 20px rgba(0,0,0,0.6);
+  font-size: 0.82rem;
+  color: var(--color-text);
+  pointer-events: none;
+  opacity: 0;
+  transform: translateY(4px);
+  transition: opacity 0.12s ease, transform 0.12s ease;
+  white-space: normal;
+  cursor: default;
+}
+
+.ctxWeapon:hover .weaponTip {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.weaponTipRow {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 2px 0;
+  line-height: 1.55;
+}
+
+.weaponTipLabel { color: var(--color-text-dim); }
+.weaponTipVal   { color: var(--color-text); font-weight: 500; }
+
+.weaponTipSep {
+  border: none;
+  border-top: 1px solid var(--color-sep);
+  margin: 6px 0;
+}
+
+.weaponTipScaling {
+  color: var(--color-gold-dim);
+  font-size: 0.8rem;
+  letter-spacing: 0.04em;
+  padding: 2px 0;
+}
+
+.weaponTipAffix {
+  color: var(--color-text-dim);
+  font-size: 0.78rem;
+  padding: 1px 0;
+  line-height: 1.5;
 }
 
 .ctxOutcome {

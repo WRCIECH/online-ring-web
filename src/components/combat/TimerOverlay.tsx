@@ -2,6 +2,7 @@ import { useEffect, useRef } from 'react'
 import type { CombatState, CombatAction } from '../../engine/combat'
 import { STA_DEFENSE_GAIN } from '../../engine/combat'
 import { WEAPONS, calcStepDamage } from '../../data/weapons'
+import { WEAPON_CLASSES } from '../../data/generators/weaponClasses'
 import type { GeneratedMoveset, WeaponInstance, DamageType } from '../../types/game'
 import { appendToLog } from '../../engine/save'
 import WeaponSprite from '../icons/WeaponSprite'
@@ -82,6 +83,12 @@ export default function TimerOverlay({ state, dispatch }: Props) {
   const dmgType = pendingStep?.damage_type
   const dmgTypeColor = dmgType ? (DMG_TYPE_COLOURS[dmgType] ?? '#aaaaaa') : null
 
+  // ── Weapon tooltip data ───────────────────────────────────────────────────
+  const classDef = wi?.weapon_class ? WEAPON_CLASSES[wi.weapon_class] : null
+  const affixDmgMult = wi?.affixes.reduce((m, a) => m * (a.damage_mult ?? 1), 1) ?? 1
+  const effectiveDmgMult = ((wi?.base_damage_mult ?? 1) * affixDmgMult)
+  const scalingEntries = wi ? (Object.entries(wi.scaling) as [string, string][]) : []
+
   return (
     <div className={s.overlay}>
       <div className={s.panel}>
@@ -98,9 +105,56 @@ export default function TimerOverlay({ state, dispatch }: Props) {
                     weaponClass={wi.weapon_class}
                     rarity={wi.rarity}
                     poiseWeight={wi.poise_weight}
-                    size={22}
+                    size={44}
                   />
                   {wi.name}
+                  {/* ── Hover tooltip ── */}
+                  <span className={s.weaponTip}>
+                    <div className={s.weaponTipRow}>
+                      <span className={s.weaponTipLabel}>Damage mult</span>
+                      <span className={s.weaponTipVal}>×{effectiveDmgMult.toFixed(2)}</span>
+                    </div>
+                    {classDef && (
+                      <div className={s.weaponTipRow}>
+                        <span className={s.weaponTipLabel}>Task time</span>
+                        <span className={s.weaponTipVal}>×{classDef.time_mod.toFixed(2)}</span>
+                      </div>
+                    )}
+                    {classDef && (
+                      <div className={s.weaponTipRow}>
+                        <span className={s.weaponTipLabel}>Stamina cost</span>
+                        <span className={s.weaponTipVal}>×{classDef.stamina_mod.toFixed(2)}</span>
+                      </div>
+                    )}
+                    <div className={s.weaponTipRow}>
+                      <span className={s.weaponTipLabel}>Heat limit</span>
+                      <span className={s.weaponTipVal}>{wi.heat_threshold}</span>
+                    </div>
+                    {scalingEntries.length > 0 && (
+                      <>
+                        <hr className={s.weaponTipSep} />
+                        <div className={s.weaponTipScaling}>
+                          {scalingEntries.map(([stat, grade]) => `${stat} ${grade}`).join(' · ')}
+                        </div>
+                      </>
+                    )}
+                    {wi.affixes.length > 0 && (
+                      <>
+                        <hr className={s.weaponTipSep} />
+                        {wi.affixes.map((a, i) => {
+                          const parts: string[] = []
+                          if (a.damage_mult  && a.damage_mult  !== 1) parts.push(`${a.damage_mult  > 1 ? '+' : ''}${Math.round((a.damage_mult  - 1) * 100)}% dmg`)
+                          if (a.stamina_mult && a.stamina_mult !== 1) parts.push(`${a.stamina_mult > 1 ? '+' : ''}${Math.round((a.stamina_mult - 1) * 100)}% sta`)
+                          if (a.fp_mult     && a.fp_mult      !== 1) parts.push(`${a.fp_mult      > 1 ? '+' : ''}${Math.round((a.fp_mult      - 1) * 100)}% FP`)
+                          return (
+                            <div key={i} className={s.weaponTipAffix}>
+                              {a.label}{parts.length ? ` — ${parts.join(', ')}` : ''}
+                            </div>
+                          )
+                        })}
+                      </>
+                    )}
+                  </span>
                 </span>
               )}
               <span className={s.ctxMoveset}>{pendingMoveset.name}</span>
