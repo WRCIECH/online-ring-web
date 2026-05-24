@@ -49,7 +49,7 @@ const TIME_WEIGHTS: Record<MovesetVariant, number[]> = {
 export function validateConsistency(d: AtomicDimensions): boolean {
   if (d.cognitive_mode === 'Consuming'   && d.stage !== 'Research')                                             return false
   if (d.cognitive_mode === 'Consuming'   && d.publication === 'public')                                         return false
-  if (d.cognitive_mode === 'Commentary'  && d.stage !== 'Generate' && d.stage !== 'Repurpose')                  return false
+  if (d.cognitive_mode === 'Commentary'  && d.stage !== 'Generate')                                             return false
   if (d.cognitive_mode === 'Compressing' && d.content_origin === 'New')                                         return false
   if (d.cognitive_mode === 'Expanding'   && d.content_origin === 'New')                                         return false
   if (d.cognitive_mode === 'Remixing'    &&
@@ -69,7 +69,6 @@ const STAGE_VERBS: Record<AtomicStage, string> = {
   Glue:      'Arrange and connect your pieces into a coherent whole',
   Refine:    'Cut the fat, tighten sentences, and elevate the writing',
   Publish:   'Put it out — finalise, format, and commit to publishing',
-  Repurpose: 'Reshape the content for a new context or platform',
 }
 
 const MEDIUM_SUFFIX: Partial<Record<AtomicMedium, string>> = {
@@ -147,15 +146,15 @@ const STAGE_CHAINS: Record<MovesetArchetype, AtomicStage[][]> = {
                  ['Research','Outline','Generate','Publish']],
   compression:  [['Generate','Refine','Publish'],
                  ['Research','Refine','Publish']],
-  remix:        [['Research','Repurpose','Publish'],
-                 ['Repurpose','Refine','Publish']],
+  remix:        [['Research','Refine','Publish'],
+                 ['Research','Generate','Refine','Publish']],
   storytelling: [['Ideate','Outline','Generate','Glue','Refine','Publish']],
   hot_take:     [['Generate','Publish'],
                  ['Ideate','Generate','Publish']],
   async:        [['Outline','Generate','Publish'],
                  ['Generate','Refine','Publish']],
   editing:      [['Research','Refine','Publish'],
-                 ['Generate','Refine','Repurpose','Publish']],
+                 ['Generate','Refine','Publish']],
 }
 
 export function pickStageChain(archetype: MovesetArchetype, comboLength: number): AtomicStage[] {
@@ -173,7 +172,6 @@ function modeForStage(stage: AtomicStage, archetype: MovesetArchetype): AtomicMo
   switch (stage) {
     case 'Research':  return 'Consuming'
     case 'Glue':      return 'Connecting'
-    case 'Repurpose': return pick(['Remixing', 'Compressing'] as AtomicMode[], [3, 1])
     case 'Generate':
       if (archetype === 'commentary') return 'Commentary'
       return 'Creating'
@@ -201,7 +199,7 @@ export function rollAtomicMove(
     const time_budget    = pick(TIMES, timeWeights)
     const cognitive_mode = modeForStage(stage, archetype)
     const publication: AtomicPub =
-      stage === 'Publish' || stage === 'Repurpose' ? targetPub
+      stage === 'Publish' ? targetPub
       : stage === 'Refine' ? pick(['draft_published', 'private'] as AtomicPub[], [2, 1])
       : 'just_work'
     const dim: AtomicDimensions = {
@@ -228,7 +226,6 @@ const STAGE_BADGE_COLOR: Record<AtomicStage, string> = {
   Glue:      '#669966',
   Refine:    '#7799bb',
   Publish:   '#66aa55',
-  Repurpose: '#bb8833',
 }
 
 const MEDIUM_BADGE_COLOR: Record<AtomicMedium, string> = {
