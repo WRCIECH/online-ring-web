@@ -49,7 +49,7 @@ const TIME_WEIGHTS: Record<MovesetVariant, number[]> = {
 export function validateConsistency(d: AtomicDimensions): boolean {
   if (d.cognitive_mode === 'Consuming'   && d.stage !== 'Research')                                             return false
   if (d.cognitive_mode === 'Consuming'   && d.publication === 'public')                                         return false
-  if (d.cognitive_mode === 'Commentary'  && d.stage !== 'React' && d.stage !== 'Connect')                       return false
+  if (d.cognitive_mode === 'Commentary'  && d.stage !== 'Generate' && d.stage !== 'Repurpose')                  return false
   if (d.cognitive_mode === 'Compressing' && d.content_origin === 'New')                                         return false
   if (d.cognitive_mode === 'Expanding'   && d.content_origin === 'New')                                         return false
   if (d.cognitive_mode === 'Remixing'    &&
@@ -70,8 +70,6 @@ const STAGE_VERBS: Record<AtomicStage, string> = {
   Refine:    'Cut the fat, tighten sentences, and elevate the writing',
   Publish:   'Put it out — finalise, format, and commit to publishing',
   Repurpose: 'Reshape the content for a new context or platform',
-  React:     'Write your honest take on the existing content',
-  Connect:   'Reach out, synthesise ideas, or close the loop',
 }
 
 const MEDIUM_SUFFIX: Partial<Record<AtomicMedium, string>> = {
@@ -143,8 +141,8 @@ const STAGE_CHAINS: Record<MovesetArchetype, AtomicStage[][]> = {
                  ['Ideate','Outline','Generate','Refine','Publish']],
   micro:        [['Ideate','Publish'],
                  ['Generate','Publish']],
-  commentary:   [['Research','React','Publish'],
-                 ['Research','React','Glue','Publish']],
+  commentary:   [['Research','Generate','Publish'],
+                 ['Research','Generate','Glue','Publish']],
   research:     [['Research','Glue','Publish'],
                  ['Research','Outline','Generate','Publish']],
   compression:  [['Generate','Refine','Publish'],
@@ -174,10 +172,11 @@ export function pickStageChain(archetype: MovesetArchetype, comboLength: number)
 function modeForStage(stage: AtomicStage, archetype: MovesetArchetype): AtomicMode {
   switch (stage) {
     case 'Research':  return 'Consuming'
-    case 'React':     return 'Commentary'
-    case 'Glue':
-    case 'Connect':   return 'Connecting'
+    case 'Glue':      return 'Connecting'
     case 'Repurpose': return pick(['Remixing', 'Compressing'] as AtomicMode[], [3, 1])
+    case 'Generate':
+      if (archetype === 'commentary') return 'Commentary'
+      return 'Creating'
     case 'Refine':
       if (archetype === 'compression' || archetype === 'editing') return 'Compressing'
       if (archetype === 'remix')                                   return 'Remixing'
@@ -230,8 +229,6 @@ const STAGE_BADGE_COLOR: Record<AtomicStage, string> = {
   Refine:    '#7799bb',
   Publish:   '#66aa55',
   Repurpose: '#bb8833',
-  React:     '#cc6644',
-  Connect:   '#cc6688',
 }
 
 const MEDIUM_BADGE_COLOR: Record<AtomicMedium, string> = {

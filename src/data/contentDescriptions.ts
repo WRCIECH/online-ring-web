@@ -287,18 +287,6 @@ export const STAGE_INFO: Record<AtomicStage, ContentEntry> = {
     detail:      'Reshape for a new context, platform, or format.',
     example:     'Turning a blog post into a Twitter thread by extracting its core points.',
   },
-  React: {
-    badge_label: 'React',
-    label:       'React — respond to existing content',
-    detail:      'Write your honest take on existing content.',
-    example:     'Writing a response piece to a popular opinion you disagree with.',
-  },
-  Connect: {
-    badge_label: 'Connect',
-    label:       'Connect — close the loop',
-    detail:      'Synthesise ideas or close the loop with collaborators.',
-    example:     'Sending a follow-up message to a creator whose work you referenced.',
-  },
 }
 
 // ─── Medium ───────────────────────────────────────────────────────────────────
