@@ -135,35 +135,21 @@ export type MovesetArchetype =
   | 'compression' | 'remix' | 'storytelling' | 'hot_take'
   | 'async' | 'editing'
 
-const STAGE_CHAINS: Record<MovesetArchetype, AtomicStage[][]> = {
-  long_form:    [['Outline','Generate','Refine','Publish'],
-                 ['Ideate','Outline','Generate','Refine','Publish']],
-  micro:        [['Ideate','Publish'],
-                 ['Generate','Publish']],
-  commentary:   [['Research','Generate','Publish'],
-                 ['Research','Generate','Glue','Publish']],
-  research:     [['Research','Glue','Publish'],
-                 ['Research','Outline','Generate','Publish']],
-  compression:  [['Generate','Refine','Publish'],
-                 ['Research','Refine','Publish']],
-  remix:        [['Research','Refine','Publish'],
-                 ['Research','Generate','Refine','Publish']],
-  storytelling: [['Ideate','Outline','Generate','Glue','Refine','Publish']],
-  hot_take:     [['Generate','Publish'],
-                 ['Ideate','Generate','Publish']],
-  async:        [['Outline','Generate','Publish'],
-                 ['Generate','Refine','Publish']],
-  editing:      [['Research','Refine','Publish'],
-                 ['Generate','Refine','Publish']],
+const STAGE_CHAINS: Record<MovesetArchetype, AtomicStage[]> = {
+  long_form:    ['Ideate','Outline','Generate','Refine','Publish'],
+  micro:        ['Ideate','Generate','Publish'],
+  commentary:   ['Research','Generate','Glue','Publish'],
+  research:     ['Research','Outline','Generate','Publish'],
+  compression:  ['Research','Generate','Refine','Publish'],
+  remix:        ['Research','Generate','Refine','Publish'],
+  storytelling: ['Ideate','Outline','Generate','Glue','Refine','Publish'],
+  hot_take:     ['Ideate','Generate','Publish'],
+  async:        ['Outline','Generate','Refine','Publish'],
+  editing:      ['Research','Generate','Refine','Publish'],
 }
 
-export function pickStageChain(archetype: MovesetArchetype, comboLength: number): AtomicStage[] {
-  const chains = STAGE_CHAINS[archetype] ?? STAGE_CHAINS.long_form
-  let best = chains[0]
-  for (const chain of chains) {
-    if (Math.abs(chain.length - comboLength) < Math.abs(best.length - comboLength)) best = chain
-  }
-  return best
+export function pickStageChain(archetype: MovesetArchetype): AtomicStage[] {
+  return STAGE_CHAINS[archetype] ?? STAGE_CHAINS.long_form
 }
 
 // ── Cognitive mode per stage ──────────────────────────────────────────────────

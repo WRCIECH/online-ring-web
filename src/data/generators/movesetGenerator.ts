@@ -146,7 +146,7 @@ export function rollMoveset(
   const variant: MovesetVariant     = forcedVariant ?? pick(variants, variantWeights)
 
   const len   = rollComboLength(variant, rarity)
-  const chain = pickStageChain(archetype, len).slice(0, len)
+  const chain = pickStageChain(archetype).slice(0, len)
 
   const mediumPool       = ARCHETYPE_MEDIUM[archetype]
   const dominantMedium   = pick(mediumPool) as AtomicMedium
