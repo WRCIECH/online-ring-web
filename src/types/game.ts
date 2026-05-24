@@ -101,6 +101,7 @@ export interface Step {
   base_damage: number
   poise_damage: number
   damage_type?: DamageType
+  stage?: AtomicStage
 }
 
 export interface Task {

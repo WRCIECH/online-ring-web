@@ -51,10 +51,33 @@ function rollComboLength(variant: MovesetVariant, rarity: WeaponRarity): number 
   return pick(available, weights)
 }
 
-// ── Combo label ───────────────────────────────────────────────────────────
+// ── Name component maps ───────────────────────────────────────────────────
 
-const COMBO_LABELS: Record<number, string> = {
-  1: '', 2: 'Duo', 3: 'Trio', 4: 'Combo', 5: 'Super Combo', 6: 'Epic Combo', 7: 'Legendary Combo',
+const TIME_ADJ: Record<string, string> = {
+  Micro: 'Flash', Short: 'Quick', Medium: 'Steady', Long: 'Extended', Deep: 'Deep',
+}
+
+const DMG_ADJ: Partial<Record<string, string>> = {
+  standard: 'Balanced', strike: 'Striking', slash: 'Slashing', pierce: 'Piercing',
+  lightning: 'Electric', fire: 'Fiery', magic: 'Arcane', holy: 'Sacred',
+  occult: 'Occult', grafting: 'Grafted', poison: 'Venomous',
+}
+
+const ARCHETYPE_NOUN: Record<MovesetArchetype, string> = {
+  long_form:    'Manifesto',
+  micro:        'Burst',
+  commentary:   'Response',
+  research:     'Report',
+  compression:  'Digest',
+  remix:        'Remix',
+  storytelling: 'Chronicle',
+  hot_take:     'Opinion',
+  async:        'Dispatch',
+  editing:      'Revision',
+}
+
+const COMBO_SUFFIX: Record<number, string> = {
+  2: 'Duo', 3: 'Trio', 4: 'Combo', 5: 'Barrage', 6: 'Cascade', 7: 'Onslaught',
 }
 
 // ── Dominant axis picking ─────────────────────────────────────────────────
@@ -168,13 +191,14 @@ export function rollMoveset(
   const totalStamina = Math.max(5, Math.round(rawStamina * classDef.stamina_mod))
   const totalFp = scaledSteps.length > 2 ? 3 : 0
 
-  // Build name: "<Archetype> · <Time> · <DmgType> · <ComboLabel>"
-  const archetypeLabel = archetype.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase())
-  const timeLabel      = dominantTimeLabel(scaledSteps)
-  const dmgLabel       = (primaryDmgType ?? 'standard').replace(/\b\w/g, c => c.toUpperCase())
-  const comboLabel     = COMBO_LABELS[scaledSteps.length] ?? 'Combo'
-  const nameParts      = [archetypeLabel, timeLabel, dmgLabel, comboLabel].filter(Boolean)
-  const name           = nameParts.join(' · ')
+  // Build name: "[TimeAdj] [DmgAdj] [ArchetypeNoun]" + combo suffix for 2+ steps
+  const timeLabel  = dominantTimeLabel(scaledSteps)
+  const timeAdj    = TIME_ADJ[timeLabel] ?? timeLabel
+  const dmgAdj     = (primaryDmgType ? DMG_ADJ[primaryDmgType] : null) ?? 'Balanced'
+  const noun       = ARCHETYPE_NOUN[archetype]
+  const combo      = COMBO_SUFFIX[scaledSteps.length] ?? ''
+  const nameParts  = [timeAdj, dmgAdj, noun, combo].filter(Boolean)
+  const name       = nameParts.join(' ')
 
   const primaryStat = (Object.keys(classDef.scaling)[0] ?? 'STR') as StatKey
 

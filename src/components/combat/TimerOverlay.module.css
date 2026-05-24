@@ -43,35 +43,70 @@
   font-weight: 500;
 }
 
-.ctxStep {
-  font-size: 1.4rem;
-  color: var(--color-text-dim);
-  background: rgba(255,255,255,0.06);
-  border-radius: 3px;
-  padding: 1px 5px;
-}
 
 .ctxDmg {
-  font-size: 1.4rem;
+  font-size: 0.9rem;
   color: var(--color-text-success);
   letter-spacing: 0.02em;
 }
 
 .ctxSta {
-  font-size: 1.4rem;
+  font-size: 0.9rem;
   color: var(--color-stamina);
 }
 
 .ctxFp {
-  font-size: 1.4rem;
+  font-size: 0.9rem;
   color: var(--color-fp);
 }
 
 .ctxWeapon {
-  font-size: 1.4rem;
+  font-size: 1.1rem;
   color: var(--color-text-dim);
-  opacity: 0.6;
+  opacity: 0.7;
   margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* ── Stage breadcrumb ─────────────────────────────────────────────────── */
+
+.stageBreadcrumb {
+  flex-basis: 100%;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 2px 0;
+  padding-top: 4px;
+  font-size: 1.2rem;
+}
+
+.stageItem {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.stageSep {
+  color: var(--color-text-dim);
+  opacity: 0.35;
+  font-size: 1rem;
+}
+
+.stageCurrent {
+  font-weight: 700;
+  color: var(--color-text);
+}
+
+.stagePast {
+  color: var(--color-text-dim);
+  opacity: 0.4;
+}
+
+.stageFuture {
+  color: var(--color-text-dim);
+  opacity: 0.65;
 }
 
 .ctxOutcome {

@@ -6,6 +6,7 @@ import type { GeneratedMoveset, WeaponInstance, DamageType } from '../../types/g
 import { appendToLog } from '../../engine/save'
 import { CONTENT_ORIGIN_INFO, DMG_TYPE_INFO, STATUS_INFO } from '../../data/contentDescriptions'
 import InfoTooltip from '../ui/InfoTooltip'
+import WeaponSprite from '../icons/WeaponSprite'
 import s from './TimerOverlay.module.css'
 
 interface Props { state: CombatState; dispatch: React.Dispatch<CombatAction> }
@@ -106,9 +107,6 @@ export default function TimerOverlay({ state, dispatch }: Props) {
           {!timerIsDefense && pendingMoveset && (
             <>
               <span className={s.ctxMoveset}>{pendingMoveset.name}</span>
-              {totalSteps > 1 && (
-                <span className={s.ctxStep}>step {stepNum}/{totalSteps}</span>
-              )}
               {computedDmg !== null && (
                 <span className={s.ctxDmg}>
                   {dmgTypeColor && (
@@ -124,7 +122,15 @@ export default function TimerOverlay({ state, dispatch }: Props) {
                 <span className={s.ctxFp}>−{pendingMoveset.fp_cost} FP</span>
               )}
               {wi && (
-                <span className={s.ctxWeapon}>{wi.name}</span>
+                <span className={s.ctxWeapon}>
+                  <WeaponSprite
+                    weaponClass={wi.weapon_class}
+                    rarity={wi.rarity}
+                    poiseWeight={wi.poise_weight}
+                    size={22}
+                  />
+                  {wi.name}
+                </span>
               )}
               {gm?.content_origin && (
                 <span className={s.ctxOrigin}>
@@ -134,6 +140,23 @@ export default function TimerOverlay({ state, dispatch }: Props) {
               {dmgType && (
                 <span className={s.ctxDmgDesc} style={{ color: dmgTypeColor ?? '#888' }}>
                   <InfoTooltip entry={DMG_TYPE_INFO[dmgType]} />
+                </span>
+              )}
+              {totalSteps > 1 && (
+                <span className={s.stageBreadcrumb}>
+                  {pendingMoveset.steps.map((step, i) => {
+                    const label     = step.stage ?? `Step ${i + 1}`
+                    const isCurrent = i === stepNum - 1
+                    const isPast    = i < stepNum - 1
+                    return (
+                      <span key={i} className={s.stageItem}>
+                        {i > 0 && <span className={s.stageSep}>·</span>}
+                        <span className={isCurrent ? s.stageCurrent : isPast ? s.stagePast : s.stageFuture}>
+                          {label}
+                        </span>
+                      </span>
+                    )
+                  })}
                 </span>
               )}
             </>

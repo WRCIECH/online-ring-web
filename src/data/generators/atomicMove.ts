@@ -43,16 +43,16 @@ export function validateConsistency(d: AtomicDimensions): boolean {
 // ── Step name generation ──────────────────────────────────────────────────
 
 const STAGE_VERBS: Partial<Record<AtomicStage, string>> = {
-  Ideate:    'Brainstorm ideas',
-  Research:  'Study and research reference material',
-  Outline:   'Write an outline',
-  Generate:  'Write and generate content',
-  Glue:      'Order and structure your content',
-  Refine:    'Refine and edit',
-  Publish:   'Publish your piece',
-  Repurpose: 'Repurpose existing content',
-  React:     'Write a response',
-  Connect:   'Reach out or synthesise',
+  Ideate:    'Brainstorm every possible angle, hook, and format',
+  Research:  'Find evidence, examples, and reference material',
+  Outline:   'Map the full structure before you write a word',
+  Generate:  'Write your first full draft — commit without stopping',
+  Glue:      'Arrange and connect your pieces into a coherent whole',
+  Refine:    'Cut the fat, tighten sentences, and elevate the writing',
+  Publish:   'Put it out — finalise, format, and commit to publishing',
+  Repurpose: 'Reshape the content for a new context or platform',
+  React:     'Write your honest take on the existing content',
+  Connect:   'Reach out, synthesise ideas, or close the loop',
 }
 
 const MEDIUM_SUFFIX: Partial<Record<AtomicMedium, string>> = {
@@ -217,6 +217,7 @@ export function toStep(d: AtomicDimensions, damageType?: DamageType): Step {
     time:         calcStepTime(d),
     base_damage:  calcDamage(d),
     poise_damage: calcPoiseDamage(d),
+    stage:        d.stage,
     ...(damageType ? { damage_type: damageType } : {}),
   }
 }
