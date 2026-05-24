@@ -304,20 +304,70 @@ const DMG_TYPE_BADGE_COLOR: Partial<Record<DamageType, string>> = {
   poison:    '#557733',
 }
 
+const STAGE_BADGE_COLOR: Record<AtomicStage, string> = {
+  Ideate:    '#9977cc',
+  Research:  '#5599dd',
+  Outline:   '#44aaaa',
+  Generate:  '#cc9933',
+  Glue:      '#669966',
+  Refine:    '#7799bb',
+  Publish:   '#66aa55',
+  Repurpose: '#bb8833',
+  React:     '#cc6644',
+  Connect:   '#cc6688',
+}
+
+const MEDIUM_BADGE_COLOR: Record<AtomicMedium, string> = {
+  Writing: '#999999',
+  Audio:   '#9966cc',
+  Video:   '#cc4444',
+  Image:   '#44aacc',
+  Design:  '#cc44aa',
+  Outline: '#449999',
+  Hybrid:  '#88aa44',
+}
+
+const ORIGIN_BADGE_COLOR: Record<AtomicOrigin, string> = {
+  New:           '#cc9933',
+  Compression:   '#cc7733',
+  Expansion:     '#558844',
+  Recycled:      '#449988',
+  Remastered:    '#4466bb',
+  Revamped:      '#775599',
+  Reboot:        '#bb3333',
+  ZoomIn:        '#334499',
+  ZoomOut:       '#4488aa',
+  AudienceAlter: '#996677',
+  Commentary:    '#bb8833',
+}
+
 export function buildBadges(d: AtomicDimensions, damageType?: DamageType): StepBadge[] {
   const badges: StepBadge[] = []
 
   // 1. Stage (always shown)
-  badges.push({ label: d.stage, detail: STAGE_BADGE_DETAIL[d.stage] ?? d.stage })
+  badges.push({
+    label:  d.stage,
+    detail: STAGE_BADGE_DETAIL[d.stage] ?? d.stage,
+    color:  STAGE_BADGE_COLOR[d.stage],
+  })
 
   // 2. Medium (always shown)
-  badges.push({ label: d.medium, detail: MEDIUM_BADGE_DETAIL[d.medium] })
+  badges.push({
+    label:  d.medium,
+    detail: MEDIUM_BADGE_DETAIL[d.medium],
+    color:  MEDIUM_BADGE_COLOR[d.medium],
+  })
 
   // 3. Content origin (always shown)
-  badges.push({
-    label:  ORIGIN_BADGE_LABEL[d.content_origin],
-    detail: ORIGIN_BADGE_DETAIL[d.content_origin],
-  })
+  const originLabel  = ORIGIN_BADGE_LABEL[d.content_origin]
+  const originDetail = ORIGIN_BADGE_DETAIL[d.content_origin]
+  if (originLabel && originDetail) {
+    badges.push({
+      label:  originLabel,
+      detail: originDetail,
+      color:  ORIGIN_BADGE_COLOR[d.content_origin],
+    })
+  }
 
   // 4. Damage type (only when not standard)
   if (damageType && damageType !== 'standard') {
@@ -328,6 +378,12 @@ export function buildBadges(d: AtomicDimensions, damageType?: DamageType): StepB
   }
 
   return badges
+}
+
+export const NO_STATUS_BADGE: StepBadge = {
+  label:  'No Status',
+  detail: 'This weapon carries no emotional status effect. Damage and stamina are its only tools.',
+  color:  '#556677',
 }
 
 // ── Status badges ─────────────────────────────────────────────────────────

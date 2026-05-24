@@ -92,6 +92,17 @@ export default function TimerOverlay({ state, dispatch }: Props) {
         <div className={s.contextStrip}>
           {!timerIsDefense && pendingMoveset && (
             <>
+              {wi && (
+                <span className={s.ctxWeapon}>
+                  <WeaponSprite
+                    weaponClass={wi.weapon_class}
+                    rarity={wi.rarity}
+                    poiseWeight={wi.poise_weight}
+                    size={22}
+                  />
+                  {wi.name}
+                </span>
+              )}
               <span className={s.ctxMoveset}>{pendingMoveset.name}</span>
               {computedDmg !== null && (
                 <span className={s.ctxDmg}>
@@ -106,17 +117,6 @@ export default function TimerOverlay({ state, dispatch }: Props) {
               )}
               {(pendingMoveset.fp_cost ?? 0) > 0 && (
                 <span className={s.ctxFp}>−{pendingMoveset.fp_cost} FP</span>
-              )}
-              {wi && (
-                <span className={s.ctxWeapon}>
-                  <WeaponSprite
-                    weaponClass={wi.weapon_class}
-                    rarity={wi.rarity}
-                    poiseWeight={wi.poise_weight}
-                    size={22}
-                  />
-                  {wi.name}
-                </span>
               )}
             </>
           )}

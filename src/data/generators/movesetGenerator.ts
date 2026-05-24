@@ -3,7 +3,8 @@ import type {
   AtomicMedium, AtomicOrigin, AtomicPlanning, AtomicPub, StatKey, DamageType,
 } from '../../types/game'
 import {
-  rollAtomicMove, pickStageChain, toStep, calcStaminaCost, buildStatusBadge,
+  rollAtomicMove, pickStageChain, toStep, calcStaminaCost,
+  buildStatusBadge, NO_STATUS_BADGE,
   type MovesetArchetype,
 } from './atomicMove'
 import { WEAPON_CLASSES } from './weaponClasses'
@@ -210,11 +211,9 @@ export function rollMoveset(
   // Status buildup: from inherent class status
   const status_buildup = classDef.inherent_status ?? undefined
 
-  // Inject status badge into every step's badge array
-  if (status_buildup) {
-    const sBadge = buildStatusBadge(status_buildup)
-    scaledSteps = scaledSteps.map(s => ({ ...s, badges: [...(s.badges ?? []), sBadge] }))
-  }
+  // Inject status badge (or no-status badge) into every step's badge array
+  const statusBadge = status_buildup ? buildStatusBadge(status_buildup) : NO_STATUS_BADGE
+  scaledSteps = scaledSteps.map(s => ({ ...s, badges: [...(s.badges ?? []), statusBadge] }))
 
   const id = uid()
   const moveset: GeneratedMoveset = {
