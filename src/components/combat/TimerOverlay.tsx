@@ -4,8 +4,6 @@ import { STA_DEFENSE_GAIN } from '../../engine/combat'
 import { WEAPONS, calcStepDamage } from '../../data/weapons'
 import type { GeneratedMoveset, WeaponInstance, DamageType } from '../../types/game'
 import { appendToLog } from '../../engine/save'
-import { CONTENT_ORIGIN_INFO, DMG_TYPE_INFO } from '../../data/contentDescriptions'
-import InfoTooltip from '../ui/InfoTooltip'
 import WeaponSprite from '../icons/WeaponSprite'
 import s from './TimerOverlay.module.css'
 
@@ -118,33 +116,6 @@ export default function TimerOverlay({ state, dispatch }: Props) {
                     size={22}
                   />
                   {wi.name}
-                </span>
-              )}
-              {gm?.content_origin && (
-                <span className={s.ctxOrigin}>
-                  <InfoTooltip entry={CONTENT_ORIGIN_INFO[gm.content_origin]} />
-                </span>
-              )}
-              {dmgType && (
-                <span className={s.ctxDmgDesc} style={{ color: dmgTypeColor ?? '#888' }}>
-                  <InfoTooltip entry={DMG_TYPE_INFO[dmgType]} />
-                </span>
-              )}
-              {totalSteps > 1 && (
-                <span className={s.stageBreadcrumb}>
-                  {pendingMoveset.steps.map((step, i) => {
-                    const label     = step.stage ?? `Step ${i + 1}`
-                    const isCurrent = i === stepNum - 1
-                    const isPast    = i < stepNum - 1
-                    return (
-                      <span key={i} className={s.stageItem}>
-                        {i > 0 && <span className={s.stageSep}>·</span>}
-                        <span className={isCurrent ? s.stageCurrent : isPast ? s.stagePast : s.stageFuture}>
-                          {label}
-                        </span>
-                      </span>
-                    )
-                  })}
                 </span>
               )}
             </>

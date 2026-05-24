@@ -70,45 +70,6 @@
   gap: 6px;
 }
 
-/* ── Stage breadcrumb ─────────────────────────────────────────────────── */
-
-.stageBreadcrumb {
-  flex-basis: 100%;
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 2px 0;
-  padding-top: 4px;
-  font-size: 1.2rem;
-}
-
-.stageItem {
-  display: flex;
-  align-items: center;
-  gap: 5px;
-}
-
-.stageSep {
-  color: var(--color-text-dim);
-  opacity: 0.35;
-  font-size: 1rem;
-}
-
-.stageCurrent {
-  font-weight: 700;
-  color: var(--color-text);
-}
-
-.stagePast {
-  color: var(--color-text-dim);
-  opacity: 0.4;
-}
-
-.stageFuture {
-  color: var(--color-text-dim);
-  opacity: 0.65;
-}
-
 .ctxOutcome {
   font-size: 1.4rem;
   color: var(--color-text-success);
@@ -117,19 +78,6 @@
 .ctxOutcomeFail {
   font-size: 1.4rem;
   color: var(--color-text-danger);
-}
-
-.ctxOrigin {
-  font-size: 1.4rem;
-  color: var(--color-text-dim);
-  flex-basis: 100%;
-  padding-top: 2px;
-}
-
-.ctxDmgDesc {
-  font-size: 1.4rem;
-  flex-basis: 100%;
-  opacity: 0.8;
 }
 
 

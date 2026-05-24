@@ -227,7 +227,8 @@ const STAGE_BADGE_DETAIL: Record<AtomicStage, string> = {
   Connect:   'Synthesise ideas or close the loop with collaborators.',
 }
 
-const MEDIUM_BADGE_DETAIL: Partial<Record<AtomicMedium, string>> = {
+const MEDIUM_BADGE_DETAIL: Record<AtomicMedium, string> = {
+  Writing: 'Written content — articles, posts, essays, scripts, or any text-based format.',
   Audio:   'Produce or record audio — podcast, voice note, or narration.',
   Video:   'Create video content — record, edit, or script for video.',
   Image:   'Create or source visuals — graphics, photos, or illustrations.',
@@ -309,11 +310,8 @@ export function buildBadges(d: AtomicDimensions, damageType?: DamageType): StepB
   // 1. Stage (always shown)
   badges.push({ label: d.stage, detail: STAGE_BADGE_DETAIL[d.stage] ?? d.stage })
 
-  // 2. Medium (only when not Writing — Writing is implied)
-  if (d.medium !== 'Writing') {
-    const detail = MEDIUM_BADGE_DETAIL[d.medium]
-    if (detail) badges.push({ label: d.medium, detail })
-  }
+  // 2. Medium (always shown)
+  badges.push({ label: d.medium, detail: MEDIUM_BADGE_DETAIL[d.medium] })
 
   // 3. Content origin (always shown)
   badges.push({
