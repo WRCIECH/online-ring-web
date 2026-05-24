@@ -97,19 +97,6 @@
   opacity: 0.8;
 }
 
-.statusCheckName {
-  font-size: 1.4rem;
-  color: var(--color-text-dim);
-  display: block;
-}
-
-.statusCheckDesc {
-  font-size: 1.4rem;
-  color: var(--color-text-dim);
-  opacity: 0.8;
-  display: block;
-  margin-top: 2px;
-}
 
 .taskName {
   font-size: 1.25rem;

@@ -15,14 +15,6 @@ function fmtTime(secs: number): string {
   return m > 0 ? `${m}:${String(sc).padStart(2,'0')}` : String(sc)
 }
 
-const STATUS_LABELS: Record<string, string> = {
-  bleed: 'Bleed', scarlet_rot: 'Scarlet Rot', frostbite: 'Frostbite',
-  madness: 'Madness', sleep: 'Sleep', death_blight: 'Death Blight',
-  glintstone: 'Glintstone', frenzy_flame: 'Frenzy Flame',
-  devotion: 'Devotion', yearning: 'Yearning', dread: 'Dread',
-  murmur: 'Murmur', grace: 'Grace',
-}
-
 const DMG_TYPE_COLOURS: Partial<Record<DamageType, string>> = {
   standard: '#aaaaaa', strike: '#cc9944', slash: '#cc4444', pierce: '#44aacc',
   lightning: '#eedd44', fire: '#ee6622', magic: '#8855ee', holy: '#eecc55',
@@ -90,7 +82,6 @@ export default function TimerOverlay({ state, dispatch }: Props) {
   // Determine if current moveset has a status buildup
   const gm = pendingMoveset as GeneratedMoveset | null
   const statusBuildup = gm?.status_buildup
-  const statusLabel   = statusBuildup ? (STATUS_LABELS[statusBuildup] ?? statusBuildup) : null
 
   // ── Context info strip ───────────────────────────────────────────────────
   const weapon   = pendingWeaponId ? WEAPONS[pendingWeaponId] : null
@@ -162,7 +153,7 @@ export default function TimerOverlay({ state, dispatch }: Props) {
         </div>
 
         {/* Status buildup checkbox — shown below origin/dmg descriptions, always visible in preview */}
-        {statusLabel && statusBuildup && !timerIsDefense && (
+        {statusBuildup && !timerIsDefense && (
           <label className={s.statusCheck}>
             <input
               type="checkbox"
@@ -170,10 +161,7 @@ export default function TimerOverlay({ state, dispatch }: Props) {
               onChange={e => setStatusApplied(e.target.checked)}
               disabled={isPreview}
             />
-            <span>
-              <span className={s.statusCheckName}>Applied {statusLabel}</span>
-              <InfoTooltip entry={STATUS_INFO[statusBuildup]} className={s.statusCheckDesc} />
-            </span>
+            <InfoTooltip entry={STATUS_INFO[statusBuildup]} />
           </label>
         )}
 

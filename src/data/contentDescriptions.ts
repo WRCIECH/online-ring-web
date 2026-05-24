@@ -134,67 +134,67 @@ export const DMG_TYPE_INFO: Record<DamageType, ContentEntry> = {
 export const STATUS_INFO: Record<StatusType, ContentEntry> = {
   bleed: {
     label:   'Trigger Emotion on Viral/Brainrot',
-    detail:  'Weaponize a catchy, memetic construct that spreads instantly, causing a sudden "hemorrhage" of massive views once the bar fills.',
+    detail:  'Bleed — Weaponize a catchy, memetic construct that spreads instantly, causing a sudden "hemorrhage" of massive views once the bar fills.',
     example: 'Creating an absurd, highly loopable meme template that gets remixed across social media, exploding your metrics.',
   },
   scarlet_rot: {
     label:   'Trigger Emotion on Social Polarisation',
-    detail:  'Intentionally pit opposing groups against each other, rotting the social fabric and trapping viewers in radical, aggressive echo chambers',
+    detail:  'Scarlet Rot — Intentionally pit opposing groups against each other, rotting the social fabric and trapping viewers in radical, aggressive echo chambers.',
     example: 'Publishing a highly provocative video debating politics or lifestyle choices, triggering an endless, bitter flame war in the comments.',
   },
   frostbite: {
     label:   'Trigger Emotion on Envy/Hate-watching',
-    detail:  'Flex extreme luxury or a highly controversial lifestyle, causing the viewer to freeze with jealousy but keep watching just to see you fail.',
+    detail:  'Frostbite — Flex extreme luxury or a highly controversial lifestyle, causing the viewer to freeze with jealousy but keep watching just to see you fail.',
     example: 'Vlogging an overly lavish, expensive studio upgrade tour, driving bitter competitors to obsessively hate-watch your channel.',
   },
   madness: {
     label:   'Trigger Emotion on Controversy/Hot Take',
-    detail:  'Deliver a radical, uncompromising opinion that drives the comment section into absolute insanity and all-out war.',
+    detail:  'Madness — Deliver a radical, uncompromising opinion that drives the comment section into absolute insanity and all-out war.',
     example: 'Dropping an incredibly unhinged critique of a beloved community icon, causing total chaos among your fanbase.',
   },
   sleep: {
     label:   'Trigger Emotion on Comfort Content/Relaxation',
-    detail:  'Produce safe, calming, and soothing content (like ASMR or Lo-Fi) that builds deep audience loyalty and peaceful vibes.',
+    detail:  'Sleep — Produce safe, calming, and soothing content (like ASMR or Lo-Fi) that builds deep audience loyalty and peaceful vibes.',
     example: 'Streaming a quiet, cozy 4-hour co-working session with soft background rain sounds to pacify anxious viewers.',
   },
   death_blight: {
     label:   'Trigger Emotion on Drama/Cancel Culture',
-    detail:  "Deliver a merciless, exposing whistleblower strike designed to completely and permanently annihilate the target's career.",
+    detail:  "Death Blight — Deliver a merciless, exposing whistleblower strike designed to completely and permanently annihilate the target's career.",
     example: 'Dropping an unassailable documentary with hard receipts that completely shuts down a malicious public figure.',
   },
   glintstone: {
     label:   'Trigger Emotion on Wow Effect/Education',
-    detail:  'Share science, space facts, or deep world mechanisms, triggering an intellectual "Wow!" effect from the audience.',
+    detail:  'Glintstone — Share science, space facts, or deep world mechanisms, triggering an intellectual "Wow!" effect from the audience.',
     example: "Creating an elegantly animated short explaining how quantum computing actually works in layman's terms.",
   },
   frenzy_flame: {
     label:   'Trigger Emotion on Humour/Satire/Roast',
-    detail:  'Deliver pure comedy, jokes, and parodies to completely relax, loosen up, and entertain the audience.',
+    detail:  'Frenzy Flame — Deliver pure comedy, jokes, and parodies to completely relax, loosen up, and entertain the audience.',
     example: 'Uploading a hilarious sketch mocking the generic tropes of self-help influencers, making the whole community laugh.',
   },
   devotion: {
     label:   'Trigger Emotion through Parasocial Bond',
-    detail:  'Share deeply intimate confessions and eliminate boundaries to foster blind devotion and loyalty among your core fans.',
+    detail:  'Devotion — Share deeply intimate confessions and eliminate boundaries to foster blind devotion and loyalty among your core fans.',
     example: 'Hosting a vulnerable, late-night heart-to-heart stream talking openly about your personal failures and thanking your fans.',
   },
   yearning: {
     label:   'Trigger Emotion on FOMO/Desire',
-    detail:  'Intentionally trigger an intense fear of missing out on something highly limited or exclusive.',
+    detail:  'Yearning — Intentionally trigger an intense fear of missing out on something highly limited or exclusive.',
     example: 'Announcing a merch drop that will only be available for exactly 24 hours, inducing panic-buying among followers.',
   },
   dread: {
     label:   'Trigger Emotion on Anxiety/Doomscrolling',
-    detail:  'Scare the audience with looming crises, economic collapses, or wars, paralyzing the viewer so they are terrified to close the tab.',
+    detail:  'Dread — Scare the audience with looming crises, economic collapses, or wars, paralyzing the viewer so they are terrified to close the tab.',
     example: 'Publishing a grim video titled "Why the market is about to collapse tomorrow," trapping viewers in a loop of panicked scrolling.',
   },
   murmur: {
     label:   'Trigger Emotion on Rumour/Intrigue',
-    detail:  'Whisper behind-the-scenes rumors and drop vague insinuations to lay the groundwork for a massive upcoming drama explosion.',
+    detail:  'Murmur — Whisper behind-the-scenes rumors and drop vague insinuations to lay the groundwork for a massive upcoming drama explosion.',
     example: 'Leaking a cryptic, redacted screenshot from a corporate email on Discord, making the target highly vulnerable to a future Cancel attack.',
   },
   grace: {
     label:   'Trigger Emotion on Wholesome/Inspiration/Hope',
-    detail:  "Focus on philanthropy, good deeds, and pure motivation, fully restoring the viewer's faith in humanity.",
+    detail:  "Grace — Focus on philanthropy, good deeds, and pure motivation, fully restoring the viewer's faith in humanity.",
     example: 'Documenting a genuine community charity project where you help rebuild a local park, filling the audience with pure hope.',
   },
 }
