@@ -265,7 +265,8 @@ const ORIGIN_BADGE_DETAIL: Record<AtomicOrigin, string> = {
   Commentary:    'Adding your perspective on top of existing content.',
 }
 
-const DMG_TYPE_BADGE_LABEL: Partial<Record<DamageType, string>> = {
+const DMG_TYPE_BADGE_LABEL: Record<DamageType, string> = {
+  standard:  'Standard',
   strike:    'Striking',
   slash:     'Slashing',
   pierce:    'Piercing',
@@ -278,7 +279,8 @@ const DMG_TYPE_BADGE_LABEL: Partial<Record<DamageType, string>> = {
   poison:    'Venomous',
 }
 
-const DMG_TYPE_BADGE_DETAIL: Partial<Record<DamageType, string>> = {
+const DMG_TYPE_BADGE_DETAIL: Record<DamageType, string> = {
+  standard:  'Universal style — no specific constraint. Pure execution quality wins.',
   strike:    'Impact — stops people mid-scroll with an unexpected reframe.',
   slash:     'Sharp opinion — direct, confident, no hedging.',
   pierce:    'Evidence-based — gets through defences with research and data.',
@@ -291,7 +293,8 @@ const DMG_TYPE_BADGE_DETAIL: Partial<Record<DamageType, string>> = {
   poison:    'Slow-burn — lingers in the mind, builds over time.',
 }
 
-const DMG_TYPE_BADGE_COLOR: Partial<Record<DamageType, string>> = {
+const DMG_TYPE_BADGE_COLOR: Record<DamageType, string> = {
+  standard:  '#888888',
   strike:    '#cc9944',
   slash:     '#cc4444',
   pierce:    '#44aacc',
@@ -369,13 +372,13 @@ export function buildBadges(d: AtomicDimensions, damageType?: DamageType): StepB
     })
   }
 
-  // 4. Damage type (only when not standard)
-  if (damageType && damageType !== 'standard') {
-    const label  = DMG_TYPE_BADGE_LABEL[damageType]
-    const detail = DMG_TYPE_BADGE_DETAIL[damageType]
-    const color  = DMG_TYPE_BADGE_COLOR[damageType]
-    if (label && detail) badges.push({ label, detail, color })
-  }
+  // 4. Damage type (always shown — defaults to 'standard' when not specified)
+  const dmgKey = damageType ?? 'standard'
+  badges.push({
+    label:  DMG_TYPE_BADGE_LABEL[dmgKey],
+    detail: DMG_TYPE_BADGE_DETAIL[dmgKey],
+    color:  DMG_TYPE_BADGE_COLOR[dmgKey],
+  })
 
   return badges
 }
