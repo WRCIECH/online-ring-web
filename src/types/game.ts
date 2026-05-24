@@ -95,6 +95,12 @@ export type CombatPhase =
   | 'INIT' | 'PLAYER_ATTACK' | 'STEP_TIMER'
   | 'ENEMY_ATTACK' | 'ENEMY_STAGGERED' | 'VICTORY' | 'DEFEAT' | 'FLED'
 
+export interface StepBadge {
+  label:  string   // Short chip text, e.g. "Generate", "Fiery", "Audio"
+  detail: string   // Tooltip explanation shown on hover
+  color?: string   // Optional accent color (used for damage-type badges)
+}
+
 export interface Step {
   name: string
   time: number
@@ -102,6 +108,7 @@ export interface Step {
   poise_damage: number
   damage_type?: DamageType
   stage?: AtomicStage
+  badges?: StepBadge[]
 }
 
 export interface Task {

@@ -188,7 +188,22 @@ export default function TimerOverlay({ state, dispatch }: Props) {
           </label>
         )}
 
-        <div className={s.taskName}>{taskName}</div>
+        {pendingStep?.badges && pendingStep.badges.length > 0 ? (
+          <div className={s.badges}>
+            {pendingStep.badges.map((badge, i) => (
+              <span
+                key={i}
+                className={s.badge}
+                style={badge.color ? { borderColor: badge.color, color: badge.color } : undefined}
+              >
+                {badge.label}
+                <span className={s.badgeTip}>{badge.detail}</span>
+              </span>
+            ))}
+          </div>
+        ) : (
+          <div className={s.taskName}>{taskName}</div>
+        )}
 
         <textarea
           ref={textRef}

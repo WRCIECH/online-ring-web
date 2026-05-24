@@ -1,6 +1,7 @@
 import type {
   AtomicDimensions, AtomicMedium, AtomicMode, AtomicStage,
-  AtomicTime, AtomicPub, AtomicOrigin, AtomicPlanning, MovesetVariant, Step, DamageType,
+  AtomicTime, AtomicPub, AtomicOrigin, AtomicPlanning, MovesetVariant,
+  Step, StepBadge, DamageType,
 } from '../../types/game'
 
 // ── Weighted random helper ────────────────────────────────────────────────
@@ -211,6 +212,126 @@ export function rollAtomicMove(
   }
 }
 
+// ── Badge data ────────────────────────────────────────────────────────────
+
+const STAGE_BADGE_DETAIL: Record<AtomicStage, string> = {
+  Ideate:    'Free-form idea generation — maximum volume, no self-editing.',
+  Research:  'Actively gather evidence, examples, and reference material.',
+  Outline:   'Plan the full structure before writing a word.',
+  Generate:  'Write your raw first draft — commit without stopping.',
+  Glue:      'Connect and order pieces into a coherent narrative.',
+  Refine:    'Cut the fat, tighten sentences, and elevate the writing.',
+  Publish:   'Format, finalise, and commit to releasing.',
+  Repurpose: 'Reshape for a new context, platform, or format.',
+  React:     'Write your honest take on existing content.',
+  Connect:   'Synthesise ideas or close the loop with collaborators.',
+}
+
+const MEDIUM_BADGE_DETAIL: Partial<Record<AtomicMedium, string>> = {
+  Audio:   'Produce or record audio — podcast, voice note, or narration.',
+  Video:   'Create video content — record, edit, or script for video.',
+  Image:   'Create or source visuals — graphics, photos, or illustrations.',
+  Design:  'Visual design work — thumbnails, slides, or brand assets.',
+  Outline: 'Structural planning — wireframes, document maps, or schemas.',
+  Hybrid:  'Cross-format work combining two or more media types.',
+}
+
+const ORIGIN_BADGE_LABEL: Record<AtomicOrigin, string> = {
+  New:           'New Content',
+  Compression:   'Compress',
+  Expansion:     'Expand',
+  Recycled:      'Recycle',
+  Remastered:    'Remaster',
+  Revamped:      'Revamp',
+  Reboot:        'Reboot',
+  ZoomIn:        'Zoom In',
+  ZoomOut:       'Zoom Out',
+  AudienceAlter: 'Reframe',
+  Commentary:    'React',
+}
+
+const ORIGIN_BADGE_DETAIL: Record<AtomicOrigin, string> = {
+  New:           'Original work — no prior version, created from scratch.',
+  Compression:   'Condensing existing content into a shorter, denser form.',
+  Expansion:     'Growing existing content into a fuller, deeper version.',
+  Recycled:      'Adapting existing content for a new platform or format.',
+  Remastered:    'Updating older content with current standards and data.',
+  Revamped:      'Injecting new angles or elements into existing content.',
+  Reboot:        'Starting fresh on a topic you have covered before.',
+  ZoomIn:        'Deep-diving into one specific element of a broader piece.',
+  ZoomOut:       'Recontextualising a topic within a much larger frame.',
+  AudienceAlter: 'Adapting the same message for a different target audience.',
+  Commentary:    'Adding your perspective on top of existing content.',
+}
+
+const DMG_TYPE_BADGE_LABEL: Partial<Record<DamageType, string>> = {
+  strike:    'Striking',
+  slash:     'Slashing',
+  pierce:    'Piercing',
+  lightning: 'Electric',
+  fire:      'Fiery',
+  magic:     'Arcane',
+  holy:      'Sacred',
+  occult:    'Occult',
+  grafting:  'Grafted',
+  poison:    'Venomous',
+}
+
+const DMG_TYPE_BADGE_DETAIL: Partial<Record<DamageType, string>> = {
+  strike:    'Impact — stops people mid-scroll with an unexpected reframe.',
+  slash:     'Sharp opinion — direct, confident, no hedging.',
+  pierce:    'Evidence-based — gets through defences with research and data.',
+  lightning: 'Trend-riding — catches a wave while it is still breaking.',
+  fire:      'Urgency — time-sensitive, hot topic energy.',
+  magic:     'Educational — teaches or explains something genuinely new.',
+  holy:      'Evergreen — timeless value that stays relevant for years.',
+  occult:    'Niche — speaks directly to a devoted specific audience.',
+  grafting:  'Hybrid — combines disciplines or formats unexpectedly.',
+  poison:    'Slow-burn — lingers in the mind, builds over time.',
+}
+
+const DMG_TYPE_BADGE_COLOR: Partial<Record<DamageType, string>> = {
+  strike:    '#cc9944',
+  slash:     '#cc4444',
+  pierce:    '#44aacc',
+  lightning: '#ccbb33',
+  fire:      '#cc5522',
+  magic:     '#7744cc',
+  holy:      '#ccaa44',
+  occult:    '#8833aa',
+  grafting:  '#448833',
+  poison:    '#557733',
+}
+
+export function buildBadges(d: AtomicDimensions, damageType?: DamageType): StepBadge[] {
+  const badges: StepBadge[] = []
+
+  // 1. Stage (always shown)
+  badges.push({ label: d.stage, detail: STAGE_BADGE_DETAIL[d.stage] ?? d.stage })
+
+  // 2. Medium (only when not Writing — Writing is implied)
+  if (d.medium !== 'Writing') {
+    const detail = MEDIUM_BADGE_DETAIL[d.medium]
+    if (detail) badges.push({ label: d.medium, detail })
+  }
+
+  // 3. Content origin (always shown)
+  badges.push({
+    label:  ORIGIN_BADGE_LABEL[d.content_origin],
+    detail: ORIGIN_BADGE_DETAIL[d.content_origin],
+  })
+
+  // 4. Damage type (only when not standard)
+  if (damageType && damageType !== 'standard') {
+    const label  = DMG_TYPE_BADGE_LABEL[damageType]
+    const detail = DMG_TYPE_BADGE_DETAIL[damageType]
+    const color  = DMG_TYPE_BADGE_COLOR[damageType]
+    if (label && detail) badges.push({ label, detail, color })
+  }
+
+  return badges
+}
+
 export function toStep(d: AtomicDimensions, damageType?: DamageType): Step {
   return {
     name:         generateStepName(d),
@@ -218,6 +339,7 @@ export function toStep(d: AtomicDimensions, damageType?: DamageType): Step {
     base_damage:  calcDamage(d),
     poise_damage: calcPoiseDamage(d),
     stage:        d.stage,
+    badges:       buildBadges(d, damageType),
     ...(damageType ? { damage_type: damageType } : {}),
   }
 }
