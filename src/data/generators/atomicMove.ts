@@ -1,7 +1,7 @@
 import type {
   AtomicDimensions, AtomicMedium, AtomicMode, AtomicStage,
   AtomicTime, AtomicPub, AtomicOrigin, AtomicPlanning, MovesetVariant,
-  Step, StepBadge, DamageType,
+  Step, StepBadge, DamageType, StatusType,
 } from '../../types/game'
 
 // ── Weighted random helper ────────────────────────────────────────────────
@@ -330,6 +330,64 @@ export function buildBadges(d: AtomicDimensions, damageType?: DamageType): StepB
   }
 
   return badges
+}
+
+// ── Status badges ─────────────────────────────────────────────────────────
+
+const STATUS_BADGE_LABEL: Record<StatusType, string> = {
+  bleed:        'Viral',
+  scarlet_rot:  'Polarise',
+  frostbite:    'Envy',
+  madness:      'Hot Take',
+  sleep:        'Comfort',
+  death_blight: 'Drama',
+  glintstone:   'Wow',
+  frenzy_flame: 'Humour',
+  devotion:     'Devotion',
+  yearning:     'FOMO',
+  dread:        'Anxiety',
+  murmur:       'Intrigue',
+  grace:        'Wholesome',
+}
+
+const STATUS_BADGE_DETAIL: Record<StatusType, string> = {
+  bleed:        'Bleed — triggers a viral/brainrot wave once buildup fills.',
+  scarlet_rot:  'Scarlet Rot — polarises the audience into opposing tribal camps.',
+  frostbite:    'Frostbite — freezes attention through envy and compulsive hate-watching.',
+  madness:      'Madness — hot take energy that risks chaos and backlash.',
+  sleep:        'Sleep — comfort content that soothes and builds quiet loyalty.',
+  death_blight: 'Death Blight — explosive drama that ends things permanently.',
+  glintstone:   'Glintstone — intellectual wow effect delivered through genuine knowledge.',
+  frenzy_flame: 'Frenzy Flame — pure humour, satire, or roast energy.',
+  devotion:     'Devotion — parasocial bond that turns followers into true believers.',
+  yearning:     'Yearning — FOMO and desire triggered by exclusivity or urgency.',
+  dread:        'Dread — anxiety and doomscrolling driven by fear of falling behind.',
+  murmur:       'Murmur — rumour and intrigue that spreads and multiplies.',
+  grace:        'Grace — wholesome inspiration that restores the audience\'s faith in humanity.',
+}
+
+const STATUS_BADGE_COLOR: Record<StatusType, string> = {
+  bleed:        '#dd4455',
+  scarlet_rot:  '#bb3333',
+  frostbite:    '#44ccee',
+  madness:      '#ee5544',
+  sleep:        '#9988cc',
+  death_blight: '#8833bb',
+  glintstone:   '#4488ff',
+  frenzy_flame: '#ffaa22',
+  devotion:     '#ee6688',
+  yearning:     '#ddaa33',
+  dread:        '#336688',
+  murmur:       '#556677',
+  grace:        '#88cc66',
+}
+
+export function buildStatusBadge(statusType: StatusType): StepBadge {
+  return {
+    label:  STATUS_BADGE_LABEL[statusType],
+    detail: STATUS_BADGE_DETAIL[statusType],
+    color:  STATUS_BADGE_COLOR[statusType],
+  }
 }
 
 export function toStep(d: AtomicDimensions, damageType?: DamageType): Step {

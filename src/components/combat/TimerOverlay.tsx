@@ -1,10 +1,10 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef } from 'react'
 import type { CombatState, CombatAction } from '../../engine/combat'
 import { STA_DEFENSE_GAIN } from '../../engine/combat'
 import { WEAPONS, calcStepDamage } from '../../data/weapons'
 import type { GeneratedMoveset, WeaponInstance, DamageType } from '../../types/game'
 import { appendToLog } from '../../engine/save'
-import { CONTENT_ORIGIN_INFO, DMG_TYPE_INFO, STATUS_INFO } from '../../data/contentDescriptions'
+import { CONTENT_ORIGIN_INFO, DMG_TYPE_INFO } from '../../data/contentDescriptions'
 import InfoTooltip from '../ui/InfoTooltip'
 import WeaponSprite from '../icons/WeaponSprite'
 import s from './TimerOverlay.module.css'
@@ -27,16 +27,7 @@ export default function TimerOverlay({ state, dispatch }: Props) {
           timerIsDefense, pendingStep, pendingDefenseAction, pendingMoveset,
           pendingWeaponId, chainStepIdx, playerStats, weaponLevels,
           currentMove } = state
-  const textRef        = useRef<HTMLTextAreaElement>(null)
-  const prevStepRef    = useRef<string>('')
-  const [statusApplied, setStatusApplied] = useState(false)
-
-  // Reset checkbox when the step task changes
-  const currentStepName = pendingStep?.name ?? ''
-  if (prevStepRef.current !== currentStepName) {
-    prevStepRef.current = currentStepName
-    if (statusApplied) setStatusApplied(false)
-  }
+  const textRef = useRef<HTMLTextAreaElement>(null)
 
   // rAF-based countdown
   useEffect(() => {
@@ -80,11 +71,8 @@ export default function TimerOverlay({ state, dispatch }: Props) {
     ? 'Give up  (take full damage)'
     : isActive ? 'Back  (costs stamina)' : 'Back'
 
-  // Determine if current moveset has a status buildup
-  const gm = pendingMoveset as GeneratedMoveset | null
-  const statusBuildup = gm?.status_buildup
-
   // ── Context info strip ───────────────────────────────────────────────────
+  const gm = pendingMoveset as GeneratedMoveset | null
   const weapon   = pendingWeaponId ? WEAPONS[pendingWeaponId] : null
   const wi       = weapon as WeaponInstance | undefined
   const wLevel   = weaponLevels[pendingWeaponId] ?? 0
@@ -175,19 +163,6 @@ export default function TimerOverlay({ state, dispatch }: Props) {
           )}
         </div>
 
-        {/* Status buildup checkbox — shown below origin/dmg descriptions, always visible in preview */}
-        {statusBuildup && !timerIsDefense && (
-          <label className={s.statusCheck}>
-            <input
-              type="checkbox"
-              checked={statusApplied}
-              onChange={e => setStatusApplied(e.target.checked)}
-              disabled={isPreview}
-            />
-            <InfoTooltip entry={STATUS_INFO[statusBuildup]} />
-          </label>
-        )}
-
         {pendingStep?.badges && pendingStep.badges.length > 0 ? (
           <div className={s.badges}>
             {pendingStep.badges.map((badge, i) => (
@@ -235,7 +210,7 @@ export default function TimerOverlay({ state, dispatch }: Props) {
           <div className={s.actions}>
             <button className={s.btnPrimary} onClick={() => {
               flushNotes(true)
-              dispatch({ type: 'TIMER_RESULT', accomplished: true, statusApplied })
+              dispatch({ type: 'TIMER_RESULT', accomplished: true, statusApplied: true })
             }}>
               Done!
             </button>
@@ -248,7 +223,7 @@ export default function TimerOverlay({ state, dispatch }: Props) {
             <div className={s.confirmRow}>
               <button className={s.btnYes} onClick={() => {
                 flushNotes(true)
-                dispatch({ type: 'TIMER_RESULT', accomplished: true, statusApplied })
+                dispatch({ type: 'TIMER_RESULT', accomplished: true, statusApplied: true })
               }}>
                 Yes, I did it!
               </button>
