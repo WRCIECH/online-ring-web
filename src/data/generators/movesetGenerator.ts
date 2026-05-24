@@ -87,13 +87,13 @@ const ARCHETYPE_MEDIUM: Record<MovesetArchetype, AtomicMedium[]> = {
   long_form:    ['Writing','Writing','Audio'],
   micro:        ['Writing','Image','Writing'],
   commentary:   ['Writing','Writing','Video'],
-  research:     ['Writing','Audio','Outline'],
-  compression:  ['Writing','Writing','Outline'],
+  research:     ['Writing','Audio','Writing'],
+  compression:  ['Writing','Writing','Writing'],
   remix:        ['Writing','Video','Hybrid'],
   storytelling: ['Writing','Video','Audio'],
   hot_take:     ['Writing','Writing','Audio'],
   async:        ['Writing','Audio','Writing'],
-  editing:      ['Writing','Outline','Writing'],
+  editing:      ['Writing','Writing','Writing'],
 }
 
 const ARCHETYPE_PLANNING: Record<MovesetArchetype, AtomicPlanning> = {

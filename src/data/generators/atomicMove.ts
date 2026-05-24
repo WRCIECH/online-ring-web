@@ -75,11 +75,10 @@ const STAGE_VERBS: Record<AtomicStage, string> = {
 }
 
 const MEDIUM_SUFFIX: Partial<Record<AtomicMedium, string>> = {
-  Audio:   'as audio/voice',
-  Video:   'as video',
-  Image:   'as an image/visual',
-  Outline: 'in outline form',
-  Hybrid:  'across formats',
+  Audio:  'as audio/voice',
+  Video:  'as video',
+  Image:  'as an image/visual',
+  Hybrid: 'across formats',
 }
 
 const MODE_MODIFIER: Partial<Record<AtomicMode, string>> = {
@@ -111,7 +110,7 @@ const PUB_MULT:   Record<AtomicPub,    number> = {
   just_work:0.4, private:0.6, draft_published:1.0, public:1.3,
 }
 const MEDIUM_STA: Record<AtomicMedium, number> = {
-  Writing:1.0, Audio:1.1, Video:1.3, Image:0.9, Design:1.2, Outline:0.6, Hybrid:1.4,
+  Writing:1.0, Audio:1.1, Video:1.3, Image:0.9, Hybrid:1.4,
 }
 
 // ── Stat calculations ─────────────────────────────────────────────────────────
@@ -240,8 +239,6 @@ const MEDIUM_BADGE_COLOR: Record<AtomicMedium, string> = {
   Audio:   '#9966cc',
   Video:   '#cc4444',
   Image:   '#44aacc',
-  Design:  '#cc44aa',
-  Outline: '#449999',
   Hybrid:  '#88aa44',
 }
 
