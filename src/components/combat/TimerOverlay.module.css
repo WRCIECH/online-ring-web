@@ -37,14 +37,14 @@
 }
 
 .ctxMoveset {
-  font-size: 0.75rem;
+  font-size: 1.5rem;
   color: var(--color-gold-dim);
   letter-spacing: 0.04em;
   font-weight: 500;
 }
 
 .ctxStep {
-  font-size: 0.68rem;
+  font-size: 1.36rem;
   color: var(--color-text-dim);
   background: rgba(255,255,255,0.06);
   border-radius: 3px;
@@ -52,47 +52,47 @@
 }
 
 .ctxDmg {
-  font-size: 0.72rem;
+  font-size: 1.44rem;
   color: var(--color-text-success);
   letter-spacing: 0.02em;
 }
 
 .ctxSta {
-  font-size: 0.68rem;
+  font-size: 1.36rem;
   color: var(--color-stamina);
 }
 
 .ctxFp {
-  font-size: 0.68rem;
+  font-size: 1.36rem;
   color: var(--color-fp);
 }
 
 .ctxWeapon {
-  font-size: 0.65rem;
+  font-size: 1.3rem;
   color: var(--color-text-dim);
   opacity: 0.6;
   margin-left: auto;
 }
 
 .ctxOutcome {
-  font-size: 0.7rem;
+  font-size: 1.4rem;
   color: var(--color-text-success);
 }
 
 .ctxOutcomeFail {
-  font-size: 0.7rem;
+  font-size: 1.4rem;
   color: var(--color-text-danger);
 }
 
 .ctxOrigin {
-  font-size: 0.68rem;
+  font-size: 1.36rem;
   color: var(--color-text-dim);
   flex-basis: 100%;
   padding-top: 2px;
 }
 
 .ctxDmgDesc {
-  font-size: 0.68rem;
+  font-size: 1.36rem;
   flex-basis: 100%;
   opacity: 0.8;
 }

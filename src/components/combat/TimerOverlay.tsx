@@ -4,7 +4,8 @@ import { STA_DEFENSE_GAIN } from '../../engine/combat'
 import { WEAPONS, calcStepDamage } from '../../data/weapons'
 import type { GeneratedMoveset, WeaponInstance, DamageType } from '../../types/game'
 import { appendToLog } from '../../engine/save'
-import { CONTENT_ORIGIN_LABELS, DMG_TYPE_CONTENT, STATUS_CONTENT } from '../../data/contentDescriptions'
+import { CONTENT_ORIGIN_INFO, DMG_TYPE_INFO, STATUS_INFO } from '../../data/contentDescriptions'
+import InfoTooltip from '../ui/InfoTooltip'
 import s from './TimerOverlay.module.css'
 
 interface Props { state: CombatState; dispatch: React.Dispatch<CombatAction> }
@@ -136,12 +137,12 @@ export default function TimerOverlay({ state, dispatch }: Props) {
               )}
               {gm?.content_origin && (
                 <span className={s.ctxOrigin}>
-                  {CONTENT_ORIGIN_LABELS[gm.content_origin]}
+                  <InfoTooltip entry={CONTENT_ORIGIN_INFO[gm.content_origin]} />
                 </span>
               )}
               {dmgType && (
                 <span className={s.ctxDmgDesc} style={{ color: dmgTypeColor ?? '#888' }}>
-                  {DMG_TYPE_CONTENT[dmgType]}
+                  <InfoTooltip entry={DMG_TYPE_INFO[dmgType]} />
                 </span>
               )}
             </>
@@ -190,7 +191,7 @@ export default function TimerOverlay({ state, dispatch }: Props) {
             />
             <span>
               <span className={s.statusCheckName}>Applied {statusLabel}</span>
-              <span className={s.statusCheckDesc}>{STATUS_CONTENT[statusBuildup]}</span>
+              <InfoTooltip entry={STATUS_INFO[statusBuildup]} className={s.statusCheckDesc} />
             </span>
           </label>
         )}

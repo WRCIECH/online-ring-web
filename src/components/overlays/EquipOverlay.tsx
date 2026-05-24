@@ -5,7 +5,8 @@ import { WEAPONS, weaponUpgradeCost, GRADE_MULT, calcStepDamage } from '../../da
 import { MOVES } from '../../data/movesets'
 import { WEAPON_CLASSES } from '../../data/generators/weaponClasses'
 import { getClassMod } from '../../engine/combat'
-import { CONTENT_ORIGIN_LABELS, DMG_TYPE_CONTENT, STATUS_CONTENT } from '../../data/contentDescriptions'
+import { CONTENT_ORIGIN_INFO, DMG_TYPE_INFO, STATUS_INFO } from '../../data/contentDescriptions'
+import InfoTooltip from '../ui/InfoTooltip'
 import type { WeaponInstance, WeaponRarity, GeneratedMoveset, StatKey, Grade, DamageType } from '../../types/game'
 import MovesetIcon from '../icons/MovesetIcon'
 import WeaponSprite from '../icons/WeaponSprite'
@@ -291,17 +292,17 @@ function WeaponCard({ weaponId, store, onPickSlot }: {
           </div>
           {tipGm?.content_origin && (
             <div className={s.msTipOrigin}>
-              {CONTENT_ORIGIN_LABELS[tipGm.content_origin]}
+              <InfoTooltip entry={CONTENT_ORIGIN_INFO[tipGm.content_origin]} />
             </div>
           )}
           {tipGm?.primary_damage_type && (
             <div className={s.msTipDmgType}>
-              {DMG_TYPE_CONTENT[tipGm.primary_damage_type]}
+              <InfoTooltip entry={DMG_TYPE_INFO[tipGm.primary_damage_type]} />
             </div>
           )}
           {tipGm?.status_buildup && (
             <div className={s.msTipStatusDesc}>
-              {STATUS_CONTENT[tipGm.status_buildup]}
+              <InfoTooltip entry={STATUS_INFO[tipGm.status_buildup]} />
             </div>
           )}
           {tipGm?.infusion && Object.keys(tipGm.infusion).length > 0 && (
