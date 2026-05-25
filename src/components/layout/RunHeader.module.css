@@ -79,6 +79,12 @@
   flex-shrink: 0;
 }
 
+/* Overloaded equip load label */
+.barLabelOver {
+  color: #e85555;
+  font-weight: 600;
+}
+
 /* Invisible full-width track — determines scale via cap */
 .barTrack {
   flex: 1;

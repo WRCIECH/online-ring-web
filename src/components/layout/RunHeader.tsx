@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { useGameStore, selectRunRemainingSeconds } from '../../store/gameStore'
+import { useGameStore, selectRunRemainingSeconds, selectEquipLoad } from '../../store/gameStore'
 import EquipOverlay    from '../overlays/EquipOverlay'
 import NotepadOverlay  from '../overlays/NotepadOverlay'
 import StatsOverlay    from '../overlays/StatsOverlay'
@@ -39,6 +39,9 @@ function Bar({ current, playerMax, cap, color }: { current: number; playerMax: n
 
 export default function RunHeader({ hp, maxHp, stamina, maxStamina, fp, maxFp, canAddContent = true }: Props) {
   const store = useGameStore()
+  const { used: elUsed, capacity: elCap } = selectEquipLoad(store)
+  const elOver  = elUsed > elCap
+  const elFillPct = elCap > 0 ? Math.min(100, (elUsed / elCap) * 100) : 0
   const [remaining, setRemaining] = useState(() =>
     selectRunRemainingSeconds(store as Parameters<typeof selectRunRemainingSeconds>[0])
   )
@@ -79,6 +82,23 @@ export default function RunHeader({ hp, maxHp, stamina, maxStamina, fp, maxFp, c
           <div className={s.barGroup} data-tip={`${Math.floor(fp)} / ${maxFp}`}>
             <span className={s.barLabel}>FP</span>
             <Bar current={fp} playerMax={maxFp} cap={FP_CAP} color="var(--color-fp)" />
+          </div>
+          <div
+            className={s.barGroup}
+            data-tip={`${elUsed.toFixed(1)} / ${elCap} equip load${elOver ? ' — OVERLOADED' : ''}`}
+          >
+            <span className={[s.barLabel, elOver ? s.barLabelOver : ''].join(' ')}>EL</span>
+            <div className={s.barTrack}>
+              <div className={s.barMax} style={{ width: '100%' }}>
+                <div
+                  className={s.barFill}
+                  style={{
+                    width: `${elFillPct}%`,
+                    background: elOver ? '#e85555' : 'var(--color-gold-dim)',
+                  }}
+                />
+              </div>
+            </div>
           </div>
         </div>
 

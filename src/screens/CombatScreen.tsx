@@ -1,7 +1,7 @@
 import { useReducer, useEffect, useCallback, useState, useMemo, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { combatReducer, initCombatState, STAGGER_PAUSE_MS, STA_BLOCK, STA_DEFENSE_GAIN, getClassMod } from '../engine/combat'
-import { useGameStore } from '../store/gameStore'
+import { useGameStore, selectEquipLoad } from '../store/gameStore'
 import { ENEMIES } from '../data/enemies'
 import { playSound } from '../engine/sound'
 import { WEAPONS, getWeaponMovesets, calcStepDamage } from '../data/weapons'
@@ -98,24 +98,30 @@ export default function CombatScreen() {
   const [state, dispatch] = useReducer(
     combatReducer,
     undefined,
-    () => enemyData && loc
-      ? initCombatState(
-          loc.enemy_id, enemyData, loc.mult,
-          store.equipped_run_weapons,
-          store.weapon_extra_movesets,
-          store.weapon_level,
-          store.current_hp,  store.maxHp(),
-          store.current_stamina, store.maxStamina(),
-          store.current_fp,  store.maxFp(),
-          store.run_estus_count,
-          store.stats,
-        )
-      : initCombatState(
-          'procrastination_mob', ENEMIES['procrastination_mob'], 1,
-          ['unarmed'], {}, {},
-          300,300, 130,130, 140,140, 3,
-          { VIG:10, END:10, MND:10, STR:8, DEX:8, INT:8, FAI:8, ARC:8 },
-        )
+    () => {
+      const { used: elUsed, capacity: elCap } = selectEquipLoad(store)
+      const loadRatio = elCap > 0 ? elUsed / elCap : 0
+      return enemyData && loc
+        ? initCombatState(
+            loc.enemy_id, enemyData, loc.mult,
+            store.equipped_run_weapons,
+            store.weapon_extra_movesets,
+            store.weapon_level,
+            store.current_hp,  store.maxHp(),
+            store.current_stamina, store.maxStamina(),
+            store.current_fp,  store.maxFp(),
+            store.run_estus_count,
+            store.stats,
+            loadRatio,
+          )
+        : initCombatState(
+            'procrastination_mob', ENEMIES['procrastination_mob'], 1,
+            ['unarmed'], {}, {},
+            300,300, 130,130, 140,140, 3,
+            { VIG:10, END:10, MND:10, STR:8, DEX:8, INT:8, FAI:8, ARC:8 },
+            0,
+          )
+    }
   )
 
   // ── Side effects on phase change ───────────────────────────────────────
@@ -194,7 +200,10 @@ export default function CombatScreen() {
 
   function handleParryAccomplished() {
     if (pendingParryPublishId) {
-      store.publishContentItem(pendingParryPublishId)
+      const item   = store.content_items.find(c => c.id === pendingParryPublishId)
+      const title  = item?.name || 'Article'
+      const reward = store.publishContentItem(pendingParryPublishId)
+      dispatch({ type: 'ADD_LOG', text: `📤 "${title}" published! ✦ +${reward} runes.`, color: '#e6bf33' })
       setPendingParryPublishId(null)
     }
   }
@@ -758,8 +767,12 @@ export default function CombatScreen() {
               <div className={s.advanceBtns}>
                 {next && (
                   <button className={s.btnAdvance} onClick={() => {
-                    if (next === 'Published') store.publishContentItem(item.id)
-                    else store.updateContentItem(item.id, { phase: next })
+                    if (next === 'Published') {
+                      const reward = store.publishContentItem(item.id)
+                      dispatch({ type: 'ADD_LOG', text: `📤 "${item.name || 'Article'}" published! ✦ +${reward} runes.`, color: '#e6bf33' })
+                    } else {
+                      store.updateContentItem(item.id, { phase: next })
+                    }
                     setPendingAdvance(null)
                   }}>
                     {next === 'Published' ? '🎉 Publish!' : `Advance to ${next}`}

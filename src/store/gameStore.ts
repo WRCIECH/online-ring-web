@@ -240,7 +240,7 @@ export interface GameStore extends GameState {
   addContentItem: (name: string) => void
   updateContentItem: (id: string, patch: Partial<Pick<ContentItem, 'name' | 'phase' | 'notes'>>) => void
   removeContentItem: (id: string) => void
-  publishContentItem: (id: string) => void
+  publishContentItem: (id: string) => number   // returns rune reward granted
   stampContentItem: (id: string, stamps: { medium?: AtomicMedium; origin?: AtomicOrigin; status?: StatusType }) => void
 
   // Persistence
@@ -531,12 +531,20 @@ export const useGameStore = create<GameStore>((set, get) => ({
   },
 
   publishContentItem: (id) => {
+    const item = get().content_items.find(c => c.id === id)
+    // Rune reward: 50 base + 25 per stamp locked on the article
+    const stamps = item
+      ? [item.stamped_medium, item.stamped_origin, item.stamped_status].filter(Boolean).length
+      : 0
+    const reward = 50 + stamps * 25
     set(s => ({
       content_items: s.content_items.map(c =>
         c.id === id ? { ...c, phase: 'Published' as ContentPhase, published_at: Date.now() } : c
       ),
+      runes: s.runes + reward,
     }))
     get().save()
+    return reward
   },
 
   stampContentItem: (id, stamps) => {

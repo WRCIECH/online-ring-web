@@ -169,6 +169,7 @@ export type CombatAction =
   | { type: 'ENTER_PHASE'; phase: CombatPhase }
   | { type: 'SET_WEAPON'; idx: number }
   | { type: 'USE_ESTUS' }
+  | { type: 'ADD_LOG'; text: string; color?: string }
 
 // ── Status effect helpers ──────────────────────────────────────────────────
 
@@ -371,18 +372,26 @@ export function initCombatState(
   playerFp: number, playerMaxFp: number,
   playerEstus: number,
   playerStats: Stats,
+  equipLoadRatio = 0,
 ): CombatState {
   const maxHp = Math.floor(enemyData.max_hp * enemyMult)
   const rollCfg = ENEMY_ROLL_CONFIG[enemyId]
   const enemyRollMoveset = rollCfg ? rollMoveset(rollCfg.wclass, rollCfg.rarity, 'Light') : null
-  const first = log({
+
+  // Equip-load stamina penalty: each 10% over capacity = −5% max stamina (cap at −50%)
+  const effectiveMaxSta = equipLoadRatio > 1
+    ? Math.floor(playerMaxStamina * Math.max(0.5, 1 - (equipLoadRatio - 1) * 0.5))
+    : playerMaxStamina
+  const effectiveSta = Math.min(playerStamina, effectiveMaxSta)
+
+  let state = log({
     phase: 'PLAYER_ATTACK',
     enemyId, enemyData,
     enemyMaxHp: maxHp, enemyHp: maxHp,
     enemyMaxPoise: enemyData.max_poise, enemyPoise: enemyData.max_poise,
     currentMove: null, enemySkipTurn: false,
     playerHp, playerMaxHp,
-    playerStamina, playerMaxStamina,
+    playerStamina: effectiveSta, playerMaxStamina: effectiveMaxSta,
     playerFp, playerMaxFp,
     playerEstus,
     equippedWeapons, weaponExtraMovesets, weaponLevels,
@@ -402,7 +411,13 @@ export function initCombatState(
     activeStatuses: {},
     log: [], logId: 0,
   }, `You face ${enemyData.name}.`, '#c9a93a')
-  return log(first, enemyData.description, '#7a7570')
+  state = log(state, enemyData.description, '#7a7570')
+  if (equipLoadRatio > 1) {
+    const pct     = Math.round(equipLoadRatio * 100)
+    const penalty = Math.round((1 - effectiveMaxSta / playerMaxStamina) * 100)
+    state = log(state, `⚠ Equip load ${pct}% — max stamina reduced by ${penalty}%.`, '#e85555')
+  }
+  return state
 }
 
 // ── Reducer ───────────────────────────────────────────────────────────────
@@ -708,6 +723,9 @@ export function combatReducer(state: CombatState, action: CombatAction): CombatS
       if (action.phase === 'PLAYER_ATTACK') return enterPlayerAttack(state)
       return { ...state, phase: action.phase }
     }
+
+    case 'ADD_LOG':
+      return log(state, action.text, action.color ?? '#c9a93a')
 
     default:
       return state
