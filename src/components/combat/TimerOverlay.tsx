@@ -418,7 +418,12 @@ export default function TimerOverlay({
 
         {isPreview && (
           <div className={s.actions}>
-            <button className={s.btnPrimary} onClick={() => dispatch({ type: 'START_TIMER' })}>
+            <button
+              className={s.btnPrimary}
+              disabled={!timerIsDefense && !selectedContentId}
+              title={!timerIsDefense && !selectedContentId ? 'Select an article to work on first' : undefined}
+              onClick={() => dispatch({ type: 'START_TIMER' })}
+            >
               Start Task
             </button>
           </div>
