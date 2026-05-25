@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import type { CombatState, CombatAction } from '../../engine/combat'
 import { STA_DEFENSE_GAIN } from '../../engine/combat'
 import { WEAPONS, calcStepDamage } from '../../data/weapons'
@@ -45,6 +45,10 @@ export default function TimerOverlay({
           pendingWeaponId, playerStats, weaponLevels,
           currentMove } = state
 
+  // ── Custom dropdown state ────────────────────────────────────────────────
+  const [dropdownOpen, setDropdownOpen] = useState(false)
+  const [hoveredId,    setHoveredId]    = useState<string | null>(null)
+
   // rAF-based countdown
   useEffect(() => {
     if (!stepStarted || timerExpired) return
@@ -64,6 +68,11 @@ export default function TimerOverlay({
   const isPreview = !stepStarted && !timerExpired
   const isActive  = stepStarted && !timerExpired
   const isExpired = timerExpired
+
+  // Close dropdown when task becomes active or expires
+  useEffect(() => {
+    if (isActive || isExpired) { setDropdownOpen(false); setHoveredId(null) }
+  }, [isActive, isExpired])
 
   let header = 'TASK PREVIEW'
   let headerColor = '#7a7570'
@@ -96,10 +105,14 @@ export default function TimerOverlay({
   const taskOrigin   = gm?.content_origin   ?? null
   const taskStatus   = gm?.status_buildup   ?? null
 
-  const stageMismatch  = !!selectedItem && !!taskStage && selectedItem.phase !== taskStage
-  const mediumMismatch = !!selectedItem?.stamped_medium && !!taskMedium && selectedItem.stamped_medium !== taskMedium
-  const originMismatch = !!selectedItem?.stamped_origin && !!taskOrigin && selectedItem.stamped_origin !== taskOrigin
-  const statusMismatch = !!selectedItem?.stamped_status && !!taskStatus && selectedItem.stamped_status !== taskStatus
+  // When dropdown is open, hover preview takes priority over confirmed selection
+  const displayId   = dropdownOpen && hoveredId !== null ? hoveredId : selectedContentId
+  const displayItem = activeContentItems.find(c => c.id === displayId) ?? null
+
+  const stageMismatch  = !!displayItem && !!taskStage && displayItem.phase !== taskStage
+  const mediumMismatch = !!displayItem?.stamped_medium && !!taskMedium && displayItem.stamped_medium !== taskMedium
+  const originMismatch = !!displayItem?.stamped_origin && !!taskOrigin && displayItem.stamped_origin !== taskOrigin
+  const statusMismatch = !!displayItem?.stamped_status && !!taskStatus && displayItem.stamped_status !== taskStatus
 
   let mismatchMult = 1
   if (stageMismatch)  mismatchMult *= 0.65
@@ -108,7 +121,7 @@ export default function TimerOverlay({
   if (statusMismatch) mismatchMult *= 0.85
   mismatchMult = Math.max(0.35, mismatchMult)
 
-  const showImpact  = !timerIsDefense && !!selectedItem
+  const showImpact  = !timerIsDefense && !!displayItem
   const anyMismatch = stageMismatch || mediumMismatch || originMismatch || statusMismatch
   const penaltyPct  = Math.round((1 - mismatchMult) * 100)
 
@@ -242,106 +255,146 @@ export default function TimerOverlay({
         {/* ── Article selector ─────────────────────────────────────────── */}
         {!timerIsDefense && (
           <>
+            {/* Trigger button */}
             <div className={s.articleRow}>
               <span className={s.articleLabel}>Working on:</span>
-              <select
-                className={s.articleSelect}
-                value={selectedContentId ?? ''}
-                disabled={isActive || isExpired}
-                onChange={e => onSelectContent(e.target.value || null)}
+              <button
+                type="button"
+                className={[
+                  s.articleTrigger,
+                  (isActive || isExpired) ? s.articleTriggerDisabled : '',
+                ].join(' ')}
+                onClick={() => { if (!isActive && !isExpired) setDropdownOpen(o => !o) }}
               >
-                <option value="">— None —</option>
-                {activeContentItems.map(item => (
-                  <option key={item.id} value={item.id}>
-                    [{item.phase}] {item.name}
-                  </option>
-                ))}
-              </select>
+                {selectedItem ? (
+                  <>
+                    <span className={s.articlePhaseChip}>{selectedItem.phase}</span>
+                    <span className={s.articleTriggerName}>{selectedItem.name || '(unnamed)'}</span>
+                  </>
+                ) : (
+                  <span className={s.articlePlaceholder}>— None —</span>
+                )}
+                <span className={s.articleCaret}>{dropdownOpen ? '▲' : '▼'}</span>
+              </button>
             </div>
 
-            {/* ── Task impact on selected article ──────────────────────── */}
+            {/* Floating list */}
+            {dropdownOpen && !isActive && !isExpired && (
+              <>
+                <div
+                  className={s.articleBackdrop}
+                  onClick={() => { setDropdownOpen(false); setHoveredId(null) }}
+                />
+                <div className={s.articleList}>
+                  {/* None option */}
+                  <div
+                    className={[
+                      s.articleOption,
+                      !selectedContentId ? s.articleOptionSelected : '',
+                    ].join(' ')}
+                    onMouseEnter={() => setHoveredId(null)}
+                    onClick={() => { onSelectContent(null); setDropdownOpen(false); setHoveredId(null) }}
+                  >
+                    <span className={s.articleOptionName}>— None —</span>
+                  </div>
+                  {activeContentItems.map(item => (
+                    <div
+                      key={item.id}
+                      className={[
+                        s.articleOption,
+                        item.id === selectedContentId ? s.articleOptionSelected : '',
+                        item.id === hoveredId         ? s.articleOptionHovered  : '',
+                      ].join(' ')}
+                      onMouseEnter={() => setHoveredId(item.id)}
+                      onMouseLeave={() => setHoveredId(null)}
+                      onClick={() => { onSelectContent(item.id); setDropdownOpen(false); setHoveredId(null) }}
+                    >
+                      <span className={s.articlePhaseChip}>{item.phase}</span>
+                      <span className={s.articleOptionName}>{item.name || '(unnamed)'}</span>
+                    </div>
+                  ))}
+                </div>
+              </>
+            )}
+
+            {/* ── Task impact on displayed article ─────────────────────── */}
             {showImpact && (
               <div className={s.impactRow}>
-                {/* Stage */}
                 {taskStage && (
                   <span
                     className={stageMismatch ? s.impactMismatch : s.impactMatch}
                     title={stageMismatch
-                      ? `Article is at ${selectedItem!.phase} phase; this task advances ${taskStage} work`
+                      ? `Article is at ${displayItem!.phase} phase; this task advances ${taskStage} work`
                       : `Task stage matches article phase`}
                   >
                     {stageMismatch
-                      ? `${selectedItem!.phase} ≠ ${taskStage}`
+                      ? `${displayItem!.phase} ≠ ${taskStage}`
                       : taskStage}
                   </span>
                 )}
-                {/* Medium */}
                 {taskMedium && (
                   <span
                     className={
-                      mediumMismatch          ? s.impactMismatch :
-                      !selectedItem!.stamped_medium ? s.impactNew :
+                      mediumMismatch             ? s.impactMismatch :
+                      !displayItem!.stamped_medium ? s.impactNew :
                       s.impactMatch
                     }
                     title={
                       mediumMismatch
-                        ? `Article locked to ${selectedItem!.stamped_medium}; task uses ${taskMedium} (−15% dmg)`
-                        : !selectedItem!.stamped_medium
+                        ? `Article locked to ${displayItem!.stamped_medium}; task uses ${taskMedium} (−15% dmg)`
+                        : !displayItem!.stamped_medium
                         ? `Will stamp article with ${taskMedium} medium`
                         : `Medium matches`
                     }
                   >
                     {mediumMismatch
-                      ? `${selectedItem!.stamped_medium} ≠ ${taskMedium}`
+                      ? `${displayItem!.stamped_medium} ≠ ${taskMedium}`
                       : taskMedium.replace(/_/g, ' ')}
-                    {!mediumMismatch && !selectedItem!.stamped_medium && ' ✦'}
+                    {!mediumMismatch && !displayItem!.stamped_medium && ' ✦'}
                   </span>
                 )}
-                {/* Origin */}
                 {taskOrigin && (
                   <span
                     className={
-                      originMismatch          ? s.impactMismatch :
-                      !selectedItem!.stamped_origin ? s.impactNew :
+                      originMismatch             ? s.impactMismatch :
+                      !displayItem!.stamped_origin ? s.impactNew :
                       s.impactMatch
                     }
                     title={
                       originMismatch
-                        ? `Article locked to ${selectedItem!.stamped_origin}; task uses ${taskOrigin} (−15% dmg)`
-                        : !selectedItem!.stamped_origin
+                        ? `Article locked to ${displayItem!.stamped_origin}; task uses ${taskOrigin} (−15% dmg)`
+                        : !displayItem!.stamped_origin
                         ? `Will stamp article with ${taskOrigin} origin`
                         : `Origin matches`
                     }
                   >
                     {originMismatch
-                      ? `${selectedItem!.stamped_origin} ≠ ${taskOrigin}`
+                      ? `${displayItem!.stamped_origin} ≠ ${taskOrigin}`
                       : taskOrigin.replace(/_/g, ' ')}
-                    {!originMismatch && !selectedItem!.stamped_origin && ' ✦'}
+                    {!originMismatch && !displayItem!.stamped_origin && ' ✦'}
                   </span>
                 )}
-                {/* Tone / status */}
                 {taskStatus && (
                   <span
                     className={
-                      statusMismatch          ? s.impactMismatch :
-                      !selectedItem!.stamped_status ? s.impactNew :
+                      statusMismatch             ? s.impactMismatch :
+                      !displayItem!.stamped_status ? s.impactNew :
                       s.impactMatch
                     }
                     title={
                       statusMismatch
-                        ? `Article locked to ${selectedItem!.stamped_status}; task builds ${taskStatus} (−15% dmg)`
-                        : !selectedItem!.stamped_status
+                        ? `Article locked to ${displayItem!.stamped_status}; task builds ${taskStatus} (−15% dmg)`
+                        : !displayItem!.stamped_status
                         ? `Will stamp article with ${taskStatus.replace(/_/g, ' ')} tone`
                         : `Tone matches`
                     }
                   >
                     {statusMismatch
-                      ? `${selectedItem!.stamped_status?.replace(/_/g, ' ')} ≠ ${taskStatus.replace(/_/g, ' ')}`
+                      ? `${displayItem!.stamped_status?.replace(/_/g, ' ')} ≠ ${taskStatus.replace(/_/g, ' ')}`
                       : taskStatus.replace(/_/g, ' ')}
-                    {!statusMismatch && !selectedItem!.stamped_status && ' ✦'}
+                    {!statusMismatch && !displayItem!.stamped_status && ' ✦'}
                   </span>
                 )}
-                {/* Damage penalty summary */}
                 {anyMismatch && (
                   <span className={s.impactPenalty} title="Total damage penalty from mismatches">
                     −{penaltyPct}% dmg

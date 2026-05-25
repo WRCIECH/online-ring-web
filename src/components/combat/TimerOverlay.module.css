@@ -18,6 +18,7 @@
   display: flex;
   flex-direction: column;
   gap: 14px;
+  position: relative;
 }
 
 .header {
@@ -240,8 +241,13 @@
   flex-shrink: 0;
 }
 
-.articleSelect {
+/* ── Custom article dropdown ──────────────────────────────────────────────── */
+
+.articleTrigger {
   flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 8px;
   font-size: 0.82rem;
   padding: 5px 10px;
   background: rgba(255,255,255,0.04);
@@ -249,16 +255,88 @@
   border-radius: var(--radius);
   color: var(--color-text);
   cursor: pointer;
+  text-align: left;
   transition: border-color 0.12s;
 }
 
-.articleSelect:not(:disabled):hover {
-  border-color: var(--color-border);
-}
+.articleTrigger:hover { border-color: var(--color-border); }
 
-.articleSelect:disabled {
+.articleTriggerDisabled {
   opacity: 0.55;
   cursor: default;
+  pointer-events: none;
+}
+
+.articleTriggerName {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.articlePlaceholder {
+  color: var(--color-text-dim);
+  flex: 1;
+}
+
+.articleCaret {
+  margin-left: auto;
+  opacity: 0.5;
+  font-size: 0.65rem;
+  flex-shrink: 0;
+}
+
+.articlePhaseChip {
+  font-size: 0.65rem;
+  letter-spacing: 0.06em;
+  padding: 1px 6px;
+  border-radius: 3px;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.12);
+  color: var(--color-text-dim);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+/* Transparent full-screen backdrop — closes dropdown on outside click */
+.articleBackdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 99;
+}
+
+/* Floating option list — positioned relative to .panel */
+.articleList {
+  position: absolute;
+  left: 36px;
+  right: 36px;
+  z-index: 100;
+  background: var(--color-bg-panel);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  box-shadow: 0 6px 24px rgba(0,0,0,0.55);
+  max-height: 220px;
+  overflow-y: auto;
+}
+
+.articleOption {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 12px;
+  cursor: pointer;
+  transition: background 0.08s;
+}
+
+.articleOptionHovered  { background: rgba(255,255,255,0.06); }
+.articleOptionSelected { background: rgba(230,191,51,0.06); }
+
+.articleOptionName {
+  font-size: 0.85rem;
+  color: var(--color-text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 /* ── Task impact chips (below article combobox) ─────────────────────────── */
