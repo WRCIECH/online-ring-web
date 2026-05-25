@@ -25,7 +25,7 @@ export default function WeaponSelectScreen() {
   const numSublocations = routerState?.numSublocations ?? 20
   const runDuration     = routerState?.runDuration     ?? 158400  // default: medium 44h
   const [selected, setSelected] = useState<string[]>(
-    () => store.owned_weapons.filter(id => !(store.weapon_cooldown[id] ?? 0 > 0)).slice(0, 1)
+    () => store.owned_weapons.slice(0, 1)
   )
   const [showStats, setShowStats] = useState(false)
 
@@ -65,7 +65,7 @@ export default function WeaponSelectScreen() {
           const cooldown        = store.weapon_cooldown[wid] ?? 0
           const onCooldown      = cooldown > 0
           const isSelected      = selected.includes(wid)
-          const isDisabled      = onCooldown || (!isSelected && selected.length >= MAX_WEAPONS)
+          const isDisabled      = !isSelected && selected.length >= MAX_WEAPONS
           const rarity          = (weapon as WeaponInstance).rarity
           const affixes         = (weapon as WeaponInstance).affixes ?? []
           const weaponClass     = (weapon as WeaponInstance).weapon_class
@@ -102,7 +102,7 @@ export default function WeaponSelectScreen() {
                   <span className={s.statusBadge}>{inherentStatus.replace(/_/g, ' ')}</span>
                 )}
                 {onCooldown && (
-                  <span className={s.cooldownBadge}>🔥 Cool-down: {cooldown} run{cooldown !== 1 ? 's' : ''}</span>
+                  <span className={s.cooldownBadge}>🔥 Overheated ({cooldown} run{cooldown !== 1 ? 's' : ''})</span>
                 )}
               </div>
               <div className={s.weaponDesc}>{weapon.description}</div>

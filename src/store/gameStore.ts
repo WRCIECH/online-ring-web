@@ -386,20 +386,9 @@ export const useGameStore = create<GameStore>((set, get) => ({
     get().save()
   },
 
-  applyWeaponHeat: (heat) => {
-    set(s => {
-      const cooldown = { ...s.weapon_cooldown }
-      for (const [wid, uses] of Object.entries(heat)) {
-        const w = s.weapon_instances.find(x => x.instance_id === wid)
-        if (!w) continue
-        const threshold = w.heat_threshold
-        if (uses < threshold) continue
-        const excess = uses - threshold
-        const cd = excess <= 2 ? 1 : excess <= 5 ? 2 : 3
-        cooldown[wid] = (cooldown[wid] ?? 0) + cd
-      }
-      return { weapon_cooldown: cooldown }
-    })
+  applyWeaponHeat: (_heat) => {
+    // Phase 5: overheat is now an in-combat damage penalty (see combat.ts).
+    // Between-run cooldowns are removed. No-op; kept for API compatibility.
   },
 
   addWeaponInstance: (w) => {

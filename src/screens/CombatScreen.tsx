@@ -587,6 +587,7 @@ export default function CombatScreen() {
             playerEstus={state.playerEstus}
             phase={state.phase}
             dispatch={dispatch}
+            weaponHeatAccumulated={state.weaponHeatAccumulated}
           />
           <CombatLog entries={state.log} />
         </div>

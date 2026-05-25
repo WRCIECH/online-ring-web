@@ -130,6 +130,37 @@
   margin-top: 3px;
 }
 
+/* Heat bar — thin strip at the bottom of a weapon slot */
+.heatBar {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  height: 3px;
+  border-radius: 0 0 var(--radius) var(--radius);
+  transition: width 0.3s ease, background 0.3s ease;
+  pointer-events: none;
+}
+
+/* Overheat penalty label — top-left corner of the slot */
+.heatPenalty {
+  position: absolute;
+  top: 3px;
+  left: 4px;
+  font-size: 0.52rem;
+  color: #ee5533;
+  line-height: 1;
+  font-weight: 700;
+  pointer-events: none;
+  letter-spacing: -0.01em;
+}
+
+/* Heat info line in weapon tooltip */
+.tipHeat {
+  font-size: 0.68rem;
+  color: var(--color-text-dim);
+  margin-top: 2px;
+}
+
 /* Separator between weapons and items */
 .divider {
   width: 1px;

@@ -12,14 +12,15 @@ const EMPTY_SLOT = (
 )
 
 interface Props {
-  equippedWeapons: string[]
-  activeWeaponIdx: number
-  playerEstus: number
-  phase: string
-  dispatch: React.Dispatch<CombatAction>
+  equippedWeapons:      string[]
+  activeWeaponIdx:      number
+  playerEstus:          number
+  phase:                string
+  dispatch:             React.Dispatch<CombatAction>
+  weaponHeatAccumulated: Record<string, number>
 }
 
-export default function QuickBar({ equippedWeapons, activeWeaponIdx, playerEstus, phase, dispatch }: Props) {
+export default function QuickBar({ equippedWeapons, activeWeaponIdx, playerEstus, phase, dispatch, weaponHeatAccumulated }: Props) {
   const canAct    = phase === 'PLAYER_ATTACK' || phase === 'ENEMY_ATTACK'
   const canSwitch = phase === 'PLAYER_ATTACK'
 
@@ -41,6 +42,15 @@ export default function QuickBar({ equippedWeapons, activeWeaponIdx, playerEstus
         const isActive    = idx === activeWeaponIdx
         const isClickable = !!weapon && canSwitch && !isActive
 
+        // Heat display
+        const uses      = wid ? (weaponHeatAccumulated[wid] ?? 0) : 0
+        const threshold = weapon?.heat_threshold ?? Infinity
+        const heatPct   = threshold === Infinity || !weapon ? 0 : Math.min(1, uses / threshold)
+        const overUses  = weapon ? Math.max(0, uses - threshold) : 0
+        const penaltyPct = Math.min(75, Math.round(overUses * 2.5))
+        const isOver    = overUses > 0
+        const heatColor = heatPct < 0.6 ? '#44aa55' : heatPct < 0.9 ? '#cc8833' : '#cc3333'
+
         return (
           <button
             key={idx}
@@ -58,6 +68,15 @@ export default function QuickBar({ equippedWeapons, activeWeaponIdx, playerEstus
               />
             ) : EMPTY_SLOT}
             {isActive && <span className={s.activePip} />}
+            {weapon && heatPct > 0 && (
+              <span
+                className={s.heatBar}
+                style={{ width: `${heatPct * 100}%`, background: heatColor }}
+              />
+            )}
+            {weapon && isOver && (
+              <span className={s.heatPenalty}>−{penaltyPct}%🔥</span>
+            )}
           </button>
         )
       })}
@@ -73,6 +92,19 @@ export default function QuickBar({ equippedWeapons, activeWeaponIdx, playerEstus
             {tipWeapon.weapon_class?.replace(/_/g, ' ')}
             {tipWeapon.rarity ? ` · ${tipWeapon.rarity}` : ''}
           </div>
+          {(() => {
+            const wid2     = equippedWeapons[weaponTip.idx]
+            const uses2    = wid2 ? (weaponHeatAccumulated[wid2] ?? 0) : 0
+            const thresh2  = tipWeapon.heat_threshold ?? Infinity
+            const over2    = Math.max(0, uses2 - thresh2)
+            const penalty2 = Math.min(75, Math.round(over2 * 2.5))
+            return (
+              <div className={s.tipHeat}>
+                {uses2}/{thresh2 === Infinity ? '∞' : thresh2} uses
+                {over2 > 0 ? ` · −${penalty2}% dmg 🔥` : ''}
+              </div>
+            )
+          })()}
           <div className={s.tipHint}>
             {weaponTip.idx === activeWeaponIdx ? 'Active weapon' : 'Click to switch'}
           </div>

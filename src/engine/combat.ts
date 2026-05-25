@@ -556,9 +556,15 @@ export function combatReducer(state: CombatState, action: CombatAction): CombatS
       const graceActive = !!state.activeStatuses.grace
       // Frostbite bonus: +20% damage taken when active
       const frostDebuff  = state.activeStatuses.frostbite ? 1.2 : 1.0
-      // Stage mismatch: −35% if article phase ≠ task stage (0.65 mult passed from UI)
+      // Stage / content mismatch penalty (computed in UI, passed in)
       const mismatchMult = action.mismatchMult ?? 1
-      const finalDmg  = Math.floor(baseDmg * cls.dmgMult * typeMult * frostDebuff * mismatchMult)
+      // Overheat penalty: −2.5% per use over heat_threshold, capped at −75%
+      const prevHeat      = state.weaponHeatAccumulated[state.pendingWeaponId] ?? 0
+      const heatThreshold = wi?.heat_threshold ?? Infinity
+      const usesAfterThis = prevHeat + 1
+      const overHeat      = Math.max(0, usesAfterThis - heatThreshold)
+      const overheatMult  = Math.max(0.25, 1 - overHeat * 0.025)
+      const finalDmg  = Math.floor(baseDmg * cls.dmgMult * typeMult * frostDebuff * mismatchMult * overheatMult)
       const dualDmg   = cls.dualStrike ? Math.floor(finalDmg * 0.4) : 0
       const totalDmg  = finalDmg + dualDmg
 
@@ -591,11 +597,11 @@ export function combatReducer(state: CombatState, action: CombatAction): CombatS
       const newChainIdx = nextIdx < allSteps.length ? nextIdx : 0
 
       // Heat: one increment per successful step
-      const prevHeat   = state.weaponHeatAccumulated[state.pendingWeaponId] ?? 0
-      const newHeatAcc = { ...state.weaponHeatAccumulated, [state.pendingWeaponId]: prevHeat + 1 }
+      const newHeatAcc = { ...state.weaponHeatAccumulated, [state.pendingWeaponId]: usesAfterThis }
 
       const flowSuffix     = gapMult === 1.5 ? ' [flow]' : (gapMult === 0.5 ? ' [stale]' : '')
       const mismatchSuffix = mismatchMult < 1 ? ` [−${Math.round((1 - mismatchMult) * 100)}% mismatch]` : ''
+      const overheatSuffix = overheatMult < 1 ? ` [🔥 −${Math.round((1 - overheatMult) * 100)}% heat]` : ''
       const classSuffix = cls.dualStrike
         ? ` ⚔ +${dualDmg} off-hand`
         : cls.selfDmg > 0
@@ -632,8 +638,13 @@ export function combatReducer(state: CombatState, action: CombatAction): CombatS
           lastMovesetCompletionMs: Date.now(),
           weaponHeatAccumulated: newHeatAcc,
           statusAccumulation: newAccRecord },
-        `You complete ${step.name} — ${finalDmg} damage!${typeSuffix}${flowSuffix}${mismatchSuffix}${classSuffix}`, '#ffffff'
+        `You complete ${step.name} — ${finalDmg} damage!${typeSuffix}${flowSuffix}${mismatchSuffix}${overheatSuffix}${classSuffix}`, '#ffffff'
       )
+
+      // Warn on first overheat crossing
+      if (overHeat === 1) {
+        s = log(s, `⚠ ${wi?.name ?? 'Weapon'} is overheating — damage −2.5% per additional use (${heatThreshold} use limit).`, '#cc6622')
+      }
 
       // Trigger status effect if threshold reached
       if (statusTriggered && statusType) {
