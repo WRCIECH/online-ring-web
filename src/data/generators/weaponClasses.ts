@@ -278,7 +278,7 @@ export const WEAPON_CLASSES: Record<WeaponClass, WeaponClassDef> = {
     weight: 3.0, poise_value: 5,
     base_damage_types: ['poison', 'occult'], damage_type_bonus: 1.20,
     time_mod: 0.9, stamina_mod: 0.95, moves_per_hit_bonus: 0,
-    inherent_status: 'poison',
+    inherent_status: 'murmur',
   },
   greatbows: {
     id: 'greatbows', name: 'Greatbow', description: 'Long-tail evergreen content.',

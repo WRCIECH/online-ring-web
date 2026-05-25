@@ -3,7 +3,7 @@ import type { CombatState, CombatAction } from '../../engine/combat'
 import { STA_DEFENSE_GAIN } from '../../engine/combat'
 import { WEAPONS, calcStepDamage } from '../../data/weapons'
 import { WEAPON_CLASSES } from '../../data/generators/weaponClasses'
-import type { GeneratedMoveset, WeaponInstance, DamageType } from '../../types/game'
+import type { WeaponInstance, DamageType } from '../../types/game'
 import { appendToLog } from '../../engine/save'
 import WeaponSprite from '../icons/WeaponSprite'
 import s from './TimerOverlay.module.css'
@@ -24,7 +24,7 @@ const DMG_TYPE_COLOURS: Partial<Record<DamageType, string>> = {
 export default function TimerOverlay({ state, dispatch }: Props) {
   const { stepTimer, stepTotal, stepStarted, timerExpired,
           timerIsDefense, pendingStep, pendingDefenseAction, pendingMoveset,
-          pendingWeaponId, chainStepIdx, playerStats, weaponLevels,
+          pendingWeaponId, playerStats, weaponLevels,
           currentMove } = state
   const textRef = useRef<HTMLTextAreaElement>(null)
 
@@ -71,12 +71,9 @@ export default function TimerOverlay({ state, dispatch }: Props) {
     : isActive ? 'Back  (costs stamina)' : 'Back'
 
   // ── Context info strip ───────────────────────────────────────────────────
-  const gm = pendingMoveset as GeneratedMoveset | null
   const weapon   = pendingWeaponId ? WEAPONS[pendingWeaponId] : null
   const wi       = weapon as WeaponInstance | undefined
   const wLevel   = weaponLevels[pendingWeaponId] ?? 0
-  const totalSteps   = pendingMoveset?.steps.length ?? 1
-  const stepNum      = (chainStepIdx ?? 0) + 1
   const computedDmg  = (!timerIsDefense && pendingStep && weapon)
     ? calcStepDamage(pendingStep, weapon, wLevel, playerStats)
     : null

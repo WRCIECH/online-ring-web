@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useGameStore, calcMaxHp } from '../../store/gameStore'
 import { WEAPONS, calcStepDamage, statLevelCost, weaponUpgradeCost, LEVEL_MULT } from '../../data/weapons'
 import { MOVES } from '../../data/movesets'
-import type { StatKey, WeaponInstance, GeneratedMoveset } from '../../types/game'
+import type { StatKey, WeaponInstance } from '../../types/game'
 import s from './StatsOverlay.module.css'
 
 interface Props { onClose: () => void; canLevel?: boolean }
