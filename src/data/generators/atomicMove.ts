@@ -49,7 +49,7 @@ const TIME_WEIGHTS: Record<MovesetVariant, number[]> = {
 export function validateConsistency(d: AtomicDimensions): boolean {
   if (d.cognitive_mode === 'Consuming'   && d.stage !== 'Research')                                             return false
   if (d.cognitive_mode === 'Consuming'   && d.publication === 'public')                                         return false
-  if (d.cognitive_mode === 'Commentary'  && d.stage !== 'Generate')                                             return false
+  if (d.cognitive_mode === 'Commentary'  && d.stage !== 'Produce')                                             return false
   if (d.cognitive_mode === 'Compressing' && d.content_origin === 'New')                                         return false
   if (d.cognitive_mode === 'Expanding'   && d.content_origin === 'New')                                         return false
   if (d.cognitive_mode === 'Remixing'    &&
@@ -64,7 +64,7 @@ export function validateConsistency(d: AtomicDimensions): boolean {
 const STAGE_VERBS: Record<AtomicStage, string> = {
   Research:  'Find evidence, examples, and reference material',
   Outline:   'Map the full structure before you write a word',
-  Generate:  'Write your first full draft — commit without stopping',
+  Produce:   'Write your first full draft — commit without stopping',
   Glue:      'Arrange and connect your pieces into a coherent whole',
   Refine:    'Cut the fat, tighten sentences, and elevate the writing',
   Publish:   'Put it out — finalise, format, and commit to publishing',
@@ -135,16 +135,16 @@ export type MovesetArchetype =
   | 'async' | 'editing'
 
 const STAGE_CHAINS: Record<MovesetArchetype, AtomicStage[]> = {
-  long_form:    ['Research','Outline','Generate','Refine','Publish'],
-  micro:        ['Generate','Publish'],
-  commentary:   ['Research','Generate','Glue','Publish'],
-  research:     ['Research','Outline','Generate','Publish'],
-  compression:  ['Research','Generate','Refine','Publish'],
-  remix:        ['Research','Generate','Refine','Publish'],
-  storytelling: ['Research','Outline','Generate','Glue','Refine','Publish'],
-  hot_take:     ['Generate','Publish'],
-  async:        ['Outline','Generate','Refine','Publish'],
-  editing:      ['Research','Generate','Refine','Publish'],
+  long_form:    ['Research','Outline','Produce','Refine','Publish'],
+  micro:        ['Produce','Publish'],
+  commentary:   ['Research','Produce','Glue','Publish'],
+  research:     ['Research','Outline','Produce','Publish'],
+  compression:  ['Research','Produce','Refine','Publish'],
+  remix:        ['Research','Produce','Refine','Publish'],
+  storytelling: ['Research','Outline','Produce','Glue','Refine','Publish'],
+  hot_take:     ['Produce','Publish'],
+  async:        ['Outline','Produce','Refine','Publish'],
+  editing:      ['Research','Produce','Refine','Publish'],
 }
 
 export function pickStageChain(archetype: MovesetArchetype): AtomicStage[] {
@@ -157,7 +157,7 @@ function modeForStage(stage: AtomicStage, archetype: MovesetArchetype): AtomicMo
   switch (stage) {
     case 'Research':  return 'Consuming'
     case 'Glue':      return 'Connecting'
-    case 'Generate':
+    case 'Produce':
       if (archetype === 'commentary') return 'Commentary'
       return 'Creating'
     case 'Refine':
@@ -194,7 +194,7 @@ export function rollAtomicMove(
     if (validateConsistency(dim)) return dim
   }
   // Guaranteed-valid fallback
-  return { medium:'Writing', cognitive_mode:'Creating', stage:'Generate',
+  return { medium:'Writing', cognitive_mode:'Creating', stage:'Produce',
            time_budget:'Medium', publication:'just_work', content_origin:'New', planning:'Planned' }
 }
 
@@ -206,7 +206,7 @@ export function rollAtomicMove(
 const STAGE_BADGE_COLOR: Record<AtomicStage, string> = {
   Research:  '#5599dd',
   Outline:   '#44aaaa',
-  Generate:  '#cc9933',
+  Produce:   '#cc9933',
   Glue:      '#669966',
   Refine:    '#7799bb',
   Publish:   '#66aa55',

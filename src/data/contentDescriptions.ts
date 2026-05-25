@@ -251,7 +251,7 @@ export const STAGE_INFO: Record<AtomicStage, ContentEntry> = {
     detail:      'Plan the full structure before writing a word.',
     example:     'Creating a numbered list of sections and the key point of each before drafting.',
   },
-  Generate: {
+  Produce: {
     badge_label: 'Produce Stage',
     label:       'Produce — write the first draft',
     detail:      'Write your raw first draft — commit without stopping.',

@@ -185,7 +185,7 @@ export function rollMoveset(
     }))
   }
 
-  const sampleMove = rollAtomicMove(chain[0] ?? 'Generate', variant, archetype, dominantMedium, dominantPlanning, dominantOrigin, targetPub)
+  const sampleMove = rollAtomicMove(chain[0] ?? 'Produce', variant, archetype, dominantMedium, dominantPlanning, dominantOrigin, targetPub)
   const rawStamina = Math.round(
     scaledSteps.reduce((sum) => sum + calcStaminaCost(sampleMove), 0) * staMult
   )

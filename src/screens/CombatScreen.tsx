@@ -180,7 +180,7 @@ export default function CombatScreen() {
   const activeContentItems  = store.content_items.filter(c => c.phase !== 'Published')
   const publishReadyItems   = activeContentItems.filter(c => c.phase === 'Publish')
 
-  const CONTENT_PHASES: ContentPhase[] = ['Research','Outline','Generate','Glue','Refine','Publish','Published']
+  const CONTENT_PHASES: ContentPhase[] = ['Research','Outline','Produce','Glue','Refine','Publish','Published']
   function getNextPhase(current: ContentPhase): ContentPhase | null {
     const idx = CONTENT_PHASES.indexOf(current)
     if (idx < 0 || idx >= CONTENT_PHASES.length - 1) return null
