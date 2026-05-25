@@ -62,7 +62,6 @@ export function validateConsistency(d: AtomicDimensions): boolean {
 // ── Step name generation ──────────────────────────────────────────────────────
 
 const STAGE_VERBS: Record<AtomicStage, string> = {
-  Ideate:    'Brainstorm every possible angle, hook, and format',
   Research:  'Find evidence, examples, and reference material',
   Outline:   'Map the full structure before you write a word',
   Generate:  'Write your first full draft — commit without stopping',
@@ -136,14 +135,14 @@ export type MovesetArchetype =
   | 'async' | 'editing'
 
 const STAGE_CHAINS: Record<MovesetArchetype, AtomicStage[]> = {
-  long_form:    ['Ideate','Outline','Generate','Refine','Publish'],
-  micro:        ['Ideate','Generate','Publish'],
+  long_form:    ['Research','Outline','Generate','Refine','Publish'],
+  micro:        ['Generate','Publish'],
   commentary:   ['Research','Generate','Glue','Publish'],
   research:     ['Research','Outline','Generate','Publish'],
   compression:  ['Research','Generate','Refine','Publish'],
   remix:        ['Research','Generate','Refine','Publish'],
-  storytelling: ['Ideate','Outline','Generate','Glue','Refine','Publish'],
-  hot_take:     ['Ideate','Generate','Publish'],
+  storytelling: ['Research','Outline','Generate','Glue','Refine','Publish'],
+  hot_take:     ['Generate','Publish'],
   async:        ['Outline','Generate','Refine','Publish'],
   editing:      ['Research','Generate','Refine','Publish'],
 }
@@ -205,7 +204,6 @@ export function rollAtomicMove(
 // details are defined here.
 
 const STAGE_BADGE_COLOR: Record<AtomicStage, string> = {
-  Ideate:    '#9977cc',
   Research:  '#5599dd',
   Outline:   '#44aaaa',
   Generate:  '#cc9933',

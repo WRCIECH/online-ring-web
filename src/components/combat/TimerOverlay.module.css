@@ -249,6 +249,22 @@
   cursor: default;
 }
 
+.matchBadge {
+  flex-shrink: 0;
+  font-size: 0.72rem;
+  letter-spacing: 0.04em;
+  color: #55cc88;
+  white-space: nowrap;
+}
+
+.mismatchBadge {
+  flex-shrink: 0;
+  font-size: 0.72rem;
+  letter-spacing: 0.02em;
+  color: #e8885a;
+  white-space: nowrap;
+}
+
 .notes {
   width: 100%;
   height: 200px;

@@ -91,6 +91,13 @@ export default function TimerOverlay({
   const dmgType = pendingStep?.damage_type
   const dmgTypeColor = dmgType ? (DMG_TYPE_COLOURS[dmgType] ?? '#aaaaaa') : null
 
+  // ── Stage mismatch ────────────────────────────────────────────────────────
+  const selectedItem    = activeContentItems.find(c => c.id === selectedContentId) ?? null
+  const taskStage       = pendingStep?.stage ?? null
+  const stageMatches    = !selectedItem || !taskStage || selectedItem.phase === taskStage
+  const mismatchMult    = stageMatches ? 1 : 0.65
+  const mismatchVisible = !timerIsDefense && !!selectedItem && !!taskStage
+
   // ── Weapon tooltip data ───────────────────────────────────────────────────
   const classDef = wi?.weapon_class ? WEAPON_CLASSES[wi.weapon_class] : null
   const affixDmgMult = wi?.affixes.reduce((m, a) => m * (a.damage_mult ?? 1), 1) ?? 1
@@ -213,7 +220,7 @@ export default function TimerOverlay({
           <div className={s.taskName}>{taskName}</div>
         )}
 
-        {/* ── Article selector ─────────────────────────────────────── */}
+        {/* ── Article selector + mismatch indicator ───────────────── */}
         {!timerIsDefense && (
           <div className={s.articleRow}>
             <span className={s.articleLabel}>Working on:</span>
@@ -230,6 +237,11 @@ export default function TimerOverlay({
                 </option>
               ))}
             </select>
+            {mismatchVisible && (
+              stageMatches
+                ? <span className={s.matchBadge}>✓ {taskStage}</span>
+                : <span className={s.mismatchBadge}>⚠ −35% · article at {selectedItem!.phase}, task is {taskStage}</span>
+            )}
           </div>
         )}
 
@@ -264,7 +276,7 @@ export default function TimerOverlay({
             <button className={s.btnPrimary} onClick={() => {
               flushNotes(true)
               if (!timerIsDefense) onTaskAccomplished(selectedContentId, pendingStep?.stage ?? null)
-              dispatch({ type: 'TIMER_RESULT', accomplished: true, statusApplied: true })
+              dispatch({ type: 'TIMER_RESULT', accomplished: true, statusApplied: true, mismatchMult })
             }}>
               Done!
             </button>
@@ -278,7 +290,7 @@ export default function TimerOverlay({
               <button className={s.btnYes} onClick={() => {
                 flushNotes(true)
                 if (!timerIsDefense) onTaskAccomplished(selectedContentId, pendingStep?.stage ?? null)
-                dispatch({ type: 'TIMER_RESULT', accomplished: true, statusApplied: true })
+                dispatch({ type: 'TIMER_RESULT', accomplished: true, statusApplied: true, mismatchMult })
               }}>
                 Yes, I did it!
               </button>

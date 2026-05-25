@@ -162,7 +162,7 @@ export type CombatAction =
   | { type: 'STEP_CLICKED'; step: Step; moveset: Moveset; weaponId: string }
   | { type: 'START_TIMER' }
   | { type: 'TICK'; delta: number }
-  | { type: 'TIMER_RESULT'; accomplished: boolean; statusApplied?: boolean }
+  | { type: 'TIMER_RESULT'; accomplished: boolean; statusApplied?: boolean; mismatchMult?: number }
   | { type: 'CANCEL_TIMER' }
   | { type: 'END_TURN' }
   | { type: 'DEFENSE_CHOSEN'; action: DefenseAction }
@@ -555,8 +555,10 @@ export function combatReducer(state: CombatState, action: CombatAction): CombatS
       // Grace lifesteal: heal 5% of damage if active
       const graceActive = !!state.activeStatuses.grace
       // Frostbite bonus: +20% damage taken when active
-      const frostDebuff = state.activeStatuses.frostbite ? 1.2 : 1.0
-      const finalDmg  = Math.floor(baseDmg * cls.dmgMult * typeMult * frostDebuff)
+      const frostDebuff  = state.activeStatuses.frostbite ? 1.2 : 1.0
+      // Stage mismatch: −35% if article phase ≠ task stage (0.65 mult passed from UI)
+      const mismatchMult = action.mismatchMult ?? 1
+      const finalDmg  = Math.floor(baseDmg * cls.dmgMult * typeMult * frostDebuff * mismatchMult)
       const dualDmg   = cls.dualStrike ? Math.floor(finalDmg * 0.4) : 0
       const totalDmg  = finalDmg + dualDmg
 
@@ -592,7 +594,8 @@ export function combatReducer(state: CombatState, action: CombatAction): CombatS
       const prevHeat   = state.weaponHeatAccumulated[state.pendingWeaponId] ?? 0
       const newHeatAcc = { ...state.weaponHeatAccumulated, [state.pendingWeaponId]: prevHeat + 1 }
 
-      const flowSuffix  = gapMult === 1.5 ? ' [flow]' : (gapMult === 0.5 ? ' [stale]' : '')
+      const flowSuffix     = gapMult === 1.5 ? ' [flow]' : (gapMult === 0.5 ? ' [stale]' : '')
+      const mismatchSuffix = mismatchMult < 1 ? ` [−${Math.round((1 - mismatchMult) * 100)}% mismatch]` : ''
       const classSuffix = cls.dualStrike
         ? ` ⚔ +${dualDmg} off-hand`
         : cls.selfDmg > 0
@@ -629,7 +632,7 @@ export function combatReducer(state: CombatState, action: CombatAction): CombatS
           lastMovesetCompletionMs: Date.now(),
           weaponHeatAccumulated: newHeatAcc,
           statusAccumulation: newAccRecord },
-        `You complete ${step.name} — ${finalDmg} damage!${typeSuffix}${flowSuffix}${classSuffix}`, '#ffffff'
+        `You complete ${step.name} — ${finalDmg} damage!${typeSuffix}${flowSuffix}${mismatchSuffix}${classSuffix}`, '#ffffff'
       )
 
       // Trigger status effect if threshold reached

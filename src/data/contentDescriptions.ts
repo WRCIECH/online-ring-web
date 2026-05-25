@@ -239,12 +239,6 @@ export const STATUS_INFO: Record<StatusType, ContentEntry> = {
 // ─── Stage (Phase) ───────────────────────────────────────────────────────────
 
 export const STAGE_INFO: Record<AtomicStage, ContentEntry> = {
-  Ideate: {
-    badge_label: 'Ideate Stage',
-    label:       'Ideation — generate ideas freely',
-    detail:      'Free-form idea generation — maximum volume, no self-editing.',
-    example:     'Writing down every possible angle, hook, and format without filtering.',
-  },
   Research: {
     badge_label: 'Research Stage',
     label:       'Research — gather evidence and reference',
