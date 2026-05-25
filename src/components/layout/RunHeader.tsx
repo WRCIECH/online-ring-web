@@ -1,14 +1,16 @@
 import { useState, useEffect } from 'react'
 import { useGameStore, selectRunRemainingSeconds } from '../../store/gameStore'
-import EquipOverlay   from '../overlays/EquipOverlay'
-import NotepadOverlay from '../overlays/NotepadOverlay'
-import StatsOverlay   from '../overlays/StatsOverlay'
+import EquipOverlay    from '../overlays/EquipOverlay'
+import NotepadOverlay  from '../overlays/NotepadOverlay'
+import StatsOverlay    from '../overlays/StatsOverlay'
+import ContentOverlay  from '../overlays/ContentOverlay'
 import s from './RunHeader.module.css'
 
 interface Props {
   hp: number;      maxHp: number
   stamina: number; maxStamina: number
   fp: number;      maxFp: number
+  canAddContent?: boolean   // false during active combat task timer
 }
 
 function fmtTime(secs: number): string {
@@ -35,14 +37,15 @@ function Bar({ current, playerMax, cap, color }: { current: number; playerMax: n
   )
 }
 
-export default function RunHeader({ hp, maxHp, stamina, maxStamina, fp, maxFp }: Props) {
+export default function RunHeader({ hp, maxHp, stamina, maxStamina, fp, maxFp, canAddContent = true }: Props) {
   const store = useGameStore()
   const [remaining, setRemaining] = useState(() =>
     selectRunRemainingSeconds(store as Parameters<typeof selectRunRemainingSeconds>[0])
   )
-  const [showEquip,   setShowEquip]   = useState(false)
-  const [showNotepad, setShowNotepad] = useState(false)
-  const [showStats,   setShowStats]   = useState(false)
+  const [showEquip,    setShowEquip]    = useState(false)
+  const [showNotepad,  setShowNotepad]  = useState(false)
+  const [showStats,    setShowStats]    = useState(false)
+  const [showContent,  setShowContent]  = useState(false)
 
   useEffect(() => {
     const id = setInterval(() => {
@@ -83,12 +86,14 @@ export default function RunHeader({ hp, maxHp, stamina, maxStamina, fp, maxFp }:
         <div className={s.actions}>
           <button className={s.btn} onClick={() => setShowEquip(true)}>⚙ Equip</button>
           <button className={s.btn} onClick={() => setShowStats(true)}>📊 Stats</button>
+          <button className={s.btn} onClick={() => setShowContent(true)}>📋 Pipeline</button>
           <button className={s.btn} onClick={() => setShowNotepad(true)}>✏ Notes</button>
         </div>
       </header>
 
       {showEquip   && <EquipOverlay   onClose={() => setShowEquip(false)} />}
       {showStats   && <StatsOverlay   onClose={() => setShowStats(false)} canLevel={false} />}
+      {showContent && <ContentOverlay onClose={() => setShowContent(false)} canAdd={canAddContent} />}
       {showNotepad && <NotepadOverlay onClose={() => setShowNotepad(false)} />}
     </>
   )

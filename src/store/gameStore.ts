@@ -1,5 +1,5 @@
 import { create } from 'zustand'
-import type { GameState, LocationData, Stats, GeneratedMoveset, WeaponInstance, SublocationType } from '../types/game'
+import type { GameState, LocationData, Stats, GeneratedMoveset, WeaponInstance, SublocationType, ContentItem, ContentPhase } from '../types/game'
 import { ENEMIES } from '../data/enemies'
 import { saveGame, loadGame } from '../engine/save'
 import { registerWeapon, statLevelCost, weaponUpgradeCost } from '../data/weapons'
@@ -186,6 +186,7 @@ function initialState(): GameState {
     run_location_name: '',
     completed_locations: [],
     run_start_owned_movesets: [],
+    content_items: [],
   }
 }
 
@@ -234,6 +235,12 @@ export interface GameStore extends GameState {
 
   // Class & character init (called from ClassSelectScreen on new game)
   initClass: (classId: string) => void
+
+  // Content pipeline
+  addContentItem: (name: string) => void
+  updateContentItem: (id: string, patch: Partial<Pick<ContentItem, 'name' | 'phase' | 'notes'>>) => void
+  removeContentItem: (id: string) => void
+  publishContentItem: (id: string) => void
 
   // Persistence
   save: () => void
@@ -511,11 +518,44 @@ export const useGameStore = create<GameStore>((set, get) => ({
     get().save()
   },
 
+  // ── Content pipeline ────────────────────────────────────────────────────
+  addContentItem: (name) => {
+    const id = 'c_' + Math.random().toString(36).slice(2, 9)
+    const item: ContentItem = { id, name, phase: 'Research' }
+    set(s => ({ content_items: [...s.content_items, item] }))
+    get().save()
+  },
+
+  updateContentItem: (id, patch) => {
+    set(s => ({
+      content_items: s.content_items.map(c =>
+        c.id === id ? { ...c, ...patch } : c
+      ),
+    }))
+    get().save()
+  },
+
+  removeContentItem: (id) => {
+    set(s => ({ content_items: s.content_items.filter(c => c.id !== id) }))
+    get().save()
+  },
+
+  publishContentItem: (id) => {
+    set(s => ({
+      content_items: s.content_items.map(c =>
+        c.id === id ? { ...c, phase: 'Published' as ContentPhase, published_at: Date.now() } : c
+      ),
+    }))
+    get().save()
+  },
+
   save: () => saveGame(get()),
 
   load: () => {
     const data = loadGame()
     if (!data) return false
+    // Back-fill fields added after a save was created (migration safety)
+    if (!data.content_items) data.content_items = []
     hydrateRegistries(data)
     set({ ...data })
     return true
@@ -547,4 +587,10 @@ export const selectEnemyData = (s: GameStore) => {
   const enemy = ENEMIES[loc.enemy_id]
   if (!enemy) return null
   return { ...enemy, max_hp: Math.floor(enemy.max_hp * loc.mult) }
+}
+
+export const selectEquipLoad = (s: GameStore) => {
+  const used     = s.content_items.filter(c => c.phase !== 'Published').length * 0.5
+  const capacity = s.stats.END
+  return { used, capacity }
 }

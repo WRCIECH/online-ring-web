@@ -1,0 +1,323 @@
+/* ── Content Pipeline Overlay ────────────────────────────────────────────── */
+
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.72);
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.panel {
+  background: var(--color-bg-panel);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: 24px 30px;
+  width: 660px;
+  max-width: 96vw;
+  max-height: 88vh;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* ── Header ───────────────────────────────────────────────────────────── */
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.title {
+  font-size: 0.75rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--color-text-dim);
+}
+
+.btnClose {
+  font-size: 0.8rem;
+  padding: 4px 14px;
+  border-radius: var(--radius);
+}
+
+/* ── Equip load ───────────────────────────────────────────────────────── */
+
+.loadSection {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.loadLabel {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.78rem;
+  color: var(--color-text-dim);
+}
+
+.loadVal  { color: var(--color-text); font-weight: 500; }
+.loadOver { color: #e85555; font-weight: 600; }
+
+.loadTrack {
+  height: 5px;
+  background: #0d0b13;
+  border-radius: 3px;
+  border: 1px solid var(--color-sep);
+  overflow: hidden;
+}
+
+.loadFill {
+  height: 100%;
+  background: var(--color-gold);
+  border-radius: 3px;
+  transition: width 0.2s ease;
+}
+
+.loadFillOver {
+  background: #e85555;
+}
+
+.overloadWarning {
+  font-size: 0.75rem;
+  color: #e85555;
+  letter-spacing: 0.02em;
+}
+
+/* ── Separator ────────────────────────────────────────────────────────── */
+
+.sep {
+  border: none;
+  border-top: 1px solid var(--color-sep);
+  margin: 0;
+}
+
+/* ── Item list ────────────────────────────────────────────────────────── */
+
+.itemList {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.empty {
+  font-size: 0.82rem;
+  color: var(--color-text-dim);
+  text-align: center;
+  padding: 12px 0;
+}
+
+/* ── Individual item ──────────────────────────────────────────────────── */
+
+.item {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  background: rgba(255,255,255,0.02);
+  overflow: hidden;
+}
+
+.itemPublished {
+  opacity: 0.65;
+}
+
+.itemRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  flex-wrap: nowrap;
+}
+
+/* Phase selector (dropdown) */
+.phaseSelect {
+  flex-shrink: 0;
+  font-size: 0.72rem;
+  letter-spacing: 0.06em;
+  padding: 3px 6px;
+  border-radius: 4px;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.12);
+  cursor: pointer;
+  min-width: 86px;
+  appearance: none;
+  -webkit-appearance: none;
+  text-align: center;
+}
+
+/* Static phase chip (Published row) */
+.phaseChip {
+  flex-shrink: 0;
+  font-size: 0.72rem;
+  letter-spacing: 0.06em;
+  padding: 3px 10px;
+  border-radius: 4px;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.12);
+  min-width: 86px;
+  text-align: center;
+}
+
+/* Item name */
+.itemName {
+  flex: 1;
+  font-size: 0.92rem;
+  color: var(--color-text);
+  cursor: pointer;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
+  padding: 2px 4px;
+  border-radius: 3px;
+  transition: background 0.1s;
+}
+
+.itemName:hover { background: rgba(255,255,255,0.06); }
+
+.unnamed { color: var(--color-text-dim); font-style: italic; }
+
+/* Published date */
+.publishedDate {
+  font-size: 0.72rem;
+  color: var(--color-text-dim);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+/* Edit name input */
+.nameInput {
+  flex: 1;
+  font-size: 0.92rem;
+  padding: 3px 8px;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid var(--color-border);
+  border-radius: 3px;
+  color: var(--color-text);
+  min-width: 0;
+}
+
+/* Action buttons */
+.itemActions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.btnToggle {
+  font-size: 0.7rem;
+  padding: 3px 7px;
+  border-radius: 3px;
+  background: transparent;
+  border: 1px solid var(--color-sep);
+  color: var(--color-text-dim);
+  cursor: pointer;
+  transition: color 0.1s;
+}
+
+.btnToggle:hover { color: var(--color-text); }
+
+.btnDelete {
+  font-size: 0.72rem;
+  padding: 3px 7px;
+  border-radius: 3px;
+  background: transparent;
+  border: 1px solid transparent;
+  color: var(--color-text-dim);
+  cursor: pointer;
+  transition: color 0.1s, border-color 0.1s;
+}
+
+.btnDelete:hover { color: #e85555; border-color: #5a1515; }
+
+.btnConfirmDel {
+  font-size: 0.7rem;
+  padding: 3px 8px;
+  border-radius: 3px;
+  background: rgba(180,30,30,0.12);
+  border: 1px solid #5a1515;
+  color: #e85555;
+  cursor: pointer;
+}
+
+.btnCancelDel {
+  font-size: 0.7rem;
+  padding: 3px 7px;
+  border-radius: 3px;
+  background: transparent;
+  border: 1px solid var(--color-sep);
+  color: var(--color-text-dim);
+  cursor: pointer;
+}
+
+/* ── Notes textarea ───────────────────────────────────────────────────── */
+
+.notesWrap {
+  padding: 0 10px 10px;
+}
+
+.notes {
+  width: 100%;
+  min-height: 90px;
+  resize: vertical;
+  font-size: 0.82rem;
+  padding: 8px 10px;
+  background: rgba(0,0,0,0.25);
+  border: 1px solid var(--color-sep);
+  border-radius: 3px;
+  color: var(--color-text);
+  line-height: 1.5;
+}
+
+/* ── New item row ─────────────────────────────────────────────────────── */
+
+.newRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  border: 1px dashed var(--color-sep);
+  border-radius: var(--radius);
+  background: rgba(255,255,255,0.01);
+}
+
+.btnAdd {
+  align-self: flex-start;
+  font-size: 0.8rem;
+  letter-spacing: 0.06em;
+  padding: 7px 16px;
+  border-radius: var(--radius);
+  background: rgba(230,191,51,0.06);
+  border: 1px dashed var(--color-border);
+  color: var(--color-gold-dim);
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.btnAdd:hover { background: rgba(230,191,51,0.12); border-color: var(--color-gold-dim); }
+
+.btnAddDisabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+/* ── Published collapse toggle ────────────────────────────────────────── */
+
+.collapseToggle {
+  font-size: 0.75rem;
+  letter-spacing: 0.06em;
+  color: var(--color-text-dim);
+  background: transparent;
+  border: none;
+  padding: 4px 0;
+  cursor: pointer;
+  text-align: left;
+  transition: color 0.1s;
+}
+
+.collapseToggle:hover { color: var(--color-text); }

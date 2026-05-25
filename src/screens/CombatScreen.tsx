@@ -473,6 +473,7 @@ export default function CombatScreen() {
         hp={state.playerHp}      maxHp={state.playerMaxHp}
         stamina={state.playerStamina} maxStamina={state.playerMaxStamina}
         fp={state.playerFp}      maxFp={state.playerMaxFp}
+        canAddContent={state.phase !== 'STEP_TIMER'}
       />
 
       {/* ── Main area ────────────────────────────────────────────────── */}

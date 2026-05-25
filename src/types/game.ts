@@ -190,6 +190,19 @@ export interface Stats {
   ARC: number
 }
 
+// ── Content pipeline ──────────────────────────────────────────────────────
+export type ContentPhase =
+  | 'Research' | 'Outline' | 'Generate' | 'Glue'
+  | 'Refine'   | 'Publish' | 'Published'
+
+export interface ContentItem {
+  id:            string     // uid, e.g. 'c_abc123'
+  name:          string     // user-defined title
+  phase:         ContentPhase
+  published_at?: number     // Date.now() when phase → 'Published'
+  notes?:        string     // optional rough notes
+}
+
 export interface GameState {
   stats: Stats
   player_class: string
@@ -227,4 +240,6 @@ export interface GameState {
   run_location_name: string
   completed_locations: string[]
   run_start_owned_movesets: string[]
+  // Content pipeline
+  content_items: ContentItem[]
 }
