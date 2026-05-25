@@ -6,7 +6,7 @@ import { ENEMIES } from '../data/enemies'
 import { playSound } from '../engine/sound'
 import { WEAPONS, getWeaponMovesets, calcStepDamage } from '../data/weapons'
 import { MOVES } from '../data/movesets'
-import type { WeaponRarity, WeaponClass, WeaponInstance, GeneratedMoveset } from '../types/game'
+import type { WeaponRarity, WeaponClass, WeaponInstance, GeneratedMoveset, ContentPhase, AtomicStage } from '../types/game'
 import { rollWeapon } from '../data/generators/weaponGenerator'
 import { rollMoveset } from '../data/generators/movesetGenerator'
 import RunHeader from '../components/layout/RunHeader'
@@ -164,6 +164,31 @@ export default function CombatScreen() {
   const [bloodActive, setBloodActive]   = useState(false)
   const [runesEarned, setRunesEarned]   = useState(0)
   const [runesRecovered, setRunesRecovered] = useState(0)
+
+  // ── Content pipeline ────────────────────────────────────────────────────
+  const [selectedContentId, setSelectedContentId] = useState<string | null>(null)
+  interface PendingAdvance { itemId: string; taskStage: AtomicStage | null }
+  const [pendingAdvance, setPendingAdvance] = useState<PendingAdvance | null>(null)
+
+  const activeContentItems = store.content_items.filter(c => c.phase !== 'Published')
+
+  const CONTENT_PHASES: ContentPhase[] = ['Research','Outline','Generate','Glue','Refine','Publish','Published']
+  function getNextPhase(current: ContentPhase): ContentPhase | null {
+    const idx = CONTENT_PHASES.indexOf(current)
+    if (idx < 0 || idx >= CONTENT_PHASES.length - 1) return null
+    return CONTENT_PHASES[idx + 1]
+  }
+
+  function handleTaskAccomplished(contentId: string | null, taskStage: AtomicStage | null) {
+    if (contentId) setPendingAdvance({ itemId: contentId, taskStage })
+  }
+
+  // Dismiss advance prompt if combat ends
+  useEffect(() => {
+    if (state.phase === 'VICTORY' || state.phase === 'DEFEAT' || state.phase === 'FLED') {
+      setPendingAdvance(null)
+    }
+  }, [state.phase])
 
   useEffect(() => {
     if (state.phase !== 'VICTORY' || !loc || lootItems !== null) return
@@ -563,7 +588,14 @@ export default function CombatScreen() {
 
       {/* ── Timer overlay ────────────────────────────────────────────── */}
       {state.phase === 'STEP_TIMER' && (
-        <TimerOverlay state={state} dispatch={dispatch} />
+        <TimerOverlay
+          state={state}
+          dispatch={dispatch}
+          activeContentItems={activeContentItems}
+          selectedContentId={selectedContentId}
+          onSelectContent={setSelectedContentId}
+          onTaskAccomplished={handleTaskAccomplished}
+        />
       )}
 
       {/* ── Stagger banner ────────────────────────────────────────────── */}
@@ -646,6 +678,43 @@ export default function CombatScreen() {
           </div>
         </div>
       )}
+
+      {/* ── Phase advance prompt ──────────────────────────────────────── */}
+      {pendingAdvance && (() => {
+        const item = store.content_items.find(c => c.id === pendingAdvance.itemId)
+        if (!item) { setPendingAdvance(null); return null }
+        const next = getNextPhase(item.phase)
+        return (
+          <div className={s.advanceOverlay}>
+            <div className={s.advanceBox}>
+              <div className={s.advanceHeader}>Phase Advance</div>
+              <div className={s.advanceArticle}>{item.name}</div>
+              <div className={s.advancePhaseRow}>
+                <span className={s.advancePhaseCur}>{item.phase}</span>
+                {next && <span className={s.advanceArrow}>→</span>}
+                {next && <span className={s.advancePhaseNext}>{next}</span>}
+              </div>
+              {pendingAdvance.taskStage && (
+                <div className={s.advanceTask}>Task was a <strong>{pendingAdvance.taskStage}</strong> step</div>
+              )}
+              <div className={s.advanceBtns}>
+                {next && (
+                  <button className={s.btnAdvance} onClick={() => {
+                    if (next === 'Published') store.publishContentItem(item.id)
+                    else store.updateContentItem(item.id, { phase: next })
+                    setPendingAdvance(null)
+                  }}>
+                    Advance to {next}
+                  </button>
+                )}
+                <button className={s.btnAdvanceSkip} onClick={() => setPendingAdvance(null)}>
+                  {next ? `Stay at ${item.phase}` : 'OK'}
+                </button>
+              </div>
+            </div>
+          </div>
+        )
+      })()}
     </div>
   )
 }

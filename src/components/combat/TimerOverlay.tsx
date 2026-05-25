@@ -3,12 +3,20 @@ import type { CombatState, CombatAction } from '../../engine/combat'
 import { STA_DEFENSE_GAIN } from '../../engine/combat'
 import { WEAPONS, calcStepDamage } from '../../data/weapons'
 import { WEAPON_CLASSES } from '../../data/generators/weaponClasses'
-import type { WeaponInstance, DamageType } from '../../types/game'
+import type { WeaponInstance, DamageType, AtomicStage, ContentItem } from '../../types/game'
 import { appendToLog } from '../../engine/save'
 import WeaponSprite from '../icons/WeaponSprite'
 import s from './TimerOverlay.module.css'
 
-interface Props { state: CombatState; dispatch: React.Dispatch<CombatAction> }
+interface Props {
+  state: CombatState
+  dispatch: React.Dispatch<CombatAction>
+  // Content pipeline
+  activeContentItems:   ContentItem[]
+  selectedContentId:    string | null
+  onSelectContent:      (id: string | null) => void
+  onTaskAccomplished:   (contentId: string | null, taskStage: AtomicStage | null) => void
+}
 
 function fmtTime(secs: number): string {
   const m = Math.floor(secs / 60), sc = Math.floor(secs % 60)
@@ -21,7 +29,10 @@ const DMG_TYPE_COLOURS: Partial<Record<DamageType, string>> = {
   occult: '#aa44aa', grafting: '#55aa55', poison: '#66aa44',
 }
 
-export default function TimerOverlay({ state, dispatch }: Props) {
+export default function TimerOverlay({
+  state, dispatch,
+  activeContentItems, selectedContentId, onSelectContent, onTaskAccomplished,
+}: Props) {
   const { stepTimer, stepTotal, stepStarted, timerExpired,
           timerIsDefense, pendingStep, pendingDefenseAction, pendingMoveset,
           pendingWeaponId, playerStats, weaponLevels,
@@ -202,6 +213,26 @@ export default function TimerOverlay({ state, dispatch }: Props) {
           <div className={s.taskName}>{taskName}</div>
         )}
 
+        {/* ── Article selector ─────────────────────────────────────── */}
+        {!timerIsDefense && (
+          <div className={s.articleRow}>
+            <span className={s.articleLabel}>Working on:</span>
+            <select
+              className={s.articleSelect}
+              value={selectedContentId ?? ''}
+              disabled={isActive || isExpired}
+              onChange={e => onSelectContent(e.target.value || null)}
+            >
+              <option value="">— None —</option>
+              {activeContentItems.map(item => (
+                <option key={item.id} value={item.id}>
+                  [{item.phase}] {item.name}
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
+
         <textarea
           ref={textRef}
           className={s.notes}
@@ -232,6 +263,7 @@ export default function TimerOverlay({ state, dispatch }: Props) {
           <div className={s.actions}>
             <button className={s.btnPrimary} onClick={() => {
               flushNotes(true)
+              if (!timerIsDefense) onTaskAccomplished(selectedContentId, pendingStep?.stage ?? null)
               dispatch({ type: 'TIMER_RESULT', accomplished: true, statusApplied: true })
             }}>
               Done!
@@ -245,6 +277,7 @@ export default function TimerOverlay({ state, dispatch }: Props) {
             <div className={s.confirmRow}>
               <button className={s.btnYes} onClick={() => {
                 flushNotes(true)
+                if (!timerIsDefense) onTaskAccomplished(selectedContentId, pendingStep?.stage ?? null)
                 dispatch({ type: 'TIMER_RESULT', accomplished: true, statusApplied: true })
               }}>
                 Yes, I did it!

@@ -341,3 +341,96 @@
   border-radius: 2px;
   transition: width 0.3s ease;
 }
+
+/* ── Phase advance prompt ────────────────────────────────────────────────── */
+
+.advanceOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.55);
+  z-index: 18;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: all;
+}
+
+.advanceBox {
+  background: var(--color-bg-panel);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: 28px 36px;
+  width: 380px;
+  max-width: 92vw;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  text-align: center;
+}
+
+.advanceHeader {
+  font-size: 0.72rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--color-text-dim);
+}
+
+.advanceArticle {
+  font-size: 1.05rem;
+  color: var(--color-text);
+  font-weight: 500;
+  line-height: 1.35;
+}
+
+.advancePhaseRow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  font-size: 0.9rem;
+}
+
+.advancePhaseCur  { color: var(--color-text-dim); }
+.advanceArrow     { color: var(--color-gold-dim); font-size: 1rem; }
+.advancePhaseNext { color: var(--color-gold); font-weight: 600; }
+
+.advanceTask {
+  font-size: 0.78rem;
+  color: var(--color-text-dim);
+  letter-spacing: 0.02em;
+}
+
+.advanceTask strong { color: var(--color-text); }
+
+.advanceBtns {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  margin-top: 4px;
+}
+
+.btnAdvance {
+  padding: 10px 20px;
+  font-size: 0.88rem;
+  letter-spacing: 0.06em;
+  background: rgba(230,191,51,0.08);
+  border-color: var(--color-gold-dim);
+  color: var(--color-gold);
+  border-radius: var(--radius);
+}
+
+.btnAdvance:hover {
+  background: rgba(230,191,51,0.16);
+  box-shadow: var(--glow-gold);
+}
+
+.btnAdvanceSkip {
+  padding: 10px 16px;
+  font-size: 0.82rem;
+  color: var(--color-text-dim);
+  border-color: var(--color-sep);
+  background: transparent;
+  border-radius: var(--radius);
+}
+
+.btnAdvanceSkip:hover { color: var(--color-text); }
