@@ -229,7 +229,7 @@
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 2px 0 2px;
+  padding: 2px 0;
 }
 
 .articleLabel {
@@ -261,27 +261,57 @@
   cursor: default;
 }
 
-.matchBadge {
-  flex-shrink: 0;
+/* ── Task impact chips (below article combobox) ─────────────────────────── */
+
+.impactRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  align-items: center;
+  padding: 2px 0;
+  min-height: 24px;
+}
+
+/* Base chip style */
+.impactMatch,
+.impactNew,
+.impactMismatch {
   font-size: 0.72rem;
   letter-spacing: 0.04em;
-  color: #55cc88;
+  padding: 2px 9px;
+  border-radius: 3px;
   white-space: nowrap;
+  cursor: default;
 }
 
-.mismatchBadge {
-  flex-shrink: 0;
-  font-size: 0.72rem;
+/* Green — dimension aligns with article */
+.impactMatch {
+  border: 1px solid rgba(85,187,119,0.45);
+  background: rgba(85,187,119,0.08);
+  color: #66cc88;
+}
+
+/* Dashed — not yet stamped; will be applied for first time (✦) */
+.impactNew {
+  border: 1px dashed rgba(180,160,100,0.45);
+  background: rgba(180,160,100,0.05);
+  color: var(--color-text-dim);
+}
+
+/* Orange — conflict with existing stamp or phase */
+.impactMismatch {
+  border: 1px solid rgba(200,100,50,0.55);
+  background: rgba(200,100,50,0.08);
+  color: #cc7733;
+}
+
+/* Red penalty total */
+.impactPenalty {
+  font-size: 0.7rem;
+  color: #cc4444;
+  font-weight: 600;
   letter-spacing: 0.02em;
-  color: #e8885a;
-  white-space: nowrap;
-}
-
-.notes {
-  width: 100%;
-  height: 200px;
-  resize: none;
-  font-size: 1rem;
+  margin-left: 2px;
 }
 
 .timerRow {

@@ -1,10 +1,9 @@
-import { useEffect, useRef } from 'react'
+import { useEffect } from 'react'
 import type { CombatState, CombatAction } from '../../engine/combat'
 import { STA_DEFENSE_GAIN } from '../../engine/combat'
 import { WEAPONS, calcStepDamage } from '../../data/weapons'
 import { WEAPON_CLASSES } from '../../data/generators/weaponClasses'
 import type { WeaponInstance, DamageType, AtomicStage, AtomicMedium, AtomicOrigin, StatusType, ContentItem, GeneratedMoveset } from '../../types/game'
-import { appendToLog } from '../../engine/save'
 import WeaponSprite from '../icons/WeaponSprite'
 import s from './TimerOverlay.module.css'
 
@@ -45,7 +44,6 @@ export default function TimerOverlay({
           timerIsDefense, pendingStep, pendingDefenseAction, pendingMoveset,
           pendingWeaponId, playerStats, weaponLevels,
           currentMove } = state
-  const textRef = useRef<HTMLTextAreaElement>(null)
 
   // rAF-based countdown
   useEffect(() => {
@@ -61,16 +59,6 @@ export default function TimerOverlay({
     rafId = requestAnimationFrame(tick)
     return () => cancelAnimationFrame(rafId)
   }, [stepStarted, timerExpired, dispatch])
-
-  // Focus textarea when timer starts
-  useEffect(() => {
-    if (stepStarted && !timerExpired) textRef.current?.focus()
-  }, [stepStarted, timerExpired])
-
-  function flushNotes(accomplished: boolean) {
-    const text = textRef.current?.value ?? ''
-    if (accomplished && pendingStep) appendToLog(pendingStep.name, text)
-  }
 
   const pct = stepTotal > 0 ? Math.max(0, stepTimer / stepTotal) : 0
   const isPreview = !stepStarted && !timerExpired
@@ -108,9 +96,7 @@ export default function TimerOverlay({
   const taskOrigin   = gm?.content_origin   ?? null
   const taskStatus   = gm?.status_buildup   ?? null
 
-  // Stage: always checked when article is selected and task has a stage
   const stageMismatch  = !!selectedItem && !!taskStage && selectedItem.phase !== taskStage
-  // Medium/Origin/Status: only checked if the article already has that stamp
   const mediumMismatch = !!selectedItem?.stamped_medium && !!taskMedium && selectedItem.stamped_medium !== taskMedium
   const originMismatch = !!selectedItem?.stamped_origin && !!taskOrigin && selectedItem.stamped_origin !== taskOrigin
   const statusMismatch = !!selectedItem?.stamped_status && !!taskStatus && selectedItem.stamped_status !== taskStatus
@@ -122,7 +108,7 @@ export default function TimerOverlay({
   if (statusMismatch) mismatchMult *= 0.85
   mismatchMult = Math.max(0.35, mismatchMult)
 
-  const mismatchVisible   = !timerIsDefense && !!selectedItem
+  const showImpact  = !timerIsDefense && !!selectedItem
   const anyMismatch = stageMismatch || mediumMismatch || originMismatch || statusMismatch
   const penaltyPct  = Math.round((1 - mismatchMult) * 100)
 
@@ -253,51 +239,118 @@ export default function TimerOverlay({
           <div className={s.taskName}>{taskName}</div>
         )}
 
-        {/* ── Article selector + mismatch indicator ───────────────── */}
+        {/* ── Article selector ─────────────────────────────────────────── */}
         {!timerIsDefense && (
-          <div className={s.articleRow}>
-            <span className={s.articleLabel}>Working on:</span>
-            <select
-              className={s.articleSelect}
-              value={selectedContentId ?? ''}
-              disabled={isActive || isExpired}
-              onChange={e => onSelectContent(e.target.value || null)}
-            >
-              <option value="">— None —</option>
-              {activeContentItems.map(item => (
-                <option key={item.id} value={item.id}>
-                  [{item.phase}] {item.name}
-                </option>
-              ))}
-            </select>
-            {mismatchVisible && (
-              <span className={anyMismatch ? s.mismatchBadge : s.matchBadge}>
-                {anyMismatch
-                  ? <>
-                      ⚠ −{penaltyPct}%
-                      {stageMismatch  && <> · Stage ({selectedItem!.phase}≠{taskStage})</>}
-                      {mediumMismatch && <> · Medium ({selectedItem!.stamped_medium}≠{taskMedium})</>}
-                      {originMismatch && <> · Origin ({selectedItem!.stamped_origin}≠{taskOrigin})</>}
-                      {statusMismatch && <> · Tone ({selectedItem!.stamped_status}≠{taskStatus})</>}
-                    </>
-                  : <>✓ {[
-                      taskStage  && `Stage`,
-                      taskMedium && selectedItem!.stamped_medium && `Medium`,
-                      taskOrigin && selectedItem!.stamped_origin && `Origin`,
-                      taskStatus && selectedItem!.stamped_status && `Tone`,
-                    ].filter(Boolean).join(' · ') || 'matched'}</>
-                }
-              </span>
-            )}
-          </div>
-        )}
+          <>
+            <div className={s.articleRow}>
+              <span className={s.articleLabel}>Working on:</span>
+              <select
+                className={s.articleSelect}
+                value={selectedContentId ?? ''}
+                disabled={isActive || isExpired}
+                onChange={e => onSelectContent(e.target.value || null)}
+              >
+                <option value="">— None —</option>
+                {activeContentItems.map(item => (
+                  <option key={item.id} value={item.id}>
+                    [{item.phase}] {item.name}
+                  </option>
+                ))}
+              </select>
+            </div>
 
-        <textarea
-          ref={textRef}
-          className={s.notes}
-          disabled={!isActive}
-          placeholder={isActive ? 'Write your response here…' : 'Start the task to begin writing…'}
-        />
+            {/* ── Task impact on selected article ──────────────────────── */}
+            {showImpact && (
+              <div className={s.impactRow}>
+                {/* Stage */}
+                {taskStage && (
+                  <span
+                    className={stageMismatch ? s.impactMismatch : s.impactMatch}
+                    title={stageMismatch
+                      ? `Article is at ${selectedItem!.phase} phase; this task advances ${taskStage} work`
+                      : `Task stage matches article phase`}
+                  >
+                    {stageMismatch
+                      ? `${selectedItem!.phase} ≠ ${taskStage}`
+                      : taskStage}
+                  </span>
+                )}
+                {/* Medium */}
+                {taskMedium && (
+                  <span
+                    className={
+                      mediumMismatch          ? s.impactMismatch :
+                      !selectedItem!.stamped_medium ? s.impactNew :
+                      s.impactMatch
+                    }
+                    title={
+                      mediumMismatch
+                        ? `Article locked to ${selectedItem!.stamped_medium}; task uses ${taskMedium} (−15% dmg)`
+                        : !selectedItem!.stamped_medium
+                        ? `Will stamp article with ${taskMedium} medium`
+                        : `Medium matches`
+                    }
+                  >
+                    {mediumMismatch
+                      ? `${selectedItem!.stamped_medium} ≠ ${taskMedium}`
+                      : taskMedium.replace(/_/g, ' ')}
+                    {!mediumMismatch && !selectedItem!.stamped_medium && ' ✦'}
+                  </span>
+                )}
+                {/* Origin */}
+                {taskOrigin && (
+                  <span
+                    className={
+                      originMismatch          ? s.impactMismatch :
+                      !selectedItem!.stamped_origin ? s.impactNew :
+                      s.impactMatch
+                    }
+                    title={
+                      originMismatch
+                        ? `Article locked to ${selectedItem!.stamped_origin}; task uses ${taskOrigin} (−15% dmg)`
+                        : !selectedItem!.stamped_origin
+                        ? `Will stamp article with ${taskOrigin} origin`
+                        : `Origin matches`
+                    }
+                  >
+                    {originMismatch
+                      ? `${selectedItem!.stamped_origin} ≠ ${taskOrigin}`
+                      : taskOrigin.replace(/_/g, ' ')}
+                    {!originMismatch && !selectedItem!.stamped_origin && ' ✦'}
+                  </span>
+                )}
+                {/* Tone / status */}
+                {taskStatus && (
+                  <span
+                    className={
+                      statusMismatch          ? s.impactMismatch :
+                      !selectedItem!.stamped_status ? s.impactNew :
+                      s.impactMatch
+                    }
+                    title={
+                      statusMismatch
+                        ? `Article locked to ${selectedItem!.stamped_status}; task builds ${taskStatus} (−15% dmg)`
+                        : !selectedItem!.stamped_status
+                        ? `Will stamp article with ${taskStatus.replace(/_/g, ' ')} tone`
+                        : `Tone matches`
+                    }
+                  >
+                    {statusMismatch
+                      ? `${selectedItem!.stamped_status?.replace(/_/g, ' ')} ≠ ${taskStatus.replace(/_/g, ' ')}`
+                      : taskStatus.replace(/_/g, ' ')}
+                    {!statusMismatch && !selectedItem!.stamped_status && ' ✦'}
+                  </span>
+                )}
+                {/* Damage penalty summary */}
+                {anyMismatch && (
+                  <span className={s.impactPenalty} title="Total damage penalty from mismatches">
+                    −{penaltyPct}% dmg
+                  </span>
+                )}
+              </div>
+            )}
+          </>
+        )}
 
         <div className={s.timerRow}>
           <div className={s.timerVal} style={{ color: pct < 0.2 ? '#e85555' : '#c9a93a' }}>
@@ -321,7 +374,6 @@ export default function TimerOverlay({
         {isActive && (
           <div className={s.actions}>
             <button className={s.btnPrimary} onClick={() => {
-              flushNotes(true)
               if (!timerIsDefense) onTaskAccomplished(
                 selectedContentId, taskStage,
                 selectedContentId ? { medium: taskMedium ?? undefined, origin: taskOrigin ?? undefined, status: taskStatus ?? undefined } : null,
@@ -339,7 +391,6 @@ export default function TimerOverlay({
             <div className={s.expiredHint}>Did you complete the task?</div>
             <div className={s.confirmRow}>
               <button className={s.btnYes} onClick={() => {
-                flushNotes(true)
                 if (!timerIsDefense) onTaskAccomplished(
                   selectedContentId, taskStage,
                   selectedContentId ? { medium: taskMedium ?? undefined, origin: taskOrigin ?? undefined, status: taskStatus ?? undefined } : null,
@@ -350,7 +401,6 @@ export default function TimerOverlay({
                 Yes, I did it!
               </button>
               <button className={s.btnNo} onClick={() => {
-                flushNotes(false)
                 dispatch({ type: 'TIMER_RESULT', accomplished: false })
               }}>
                 No, I failed
