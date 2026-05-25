@@ -6,7 +6,7 @@ import { ENEMIES } from '../data/enemies'
 import { playSound } from '../engine/sound'
 import { WEAPONS, getWeaponMovesets, calcStepDamage } from '../data/weapons'
 import { MOVES } from '../data/movesets'
-import type { WeaponRarity, WeaponClass, WeaponInstance, GeneratedMoveset, ContentPhase, AtomicStage } from '../types/game'
+import type { WeaponRarity, WeaponClass, WeaponInstance, GeneratedMoveset, ContentPhase, AtomicStage, AtomicMedium, AtomicOrigin, StatusType } from '../types/game'
 import { rollWeapon } from '../data/generators/weaponGenerator'
 import { rollMoveset } from '../data/generators/movesetGenerator'
 import RunHeader from '../components/layout/RunHeader'
@@ -179,8 +179,15 @@ export default function CombatScreen() {
     return CONTENT_PHASES[idx + 1]
   }
 
-  function handleTaskAccomplished(contentId: string | null, taskStage: AtomicStage | null) {
-    if (contentId) setPendingAdvance({ itemId: contentId, taskStage })
+  function handleTaskAccomplished(
+    contentId: string | null,
+    taskStage: AtomicStage | null,
+    stamps: { medium?: AtomicMedium; origin?: AtomicOrigin; status?: StatusType } | null,
+  ) {
+    if (contentId) {
+      setPendingAdvance({ itemId: contentId, taskStage })
+      if (stamps) store.stampContentItem(contentId, stamps)
+    }
   }
 
   // Dismiss advance prompt if combat ends

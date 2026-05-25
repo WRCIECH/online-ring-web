@@ -1,5 +1,5 @@
 import { create } from 'zustand'
-import type { GameState, LocationData, Stats, GeneratedMoveset, WeaponInstance, SublocationType, ContentItem, ContentPhase } from '../types/game'
+import type { GameState, LocationData, Stats, GeneratedMoveset, WeaponInstance, SublocationType, ContentItem, ContentPhase, AtomicMedium, AtomicOrigin, StatusType } from '../types/game'
 import { ENEMIES } from '../data/enemies'
 import { saveGame, loadGame } from '../engine/save'
 import { registerWeapon, statLevelCost, weaponUpgradeCost } from '../data/weapons'
@@ -241,6 +241,7 @@ export interface GameStore extends GameState {
   updateContentItem: (id: string, patch: Partial<Pick<ContentItem, 'name' | 'phase' | 'notes'>>) => void
   removeContentItem: (id: string) => void
   publishContentItem: (id: string) => void
+  stampContentItem: (id: string, stamps: { medium?: AtomicMedium; origin?: AtomicOrigin; status?: StatusType }) => void
 
   // Persistence
   save: () => void
@@ -545,6 +546,22 @@ export const useGameStore = create<GameStore>((set, get) => ({
       content_items: s.content_items.map(c =>
         c.id === id ? { ...c, phase: 'Published' as ContentPhase, published_at: Date.now() } : c
       ),
+    }))
+    get().save()
+  },
+
+  stampContentItem: (id, stamps) => {
+    set(s => ({
+      content_items: s.content_items.map(c => {
+        if (c.id !== id) return c
+        return {
+          ...c,
+          // Only overwrite a stamp if it isn't already set (first-use locks it)
+          stamped_medium: c.stamped_medium ?? stamps.medium,
+          stamped_origin: c.stamped_origin ?? stamps.origin,
+          stamped_status: c.stamped_status ?? stamps.status,
+        }
+      }),
     }))
     get().save()
   },

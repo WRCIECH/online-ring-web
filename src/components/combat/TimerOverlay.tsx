@@ -3,7 +3,7 @@ import type { CombatState, CombatAction } from '../../engine/combat'
 import { STA_DEFENSE_GAIN } from '../../engine/combat'
 import { WEAPONS, calcStepDamage } from '../../data/weapons'
 import { WEAPON_CLASSES } from '../../data/generators/weaponClasses'
-import type { WeaponInstance, DamageType, AtomicStage, ContentItem } from '../../types/game'
+import type { WeaponInstance, DamageType, AtomicStage, AtomicMedium, AtomicOrigin, StatusType, ContentItem, GeneratedMoveset } from '../../types/game'
 import { appendToLog } from '../../engine/save'
 import WeaponSprite from '../icons/WeaponSprite'
 import s from './TimerOverlay.module.css'
@@ -15,7 +15,11 @@ interface Props {
   activeContentItems:   ContentItem[]
   selectedContentId:    string | null
   onSelectContent:      (id: string | null) => void
-  onTaskAccomplished:   (contentId: string | null, taskStage: AtomicStage | null) => void
+  onTaskAccomplished:   (
+    contentId:  string | null,
+    taskStage:  AtomicStage | null,
+    stamps:     { medium?: AtomicMedium; origin?: AtomicOrigin; status?: StatusType } | null,
+  ) => void
 }
 
 function fmtTime(secs: number): string {
@@ -91,12 +95,32 @@ export default function TimerOverlay({
   const dmgType = pendingStep?.damage_type
   const dmgTypeColor = dmgType ? (DMG_TYPE_COLOURS[dmgType] ?? '#aaaaaa') : null
 
-  // ── Stage mismatch ────────────────────────────────────────────────────────
-  const selectedItem    = activeContentItems.find(c => c.id === selectedContentId) ?? null
-  const taskStage       = pendingStep?.stage ?? null
-  const stageMatches    = !selectedItem || !taskStage || selectedItem.phase === taskStage
-  const mismatchMult    = stageMatches ? 1 : 0.65
-  const mismatchVisible = !timerIsDefense && !!selectedItem && !!taskStage
+  // ── Multi-dimension mismatch ──────────────────────────────────────────────
+  const selectedItem = activeContentItems.find(c => c.id === selectedContentId) ?? null
+  const gm           = pendingMoveset as GeneratedMoveset | null
+
+  const taskStage    = pendingStep?.stage   ?? null
+  const taskMedium   = gm?.dominant_medium  ?? null
+  const taskOrigin   = gm?.content_origin   ?? null
+  const taskStatus   = gm?.status_buildup   ?? null
+
+  // Stage: always checked when article is selected and task has a stage
+  const stageMismatch  = !!selectedItem && !!taskStage && selectedItem.phase !== taskStage
+  // Medium/Origin/Status: only checked if the article already has that stamp
+  const mediumMismatch = !!selectedItem?.stamped_medium && !!taskMedium && selectedItem.stamped_medium !== taskMedium
+  const originMismatch = !!selectedItem?.stamped_origin && !!taskOrigin && selectedItem.stamped_origin !== taskOrigin
+  const statusMismatch = !!selectedItem?.stamped_status && !!taskStatus && selectedItem.stamped_status !== taskStatus
+
+  let mismatchMult = 1
+  if (stageMismatch)  mismatchMult *= 0.65
+  if (mediumMismatch) mismatchMult *= 0.85
+  if (originMismatch) mismatchMult *= 0.85
+  if (statusMismatch) mismatchMult *= 0.85
+  mismatchMult = Math.max(0.35, mismatchMult)
+
+  const mismatchVisible   = !timerIsDefense && !!selectedItem
+  const anyMismatch = stageMismatch || mediumMismatch || originMismatch || statusMismatch
+  const penaltyPct  = Math.round((1 - mismatchMult) * 100)
 
   // ── Weapon tooltip data ───────────────────────────────────────────────────
   const classDef = wi?.weapon_class ? WEAPON_CLASSES[wi.weapon_class] : null
@@ -238,9 +262,23 @@ export default function TimerOverlay({
               ))}
             </select>
             {mismatchVisible && (
-              stageMatches
-                ? <span className={s.matchBadge}>✓ {taskStage}</span>
-                : <span className={s.mismatchBadge}>⚠ −35% · article at {selectedItem!.phase}, task is {taskStage}</span>
+              <span className={anyMismatch ? s.mismatchBadge : s.matchBadge}>
+                {anyMismatch
+                  ? <>
+                      ⚠ −{penaltyPct}%
+                      {stageMismatch  && <> · Stage ({selectedItem!.phase}≠{taskStage})</>}
+                      {mediumMismatch && <> · Medium ({selectedItem!.stamped_medium}≠{taskMedium})</>}
+                      {originMismatch && <> · Origin ({selectedItem!.stamped_origin}≠{taskOrigin})</>}
+                      {statusMismatch && <> · Tone ({selectedItem!.stamped_status}≠{taskStatus})</>}
+                    </>
+                  : <>✓ {[
+                      taskStage  && `Stage`,
+                      taskMedium && selectedItem!.stamped_medium && `Medium`,
+                      taskOrigin && selectedItem!.stamped_origin && `Origin`,
+                      taskStatus && selectedItem!.stamped_status && `Tone`,
+                    ].filter(Boolean).join(' · ') || 'matched'}</>
+                }
+              </span>
             )}
           </div>
         )}
@@ -275,7 +313,10 @@ export default function TimerOverlay({
           <div className={s.actions}>
             <button className={s.btnPrimary} onClick={() => {
               flushNotes(true)
-              if (!timerIsDefense) onTaskAccomplished(selectedContentId, pendingStep?.stage ?? null)
+              if (!timerIsDefense) onTaskAccomplished(
+                selectedContentId, taskStage,
+                selectedContentId ? { medium: taskMedium ?? undefined, origin: taskOrigin ?? undefined, status: taskStatus ?? undefined } : null,
+              )
               dispatch({ type: 'TIMER_RESULT', accomplished: true, statusApplied: true, mismatchMult })
             }}>
               Done!
@@ -289,7 +330,10 @@ export default function TimerOverlay({
             <div className={s.confirmRow}>
               <button className={s.btnYes} onClick={() => {
                 flushNotes(true)
-                if (!timerIsDefense) onTaskAccomplished(selectedContentId, pendingStep?.stage ?? null)
+                if (!timerIsDefense) onTaskAccomplished(
+                  selectedContentId, taskStage,
+                  selectedContentId ? { medium: taskMedium ?? undefined, origin: taskOrigin ?? undefined, status: taskStatus ?? undefined } : null,
+                )
                 dispatch({ type: 'TIMER_RESULT', accomplished: true, statusApplied: true, mismatchMult })
               }}>
                 Yes, I did it!

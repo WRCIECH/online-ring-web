@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'react'
 import { useGameStore, selectEquipLoad } from '../../store/gameStore'
 import type { ContentPhase, ContentItem } from '../../types/game'
+import { MEDIUM_INFO, CONTENT_ORIGIN_INFO, STATUS_INFO } from '../../data/contentDescriptions'
 import s from './ContentOverlay.module.css'
 
 interface Props {
@@ -95,6 +96,32 @@ export default function ContentOverlay({ onClose, canAdd = true }: Props) {
     }
   }
 
+  function renderStamps(item: ContentItem) {
+    const chips: { label: string; color?: string }[] = []
+    if (item.stamped_medium) {
+      const info = MEDIUM_INFO[item.stamped_medium]
+      chips.push({ label: info?.badge_label ?? item.stamped_medium, color: '#888899' })
+    }
+    if (item.stamped_origin) {
+      const info = CONTENT_ORIGIN_INFO[item.stamped_origin]
+      chips.push({ label: info?.badge_label ?? item.stamped_origin, color: '#7788aa' })
+    }
+    if (item.stamped_status) {
+      const info = STATUS_INFO[item.stamped_status]
+      chips.push({ label: info?.badge_label ?? item.stamped_status, color: '#886688' })
+    }
+    if (!chips.length) return null
+    return (
+      <div className={s.stamps}>
+        {chips.map((c, i) => (
+          <span key={i} className={s.stamp} style={c.color ? { color: c.color, borderColor: c.color + '55' } : undefined}>
+            {c.label}
+          </span>
+        ))}
+      </div>
+    )
+  }
+
   function renderItem(item: ContentItem) {
     const isExpanded  = expandedId === item.id
     const isEditName  = editingNameId === item.id
@@ -168,6 +195,9 @@ export default function ContentOverlay({ onClose, canAdd = true }: Props) {
             )}
           </div>
         </div>
+
+        {/* Stamps */}
+        {renderStamps(item)}
 
         {/* Expandable notes */}
         {isExpanded && (

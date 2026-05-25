@@ -255,6 +255,26 @@
   cursor: pointer;
 }
 
+/* ── Stamps (medium · origin · emotional) ────────────────────────────── */
+
+.stamps {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  padding: 2px 10px 6px;
+}
+
+.stamp {
+  font-size: 0.67rem;
+  letter-spacing: 0.05em;
+  padding: 2px 8px;
+  border: 1px solid rgba(255,255,255,0.10);
+  border-radius: 3px;
+  background: rgba(255,255,255,0.03);
+  color: var(--color-text-dim);
+  white-space: nowrap;
+}
+
 /* ── Notes textarea ───────────────────────────────────────────────────── */
 
 .notesWrap {

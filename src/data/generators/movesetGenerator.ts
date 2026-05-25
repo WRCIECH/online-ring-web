@@ -230,6 +230,7 @@ export function rollMoveset(
     pipeline: { all_steps: [], unlocked_at: [], drops_at: [] },
     primary_damage_type: primaryDmgType,
     content_origin: dominantOrigin,
+    dominant_medium: dominantMedium,
     ...(infusion ? { infusion } : {}),
     ...(status_buildup ? { status_buildup } : {}),
   }

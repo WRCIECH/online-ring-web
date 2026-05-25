@@ -89,6 +89,7 @@ export interface GeneratedMoveset extends Moveset {
   status_buildup?:      StatusType
   infusion?:            Partial<Record<StatKey, Grade>>
   content_origin?:      AtomicOrigin
+  dominant_medium?:     AtomicMedium   // characteristic medium of this moveset
 }
 
 export type CombatPhase =
@@ -201,6 +202,10 @@ export interface ContentItem {
   phase:         ContentPhase
   published_at?: number     // Date.now() when phase → 'Published'
   notes?:        string     // optional rough notes
+  // Stamps applied on first task completion (lock the article's character)
+  stamped_medium?: AtomicMedium    // from moveset's dominant_medium
+  stamped_origin?: AtomicOrigin    // from moveset's content_origin
+  stamped_status?: StatusType      // from moveset's status_buildup (emotional fingerprint)
 }
 
 export interface GameState {
