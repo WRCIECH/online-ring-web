@@ -4,8 +4,11 @@ import { useGameStore, selectRunRemainingSeconds } from '../store/gameStore'
 import { ENEMIES } from '../data/enemies'
 import type { LocationData } from '../types/game'
 import RunHeader from '../components/layout/RunHeader'
-import StatsOverlay from '../components/overlays/StatsOverlay'
+import StatsOverlay    from '../components/overlays/StatsOverlay'
+import ContentOverlay  from '../components/overlays/ContentOverlay'
 import s from './RunMapScreen.module.css'
+
+const MIN_PIPELINE = 6
 
 // ── Map geometry (mirrors Godot constants) ────────────────────────────────
 const CX = 600, CY = 390
@@ -48,6 +51,10 @@ export default function RunMapScreen() {
   const [popupPos, setPopupPos]     = useState({ x: 0, y: 0 })
   const [eventNode, setEventNode]   = useState<LocationData | null>(null)
   const [showStats, setShowStats]   = useState(false)
+  const [showContent, setShowContent] = useState(false)
+
+  const activeItemCount = store.content_items.filter(c => c.phase !== 'Published').length
+  const canEnterFight   = activeItemCount >= MIN_PIPELINE
   const expiredRef = useRef(false)
 
   const seq     = store.run_location_sequence
@@ -210,6 +217,7 @@ export default function RunMapScreen() {
 
   function handleEnterLocation() {
     if (popupIdx < 0) return
+    if (!canEnterFight) { setShowContent(true); return }
     const loc = seq[popupIdx]
     store.setPendingEncounter(loc)
     navigate('/combat')
@@ -226,6 +234,7 @@ export default function RunMapScreen() {
 
   function handleEnterTrial() {
     if (!eventNode) return
+    if (!canEnterFight) { setShowContent(true); return }
     store.setPendingEncounter({ ...eventNode, mult: eventNode.mult * 1.5 })
     setEventNode(null)
     navigate('/combat')
@@ -288,10 +297,22 @@ export default function RunMapScreen() {
             </div>
             <div className={s.popupMult}>×{popupLoc.mult.toFixed(2)} difficulty</div>
             <div className={s.popupDesc}>{popupEnemy.description}</div>
+            {!canEnterFight && (
+              <div className={s.pipelineGate}>
+                📋 Need {MIN_PIPELINE} active articles to fight
+                <span className={s.pipelineCount}>({activeItemCount} / {MIN_PIPELINE})</span>
+              </div>
+            )}
             <div className={s.popupFooter}>
-              <button className={s.btnEnter} onClick={handleEnterLocation}>
-                Enter Location
-              </button>
+              {canEnterFight ? (
+                <button className={s.btnEnter} onClick={handleEnterLocation}>
+                  Enter Location
+                </button>
+              ) : (
+                <button className={s.btnEnter} onClick={() => setShowContent(true)}>
+                  📋 Open Pipeline
+                </button>
+              )}
               <button onClick={() => setPopupIdx(-1)}>Close</button>
             </div>
           </div>
@@ -324,10 +345,22 @@ export default function RunMapScreen() {
                 <div className={s.eventDesc}>
                   A spectral gate flickers with challenge. Defeat what lies within for a guaranteed rare drop.
                 </div>
+                {!canEnterFight && (
+                  <div className={s.pipelineGate}>
+                    📋 Need {MIN_PIPELINE} active articles to fight
+                    <span className={s.pipelineCount}>({activeItemCount} / {MIN_PIPELINE})</span>
+                  </div>
+                )}
                 <div className={s.eventActions}>
-                  <button className={s.btnTrial} onClick={handleEnterTrial}>
-                    Accept Trial
-                  </button>
+                  {canEnterFight ? (
+                    <button className={s.btnTrial} onClick={handleEnterTrial}>
+                      Accept Trial
+                    </button>
+                  ) : (
+                    <button className={s.btnTrial} onClick={() => setShowContent(true)}>
+                      📋 Open Pipeline
+                    </button>
+                  )}
                   <button onClick={() => setEventNode(null)}>Refuse</button>
                 </div>
               </>
@@ -337,7 +370,8 @@ export default function RunMapScreen() {
       )}
 
 
-      {showStats && <StatsOverlay onClose={() => setShowStats(false)} />}
+      {showStats   && <StatsOverlay   onClose={() => setShowStats(false)} />}
+      {showContent && <ContentOverlay onClose={() => setShowContent(false)} canAdd={true} />}
 
       {/* Run expired banner */}
       {selectRunRemainingSeconds(store as Parameters<typeof selectRunRemainingSeconds>[0]) <= 0 && (
