@@ -20,6 +20,9 @@ interface Props {
     taskStage:  AtomicStage | null,
     stamps:     { medium?: AtomicMedium; origin?: AtomicOrigin; status?: StatusType } | null,
   ) => void
+  // Publish-as-parry
+  onParryAccomplished?: () => void
+  parryPublishItem?:    ContentItem | null
 }
 
 function fmtTime(secs: number): string {
@@ -36,6 +39,7 @@ const DMG_TYPE_COLOURS: Partial<Record<DamageType, string>> = {
 export default function TimerOverlay({
   state, dispatch,
   activeContentItems, selectedContentId, onSelectContent, onTaskAccomplished,
+  onParryAccomplished, parryPublishItem,
 }: Props) {
   const { stepTimer, stepTotal, stepStarted, timerExpired,
           timerIsDefense, pendingStep, pendingDefenseAction, pendingMoveset,
@@ -221,6 +225,11 @@ export default function TimerOverlay({
           )}
           {timerIsDefense && pendingDefenseAction === 'parry' && (
             <>
+              {parryPublishItem && (
+                <span className={s.ctxParryArticle}>
+                  📤 Publishing: <em>{parryPublishItem.name || 'unnamed'}</em>
+                </span>
+              )}
               <span className={s.ctxOutcome}>✓ Success → {currentMove?.damage ?? '?'} counter-dmg, full STA</span>
               <span className={s.ctxOutcomeFail}>✗ Fail → {currentMove?.damage ?? '?'} dmg taken</span>
             </>
@@ -317,6 +326,7 @@ export default function TimerOverlay({
                 selectedContentId, taskStage,
                 selectedContentId ? { medium: taskMedium ?? undefined, origin: taskOrigin ?? undefined, status: taskStatus ?? undefined } : null,
               )
+              if (timerIsDefense && pendingDefenseAction === 'parry') onParryAccomplished?.()
               dispatch({ type: 'TIMER_RESULT', accomplished: true, statusApplied: true, mismatchMult })
             }}>
               Done!
@@ -334,6 +344,7 @@ export default function TimerOverlay({
                   selectedContentId, taskStage,
                   selectedContentId ? { medium: taskMedium ?? undefined, origin: taskOrigin ?? undefined, status: taskStatus ?? undefined } : null,
                 )
+                if (timerIsDefense && pendingDefenseAction === 'parry') onParryAccomplished?.()
                 dispatch({ type: 'TIMER_RESULT', accomplished: true, statusApplied: true, mismatchMult })
               }}>
                 Yes, I did it!

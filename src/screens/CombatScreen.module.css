@@ -402,6 +402,46 @@
 
 .advanceTask strong { color: var(--color-text); }
 
+/* Article stamp chips */
+.advanceStamps {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  justify-content: center;
+}
+
+.advanceStamp {
+  font-size: 0.65rem;
+  letter-spacing: 0.04em;
+  padding: 2px 8px;
+  border: 1px solid rgba(255,255,255,0.10);
+  border-radius: 3px;
+  background: rgba(255,255,255,0.03);
+  color: var(--color-text-dim);
+}
+
+/* Stage match / mismatch line */
+.advanceMatch {
+  font-size: 0.75rem;
+  color: #55bb77;
+  letter-spacing: 0.02em;
+}
+
+.advanceMismatch {
+  font-size: 0.75rem;
+  color: #cc8833;
+  letter-spacing: 0.02em;
+}
+
+.advanceMismatch strong { color: var(--color-text); }
+
+/* Equip-load freed note */
+.advanceLoad {
+  font-size: 0.74rem;
+  color: #88aacc;
+  letter-spacing: 0.02em;
+}
+
 .advanceBtns {
   display: flex;
   gap: 10px;

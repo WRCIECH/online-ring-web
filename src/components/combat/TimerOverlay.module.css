@@ -143,6 +143,18 @@
   color: var(--color-text-danger);
 }
 
+/* Article being published via parry */
+.ctxParryArticle {
+  font-size: 0.82rem;
+  color: #88aacc;
+  letter-spacing: 0.02em;
+}
+
+.ctxParryArticle em {
+  font-style: normal;
+  color: var(--color-gold-dim);
+}
+
 
 /* ── Task badges ──────────────────────────────────────────────────────── */
 

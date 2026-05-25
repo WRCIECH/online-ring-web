@@ -6,7 +6,7 @@ import { ENEMIES } from '../data/enemies'
 import { playSound } from '../engine/sound'
 import { WEAPONS, getWeaponMovesets, calcStepDamage } from '../data/weapons'
 import { MOVES } from '../data/movesets'
-import type { WeaponRarity, WeaponClass, WeaponInstance, GeneratedMoveset, ContentPhase, AtomicStage, AtomicMedium, AtomicOrigin, StatusType } from '../types/game'
+import type { WeaponRarity, WeaponClass, WeaponInstance, GeneratedMoveset, ContentPhase, AtomicStage, AtomicMedium, AtomicOrigin, StatusType, ContentItem } from '../types/game'
 import { rollWeapon } from '../data/generators/weaponGenerator'
 import { rollMoveset } from '../data/generators/movesetGenerator'
 import RunHeader from '../components/layout/RunHeader'
@@ -169,8 +169,10 @@ export default function CombatScreen() {
   const [selectedContentId, setSelectedContentId] = useState<string | null>(null)
   interface PendingAdvance { itemId: string; taskStage: AtomicStage | null }
   const [pendingAdvance, setPendingAdvance] = useState<PendingAdvance | null>(null)
+  const [pendingParryPublishId, setPendingParryPublishId] = useState<string | null>(null)
 
-  const activeContentItems = store.content_items.filter(c => c.phase !== 'Published')
+  const activeContentItems  = store.content_items.filter(c => c.phase !== 'Published')
+  const publishReadyItems   = activeContentItems.filter(c => c.phase === 'Publish')
 
   const CONTENT_PHASES: ContentPhase[] = ['Research','Outline','Generate','Glue','Refine','Publish','Published']
   function getNextPhase(current: ContentPhase): ContentPhase | null {
@@ -190,10 +192,18 @@ export default function CombatScreen() {
     }
   }
 
-  // Dismiss advance prompt if combat ends
+  function handleParryAccomplished() {
+    if (pendingParryPublishId) {
+      store.publishContentItem(pendingParryPublishId)
+      setPendingParryPublishId(null)
+    }
+  }
+
+  // Dismiss prompts if combat ends
   useEffect(() => {
     if (state.phase === 'VICTORY' || state.phase === 'DEFEAT' || state.phase === 'FLED') {
       setPendingAdvance(null)
+      setPendingParryPublishId(null)
     }
   }, [state.phase])
 
@@ -403,6 +413,14 @@ export default function CombatScreen() {
         : (move.dodge_task ? `${move.dodge_task.name} · ${fmtTime(move.dodge_task.time)}` : '???')
 
       const sta = Math.floor(state.playerStamina)
+      const parryArticle: ContentItem | null = publishReadyItems[0] ?? null
+      const canParry = !!publishTask && !!parryArticle
+      const parrySublabel = parryArticle && publishTask
+        ? `📤 "${parryArticle.name || 'unnamed'}" · ${fmtTime(publishTask.time)}`
+        : publishTask
+        ? `${publishTask.name} · ${fmtTime(publishTask.time)}`
+        : '???'
+
       const opts: Omit<RadialItem, 'tx' | 'ty'>[] = [
         {
           id: 'roll', movesetId: state.enemyRollMoveset?.id ?? 'recovery_roll',
@@ -432,14 +450,22 @@ export default function CombatScreen() {
         {
           id: 'parry', customIcon: ICON_PARRY,
           label: 'Parry',
-          sublabel: publishTask ? `${publishTask.name} · ${fmtTime(publishTask.time)}` : '???',
+          sublabel: parrySublabel,
           metaParts: [
             { text: 'Full STA on success', color: 'var(--color-stamina)' },
             { text: `${move.damage} dmg if fail`, color: '#cc6644' },
+            ...(parryArticle ? [{ text: '📤 Publishes article', color: '#88aacc' }] : []),
           ],
-          canUse: !!publishTask,
-          disabledReason: !publishTask ? 'No publish task' : undefined,
-          onSelect: () => dispatch({ type: 'DEFENSE_CHOSEN', action: 'parry' }),
+          canUse: canParry,
+          disabledReason: !publishTask
+            ? 'No publish task'
+            : !parryArticle
+            ? 'No articles at Publish phase'
+            : undefined,
+          onSelect: () => {
+            if (parryArticle) setPendingParryPublishId(parryArticle.id)
+            dispatch({ type: 'DEFENSE_CHOSEN', action: 'parry' })
+          },
         },
         {
           id: 'take', customIcon: ICON_TAKE_HIT,
@@ -468,7 +494,7 @@ export default function CombatScreen() {
     }
 
     return []
-  }, [radialPos, state, dispatch])
+  }, [radialPos, state, dispatch, publishReadyItems])
 
   function handleDisplayClick() {
     if (state.phase !== 'PLAYER_ATTACK' && state.phase !== 'ENEMY_ATTACK') return
@@ -603,6 +629,10 @@ export default function CombatScreen() {
           selectedContentId={selectedContentId}
           onSelectContent={setSelectedContentId}
           onTaskAccomplished={handleTaskAccomplished}
+          onParryAccomplished={handleParryAccomplished}
+          parryPublishItem={pendingParryPublishId
+            ? (store.content_items.find(c => c.id === pendingParryPublishId) ?? null)
+            : null}
         />
       )}
 
@@ -692,18 +722,38 @@ export default function CombatScreen() {
         const item = store.content_items.find(c => c.id === pendingAdvance.itemId)
         if (!item) { setPendingAdvance(null); return null }
         const next = getNextPhase(item.phase)
+        const stageMatch    = !!pendingAdvance.taskStage && pendingAdvance.taskStage === item.phase
+        const stageMismatch = !!pendingAdvance.taskStage && pendingAdvance.taskStage !== item.phase
+        const chips = [
+          item.stamped_medium && `Medium: ${item.stamped_medium}`,
+          item.stamped_origin && `Origin: ${item.stamped_origin}`,
+          item.stamped_status && `Tone: ${item.stamped_status}`,
+        ].filter(Boolean) as string[]
         return (
           <div className={s.advanceOverlay}>
             <div className={s.advanceBox}>
-              <div className={s.advanceHeader}>Phase Advance</div>
-              <div className={s.advanceArticle}>{item.name}</div>
+              <div className={s.advanceHeader}>Phase Advance?</div>
+              <div className={s.advanceArticle}>{item.name || '(unnamed)'}</div>
+              {chips.length > 0 && (
+                <div className={s.advanceStamps}>
+                  {chips.map((chip, i) => <span key={i} className={s.advanceStamp}>{chip}</span>)}
+                </div>
+              )}
               <div className={s.advancePhaseRow}>
                 <span className={s.advancePhaseCur}>{item.phase}</span>
                 {next && <span className={s.advanceArrow}>→</span>}
                 {next && <span className={s.advancePhaseNext}>{next}</span>}
               </div>
-              {pendingAdvance.taskStage && (
-                <div className={s.advanceTask}>Task was a <strong>{pendingAdvance.taskStage}</strong> step</div>
+              {stageMatch && (
+                <div className={s.advanceMatch}>✓ Task stage matches — great time to advance!</div>
+              )}
+              {stageMismatch && (
+                <div className={s.advanceMismatch}>
+                  ⚠ Task was <strong>{pendingAdvance.taskStage}</strong> — article is at {item.phase}
+                </div>
+              )}
+              {next === 'Published' && (
+                <div className={s.advanceLoad}>📤 Publishing frees 0.5 equip load</div>
               )}
               <div className={s.advanceBtns}>
                 {next && (
@@ -712,7 +762,7 @@ export default function CombatScreen() {
                     else store.updateContentItem(item.id, { phase: next })
                     setPendingAdvance(null)
                   }}>
-                    Advance to {next}
+                    {next === 'Published' ? '🎉 Publish!' : `Advance to ${next}`}
                   </button>
                 )}
                 <button className={s.btnAdvanceSkip} onClick={() => setPendingAdvance(null)}>
