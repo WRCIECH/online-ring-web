@@ -17,7 +17,7 @@
  */
 
 import type {
-  AtomicDimensions, AtomicMedium, AtomicMode, AtomicStage,
+  AtomicDimensions, AtomicMedium, AtomicStage,
   AtomicTime, AtomicPub, AtomicOrigin, AtomicPlanning, MovesetVariant,
   Step, StepBadge, DamageType, StatusType,
 } from '../../types/game'
@@ -47,15 +47,7 @@ const TIME_WEIGHTS: Record<MovesetVariant, number[]> = {
 // ── Consistency validation ────────────────────────────────────────────────────
 
 export function validateConsistency(d: AtomicDimensions): boolean {
-  if (d.cognitive_mode === 'Consuming'   && d.stage !== 'Research')                                             return false
-  if (d.cognitive_mode === 'Consuming'   && d.publication === 'public')                                         return false
-  if (d.cognitive_mode === 'Commentary'  && d.stage !== 'Produce')                                             return false
-  if (d.cognitive_mode === 'Compressing' && d.content_origin === 'New')                                         return false
-  if (d.cognitive_mode === 'Expanding'   && d.content_origin === 'New')                                         return false
-  if (d.cognitive_mode === 'Remixing'    &&
-      !['Recycled','Remastered','Revamped','Reboot','ZoomIn','ZoomOut','AudienceAlter']
-        .includes(d.content_origin))                                                                             return false
-  if (d.stage === 'Publish' && (d.time_budget === 'Long' || d.time_budget === 'Deep'))                          return false
+  if (d.stage === 'Publish' && (d.time_budget === 'Long' || d.time_budget === 'Deep')) return false
   return true
 }
 
@@ -77,18 +69,22 @@ const MEDIUM_SUFFIX: Partial<Record<AtomicMedium, string>> = {
   Hybrid: 'across formats',
 }
 
-const MODE_MODIFIER: Partial<Record<AtomicMode, string>> = {
-  Compressing: '— compress ruthlessly',
-  Expanding:   '— expand and deepen',
-  Remixing:    '— remix from existing work',
-  Connecting:  '— connect ideas together',
-  Commentary:  '— add your commentary',
+const ORIGIN_MODIFIER: Partial<Record<AtomicOrigin, string>> = {
+  Compression:   '— compress ruthlessly',
+  Recycled:      '— remix from existing work',
+  Remastered:    '— remix from existing work',
+  Revamped:      '— remix from existing work',
+  Reboot:        '— rebuild from scratch',
+  ZoomIn:        '— zoom in on one element',
+  ZoomOut:       '— zoom out to the bigger picture',
+  AudienceAlter: '— reframe for a new audience',
+  Commentary:    '— add your commentary',
 }
 
 export function generateStepName(d: AtomicDimensions): string {
   const verb   = STAGE_VERBS[d.stage]
   const suffix = MEDIUM_SUFFIX[d.medium] ?? ''
-  const mod    = MODE_MODIFIER[d.cognitive_mode] ?? ''
+  const mod    = ORIGIN_MODIFIER[d.content_origin] ?? ''
   return [verb, suffix, mod].filter(Boolean).join(' ')
 }
 
@@ -98,9 +94,13 @@ const TIME_SECS:  Record<AtomicTime,   number> = { Micro:300,  Short:600,  Mediu
 const TIME_DMG:   Record<AtomicTime,   number> = { Micro:1,    Short:2,    Medium:4,   Long:7,    Deep:12   }
 const TIME_STA:   Record<AtomicTime,   number> = { Micro:2,    Short:4,    Medium:7,   Long:10,   Deep:18   }
 
-const MODE_MULT:  Record<AtomicMode,   number> = {
-  Creating:1.0, Remixing:0.7, Commentary:0.9, Connecting:1.1,
-  Compressing:0.6, Expanding:0.8, Consuming:0.4,
+const REMIX_ORIGINS: AtomicOrigin[] = [
+  'Recycled','Remastered','Revamped','Reboot','ZoomIn','ZoomOut','AudienceAlter',
+]
+const ORIGIN_MULT: Partial<Record<AtomicOrigin, number>> = {
+  Commentary: 0.9,  Compression: 0.6,
+  Recycled: 0.7, Remastered: 0.7, Revamped: 0.7, Reboot: 0.7,
+  ZoomIn: 0.7,   ZoomOut: 0.7,   AudienceAlter: 0.7,
 }
 const PUB_MULT:   Record<AtomicPub,    number> = {
   just_work:0.4, private:0.6, draft_published:1.0, public:1.3,
@@ -111,19 +111,15 @@ const MEDIUM_STA: Record<AtomicMedium, number> = {
 
 // ── Stat calculations ─────────────────────────────────────────────────────────
 
-export function calcDamage(d: AtomicDimensions):      number { return Math.round(TIME_DMG[d.time_budget] * MODE_MULT[d.cognitive_mode] * PUB_MULT[d.publication] * 10) }
+export function calcDamage(d: AtomicDimensions):      number { return Math.round(TIME_DMG[d.time_budget] * (ORIGIN_MULT[d.content_origin] ?? 1.0) * PUB_MULT[d.publication] * 10) }
 export function calcPoiseDamage(d: AtomicDimensions): number { return Math.round(TIME_DMG[d.time_budget] * 1.5) }
 export function calcStaminaCost(d: AtomicDimensions): number { return Math.round(TIME_STA[d.time_budget] * MEDIUM_STA[d.medium]) }
 export function calcStepTime(d: AtomicDimensions):    number { return TIME_SECS[d.time_budget] }
 
 export function calcFpCost(d: AtomicDimensions): number {
-  const base =
-    (d.cognitive_mode === 'Connecting'  ? 5 : 0) +
-    (d.cognitive_mode === 'Compressing' ? 5 : 0) +
-    (d.cognitive_mode === 'Expanding'   ? 3 : 0) +
-    (d.cognitive_mode === 'Remixing'    ? 3 : 0)
-  const deep = (d.time_budget === 'Deep' &&
-    !['Connecting','Compressing','Expanding','Remixing'].includes(d.cognitive_mode)) ? 3 : 0
+  const base = (d.content_origin === 'Compression'        ? 5 : 0) +
+               (REMIX_ORIGINS.includes(d.content_origin)   ? 3 : 0)
+  const deep = (d.time_budget === 'Deep' && base === 0)    ? 3 : 0
   return base + deep
 }
 
@@ -151,29 +147,12 @@ export function pickStageChain(archetype: MovesetArchetype): AtomicStage[] {
   return STAGE_CHAINS[archetype] ?? STAGE_CHAINS.long_form
 }
 
-// ── Cognitive mode per stage ──────────────────────────────────────────────────
-
-function modeForStage(stage: AtomicStage, archetype: MovesetArchetype): AtomicMode {
-  switch (stage) {
-    case 'Research':  return 'Consuming'
-    case 'Glue':      return 'Connecting'
-    case 'Produce':
-      if (archetype === 'commentary') return 'Commentary'
-      return 'Creating'
-    case 'Refine':
-      if (archetype === 'compression' || archetype === 'editing') return 'Compressing'
-      if (archetype === 'remix')                                   return 'Remixing'
-      return 'Creating'
-    default:          return 'Creating'
-  }
-}
-
 // ── Roll function ─────────────────────────────────────────────────────────────
 
 export function rollAtomicMove(
   stage: AtomicStage,
   variant: MovesetVariant,
-  archetype: MovesetArchetype,
+  _archetype: MovesetArchetype,
   dominantMedium: AtomicMedium,
   dominantPlanning: AtomicPlanning,
   dominantOrigin: AtomicOrigin,
@@ -181,20 +160,19 @@ export function rollAtomicMove(
 ): AtomicDimensions {
   const timeWeights = TIME_WEIGHTS[variant]
   for (let i = 0; i < 20; i++) {
-    const time_budget    = pick(TIMES, timeWeights)
-    const cognitive_mode = modeForStage(stage, archetype)
+    const time_budget = pick(TIMES, timeWeights)
     const publication: AtomicPub =
       stage === 'Publish' ? targetPub
       : stage === 'Refine' ? pick(['draft_published', 'private'] as AtomicPub[], [2, 1])
       : 'just_work'
     const dim: AtomicDimensions = {
-      medium: dominantMedium, cognitive_mode, stage,
+      medium: dominantMedium, stage,
       time_budget, publication, content_origin: dominantOrigin, planning: dominantPlanning,
     }
     if (validateConsistency(dim)) return dim
   }
   // Guaranteed-valid fallback
-  return { medium:'Writing', cognitive_mode:'Creating', stage:'Produce',
+  return { medium:'Writing', stage:'Produce',
            time_budget:'Medium', publication:'just_work', content_origin:'New', planning:'Planned' }
 }
 

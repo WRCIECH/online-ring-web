@@ -54,7 +54,6 @@ export interface WeaponInstance extends Weapon {
 
 // ── Atomic move / moveset generation types ─────────────────────────────────
 export type AtomicMedium    = 'Writing' | 'Audio' | 'Video' | 'Image' | 'Hybrid'
-export type AtomicMode      = 'Creating' | 'Consuming' | 'Connecting' | 'Commentary' | 'Compressing' | 'Expanding' | 'Remixing'
 export type AtomicStage     = 'Research' | 'Outline' | 'Produce' | 'Glue' | 'Refine' | 'Publish'
 export type AtomicTime      = 'Micro' | 'Short' | 'Medium' | 'Long' | 'Deep'
 export type AtomicPub       = 'just_work' | 'private' | 'draft_published' | 'public'
@@ -63,13 +62,12 @@ export type AtomicPlanning  = 'Spontaneous' | 'Planned' | 'Scheduled'
 export type MovesetVariant  = 'Light' | 'Heavy' | 'Skill' | 'Jump'
 
 export interface AtomicDimensions {
-  medium:        AtomicMedium
-  cognitive_mode: AtomicMode
-  stage:         AtomicStage
-  time_budget:   AtomicTime
-  publication:   AtomicPub
+  medium:         AtomicMedium
+  stage:          AtomicStage
+  time_budget:    AtomicTime
+  publication:    AtomicPub
   content_origin: AtomicOrigin
-  planning:      AtomicPlanning
+  planning:       AtomicPlanning
 }
 
 // Pipeline kept for structural compatibility but no longer used for level-gating
