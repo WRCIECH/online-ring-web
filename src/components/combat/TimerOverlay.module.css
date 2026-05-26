@@ -337,6 +337,15 @@
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  flex: 1;
+}
+
+.articleOptionHint {
+  font-size: 0.72rem;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.03em;
+  flex-shrink: 0;
+  opacity: 0.85;
 }
 
 /* ── Task impact chips (below article combobox) ─────────────────────────── */

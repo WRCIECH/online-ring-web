@@ -125,6 +125,17 @@ export default function TimerOverlay({
   const anyMismatch = stageMismatch || mediumMismatch || originMismatch || statusMismatch
   const penaltyPct  = Math.round((1 - mismatchMult) * 100)
 
+  // ── Per-item mismatch score (for dropdown ordering + inline hint) ─────────
+  function itemMult(item: ContentItem): number {
+    let m = 1
+    if (taskStage  && item.phase !== taskStage)                                              m *= 0.65
+    if (taskMedium && item.stamped_medium && item.stamped_medium !== taskMedium)             m *= 0.85
+    if (taskOrigin && item.stamped_origin && item.stamped_origin !== taskOrigin)             m *= 0.85
+    if (taskStatus && item.stamped_status && item.stamped_status !== taskStatus)             m *= 0.85
+    return Math.max(0.35, m)
+  }
+  const sortedItems = [...activeContentItems].sort((a, b) => itemMult(b) - itemMult(a))
+
   // ── Weapon tooltip data ───────────────────────────────────────────────────
   const classDef = wi?.weapon_class ? WEAPON_CLASSES[wi.weapon_class] : null
   const affixDmgMult = wi?.affixes.reduce((m, a) => m * (a.damage_mult ?? 1), 1) ?? 1
@@ -297,22 +308,30 @@ export default function TimerOverlay({
                   >
                     <span className={s.articleOptionName}>— None —</span>
                   </div>
-                  {activeContentItems.map(item => (
-                    <div
-                      key={item.id}
-                      className={[
-                        s.articleOption,
-                        item.id === selectedContentId ? s.articleOptionSelected : '',
-                        item.id === hoveredId         ? s.articleOptionHovered  : '',
-                      ].join(' ')}
-                      onMouseEnter={() => setHoveredId(item.id)}
-                      onMouseLeave={() => setHoveredId(null)}
-                      onClick={() => { onSelectContent(item.id); setDropdownOpen(false); setHoveredId(null) }}
-                    >
-                      <span className={s.articlePhaseChip}>{item.phase}</span>
-                      <span className={s.articleOptionName}>{item.name || '(unnamed)'}</span>
-                    </div>
-                  ))}
+                  {sortedItems.map(item => {
+                    const mult    = itemMult(item)
+                    const penalty = Math.round((1 - mult) * 100)
+                    const hintColor = penalty === 0 ? '#55cc77' : penalty >= 50 ? '#cc5533' : '#cc9933'
+                    return (
+                      <div
+                        key={item.id}
+                        className={[
+                          s.articleOption,
+                          item.id === selectedContentId ? s.articleOptionSelected : '',
+                          item.id === hoveredId         ? s.articleOptionHovered  : '',
+                        ].join(' ')}
+                        onMouseEnter={() => setHoveredId(item.id)}
+                        onMouseLeave={() => setHoveredId(null)}
+                        onClick={() => { onSelectContent(item.id); setDropdownOpen(false); setHoveredId(null) }}
+                      >
+                        <span className={s.articlePhaseChip}>{item.phase}</span>
+                        <span className={s.articleOptionName}>{item.name || '(unnamed)'}</span>
+                        <span className={s.articleOptionHint} style={{ color: hintColor }}>
+                          {penalty === 0 ? '✓' : `−${penalty}%`}
+                        </span>
+                      </div>
+                    )
+                  })}
                 </div>
               </>
             )}
