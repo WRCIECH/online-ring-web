@@ -6,7 +6,7 @@ import { ENEMIES } from '../data/enemies'
 import { playSound } from '../engine/sound'
 import { WEAPONS, getWeaponMovesets, calcStepDamage } from '../data/weapons'
 import { MOVES } from '../data/movesets'
-import type { WeaponRarity, WeaponClass, WeaponInstance, GeneratedMoveset, ContentPhase, AtomicStage, AtomicMedium, AtomicOrigin, StatusType, ContentItem } from '../types/game'
+import type { WeaponRarity, WeaponClass, WeaponInstance, GeneratedMoveset, ContentPhase, AtomicStage, AtomicMedium, AtomicOrigin, StatusType, ContentItem, DamageType } from '../types/game'
 import { rollWeapon } from '../data/generators/weaponGenerator'
 import { rollMoveset } from '../data/generators/movesetGenerator'
 import RunHeader from '../components/layout/RunHeader'
@@ -190,7 +190,7 @@ export default function CombatScreen() {
   function handleTaskAccomplished(
     contentId: string | null,
     taskStage: AtomicStage | null,
-    stamps: { medium?: AtomicMedium; origin?: AtomicOrigin; status?: StatusType } | null,
+    stamps: { medium?: AtomicMedium; origin?: AtomicOrigin; status?: StatusType; style?: DamageType } | null,
   ) {
     if (contentId) {
       setPendingAdvance({ itemId: contentId, taskStage })

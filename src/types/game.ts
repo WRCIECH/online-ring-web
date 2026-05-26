@@ -206,6 +206,7 @@ export interface ContentItem {
   stamped_medium?: AtomicMedium    // from moveset's dominant_medium
   stamped_origin?: AtomicOrigin    // from moveset's content_origin
   stamped_status?: StatusType      // from moveset's status_buildup (emotional fingerprint)
+  stamped_style?:  DamageType      // from step's damage_type (writing style)
 }
 
 export interface GameState {
