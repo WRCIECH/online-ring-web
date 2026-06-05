@@ -99,10 +99,17 @@ export default function QuickBar({ equippedWeapons, activeWeaponIdx, playerEstus
             const over2    = Math.max(0, uses2 - thresh2)
             const penalty2 = Math.min(75, Math.round(over2 * 2.5))
             return (
-              <div className={s.tipHeat}>
-                {uses2}/{thresh2 === Infinity ? '∞' : thresh2} uses
-                {over2 > 0 ? ` · −${penalty2}% dmg 🔥` : ''}
-              </div>
+              <>
+                <div className={s.tipHeat}>
+                  🔥 Heat: {uses2} / {thresh2 === Infinity ? '∞' : thresh2} uses
+                  {over2 > 0 ? ` · −${penalty2}% dmg` : ''}
+                </div>
+                <div className={s.tipHeatDesc}>
+                  Each writing task with this weapon adds heat. Exceeding the
+                  limit reduces damage by 2.5% per extra use (max −75%).
+                  Heat resets between runs.
+                </div>
+              </>
             )
           })()}
           <div className={s.tipHint}>

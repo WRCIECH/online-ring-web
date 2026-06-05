@@ -68,15 +68,15 @@ export default function RunHeader({ hp, maxHp, stamina, maxStamina, fp, maxFp, c
         </div>
 
         <div className={s.bars}>
-          <div className={s.barGroup} data-tip={`${Math.floor(hp)} / ${maxHp}`}>
+          <div className={s.barGroup} data-tip={`Health · ${Math.floor(hp)} / ${maxHp} — reaches zero = defeated`}>
             <span className={s.barLabel}>HP</span>
             <Bar current={hp} playerMax={maxHp} cap={HP_CAP} color="var(--color-hp)" />
           </div>
-          <div className={s.barGroup} data-tip={`${Math.floor(stamina)} / ${maxStamina}`}>
+          <div className={s.barGroup} data-tip={`Stamina · ${Math.floor(stamina)} / ${maxStamina} — spent on every writing task`}>
             <span className={s.barLabel}>STA</span>
             <Bar current={stamina} playerMax={maxStamina} cap={STA_CAP} color="var(--color-stamina)" />
           </div>
-          <div className={s.barGroup} data-tip={`${Math.floor(fp)} / ${maxFp}`}>
+          <div className={s.barGroup} data-tip={`Focus Points · ${Math.floor(fp)} / ${maxFp} — consumed by skill-type moves`}>
             <span className={s.barLabel}>FP</span>
             <Bar current={fp} playerMax={maxFp} cap={FP_CAP} color="var(--color-fp)" />
           </div>

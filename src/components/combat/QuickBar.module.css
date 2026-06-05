@@ -107,6 +107,7 @@
   padding: 7px 12px;
   pointer-events: none;
   white-space: nowrap;
+  min-width: 160px;
   box-shadow: 0 4px 16px rgba(0,0,0,0.5);
 }
 
@@ -158,7 +159,18 @@
 .tipHeat {
   font-size: 0.68rem;
   color: var(--color-text-dim);
-  margin-top: 2px;
+  margin-top: 4px;
+}
+
+/* Heat explanation text */
+.tipHeatDesc {
+  font-size: 0.66rem;
+  color: var(--color-text-dim);
+  opacity: 0.65;
+  margin-top: 3px;
+  max-width: 220px;
+  white-space: normal;
+  line-height: 1.45;
 }
 
 /* Separator between weapons and items */
