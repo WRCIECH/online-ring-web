@@ -267,7 +267,7 @@ First step uses the archetype's dominant medium. Each subsequent step has 80% ch
 ### Atomic step stats
 
 ```
-base_damage  = round(TIME_DMG × MODE_MULT × PUB_MULT × 10)
+base_damage  = round(TIME_DMG × MODE_MULT × 10)
 poise_damage = round(TIME_DMG × 1.5)
 time         = TIME_SECS[time_budget]
 ```
@@ -275,8 +275,6 @@ time         = TIME_SECS[time_budget]
 **TIME_DMG:** Micro=1, Short=2, Medium=4, Long=7, Deep=12
 
 **MODE_MULT:** Creating=1.0, Connecting=1.1, Commentary=0.9, Expanding=0.8, Remixing=0.7, Compressing=0.6, Consuming=0.4
-
-**PUB_MULT:** just_work=0.4, private=0.6, draft_published=1.0, public=1.3
 
 **TIME_SECS:** Micro=300s (5 min), Short=600s, Medium=900s, Long=1500s, Deep=2700s (45 min)
 

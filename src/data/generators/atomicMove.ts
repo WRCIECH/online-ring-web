@@ -18,7 +18,7 @@
 
 import type {
   AtomicDimensions, AtomicMedium, AtomicStage,
-  AtomicTime, AtomicPub, AtomicOrigin, MovesetVariant,
+  AtomicTime, AtomicOrigin, MovesetVariant,
   Step, StepBadge, DamageType, StatusType,
 } from '../../types/game'
 import { CONTENT_ORIGIN_INFO, DMG_TYPE_INFO, STATUS_INFO, STAGE_INFO, MEDIUM_INFO } from '../contentDescriptions'
@@ -102,16 +102,13 @@ const ORIGIN_MULT: Partial<Record<AtomicOrigin, number>> = {
   Recycled: 0.7, Remastered: 0.7, Revamped: 0.7, Reboot: 0.7,
   ZoomIn: 0.7,   ZoomOut: 0.7,   AudienceAlter: 0.7,
 }
-const PUB_MULT:   Record<AtomicPub,    number> = {
-  just_work:0.4, private:0.6, draft_published:1.0, public:1.3,
-}
 const MEDIUM_STA: Record<AtomicMedium, number> = {
   Writing:1.0, Audio:1.1, Video:1.3, Image:0.9, Hybrid:1.4,
 }
 
 // ── Stat calculations ─────────────────────────────────────────────────────────
 
-export function calcDamage(d: AtomicDimensions):      number { return Math.round(TIME_DMG[d.time_budget] * (ORIGIN_MULT[d.content_origin] ?? 1.0) * PUB_MULT[d.publication] * 10) }
+export function calcDamage(d: AtomicDimensions):      number { return Math.round(TIME_DMG[d.time_budget] * (ORIGIN_MULT[d.content_origin] ?? 1.0) * 10) }
 export function calcPoiseDamage(d: AtomicDimensions): number { return Math.round(TIME_DMG[d.time_budget] * 1.5) }
 export function calcStaminaCost(d: AtomicDimensions): number { return Math.round(TIME_STA[d.time_budget] * MEDIUM_STA[d.medium]) }
 export function calcStepTime(d: AtomicDimensions):    number { return TIME_SECS[d.time_budget] }
@@ -154,25 +151,20 @@ export function rollAtomicMove(
   variant: MovesetVariant,
   _archetype: MovesetArchetype,
   dominantMedium: AtomicMedium,
-  dominantOrigin: AtomicOrigin,
-  targetPub: AtomicPub,
+  dominantOrigin: AtomicOrigin
 ): AtomicDimensions {
   const timeWeights = TIME_WEIGHTS[variant]
   for (let i = 0; i < 20; i++) {
     const time_budget = pick(TIMES, timeWeights)
-    const publication: AtomicPub =
-      stage === 'Publish' ? targetPub
-      : stage === 'Refine' ? pick(['draft_published', 'private'] as AtomicPub[], [2, 1])
-      : 'just_work'
     const dim: AtomicDimensions = {
       medium: dominantMedium, stage,
-      time_budget, publication, content_origin: dominantOrigin
+      time_budget, content_origin: dominantOrigin
     }
     if (validateConsistency(dim)) return dim
   }
   // Guaranteed-valid fallback
   return { medium:'Writing', stage:'Produce',
-           time_budget:'Medium', publication:'just_work', content_origin:'New' }
+           time_budget:'Medium', content_origin:'New' }
 }
 
 // ── Badge colors ──────────────────────────────────────────────────────────────

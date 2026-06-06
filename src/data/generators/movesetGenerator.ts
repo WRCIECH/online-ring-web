@@ -1,6 +1,6 @@
 import type {
   GeneratedMoveset, MovesetVariant, WeaponClass, WeaponRarity, Step,
-  AtomicMedium, AtomicOrigin, AtomicPub, StatKey, DamageType,
+  AtomicMedium, AtomicOrigin, StatKey, DamageType,
 } from '../../types/game'
 import {
   rollAtomicMove, pickStageChain, toStep, calcStaminaCost,
@@ -109,10 +109,6 @@ const ARCHETYPE_ORIGIN: Record<MovesetArchetype, AtomicOrigin> = {
   editing:      'ZoomIn',
 }
 
-const RARITY_PUB: Record<WeaponRarity, AtomicPub> = {
-  common: 'private', magic: 'draft_published', rare: 'public', epic: 'public', legendary: 'public',
-}
-
 // ── Time label from average step time ────────────────────────────────────
 
 function dominantTimeLabel(steps: Step[]): string {
@@ -145,7 +141,6 @@ export function rollMoveset(
   const mediumPool       = ARCHETYPE_MEDIUM[archetype]
   const dominantMedium   = pick(mediumPool) as AtomicMedium
   const dominantOrigin   = ARCHETYPE_ORIGIN[archetype]
-  const targetPub        = RARITY_PUB[rarity]
 
   const primaryDmgType: DamageType | undefined = classDef.base_damage_types[0]
 
@@ -156,7 +151,7 @@ export function rollMoveset(
       ? dominantMedium
       : Math.random() < 0.8 ? prevMedium : (pick(mediumPool) as AtomicMedium)
     prevMedium = medium
-    const dims = rollAtomicMove(stage, variant, archetype, medium, dominantOrigin, targetPub)
+    const dims = rollAtomicMove(stage, variant, archetype, medium, dominantOrigin)
     return toStep(dims, primaryDmgType)
   })
 
@@ -178,7 +173,7 @@ export function rollMoveset(
     }))
   }
 
-  const sampleMove = rollAtomicMove(chain[0] ?? 'Produce', variant, archetype, dominantMedium, dominantOrigin, targetPub)
+  const sampleMove = rollAtomicMove(chain[0] ?? 'Produce', variant, archetype, dominantMedium, dominantOrigin)
   const rawStamina = Math.round(
     scaledSteps.reduce((sum) => sum + calcStaminaCost(sampleMove), 0) * staMult
   )

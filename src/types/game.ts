@@ -59,13 +59,10 @@ export type AtomicTime = 'Micro' | 'Short' | 'Medium' | 'Long' | 'Deep'
 export type AtomicOrigin = 'New' | 'Compression' | 'Expansion' | 'Recycled' | 'Remastered' | 'Revamped' | 'Reboot' | 'ZoomIn' | 'ZoomOut' | 'AudienceAlter' | 'Commentary'
 export type MovesetVariant = 'Light' | 'Heavy' | 'Skill' | 'Jump'
 
-export type AtomicPub = 'just_work' | 'private' | 'draft_published' | 'public'
-
 export interface AtomicDimensions {
   medium: AtomicMedium
   stage: AtomicStage
   time_budget: AtomicTime
-  publication: AtomicPub
   content_origin: AtomicOrigin
 }
 
