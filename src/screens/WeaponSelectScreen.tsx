@@ -8,9 +8,9 @@ import type { WeaponInstance, WeaponRarity } from '../types/game'
 import WeaponSprite from '../components/icons/WeaponSprite'
 import StatsOverlay from '../components/overlays/StatsOverlay'
 import { useT, localizeWeaponName } from '../i18n'
+import { MAX_RUN_WEAPONS } from '../data/constants'
 import s from './WeaponSelectScreen.module.css'
 
-const MAX_WEAPONS = 2
 
 const RARITY_COLOURS: Record<WeaponRarity, string> = {
   common: '#aaaaaa', magic: '#4488cc', rare: '#ccaa22',
@@ -34,7 +34,7 @@ export default function WeaponSelectScreen() {
   function toggle(id: string) {
     setSelected(prev => {
       if (prev.includes(id)) return prev.filter(x => x !== id)
-      if (prev.length >= MAX_WEAPONS) return prev
+      if (prev.length >= MAX_RUN_WEAPONS) return prev
       return [...prev, id]
     })
   }
@@ -51,7 +51,7 @@ export default function WeaponSelectScreen() {
       {showStats && <StatsOverlay onClose={() => setShowStats(false)} />}
       <div className={s.header}>
         <h1>{t.ui.select_weapons_title}</h1>
-        <p>{t.ui.select_weapons_sub} {MAX_WEAPONS} {t.ui.select_weapons_sub2}</p>
+        <p>{t.ui.select_weapons_sub} {MAX_RUN_WEAPONS} {t.ui.select_weapons_sub2}</p>
         <div className={s.headerActions}>
           <span className={s.runeDisplay}>✦ {store.runes.toLocaleString()}</span>
           <button className={s.btnStats} onClick={() => setShowStats(true)}>{t.ui.btn_stats_levelup}</button>
@@ -67,7 +67,7 @@ export default function WeaponSelectScreen() {
           const cooldown        = store.weapon_cooldown[wid] ?? 0
           const onCooldown      = cooldown > 0
           const isSelected      = selected.includes(wid)
-          const isDisabled      = !isSelected && selected.length >= MAX_WEAPONS
+          const isDisabled      = !isSelected && selected.length >= MAX_RUN_WEAPONS
           const rarity          = (weapon as WeaponInstance).rarity
           const affixes         = (weapon as WeaponInstance).affixes ?? []
           const weaponClass     = (weapon as WeaponInstance).weapon_class
@@ -140,7 +140,7 @@ export default function WeaponSelectScreen() {
         <p className={s.selectionHint}>
           {selected.length === 0
             ? t.ui.weapon_select_at_least
-            : `${selected.length} / ${MAX_WEAPONS} ${t.ui.weapon_selected}`}
+            : `${selected.length} / ${MAX_RUN_WEAPONS} ${t.ui.weapon_selected}`}
         </p>
         <button
           className={s.btnBegin}

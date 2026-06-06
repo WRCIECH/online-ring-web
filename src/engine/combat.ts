@@ -3,6 +3,14 @@ import { ENEMY_MOVES } from '../data/enemyMovesets'
 import { MOVES } from '../data/movesets'
 import { WEAPONS, calcStepDamage, getWeaponMovesets } from '../data/weapons'
 import { rollMoveset } from '../data/generators/movesetGenerator'
+import {
+  STA_BLOCK, STA_DEFENSE_GAIN,
+  FLOW_GAP_HOT_MINS, FLOW_GAP_WARM_MINS, FLOW_GAP_COLD_MINS,
+  FLOW_MULT_HOT, FLOW_MULT_WARM, FLOW_MULT_COLD, FLOW_MULT_DEAD,
+  OVERHEAT_PENALTY_PER_USE, OVERHEAT_PENALTY_MAX,
+  STATUS_BUILDUP_PER_HIT,
+  DMG_WEAKNESS_MULT, DMG_RESISTANCE_MULT,
+} from '../data/constants'
 export { getActiveSteps } from '../data/generators/movesetGenerator'
 
 const POISE_WEIGHT_MULT: Record<string, number> = {
@@ -13,17 +21,15 @@ const POISE_VARIANT_MULT: Record<string, number> = {
 }
 
 function gapMultiplier(lastMs: number): number {
-  if (lastMs === 0) return 1.0
+  if (lastMs === 0) return FLOW_MULT_WARM
   const gapMin = (Date.now() - lastMs) / 60000
-  if (gapMin < 15)  return 1.5
-  if (gapMin < 60)  return 1.0
-  if (gapMin < 240) return 0.5
-  return 0.0
+  if (gapMin < FLOW_GAP_HOT_MINS)  return FLOW_MULT_HOT
+  if (gapMin < FLOW_GAP_WARM_MINS) return FLOW_MULT_WARM
+  if (gapMin < FLOW_GAP_COLD_MINS) return FLOW_MULT_COLD
+  return FLOW_MULT_DEAD
 }
 
-export const STA_BLOCK        = 15
-export const STA_DEFENSE_GAIN = 25
-export const STAGGER_PAUSE_MS = 1500
+export { STA_BLOCK, STA_DEFENSE_GAIN, STAGGER_PAUSE_MS } from '../data/constants'
 
 // ── Status effect thresholds & buildup ────────────────────────────────────
 
@@ -32,11 +38,10 @@ const STATUS_THRESHOLD: Record<StatusType, number> = {
   death_blight: 100, glintstone: 80, frenzy_flame: 80, devotion: 60,
   yearning: 60, dread: 80, murmur: 60, grace: 80,
 }
-const STATUS_BUILDUP_PER_HIT = 35
+// STATUS_BUILDUP_PER_HIT imported from constants
 
 // Damage type weakness/resistance multipliers
-const DMG_WEAKNESS_MULT   = 1.3
-const DMG_RESISTANCE_MULT = 0.7
+// DMG_WEAKNESS_MULT, DMG_RESISTANCE_MULT imported from constants
 
 // ── Weapon-class mechanics ─────────────────────────────────────────────────
 export interface ClassMod {
@@ -580,7 +585,7 @@ export function combatReducer(state: CombatState, action: CombatAction): CombatS
       const heatThreshold = wi?.heat_threshold ?? Infinity
       const usesAfterThis = prevHeat + 1
       const overHeat      = Math.max(0, usesAfterThis - heatThreshold)
-      const overheatMult  = Math.max(0.25, 1 - overHeat * 0.025)
+      const overheatMult  = Math.max(1 - OVERHEAT_PENALTY_MAX, 1 - overHeat * OVERHEAT_PENALTY_PER_USE)
       const finalDmg  = Math.floor(baseDmg * cls.dmgMult * typeMult * frostDebuff * mismatchMult * overheatMult)
       const dualDmg   = cls.dualStrike ? Math.floor(finalDmg * 0.4) : 0
       const totalDmg  = finalDmg + dualDmg

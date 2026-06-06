@@ -46,15 +46,7 @@ export function getWeaponMovesets(weaponId: string, extraMovesets: string[]): ty
   return ids.map(id => MOVES[id]).filter(Boolean)
 }
 
-/** Rune cost to level up a player stat. totalLevelsSpent = total upgrades taken so far. */
-export function statLevelCost(totalLevelsSpent: number): number {
-  return Math.floor(500 + totalLevelsSpent * 100 + totalLevelsSpent ** 2 * 20)
-}
-
-/** Rune cost to upgrade a weapon from currentLevel → currentLevel+1. */
-export function weaponUpgradeCost(currentLevel: number): number {
-  return (currentLevel + 1) * 500
-}
+export { statLevelCost, weaponUpgradeCost } from './constants'
 
 /** Register a generated weapon instance into the runtime registry. */
 export function registerWeapon(w: WeaponInstance): void {

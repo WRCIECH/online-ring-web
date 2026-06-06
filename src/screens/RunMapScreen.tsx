@@ -7,9 +7,8 @@ import RunHeader from '../components/layout/RunHeader'
 import StatsOverlay    from '../components/overlays/StatsOverlay'
 import ContentOverlay  from '../components/overlays/ContentOverlay'
 import { useT } from '../i18n'
+import { MIN_PIPELINE_TO_FIGHT, GRACE_HEAL_FRACTION, GRACE_ESTUS_GAIN, GRACE_ESTUS_CAP } from '../data/constants'
 import s from './RunMapScreen.module.css'
-
-const MIN_PIPELINE = 6
 
 // ── Map geometry (mirrors Godot constants) ────────────────────────────────
 const CX = 600, CY = 390
@@ -56,7 +55,7 @@ export default function RunMapScreen() {
   const [showContent, setShowContent] = useState(false)
 
   const activeItemCount = store.content_items.filter(c => c.phase !== 'Published').length
-  const canEnterFight   = activeItemCount >= MIN_PIPELINE
+  const canEnterFight   = activeItemCount >= MIN_PIPELINE_TO_FIGHT
   const expiredRef = useRef(false)
 
   const seq     = store.run_location_sequence
@@ -227,8 +226,8 @@ export default function RunMapScreen() {
 
   function handleGraceRest() {
     const maxHp  = store.maxHp()
-    const newHp  = Math.min(maxHp, store.current_hp + Math.floor(maxHp * 0.60))
-    const newEst = Math.min(3, store.run_estus_count + 1)
+    const newHp  = Math.min(maxHp, store.current_hp + Math.floor(maxHp * GRACE_HEAL_FRACTION))
+    const newEst = Math.min(GRACE_ESTUS_CAP, store.run_estus_count + GRACE_ESTUS_GAIN)
     store.syncCombatResult(newHp, newEst, store.current_fp)
     store.advanceRun()
     setEventNode(null)
@@ -301,8 +300,8 @@ export default function RunMapScreen() {
             <div className={s.popupDesc}>{t.enemies[popupLoc.enemy_id]?.description ?? popupEnemy.description}</div>
             {!canEnterFight && (
               <div className={s.pipelineGate}>
-                {t.ui.pipeline_gate_need} {MIN_PIPELINE} {t.ui.pipeline_gate_to_fight}
-                <span className={s.pipelineCount}>({activeItemCount} / {MIN_PIPELINE})</span>
+                {t.ui.pipeline_gate_need} {MIN_PIPELINE_TO_FIGHT} {t.ui.pipeline_gate_to_fight}
+                <span className={s.pipelineCount}>({activeItemCount} / {MIN_PIPELINE_TO_FIGHT})</span>
               </div>
             )}
             <div className={s.popupFooter}>
@@ -345,8 +344,8 @@ export default function RunMapScreen() {
                 <div className={s.eventDesc}>{t.ui.trial_desc}</div>
                 {!canEnterFight && (
                   <div className={s.pipelineGate}>
-                    {t.ui.pipeline_gate_need} {MIN_PIPELINE} {t.ui.pipeline_gate_to_fight}
-                    <span className={s.pipelineCount}>({activeItemCount} / {MIN_PIPELINE})</span>
+                    {t.ui.pipeline_gate_need} {MIN_PIPELINE_TO_FIGHT} {t.ui.pipeline_gate_to_fight}
+                    <span className={s.pipelineCount}>({activeItemCount} / {MIN_PIPELINE_TO_FIGHT})</span>
                   </div>
                 )}
                 <div className={s.eventActions}>

@@ -3,7 +3,8 @@ import type { GameState, LocationData, Stats, GeneratedMoveset, WeaponInstance, 
 import type { ContentProductType } from '../data/contentProducts'
 import { ENEMIES } from '../data/enemies'
 import { saveGame, loadGame } from '../engine/save'
-import { registerWeapon, statLevelCost, weaponUpgradeCost } from '../data/weapons'
+import { registerWeapon } from '../data/weapons'
+import { RUN_DURATION_SECONDS, RUN_ESTUS_MAX, ESTUS_HEAL_FRACTION, ARTICLE_EQUIP_WEIGHT, statLevelCost, weaponUpgradeCost } from '../data/constants'
 import { MOVES, registerMoveset } from '../data/movesets'
 import { rollWeapon } from '../data/generators/weaponGenerator'
 import { LOCATION_DEFINITIONS } from '../data/locations'
@@ -15,8 +16,6 @@ function hydrateRegistries(state: GameState): void {
   state.moveset_instances.forEach(m => registerMoveset(m))
 }
 
-const RUN_DURATION = 172800  // 48 hours in seconds
-const RUN_ESTUS_MAX = 3
 
 const DEFAULT_STATS: Stats = { VIG:10, END:10, MND:10, STR:8, DEX:8, INT:8, FAI:8, ARC:8 }
 
@@ -179,7 +178,7 @@ function initialState(): GameState {
     run_location_sequence: [],
     run_current_index: 0,
     run_start_time: 0,
-    run_duration_seconds: RUN_DURATION,
+    run_duration_seconds: RUN_DURATION_SECONDS,
     run_estus_count: RUN_ESTUS_MAX,
     run_defeated_enemies: [],
     pending_encounter: null,
@@ -264,7 +263,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
   maxStamina: () => calcMaxStamina(get().stats.END),
   maxFp:      () => calcMaxFp(get().stats.MND),
 
-  startRun: (weapons, locationName = '', numSublocations = 20, runDuration = RUN_DURATION) => {
+  startRun: (weapons, locationName = '', numSublocations = 20, runDuration = RUN_DURATION_SECONDS) => {
     const locDef = LOCATION_DEFINITIONS.find(l => l.id === locationName)
     const seq = generateLocationSequence(numSublocations, locDef?.boss)
     const runStartMovesets = get().owned_movesets
@@ -331,7 +330,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
   drinkEstus: () => {
     const s = get()
     if (s.run_estus_count <= 0) return false
-    const healAmount = Math.floor(calcMaxHp(s.stats.VIG) * 0.40)
+    const healAmount = Math.floor(calcMaxHp(s.stats.VIG) * ESTUS_HEAL_FRACTION)
     set(prev => ({
       run_estus_count: prev.run_estus_count - 1,
       current_hp: Math.min(calcMaxHp(prev.stats.VIG), prev.current_hp + healAmount),
@@ -613,7 +612,7 @@ export const selectEnemyData = (s: GameStore) => {
 }
 
 export const selectEquipLoad = (s: GameStore) => {
-  const used     = s.content_items.filter(c => c.phase !== 'Published').length * 0.5
+  const used     = s.content_items.filter(c => c.phase !== 'Published').length * ARTICLE_EQUIP_WEIGHT
   const capacity = s.stats.END
   return { used, capacity }
 }
