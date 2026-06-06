@@ -18,7 +18,7 @@
 
 import type {
   AtomicDimensions, AtomicMedium, AtomicStage,
-  AtomicTime, AtomicPub, AtomicOrigin, AtomicPlanning, MovesetVariant,
+  AtomicTime, AtomicPub, AtomicOrigin, MovesetVariant,
   Step, StepBadge, DamageType, StatusType,
 } from '../../types/game'
 import { CONTENT_ORIGIN_INFO, DMG_TYPE_INFO, STATUS_INFO, STAGE_INFO, MEDIUM_INFO } from '../contentDescriptions'
@@ -154,7 +154,6 @@ export function rollAtomicMove(
   variant: MovesetVariant,
   _archetype: MovesetArchetype,
   dominantMedium: AtomicMedium,
-  dominantPlanning: AtomicPlanning,
   dominantOrigin: AtomicOrigin,
   targetPub: AtomicPub,
 ): AtomicDimensions {
@@ -167,13 +166,13 @@ export function rollAtomicMove(
       : 'just_work'
     const dim: AtomicDimensions = {
       medium: dominantMedium, stage,
-      time_budget, publication, content_origin: dominantOrigin, planning: dominantPlanning,
+      time_budget, publication, content_origin: dominantOrigin
     }
     if (validateConsistency(dim)) return dim
   }
   // Guaranteed-valid fallback
   return { medium:'Writing', stage:'Produce',
-           time_budget:'Medium', publication:'just_work', content_origin:'New', planning:'Planned' }
+           time_budget:'Medium', publication:'just_work', content_origin:'New' }
 }
 
 // ── Badge colors ──────────────────────────────────────────────────────────────

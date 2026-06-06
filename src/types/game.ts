@@ -53,41 +53,40 @@ export interface WeaponInstance extends Weapon {
 }
 
 // ── Atomic move / moveset generation types ─────────────────────────────────
-export type AtomicMedium    = 'Writing' | 'Audio' | 'Video' | 'Image' | 'Hybrid'
-export type AtomicStage     = 'Research' | 'Outline' | 'Produce' | 'Glue' | 'Refine' | 'Publish'
-export type AtomicTime      = 'Micro' | 'Short' | 'Medium' | 'Long' | 'Deep'
-export type AtomicPub       = 'just_work' | 'private' | 'draft_published' | 'public'
-export type AtomicOrigin    = 'New' | 'Compression' | 'Expansion' | 'Recycled' | 'Remastered' | 'Revamped' | 'Reboot' | 'ZoomIn' | 'ZoomOut' | 'AudienceAlter' | 'Commentary'
-export type AtomicPlanning  = 'Spontaneous' | 'Planned' | 'Scheduled'
-export type MovesetVariant  = 'Light' | 'Heavy' | 'Skill' | 'Jump'
+export type AtomicMedium = 'Writing' | 'Audio' | 'Video' | 'Image' | 'Hybrid'
+export type AtomicStage = 'Research' | 'Outline' | 'Produce' | 'Glue' | 'Refine' | 'Publish'
+export type AtomicTime = 'Micro' | 'Short' | 'Medium' | 'Long' | 'Deep'
+export type AtomicOrigin = 'New' | 'Compression' | 'Expansion' | 'Recycled' | 'Remastered' | 'Revamped' | 'Reboot' | 'ZoomIn' | 'ZoomOut' | 'AudienceAlter' | 'Commentary'
+export type MovesetVariant = 'Light' | 'Heavy' | 'Skill' | 'Jump'
+
+export type AtomicPub = 'just_work' | 'private' | 'draft_published' | 'public'
 
 export interface AtomicDimensions {
-  medium:         AtomicMedium
-  stage:          AtomicStage
-  time_budget:    AtomicTime
-  publication:    AtomicPub
+  medium: AtomicMedium
+  stage: AtomicStage
+  time_budget: AtomicTime
+  publication: AtomicPub
   content_origin: AtomicOrigin
-  planning:       AtomicPlanning
 }
 
 // Pipeline kept for structural compatibility but no longer used for level-gating
 export interface MovesetPipeline {
-  all_steps:   Step[]
+  all_steps: Step[]
   unlocked_at: number[]
-  drops_at:    number[]
+  drops_at: number[]
 }
 
 // Extended Moveset with generation metadata
 export interface GeneratedMoveset extends Moveset {
-  rarity:               WeaponRarity
-  variant_type:         MovesetVariant
-  weapon_class?:        WeaponClass
-  pipeline:             MovesetPipeline
+  rarity: WeaponRarity
+  variant_type: MovesetVariant
+  weapon_class?: WeaponClass
+  pipeline: MovesetPipeline
   primary_damage_type?: DamageType
-  status_buildup?:      StatusType
-  infusion?:            Partial<Record<StatKey, Grade>>
-  content_origin?:      AtomicOrigin
-  dominant_medium?:     AtomicMedium   // characteristic medium of this moveset
+  status_buildup?: StatusType
+  infusion?: Partial<Record<StatKey, Grade>>
+  content_origin?: AtomicOrigin
+  dominant_medium?: AtomicMedium   // characteristic medium of this moveset
 }
 
 export type CombatPhase =
@@ -95,7 +94,7 @@ export type CombatPhase =
   | 'ENEMY_ATTACK' | 'ENEMY_STAGGERED' | 'VICTORY' | 'DEFEAT' | 'FLED'
 
 export interface StepBadge {
-  label:  string   // Short chip text, e.g. "Generate", "Fiery", "Audio"
+  label: string   // Short chip text, e.g. "Generate", "Fiery", "Audio"
   detail: string   // Tooltip explanation shown on hover
   color?: string   // Optional accent color (used for damage-type badges)
 }
@@ -192,19 +191,19 @@ export interface Stats {
 // ── Content pipeline ──────────────────────────────────────────────────────
 export type ContentPhase =
   | 'Research' | 'Outline' | 'Produce' | 'Glue'
-  | 'Refine'   | 'Publish' | 'Published'
+  | 'Refine' | 'Publish' | 'Published'
 
 export interface ContentItem {
-  id:            string     // uid, e.g. 'c_abc123'
-  name:          string     // user-defined title
-  phase:         ContentPhase
+  id: string     // uid, e.g. 'c_abc123'
+  name: string     // user-defined title
+  phase: ContentPhase
   published_at?: number     // Date.now() when phase → 'Published'
-  notes?:        string     // optional rough notes
+  notes?: string     // optional rough notes
   // Stamps applied on first task completion (lock the article's character)
   stamped_medium?: AtomicMedium    // from moveset's dominant_medium
   stamped_origin?: AtomicOrigin    // from moveset's content_origin
   stamped_status?: StatusType      // from moveset's status_buildup (emotional fingerprint)
-  stamped_style?:  DamageType      // from step's damage_type (writing style)
+  stamped_style?: DamageType      // from step's damage_type (writing style)
 }
 
 export interface GameState {

@@ -1,6 +1,6 @@
 import type {
   GeneratedMoveset, MovesetVariant, WeaponClass, WeaponRarity, Step,
-  AtomicMedium, AtomicOrigin, AtomicPlanning, AtomicPub, StatKey, DamageType,
+  AtomicMedium, AtomicOrigin, AtomicPub, StatKey, DamageType,
 } from '../../types/game'
 import {
   rollAtomicMove, pickStageChain, toStep, calcStaminaCost,
@@ -96,12 +96,6 @@ const ARCHETYPE_MEDIUM: Record<MovesetArchetype, AtomicMedium[]> = {
   editing:      ['Writing','Writing','Writing'],
 }
 
-const ARCHETYPE_PLANNING: Record<MovesetArchetype, AtomicPlanning> = {
-  long_form: 'Planned', micro: 'Spontaneous', commentary: 'Spontaneous',
-  research: 'Planned', compression: 'Planned', remix: 'Planned',
-  storytelling: 'Planned', hot_take: 'Spontaneous', async: 'Scheduled', editing: 'Planned',
-}
-
 const ARCHETYPE_ORIGIN: Record<MovesetArchetype, AtomicOrigin> = {
   long_form:    'New',
   micro:        'New',
@@ -150,7 +144,6 @@ export function rollMoveset(
 
   const mediumPool       = ARCHETYPE_MEDIUM[archetype]
   const dominantMedium   = pick(mediumPool) as AtomicMedium
-  const dominantPlanning = ARCHETYPE_PLANNING[archetype]
   const dominantOrigin   = ARCHETYPE_ORIGIN[archetype]
   const targetPub        = RARITY_PUB[rarity]
 
@@ -163,7 +156,7 @@ export function rollMoveset(
       ? dominantMedium
       : Math.random() < 0.8 ? prevMedium : (pick(mediumPool) as AtomicMedium)
     prevMedium = medium
-    const dims = rollAtomicMove(stage, variant, archetype, medium, dominantPlanning, dominantOrigin, targetPub)
+    const dims = rollAtomicMove(stage, variant, archetype, medium, dominantOrigin, targetPub)
     return toStep(dims, primaryDmgType)
   })
 
@@ -185,7 +178,7 @@ export function rollMoveset(
     }))
   }
 
-  const sampleMove = rollAtomicMove(chain[0] ?? 'Produce', variant, archetype, dominantMedium, dominantPlanning, dominantOrigin, targetPub)
+  const sampleMove = rollAtomicMove(chain[0] ?? 'Produce', variant, archetype, dominantMedium, dominantOrigin, targetPub)
   const rawStamina = Math.round(
     scaledSteps.reduce((sum) => sum + calcStaminaCost(sampleMove), 0) * staMult
   )
