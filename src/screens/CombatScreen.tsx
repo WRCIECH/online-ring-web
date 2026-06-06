@@ -213,9 +213,9 @@ export default function CombatScreen() {
     }
   }
 
-  // Dismiss prompts if combat ends
+  // Dismiss prompts on loss/flee; keep pendingAdvance alive through VICTORY so the player can still advance their content stage
   useEffect(() => {
-    if (state.phase === 'VICTORY' || state.phase === 'DEFEAT' || state.phase === 'FLED') {
+    if (state.phase === 'DEFEAT' || state.phase === 'FLED') {
       setPendingAdvance(null)
       setPendingParryPublishId(null)
     }
