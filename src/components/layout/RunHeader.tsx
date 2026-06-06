@@ -4,6 +4,7 @@ import EquipOverlay    from '../overlays/EquipOverlay'
 import NotepadOverlay  from '../overlays/NotepadOverlay'
 import StatsOverlay    from '../overlays/StatsOverlay'
 import ContentOverlay  from '../overlays/ContentOverlay'
+import { useT } from '../../i18n'
 import s from './RunHeader.module.css'
 
 interface Props {
@@ -39,6 +40,7 @@ function Bar({ current, playerMax, cap, color }: { current: number; playerMax: n
 
 export default function RunHeader({ hp, maxHp, stamina, maxStamina, fp, maxFp, canAddContent = true }: Props) {
   const store = useGameStore()
+  const t     = useT()
   const [remaining, setRemaining] = useState(() =>
     selectRunRemainingSeconds(store as Parameters<typeof selectRunRemainingSeconds>[0])
   )
@@ -84,10 +86,10 @@ export default function RunHeader({ hp, maxHp, stamina, maxStamina, fp, maxFp, c
 
         {/* Actions */}
         <div className={s.actions}>
-          <button className={s.btn} onClick={() => setShowEquip(true)}>⚙ Equip</button>
-          <button className={s.btn} onClick={() => setShowStats(true)}>📊 Stats</button>
-          <button className={s.btn} onClick={() => setShowContent(true)}>📋 Pipeline</button>
-          <button className={s.btn} onClick={() => setShowNotepad(true)}>✏ Notes</button>
+          <button className={s.btn} onClick={() => setShowEquip(true)}>{t.ui.btn_equip}</button>
+          <button className={s.btn} onClick={() => setShowStats(true)}>{t.ui.btn_stats}</button>
+          <button className={s.btn} onClick={() => setShowContent(true)}>{t.ui.btn_pipeline}</button>
+          <button className={s.btn} onClick={() => setShowNotepad(true)}>{t.ui.btn_notes}</button>
         </div>
       </header>
 

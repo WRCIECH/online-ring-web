@@ -6,6 +6,7 @@ import type { LocationData } from '../types/game'
 import RunHeader from '../components/layout/RunHeader'
 import StatsOverlay    from '../components/overlays/StatsOverlay'
 import ContentOverlay  from '../components/overlays/ContentOverlay'
+import { useT } from '../i18n'
 import s from './RunMapScreen.module.css'
 
 const MIN_PIPELINE = 6
@@ -43,6 +44,7 @@ const BG_PARTICLES = Array.from({ length: 140 }, () => ({
 export default function RunMapScreen() {
   const navigate   = useNavigate()
   const store      = useGameStore()
+  const t          = useT()
   const canvasRef  = useRef<HTMLCanvasElement>(null)
   const nodes      = useRef<NodePos[]>([])
   const [hoverIdx, setHoverIdx]     = useState(-1)
@@ -273,13 +275,13 @@ export default function RunMapScreen() {
             {hoverIdx < current
               ? (hoverLoc.boss_name ?? hoverEnemy.name)
               : hoverLoc.sublocation_type === 'event'
-                ? (hoverLoc.event_type === 'site_of_grace' ? '⬥ Site of Grace' : '⚔ Trial Gate')
-                : hoverLoc.sublocation_type === 'elite' ? '⚔ Elite'
-                : hoverLoc.sublocation_type === 'boss'  ? '★ Boss'
+                ? (hoverLoc.event_type === 'site_of_grace' ? t.ui.event_site_of_grace : t.ui.event_trial_gate)
+                : hoverLoc.sublocation_type === 'elite' ? t.ui.enemy_elite_label
+                : hoverLoc.sublocation_type === 'boss'  ? t.ui.enemy_boss_label
                 : '???'}
           </div>
           {hoverIdx <= current && (
-            <div className={s.tooltipMult}>×{hoverLoc.mult.toFixed(2)} difficulty</div>
+            <div className={s.tooltipMult}>×{hoverLoc.mult.toFixed(2)} {t.ui.difficulty_label}</div>
           )}
         </div>
       )}
@@ -291,29 +293,29 @@ export default function RunMapScreen() {
           <div className={s.popup} style={{ left: popupPos.x, top: popupPos.y }}>
             <div className={s.popupName}>{popupLoc.name}</div>
             <div className={s.popupEnemy}>
-              {popupLoc.sublocation_type === 'elite' && <span className={s.eliteBadge}>⚔ ELITE · </span>}
-              {popupLoc.sublocation_type === 'boss'  && <span className={s.bossBadge}>★ BOSS · </span>}
+              {popupLoc.sublocation_type === 'elite' && <span className={s.eliteBadge}>{t.ui.badge_elite}</span>}
+              {popupLoc.sublocation_type === 'boss'  && <span className={s.bossBadge}>{t.ui.badge_boss}</span>}
               {popupEnemy.name}
             </div>
-            <div className={s.popupMult}>×{popupLoc.mult.toFixed(2)} difficulty</div>
+            <div className={s.popupMult}>×{popupLoc.mult.toFixed(2)} {t.ui.difficulty_label}</div>
             <div className={s.popupDesc}>{popupEnemy.description}</div>
             {!canEnterFight && (
               <div className={s.pipelineGate}>
-                📋 Need {MIN_PIPELINE} active articles to fight
+                {t.ui.pipeline_gate_need} {MIN_PIPELINE} {t.ui.pipeline_gate_to_fight}
                 <span className={s.pipelineCount}>({activeItemCount} / {MIN_PIPELINE})</span>
               </div>
             )}
             <div className={s.popupFooter}>
               {canEnterFight ? (
                 <button className={s.btnEnter} onClick={handleEnterLocation}>
-                  Enter Location
+                  {t.ui.enter_location}
                 </button>
               ) : (
                 <button className={s.btnEnter} onClick={() => setShowContent(true)}>
-                  📋 Open Pipeline
+                  {t.ui.open_pipeline}
                 </button>
               )}
-              <button onClick={() => setPopupIdx(-1)}>Close</button>
+              <button onClick={() => setPopupIdx(-1)}>{t.ui.btn_close}</button>
             </div>
           </div>
         </>
@@ -325,43 +327,39 @@ export default function RunMapScreen() {
           <div className={s.eventPanel}>
             {eventNode.event_type === 'site_of_grace' ? (
               <>
-                <div className={`${s.eventTitle} ${s.graceTitle}`}>⬥ Site of Grace</div>
-                <div className={s.eventDesc}>
-                  A calm clearing emanates warmth. Rest here to recover your strength.
-                </div>
+                <div className={`${s.eventTitle} ${s.graceTitle}`}>{t.ui.grace_title}</div>
+                <div className={s.eventDesc}>{t.ui.grace_desc}</div>
                 <div className={s.eventActions}>
                   <button className={s.btnGrace} onClick={handleGraceRest}>
-                    Rest (+60% HP, +1 Estus)
+                    {t.ui.grace_rest}
                   </button>
                   <button className={s.btnGrace} onClick={() => setShowStats(true)}>
-                    Stats &amp; Level Up
+                    {t.ui.stats_level_up}
                   </button>
-                  <button onClick={() => setEventNode(null)}>Leave</button>
+                  <button onClick={() => setEventNode(null)}>{t.ui.btn_leave}</button>
                 </div>
               </>
             ) : (
               <>
-                <div className={`${s.eventTitle} ${s.trialTitle}`}>⚔ Trial Gate</div>
-                <div className={s.eventDesc}>
-                  A spectral gate flickers with challenge. Defeat what lies within for a guaranteed rare drop.
-                </div>
+                <div className={`${s.eventTitle} ${s.trialTitle}`}>{t.ui.trial_title}</div>
+                <div className={s.eventDesc}>{t.ui.trial_desc}</div>
                 {!canEnterFight && (
                   <div className={s.pipelineGate}>
-                    📋 Need {MIN_PIPELINE} active articles to fight
+                    {t.ui.pipeline_gate_need} {MIN_PIPELINE} {t.ui.pipeline_gate_to_fight}
                     <span className={s.pipelineCount}>({activeItemCount} / {MIN_PIPELINE})</span>
                   </div>
                 )}
                 <div className={s.eventActions}>
                   {canEnterFight ? (
                     <button className={s.btnTrial} onClick={handleEnterTrial}>
-                      Accept Trial
+                      {t.ui.accept_trial}
                     </button>
                   ) : (
                     <button className={s.btnTrial} onClick={() => setShowContent(true)}>
-                      📋 Open Pipeline
+                      {t.ui.open_pipeline}
                     </button>
                   )}
-                  <button onClick={() => setEventNode(null)}>Refuse</button>
+                  <button onClick={() => setEventNode(null)}>{t.ui.btn_refuse}</button>
                 </div>
               </>
             )}
@@ -380,8 +378,8 @@ export default function RunMapScreen() {
           display: 'flex', alignItems: 'center', justifyContent: 'center',
           zIndex: 30, flexDirection: 'column', gap: 16,
         }}>
-          <div style={{ fontSize: '2rem', letterSpacing: '0.2em', color: '#e85555' }}>RUN EXPIRED</div>
-          <div style={{ fontSize: '0.88rem', color: 'var(--color-text-dim)' }}>The 48 hours are up. Returning…</div>
+          <div style={{ fontSize: '2rem', letterSpacing: '0.2em', color: '#e85555' }}>{t.ui.run_expired}</div>
+          <div style={{ fontSize: '0.88rem', color: 'var(--color-text-dim)' }}>{t.ui.run_expired_desc}</div>
         </div>
       )}
     </div>

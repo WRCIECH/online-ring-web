@@ -5,7 +5,8 @@ import { WEAPONS, calcStepDamage } from '../../data/weapons'
 import { WEAPON_CLASSES } from '../../data/generators/weaponClasses'
 import type { WeaponInstance, DamageType, AtomicStage, AtomicOrigin, StatusType, ContentItem, GeneratedMoveset } from '../../types/game'
 import type { ContentProductType } from '../../data/contentProducts'
-import { DMG_TYPE_INFO } from '../../data/contentDescriptions'
+import { useT, resolveBadge } from '../../i18n'
+import { useGameStore } from '../../store/gameStore'
 import WeaponSprite from '../icons/WeaponSprite'
 import s from './TimerOverlay.module.css'
 
@@ -42,6 +43,8 @@ export default function TimerOverlay({
   activeContentItems, selectedContentId, onSelectContent, onTaskAccomplished,
   onParryAccomplished, parryPublishItem,
 }: Props) {
+  const t      = useT()
+  const locale = useGameStore(s => s.locale)
   const { stepTimer, stepTotal, stepStarted, timerExpired,
           timerIsDefense, pendingStep, pendingDefenseAction, pendingMoveset,
           pendingWeaponId, playerStats, weaponLevels,
@@ -76,17 +79,17 @@ export default function TimerOverlay({
     if (isActive || isExpired) { setDropdownOpen(false); setHoveredId(null) }
   }, [isActive, isExpired])
 
-  let header = 'TASK PREVIEW'
+  let header = t.ui.header_preview
   let headerColor = '#7a7570'
-  if (isActive && !timerIsDefense) { header = 'TASK IN PROGRESS'; headerColor = '#c9a93a' }
-  if (isActive && timerIsDefense)  { header = 'DEFEND — COMPLETE IN TIME'; headerColor = '#cc4422' }
-  if (isActive && timerIsDefense && pendingDefenseAction === 'parry') { header = 'PARRY — COMMIT TO PUBLISH'; headerColor = '#cc4422' }
-  if (isExpired) { header = "TIME'S UP!"; headerColor = '#c9a93a' }
+  if (isActive && !timerIsDefense) { header = t.ui.header_in_progress; headerColor = '#c9a93a' }
+  if (isActive && timerIsDefense)  { header = t.ui.header_defend; headerColor = '#cc4422' }
+  if (isActive && timerIsDefense && pendingDefenseAction === 'parry') { header = t.ui.header_parry; headerColor = '#cc4422' }
+  if (isExpired) { header = t.ui.header_times_up; headerColor = '#c9a93a' }
 
   const taskName  = pendingStep?.name ?? ''
   const backLabel = timerIsDefense
-    ? 'Give up  (take full damage)'
-    : isActive ? 'Back  (costs stamina)' : 'Back'
+    ? t.ui.give_up
+    : isActive ? t.ui.back_with_cost : t.ui.back
 
   // ── Context info strip ───────────────────────────────────────────────────
   const weapon   = pendingWeaponId ? WEAPONS[pendingWeaponId] : null
@@ -170,23 +173,23 @@ export default function TimerOverlay({
                   {/* ── Hover tooltip ── */}
                   <span className={s.weaponTip}>
                     <div className={s.weaponTipRow}>
-                      <span className={s.weaponTipLabel}>Damage mult</span>
+                      <span className={s.weaponTipLabel}>{t.ui.damage_mult}</span>
                       <span className={s.weaponTipVal}>×{effectiveDmgMult.toFixed(2)}</span>
                     </div>
                     {classDef && (
                       <div className={s.weaponTipRow}>
-                        <span className={s.weaponTipLabel}>Task time</span>
+                        <span className={s.weaponTipLabel}>{t.ui.task_time}</span>
                         <span className={s.weaponTipVal}>×{classDef.time_mod.toFixed(2)}</span>
                       </div>
                     )}
                     {classDef && (
                       <div className={s.weaponTipRow}>
-                        <span className={s.weaponTipLabel}>Stamina cost</span>
+                        <span className={s.weaponTipLabel}>{t.ui.stamina_cost_label}</span>
                         <span className={s.weaponTipVal}>×{classDef.stamina_mod.toFixed(2)}</span>
                       </div>
                     )}
                     <div className={s.weaponTipRow}>
-                      <span className={s.weaponTipLabel}>Heat limit</span>
+                      <span className={s.weaponTipLabel}>{t.ui.heat_limit}</span>
                       <span className={s.weaponTipVal}>{wi.heat_threshold}</span>
                     </div>
                     {scalingEntries.length > 0 && (
@@ -202,7 +205,7 @@ export default function TimerOverlay({
                         <hr className={s.weaponTipSep} />
                         {wi.affixes.map((a, i) => {
                           const parts: string[] = []
-                          if (a.damage_mult  && a.damage_mult  !== 1) parts.push(`${a.damage_mult  > 1 ? '+' : ''}${Math.round((a.damage_mult  - 1) * 100)}% dmg`)
+                          if (a.damage_mult  && a.damage_mult  !== 1) parts.push(`${a.damage_mult  > 1 ? '+' : ''}${Math.round((a.damage_mult  - 1) * 100)}% ${t.ui.dmg_suffix}`)
                           if (a.stamina_mult && a.stamina_mult !== 1) parts.push(`${a.stamina_mult > 1 ? '+' : ''}${Math.round((a.stamina_mult - 1) * 100)}% sta`)
                           if (a.fp_mult     && a.fp_mult      !== 1) parts.push(`${a.fp_mult      > 1 ? '+' : ''}${Math.round((a.fp_mult      - 1) * 100)}% FP`)
                           return (
@@ -222,7 +225,7 @@ export default function TimerOverlay({
                   {dmgTypeColor && (
                     <span style={{ color: dmgTypeColor }}>●</span>
                   )}{' '}
-                  {computedDmg} dmg
+                  {computedDmg} {t.ui.dmg_suffix}
                 </span>
               )}
               {pendingMoveset.stamina_cost > 0 && (
@@ -235,35 +238,38 @@ export default function TimerOverlay({
           )}
           {timerIsDefense && pendingDefenseAction === 'roll' && (
             <>
-              <span className={s.ctxOutcome}>✓ Success → +{STA_DEFENSE_GAIN} STA, 0 dmg taken</span>
-              <span className={s.ctxOutcomeFail}>✗ Fail → {currentMove?.damage ?? '?'} dmg taken</span>
+              <span className={s.ctxOutcome}>{t.ui.defense_success_sym} +{STA_DEFENSE_GAIN} STA, 0 {t.ui.dmg_taken_label}</span>
+              <span className={s.ctxOutcomeFail}>{t.ui.defense_fail_sym} {currentMove?.damage ?? '?'} {t.ui.dmg_taken_label}</span>
             </>
           )}
           {timerIsDefense && pendingDefenseAction === 'parry' && (
             <>
               {parryPublishItem && (
                 <span className={s.ctxParryArticle}>
-                  📤 Publishing: <em>{parryPublishItem.name || 'unnamed'}</em>
+                  {t.ui.publishing_prefix} <em>{parryPublishItem.name || t.ui.unnamed_item}</em>
                 </span>
               )}
-              <span className={s.ctxOutcome}>✓ Success → {currentMove?.damage ?? '?'} counter-dmg, full STA</span>
-              <span className={s.ctxOutcomeFail}>✗ Fail → {currentMove?.damage ?? '?'} dmg taken</span>
+              <span className={s.ctxOutcome}>{t.ui.defense_success_sym} {currentMove?.damage ?? '?'} {t.ui.counter_dmg_label}</span>
+              <span className={s.ctxOutcomeFail}>{t.ui.defense_fail_sym} {currentMove?.damage ?? '?'} {t.ui.dmg_taken_label}</span>
             </>
           )}
         </div>
 
         {pendingStep?.badges && pendingStep.badges.length > 0 ? (
           <div className={s.badges}>
-            {pendingStep.badges.map((badge, i) => (
-              <span
-                key={i}
-                className={s.badge}
-                style={badge.color ? { borderColor: badge.color, color: badge.color } : undefined}
-              >
-                {badge.label}
-                <span className={s.badgeTip}>{badge.detail}</span>
-              </span>
-            ))}
+            {pendingStep.badges.map((badge, i) => {
+              const resolved = resolveBadge(badge, locale)
+              return (
+                <span
+                  key={i}
+                  className={s.badge}
+                  style={badge.color ? { borderColor: badge.color, color: badge.color } : undefined}
+                >
+                  {resolved.label}
+                  <span className={s.badgeTip}>{resolved.detail}</span>
+                </span>
+              )
+            })}
           </div>
         ) : (
           <div className={s.taskName}>{taskName}</div>
@@ -274,7 +280,7 @@ export default function TimerOverlay({
           <>
             {/* Trigger button */}
             <div className={s.articleRow}>
-              <span className={s.articleLabel}>Working on:</span>
+              <span className={s.articleLabel}>{t.ui.working_on}</span>
               <button
                 type="button"
                 className={[
@@ -286,10 +292,10 @@ export default function TimerOverlay({
                 {selectedItem ? (
                   <>
                     <span className={s.articlePhaseChip}>{selectedItem.phase}</span>
-                    <span className={s.articleTriggerName}>{selectedItem.name || '(unnamed)'}</span>
+                    <span className={s.articleTriggerName}>{selectedItem.name || t.ui.unnamed_item}</span>
                   </>
                 ) : (
-                  <span className={s.articlePlaceholder}>— None —</span>
+                  <span className={s.articlePlaceholder}>{t.ui.none_option}</span>
                 )}
                 <span className={s.articleCaret}>{dropdownOpen ? '▲' : '▼'}</span>
               </button>
@@ -312,7 +318,7 @@ export default function TimerOverlay({
                     onMouseEnter={() => setHoveredId(null)}
                     onClick={() => { onSelectContent(null); setDropdownOpen(false); setHoveredId(null) }}
                   >
-                    <span className={s.articleOptionName}>— None —</span>
+                    <span className={s.articleOptionName}>{t.ui.none_option}</span>
                   </div>
                   {sortedItems.map(item => {
                     const mult    = itemMult(item)
@@ -331,7 +337,7 @@ export default function TimerOverlay({
                         onClick={() => { onSelectContent(item.id); setDropdownOpen(false); setHoveredId(null) }}
                       >
                         <span className={s.articlePhaseChip}>{item.phase}</span>
-                        <span className={s.articleOptionName}>{item.name || '(unnamed)'}</span>
+                        <span className={s.articleOptionName}>{item.name || t.ui.unnamed_item}</span>
                         <span className={s.articleOptionHint} style={{ color: hintColor }}>
                           {penalty === 0 ? '✓' : `−${penalty}%`}
                         </span>
@@ -429,21 +435,21 @@ export default function TimerOverlay({
                     }
                     title={
                       styleMismatch
-                        ? `Article locked to ${DMG_TYPE_INFO[displayItem!.stamped_style!]?.badge_label ?? displayItem!.stamped_style}; task uses ${DMG_TYPE_INFO[taskStyle]?.badge_label ?? taskStyle} (−15% dmg)`
+                        ? `Article locked to ${t.content.dmg_type[displayItem!.stamped_style!]?.badge_label ?? displayItem!.stamped_style}; task uses ${t.content.dmg_type[taskStyle]?.badge_label ?? taskStyle} (−15% dmg)`
                         : !displayItem!.stamped_style
-                        ? `Will stamp article with ${DMG_TYPE_INFO[taskStyle]?.badge_label ?? taskStyle} style`
+                        ? `Will stamp article with ${t.content.dmg_type[taskStyle]?.badge_label ?? taskStyle} style`
                         : `Style matches`
                     }
                   >
                     {styleMismatch
-                      ? `${DMG_TYPE_INFO[displayItem!.stamped_style!]?.badge_label ?? displayItem!.stamped_style} ≠ ${DMG_TYPE_INFO[taskStyle]?.badge_label ?? taskStyle}`
-                      : (DMG_TYPE_INFO[taskStyle]?.badge_label ?? taskStyle)}
+                      ? `${t.content.dmg_type[displayItem!.stamped_style!]?.badge_label ?? displayItem!.stamped_style} ≠ ${t.content.dmg_type[taskStyle]?.badge_label ?? taskStyle}`
+                      : (t.content.dmg_type[taskStyle]?.badge_label ?? taskStyle)}
                     {!styleMismatch && !displayItem!.stamped_style && ' ✦'}
                   </span>
                 )}
                 {anyMismatch && (
-                  <span className={s.impactPenalty} title="Total damage penalty from mismatches">
-                    −{penaltyPct}% dmg
+                  <span className={s.impactPenalty} title={t.ui.penalty_title}>
+                    −{penaltyPct}% {t.ui.dmg_suffix}
                   </span>
                 )}
               </div>
@@ -467,10 +473,10 @@ export default function TimerOverlay({
             <button
               className={s.btnPrimary}
               disabled={!timerIsDefense && !selectedContentId}
-              title={!timerIsDefense && !selectedContentId ? 'Select an article to work on first' : undefined}
+              title={!timerIsDefense && !selectedContentId ? t.ui.select_article_first : undefined}
               onClick={() => dispatch({ type: 'START_TIMER' })}
             >
-              Start Task
+              {t.ui.btn_start_task}
             </button>
           </div>
         )}
@@ -485,14 +491,14 @@ export default function TimerOverlay({
               if (timerIsDefense && pendingDefenseAction === 'parry') onParryAccomplished?.()
               dispatch({ type: 'TIMER_RESULT', accomplished: true, statusApplied: true, mismatchMult })
             }}>
-              Done!
+              {t.ui.btn_done}
             </button>
           </div>
         )}
 
         {isExpired && (
           <>
-            <div className={s.expiredHint}>Did you complete the task?</div>
+            <div className={s.expiredHint}>{t.ui.did_complete}</div>
             <div className={s.confirmRow}>
               <button className={s.btnYes} onClick={() => {
                 if (!timerIsDefense) onTaskAccomplished(
@@ -502,12 +508,12 @@ export default function TimerOverlay({
                 if (timerIsDefense && pendingDefenseAction === 'parry') onParryAccomplished?.()
                 dispatch({ type: 'TIMER_RESULT', accomplished: true, statusApplied: true, mismatchMult })
               }}>
-                Yes, I did it!
+                {t.ui.btn_yes}
               </button>
               <button className={s.btnNo} onClick={() => {
                 dispatch({ type: 'TIMER_RESULT', accomplished: false })
               }}>
-                No, I failed
+                {t.ui.btn_no}
               </button>
             </div>
           </>

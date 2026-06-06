@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from 'react'
 import { useGameStore, selectEquipLoad } from '../../store/gameStore'
 import type { ContentPhase, ContentItem } from '../../types/game'
-import { PRODUCT_INFO, CONTENT_ORIGIN_INFO, STATUS_INFO } from '../../data/contentDescriptions'
+import { useT } from '../../i18n'
 import s from './ContentOverlay.module.css'
 
 interface Props {
@@ -32,6 +32,7 @@ function fmtDate(ts: number): string {
 
 export default function ContentOverlay({ onClose, canAdd = true }: Props) {
   const store  = useGameStore()
+  const t      = useT()
   const load   = selectEquipLoad(store as Parameters<typeof selectEquipLoad>[0])
 
   const [showPublished,    setShowPublished]    = useState(false)
@@ -104,15 +105,15 @@ export default function ContentOverlay({ onClose, canAdd = true }: Props) {
   function renderStamps(item: ContentItem) {
     const chips: { label: string; color?: string }[] = []
     if (item.stamped_product) {
-      const info = PRODUCT_INFO[item.stamped_product]
+      const info = t.content.product[item.stamped_product]
       chips.push({ label: info?.badge_label ?? item.stamped_product, color: '#888899' })
     }
     if (item.stamped_origin) {
-      const info = CONTENT_ORIGIN_INFO[item.stamped_origin]
+      const info = t.content.origin[item.stamped_origin]
       chips.push({ label: info?.badge_label ?? item.stamped_origin, color: '#7788aa' })
     }
     if (item.stamped_status) {
-      const info = STATUS_INFO[item.stamped_status]
+      const info = t.content.status[item.stamped_status]
       chips.push({ label: info?.badge_label ?? item.stamped_status, color: '#886688' })
     }
     if (!chips.length) return null
@@ -165,9 +166,9 @@ export default function ContentOverlay({ onClose, canAdd = true }: Props) {
             <span
               className={s.itemName}
               onClick={() => handleNameEdit(item)}
-              title="Click to rename"
+              title={t.ui.click_to_rename}
             >
-              {item.name || <em className={s.unnamed}>Untitled</em>}
+              {item.name || <em className={s.unnamed}>{t.ui.untitled}</em>}
             </span>
           )}
 
@@ -176,7 +177,7 @@ export default function ContentOverlay({ onClose, canAdd = true }: Props) {
             <button
               className={s.btnToggle}
               onClick={() => setExpandedId(isExpanded ? null : item.id)}
-              title={isExpanded ? 'Collapse' : 'Notes'}
+              title={isExpanded ? t.ui.btn_collapse : t.ui.btn_notes_toggle}
             >
               {isExpanded ? '▲' : '▼'}
             </button>
@@ -209,7 +210,7 @@ export default function ContentOverlay({ onClose, canAdd = true }: Props) {
           <div className={s.notesWrap}>
             <textarea
               className={s.notes}
-              placeholder="Rough notes, links, ideas…"
+              placeholder={t.ui.notes_placeholder}
               value={item.notes ?? ''}
               onChange={e => store.updateContentItem(item.id, { notes: e.target.value })}
             />
@@ -225,14 +226,14 @@ export default function ContentOverlay({ onClose, canAdd = true }: Props) {
 
         {/* ── Header ─────────────────────────────────────────────── */}
         <div className={s.header}>
-          <div className={s.title}>CONTENT PIPELINE</div>
-          <button className={s.btnClose} onClick={onClose}>Close</button>
+          <div className={s.title}>{t.ui.pipeline_title}</div>
+          <button className={s.btnClose} onClick={onClose}>{t.ui.btn_close}</button>
         </div>
 
         {/* ── Equip load bar ──────────────────────────────────────── */}
         <div className={s.loadSection}>
           <div className={s.loadLabel}>
-            <span>Equip load</span>
+            <span>{t.ui.equip_load_label}</span>
             <span className={overloaded ? s.loadOver : s.loadVal}>
               {load.used.toFixed(1)} / {load.capacity.toFixed(1)}
             </span>
@@ -244,7 +245,7 @@ export default function ContentOverlay({ onClose, canAdd = true }: Props) {
             />
           </div>
           {overloaded && (
-            <div className={s.overloadWarning}>⚠ Overloaded — increase Endurance to carry more</div>
+            <div className={s.overloadWarning}>{t.ui.overload_warning}</div>
           )}
         </div>
 
@@ -253,7 +254,7 @@ export default function ContentOverlay({ onClose, canAdd = true }: Props) {
         {/* ── Active items ────────────────────────────────────────── */}
         <div className={s.itemList}>
           {active.length === 0 && !addingNew && (
-            <div className={s.empty}>No active content. Add an article to get started.</div>
+            <div className={s.empty}>{t.ui.empty_pipeline}</div>
           )}
           {active.map(renderItem)}
 
@@ -271,7 +272,7 @@ export default function ContentOverlay({ onClose, canAdd = true }: Props) {
               <input
                 ref={newInputRef}
                 className={s.nameInput}
-                placeholder="Article title…"
+                placeholder={t.ui.article_placeholder}
                 value={newName}
                 onChange={e => setNewName(e.target.value)}
                 onBlur={handleAddConfirm}
@@ -286,9 +287,9 @@ export default function ContentOverlay({ onClose, canAdd = true }: Props) {
               className={[s.btnAdd, !canAdd ? s.btnAddDisabled : ''].join(' ')}
               disabled={!canAdd}
               onClick={() => setAddingNew(true)}
-              title={!canAdd ? 'Cannot add during an active task' : undefined}
+              title={!canAdd ? t.ui.add_article_disabled : undefined}
             >
-              + Add article
+              {t.ui.btn_add_article}
             </button>
           )}
         </div>
@@ -298,7 +299,7 @@ export default function ContentOverlay({ onClose, canAdd = true }: Props) {
           <>
             <hr className={s.sep} />
             <button className={s.collapseToggle} onClick={() => setShowPublished(p => !p)}>
-              {showPublished ? '▲' : '▼'} Published ({published.length})
+              {showPublished ? '▲' : '▼'} {t.ui.published_label} ({published.length})
             </button>
             {showPublished && (
               <div className={s.itemList}>
@@ -309,7 +310,7 @@ export default function ContentOverlay({ onClose, canAdd = true }: Props) {
                         className={s.phaseChip}
                         style={{ color: PHASE_COLOR.Published, borderColor: PHASE_COLOR.Published + '66' }}
                       >
-                        Published
+                        {t.ui.published_label}
                       </span>
                       <span className={s.itemName}>{item.name}</span>
                       <span className={s.publishedDate}>

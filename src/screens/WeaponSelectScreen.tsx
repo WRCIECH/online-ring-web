@@ -7,6 +7,7 @@ import { WEAPON_CLASSES } from '../data/generators/weaponClasses'
 import type { WeaponInstance, WeaponRarity } from '../types/game'
 import WeaponSprite from '../components/icons/WeaponSprite'
 import StatsOverlay from '../components/overlays/StatsOverlay'
+import { useT } from '../i18n'
 import s from './WeaponSelectScreen.module.css'
 
 const MAX_WEAPONS = 2
@@ -20,6 +21,7 @@ export default function WeaponSelectScreen() {
   const navigate   = useNavigate()
   const routerLoc  = useLocation()
   const store      = useGameStore()
+  const t          = useT()
   const routerState  = routerLoc.state as { locationName?: string; numSublocations?: number; runDuration?: number } | null
   const locationName    = routerState?.locationName    ?? ''
   const numSublocations = routerState?.numSublocations ?? 20
@@ -48,11 +50,11 @@ export default function WeaponSelectScreen() {
     <div className={s.root}>
       {showStats && <StatsOverlay onClose={() => setShowStats(false)} />}
       <div className={s.header}>
-        <h1>Select Weapons</h1>
-        <p>Choose up to {MAX_WEAPONS} weapons for this run</p>
+        <h1>{t.ui.select_weapons_title}</h1>
+        <p>{t.ui.select_weapons_sub} {MAX_WEAPONS} {t.ui.select_weapons_sub2}</p>
         <div className={s.headerActions}>
           <span className={s.runeDisplay}>✦ {store.runes.toLocaleString()}</span>
-          <button className={s.btnStats} onClick={() => setShowStats(true)}>Stats &amp; Level Up</button>
+          <button className={s.btnStats} onClick={() => setShowStats(true)}>{t.ui.btn_stats_levelup}</button>
         </div>
       </div>
 
@@ -102,7 +104,7 @@ export default function WeaponSelectScreen() {
                   <span className={s.statusBadge}>{inherentStatus.replace(/_/g, ' ')}</span>
                 )}
                 {onCooldown && (
-                  <span className={s.cooldownBadge}>🔥 Overheated ({cooldown} run{cooldown !== 1 ? 's' : ''})</span>
+                  <span className={s.cooldownBadge}>{t.ui.weapon_overheated} ({cooldown} {cooldown !== 1 ? t.ui.weapon_run_plural : t.ui.weapon_run_singular})</span>
                 )}
               </div>
               <div className={s.weaponDesc}>{weapon.description}</div>
@@ -137,15 +139,15 @@ export default function WeaponSelectScreen() {
       <div className={s.footer}>
         <p className={s.selectionHint}>
           {selected.length === 0
-            ? 'Select at least one weapon'
-            : `${selected.length} / ${MAX_WEAPONS} selected`}
+            ? t.ui.weapon_select_at_least
+            : `${selected.length} / ${MAX_WEAPONS} ${t.ui.weapon_selected}`}
         </p>
         <button
           className={s.btnBegin}
           disabled={selected.length === 0}
           onClick={handleBegin}
         >
-          Begin Run
+          {t.ui.btn_begin_run}
         </button>
       </div>
     </div>

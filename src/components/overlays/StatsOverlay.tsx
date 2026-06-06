@@ -3,14 +3,11 @@ import { useGameStore, calcMaxHp } from '../../store/gameStore'
 import { WEAPONS, calcStepDamage, statLevelCost, weaponUpgradeCost, LEVEL_MULT } from '../../data/weapons'
 import { MOVES } from '../../data/movesets'
 import type { StatKey, WeaponInstance } from '../../types/game'
+import { useT } from '../../i18n'
 import s from './StatsOverlay.module.css'
 
 interface Props { onClose: () => void; canLevel?: boolean }
 
-const STAT_LABELS: Record<StatKey, string> = {
-  VIG: 'Vigor', END: 'Endurance', MND: 'Mind',
-  STR: 'Strength', DEX: 'Dexterity', INT: 'Intelligence', FAI: 'Faith', ARC: 'Arcane',
-}
 const ALL_STATS: StatKey[] = ['VIG','END','MND','STR','DEX','INT','FAI','ARC']
 
 type Confirming =
@@ -36,9 +33,16 @@ function statEffectPreview(stat: StatKey, val: number): string {
 
 export default function StatsOverlay({ onClose, canLevel = true }: Props) {
   const store = useGameStore()
+  const t     = useT()
   const [confirming, setConfirming] = useState<Confirming | null>(null)
 
   const levelCost = statLevelCost(store.total_levels_spent)
+
+  const STAT_LABELS: Record<StatKey, string> = {
+    VIG: t.ui.stat_VIG, END: t.ui.stat_END, MND: t.ui.stat_MND,
+    STR: t.ui.stat_STR, DEX: t.ui.stat_DEX, INT: t.ui.stat_INT,
+    FAI: t.ui.stat_FAI, ARC: t.ui.stat_ARC,
+  }
 
   function confirmStat(stat: StatKey) {
     if (confirming?.type === 'stat' && confirming.stat === stat) {
@@ -67,12 +71,12 @@ export default function StatsOverlay({ onClose, canLevel = true }: Props) {
           <div className={s.runeBalance}>
             <span className={s.runeIcon}>✦</span>
             <span className={s.runeCount}>{store.runes.toLocaleString()}</span>
-            <span className={s.runeLabel}>runes</span>
+            <span className={s.runeLabel}>{t.ui.runes}</span>
           </div>
           <div className={s.playerLevel}>
-            <span className={s.levelNum}>Lv {store.total_levels_spent}</span>
+            <span className={s.levelNum}>{t.ui.lv_prefix}{store.total_levels_spent}</span>
           </div>
-          <button className={s.btnClose} onClick={onClose}>Close</button>
+          <button className={s.btnClose} onClick={onClose}>{t.ui.btn_close}</button>
         </div>
         <hr className={s.sep} />
 
@@ -81,11 +85,11 @@ export default function StatsOverlay({ onClose, canLevel = true }: Props) {
           {/* ── Player Stats ──────────────────────────────────────────── */}
           {!canLevel && (
             <div className={s.lockedNotice}>
-              Leveling available at Site of Grace or between runs.
+              {t.ui.leveling_locked_notice}
             </div>
           )}
           <div className={s.section}>
-            <div className={s.sectionTitle}>Player Stats — {levelCost} ✦ each</div>
+            <div className={s.sectionTitle}>{t.ui.player_stats_section} — {levelCost} {t.ui.cost_each_suffix}</div>
             {ALL_STATS.map(stat => {
               const val      = store.stats[stat]
               const canAfford = canLevel && store.runes >= levelCost
@@ -107,10 +111,10 @@ export default function StatsOverlay({ onClose, canLevel = true }: Props) {
                   const lvl   = store.weapon_level[w.instance_id] ?? 0
                   const cur   = calcStepDamage(step, w, lvl, store.stats)
                   const next  = calcStepDamage(step, w, lvl, { ...store.stats, [stat]: val + 1 })
-                  previewLines.push(`${w.name}: ${cur} → ${next} dmg`)
+                  previewLines.push(`${w.name}: ${cur} → ${next} ${t.ui.dmg_suffix}`)
                 })
                 if (previewLines.length === 0) {
-                  previewLines.push('— no owned weapon scales with this stat')
+                  previewLines.push(t.ui.no_weapon_scaling)
                 }
               }
 
@@ -129,14 +133,16 @@ export default function StatsOverlay({ onClose, canLevel = true }: Props) {
                       disabled={!canAfford}
                       onClick={() => confirmStat(stat)}
                     >
-                      {isConfirming ? 'Confirm?' : `↑ ${levelCost} ✦`}
+                      {isConfirming ? t.ui.btn_confirm_q : `↑ ${levelCost} ✦`}
                     </button>
                   </div>
                   {isConfirming && (
                     <div className={s.confirmRow}>
-                      <span className={s.confirmText}>Spend {levelCost} ✦ on {STAT_LABELS[stat]}?</span>
-                      <button className={s.btnConfirm} onClick={() => confirmStat(stat)}>Yes, spend</button>
-                      <button className={s.btnCancel} onClick={() => setConfirming(null)}>Cancel</button>
+                      <span className={s.confirmText}>
+                        {t.ui.confirm_spend_pre} {levelCost} ✦ {t.ui.confirm_on_label} {STAT_LABELS[stat]}?
+                      </span>
+                      <button className={s.btnConfirm} onClick={() => confirmStat(stat)}>{t.ui.btn_yes_spend}</button>
+                      <button className={s.btnCancel} onClick={() => setConfirming(null)}>{t.ui.btn_cancel}</button>
                     </div>
                   )}
                 </div>
@@ -148,7 +154,7 @@ export default function StatsOverlay({ onClose, canLevel = true }: Props) {
 
           {/* ── Weapons ───────────────────────────────────────────────── */}
           <div className={s.section}>
-            <div className={s.sectionTitle}>Upgrade Weapons</div>
+            <div className={s.sectionTitle}>{t.ui.upgrade_weapons_title}</div>
             {store.owned_weapons.map(wid => {
               const weapon = WEAPONS[wid] as WeaponInstance | undefined
               if (!weapon) return null
@@ -170,27 +176,29 @@ export default function StatsOverlay({ onClose, canLevel = true }: Props) {
                 <div key={wid} className={s.weaponBlock}>
                   <div className={s.weaponRow}>
                     <span className={s.weaponName}>{weapon.name}</span>
-                    <span className={s.weaponLevel}>+{level}{isMax ? ' MAX' : ` → +${level + 1}`}</span>
+                    <span className={s.weaponLevel}>+{level}{isMax ? ` ${t.ui.max_tag}` : ` → +${level + 1}`}</span>
                     {curDmg !== null && nxtDmg !== null && (
-                      <span className={s.weaponPreview}>{curDmg} → {nxtDmg} dmg (+{pctPerLvl}%/lvl)</span>
+                      <span className={s.weaponPreview}>{curDmg} → {nxtDmg} {t.ui.dmg_suffix} (+{pctPerLvl}%/lvl)</span>
                     )}
                     {isMax ? (
-                      <span className={s.maxTag}>MAX</span>
+                      <span className={s.maxTag}>{t.ui.max_tag}</span>
                     ) : (
                       <button
                         className={[s.btnUpgrade, !canAfford ? s.disabled : '', isConfirming ? s.btnPending : ''].join(' ')}
                         disabled={!canAfford}
                         onClick={() => confirmWeapon(wid)}
                       >
-                        {isConfirming ? 'Confirm?' : `↑ ${cost} ✦`}
+                        {isConfirming ? t.ui.btn_confirm_q : `↑ ${cost} ✦`}
                       </button>
                     )}
                   </div>
                   {isConfirming && (
                     <div className={s.confirmRow}>
-                      <span className={s.confirmText}>Spend {cost} ✦ to upgrade {weapon.name}?</span>
-                      <button className={s.btnConfirm} onClick={() => confirmWeapon(wid)}>Yes, spend</button>
-                      <button className={s.btnCancel} onClick={() => setConfirming(null)}>Cancel</button>
+                      <span className={s.confirmText}>
+                        {t.ui.confirm_spend_pre} {cost} ✦ {t.ui.confirm_to_upgrade} {weapon.name}?
+                      </span>
+                      <button className={s.btnConfirm} onClick={() => confirmWeapon(wid)}>{t.ui.btn_yes_spend}</button>
+                      <button className={s.btnCancel} onClick={() => setConfirming(null)}>{t.ui.btn_cancel}</button>
                     </div>
                   )}
                 </div>

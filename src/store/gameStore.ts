@@ -1,5 +1,5 @@
 import { create } from 'zustand'
-import type { GameState, LocationData, Stats, GeneratedMoveset, WeaponInstance, SublocationType, ContentItem, ContentPhase, AtomicOrigin, StatusType, DamageType } from '../types/game'
+import type { GameState, LocationData, Stats, GeneratedMoveset, WeaponInstance, SublocationType, ContentItem, ContentPhase, AtomicOrigin, StatusType, DamageType, Locale } from '../types/game'
 import type { ContentProductType } from '../data/contentProducts'
 import { ENEMIES } from '../data/enemies'
 import { saveGame, loadGame } from '../engine/save'
@@ -188,6 +188,7 @@ function initialState(): GameState {
     completed_locations: [],
     run_start_owned_movesets: [],
     content_items: [],
+    locale: 'pl',
   }
 }
 
@@ -243,6 +244,9 @@ export interface GameStore extends GameState {
   removeContentItem: (id: string) => void
   publishContentItem: (id: string) => number   // returns rune reward granted
   stampContentItem: (id: string, stamps: { product?: ContentProductType; origin?: AtomicOrigin; status?: StatusType; style?: DamageType }) => void
+
+  // Locale
+  setLocale: (locale: Locale) => void
 
   // Persistence
   save: () => void
@@ -565,6 +569,8 @@ export const useGameStore = create<GameStore>((set, get) => ({
     get().save()
   },
 
+  setLocale: (locale) => { set({ locale }); get().save() },
+
   save: () => saveGame(get()),
 
   load: () => {
@@ -572,6 +578,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
     if (!data) return false
     // Back-fill fields added after a save was created (migration safety)
     if (!data.content_items) data.content_items = []
+    if (!data.locale) data.locale = 'pl'
     hydrateRegistries(data)
     set({ ...data })
     return true

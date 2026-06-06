@@ -5,11 +5,11 @@ import { WEAPONS, weaponUpgradeCost, GRADE_MULT, calcStepDamage } from '../../da
 import { MOVES } from '../../data/movesets'
 import { WEAPON_CLASSES } from '../../data/generators/weaponClasses'
 import { getClassMod } from '../../engine/combat'
-import { CONTENT_ORIGIN_INFO, DMG_TYPE_INFO, STATUS_INFO } from '../../data/contentDescriptions'
 import InfoTooltip from '../ui/InfoTooltip'
 import type { WeaponInstance, WeaponRarity, GeneratedMoveset, StatKey, Grade, DamageType } from '../../types/game'
 import MovesetIcon from '../icons/MovesetIcon'
 import WeaponSprite from '../icons/WeaponSprite'
+import { useT } from '../../i18n'
 import s from './EquipOverlay.module.css'
 
 const RARITY_COLOURS: Record<WeaponRarity, string> = {
@@ -29,12 +29,12 @@ const DMG_TYPE_ICONS: Record<DamageType, string> = {
   occult: '◎', grafting: '⌬', poison: '☠',
 }
 
-function speedLabel(timeMod: number): string {
-  if (timeMod <= 0.75) return 'Very Fast'
-  if (timeMod <= 0.9)  return 'Fast'
-  if (timeMod <= 1.1)  return 'Normal'
-  if (timeMod <= 1.25) return 'Slow'
-  return 'Very Slow'
+function speedLabel(t: ReturnType<typeof useT>, timeMod: number): string {
+  if (timeMod <= 0.75) return t.ui.speed_very_fast
+  if (timeMod <= 0.9)  return t.ui.speed_fast
+  if (timeMod <= 1.1)  return t.ui.speed_normal
+  if (timeMod <= 1.25) return t.ui.speed_slow
+  return t.ui.speed_very_slow
 }
 
 type Store = GameStore
@@ -43,14 +43,15 @@ interface Props { onClose: () => void }
 
 export default function EquipOverlay({ onClose }: Props) {
   const store = useGameStore()
+  const t     = useT()
   const [pickerFor, setPickerFor] = useState<{ weaponId: string; slotIdx: number } | null>(null)
 
   return (
     <div className={s.overlay} onMouseDown={e => { if (e.target === e.currentTarget) onClose() }}>
       <div className={s.panel}>
         <div className={s.header}>
-          <span className={s.title}>⚙ Equipment</span>
-          <button onClick={onClose}>Close</button>
+          <span className={s.title}>{t.ui.equip_title}</span>
+          <button onClick={onClose}>{t.ui.btn_close}</button>
         </div>
         <hr />
         <div className={s.body}>
@@ -89,6 +90,7 @@ function WeaponCard({ weaponId, store, onPickSlot }: {
   store: Store
   onPickSlot: (idx: number) => void
 }) {
+  const t       = useT()
   const weapon  = WEAPONS[weaponId]
   if (!weapon) return null
 
@@ -173,7 +175,7 @@ function WeaponCard({ weaponId, store, onPickSlot }: {
           <span className={s.traitItem}>
             🔥 {classDef.heat_threshold >= 9999 ? '∞' : classDef.heat_threshold} uses
           </span>
-          <span className={s.traitItem}>⏱ {speedLabel(classDef.time_mod)}</span>
+          <span className={s.traitItem}>⏱ {speedLabel(t, classDef.time_mod)}</span>
           <span className={s.traitItem}>💥 {classDef.poise_value} poise/hit</span>
         </div>
       )}
@@ -219,10 +221,10 @@ function WeaponCard({ weaponId, store, onPickSlot }: {
               </div>
               {m?.steps[0] && (
                 <span className={s.stepDmg}>
-                  {calcStepDamage(m.steps[0], weapon, level, store.stats)} dmg
+                  {calcStepDamage(m.steps[0], weapon, level, store.stats)} {t.ui.dmg_suffix}
                 </span>
               )}
-              <span className={s.slotTag}>constant</span>
+              <span className={s.slotTag}>{t.ui.slot_constant}</span>
             </div>
           )
         })}
@@ -246,17 +248,17 @@ function WeaponCard({ weaponId, store, onPickSlot }: {
                 </div>
                 {m.steps[0] && (
                   <span className={s.stepDmg}>
-                    {calcStepDamage(m.steps[0], weapon, level, store.stats)} dmg
+                    {calcStepDamage(m.steps[0], weapon, level, store.stats)} {t.ui.dmg_suffix}
                   </span>
                 )}
-                <button className={s.removeBtn} onClick={() => removeSlot(i)}>Remove</button>
+                <button className={s.removeBtn} onClick={() => removeSlot(i)}>{t.ui.btn_remove}</button>
               </div>
             )
           }
           return (
             <div key={i} className={`${s.slot} ${s.slotEmpty}`} onClick={() => onPickSlot(i)}>
               <div className={`${s.slotDot} ${s.dotEmpty}`} />
-              <span className={s.addLabel}>+ Assign moveset</span>
+              <span className={s.addLabel}>{t.ui.assign_moveset}</span>
             </div>
           )
         })}
@@ -280,7 +282,7 @@ function WeaponCard({ weaponId, store, onPickSlot }: {
                 <span className={s.msTipTime}>{fmtStepTime(step.time)}</span>
                 {step.base_damage > 0 && (
                   <span className={s.msTipDmg}>
-                    {calcStepDamage(step, weapon, level, store.stats)} dmg
+                    {calcStepDamage(step, weapon, level, store.stats)} {t.ui.dmg_suffix}
                   </span>
                 )}
               </div>
@@ -292,22 +294,22 @@ function WeaponCard({ weaponId, store, onPickSlot }: {
           </div>
           {tipGm?.content_origin && (
             <div className={s.msTipOrigin}>
-              <InfoTooltip entry={CONTENT_ORIGIN_INFO[tipGm.content_origin]} />
+              <InfoTooltip entry={t.content.origin[tipGm.content_origin]} />
             </div>
           )}
           {tipGm?.primary_damage_type && (
             <div className={s.msTipDmgType}>
-              <InfoTooltip entry={DMG_TYPE_INFO[tipGm.primary_damage_type]} />
+              <InfoTooltip entry={t.content.dmg_type[tipGm.primary_damage_type]} />
             </div>
           )}
           {tipGm?.status_buildup && (
             <div className={s.msTipStatusDesc}>
-              <InfoTooltip entry={STATUS_INFO[tipGm.status_buildup]} />
+              <InfoTooltip entry={t.content.status[tipGm.status_buildup]} />
             </div>
           )}
           {tipGm?.infusion && Object.keys(tipGm.infusion).length > 0 && (
             <div className={s.msTipInfusion}>
-              <span className={s.msTipInfusionLabel}>Infusion:</span>
+              <span className={s.msTipInfusionLabel}>{t.ui.infusion_label}</span>
               {Object.entries(tipGm.infusion).map(([stat, grade]) => (
                 <span key={stat} className={s.msTipInfusionStat}>{stat} {grade}</span>
               ))}
@@ -315,7 +317,7 @@ function WeaponCard({ weaponId, store, onPickSlot }: {
           )}
           {tipGm?.status_buildup && (
             <div className={s.msTipStatus}>
-              Builds: <span>{tipGm.status_buildup.replace(/_/g, ' ')}</span>
+              {t.ui.builds_label} <span>{tipGm.status_buildup.replace(/_/g, ' ')}</span>
             </div>
           )}
         </div>
@@ -332,6 +334,7 @@ function MovesetPicker({ weaponId, slotIdx, store, onClose }: {
   store: Store
   onClose: () => void
 }) {
+  const t            = useT()
   const extraSlots   = store.weapon_extra_movesets[weaponId] ?? []
   const alreadyUsed  = new Set([
     ...(WEAPONS[weaponId]?.constant_movesets ?? []),
@@ -357,12 +360,12 @@ function MovesetPicker({ weaponId, slotIdx, store, onClose }: {
   return (
     <div className={s.pickerOverlay} onMouseDown={e => { if (e.target === e.currentTarget) onClose() }}>
       <div className={s.picker}>
-        <div className={s.pickerTitle}>Select a moveset to assign</div>
+        <div className={s.pickerTitle}>{t.ui.picker_title}</div>
         <hr />
         <div className={s.pickerList}>
           {available.length === 0 ? (
             <div className={s.noMovesets}>
-              No unassigned movesets available.<br/>Defeat enemies to earn new ones.
+              {t.ui.no_movesets_msg}<br/>{t.ui.no_movesets_hint}
             </div>
           ) : (
             available.map(id => {
@@ -382,7 +385,7 @@ function MovesetPicker({ weaponId, slotIdx, store, onClose }: {
           )}
         </div>
         <hr />
-        <button onClick={onClose}>Cancel</button>
+        <button onClick={onClose}>{t.ui.btn_cancel}</button>
       </div>
     </div>
   )

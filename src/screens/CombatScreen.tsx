@@ -17,6 +17,7 @@ import EnemyBars    from '../components/combat/EnemyBars'
 import CombatLog    from '../components/combat/CombatLog'
 import QuickBar     from '../components/combat/QuickBar'
 import RadialMenu, { type RadialItem } from '../components/combat/RadialMenu'
+import { useT } from '../i18n'
 import s from './CombatScreen.module.css'
 
 // Map legacy drop IDs → new generation instructions
@@ -88,6 +89,7 @@ const BLOOD_DROPS = Array.from({ length: 20 }, (_, i) => {
 export default function CombatScreen() {
   const navigate = useNavigate()
   const store    = useGameStore()
+  const t        = useT()
   const loc      = store.pending_encounter
 
   // Guard: no pending encounter → back to map
@@ -370,9 +372,9 @@ export default function CombatScreen() {
         const canFp  = state.playerFp >= fpCost
         const canUse = canSta && canFp
         const disabledReason = !canSta
-          ? `Need ${actualSta} STA (have ${Math.floor(state.playerStamina)})`
+          ? `${t.ui.need_sta_pre} ${actualSta} STA (${t.ui.have_sta_label} ${Math.floor(state.playerStamina)})`
           : !canFp
-          ? `Need ${fpCost} FP (have ${Math.floor(state.playerFp)})`
+          ? `${t.ui.need_sta_pre} ${fpCost} FP (${t.ui.have_sta_label} ${Math.floor(state.playerFp)})`
           : undefined
 
         const prefix = moveset.steps.length > 1 ? `[${showIdx + 1}/${moveset.steps.length}] ` : ''
@@ -383,7 +385,7 @@ export default function CombatScreen() {
           sublabel: `${prefix}${step.name}`,
           metaParts: [
             { text: fmtTime(step.time) },
-            { text: `${displayDmg} dmg`, color: '#cc6644' },
+            { text: `${displayDmg} ${t.ui.dmg_suffix}`, color: '#cc6644' },
             ...(actualSta > 0
               ? [{ text: `${actualSta} STA`, color: 'var(--color-stamina)' }]
               : [{ text: `+${cls.staGain} STA`, color: '#44aa77' }]),
@@ -399,7 +401,7 @@ export default function CombatScreen() {
       const endAngle = (movesets.length / N) * 2 * Math.PI - Math.PI / 2
       return [...attackItems, {
         id: 'end_turn', customIcon: ICON_END_TURN,
-        label: 'End Turn', sublabel: 'Pass to enemy', metaParts: [],
+        label: t.ui.btn_end_turn, sublabel: t.ui.end_turn_sublabel, metaParts: [],
         canUse: true,
         tx: Math.cos(endAngle) * rx, ty: Math.sin(endAngle) * ry,
         onSelect: () => dispatch({ type: 'END_TURN' }),
@@ -426,7 +428,7 @@ export default function CombatScreen() {
       const parryArticle: ContentItem | null = publishReadyItems[0] ?? null
       const canParry = !!publishTask && !!parryArticle
       const parrySublabel = parryArticle && publishTask
-        ? `📤 "${parryArticle.name || 'unnamed'}" · ${fmtTime(publishTask.time)}`
+        ? `📤 "${parryArticle.name || t.ui.unnamed_item}" · ${fmtTime(publishTask.time)}`
         : publishTask
         ? `${publishTask.name} · ${fmtTime(publishTask.time)}`
         : '???'
@@ -434,11 +436,11 @@ export default function CombatScreen() {
       const opts: Omit<RadialItem, 'tx' | 'ty'>[] = [
         {
           id: 'roll', movesetId: state.enemyRollMoveset?.id ?? 'recovery_roll',
-          label: 'Roll',
+          label: t.ui.btn_roll,
           sublabel: rollSublabel,
           metaParts: [
-            { text: `+${STA_DEFENSE_GAIN} STA on success`, color: 'var(--color-stamina)' },
-            { text: '0 dmg', color: 'var(--color-text-success)' },
+            { text: `+${STA_DEFENSE_GAIN} ${t.ui.sta_on_success}`, color: 'var(--color-stamina)' },
+            { text: `0 ${t.ui.dmg_suffix}`, color: 'var(--color-text-success)' },
           ],
           canUse: true,
           disabledReason: undefined,
@@ -446,31 +448,31 @@ export default function CombatScreen() {
         },
         {
           id: 'block', movesetId: 'unarmed_block',
-          label: 'Block',
-          sublabel: 'Instant — no task',
+          label: t.ui.btn_block,
+          sublabel: t.ui.block_sublabel,
           metaParts: [
             { text: `−${STA_BLOCK} STA` },
-            { text: '0 dmg', color: 'var(--color-text-success)' },
+            { text: `0 ${t.ui.dmg_suffix}`, color: 'var(--color-text-success)' },
           ],
           canUse: state.playerStamina >= STA_BLOCK && !!blockMs,
           disabledReason: state.playerStamina < STA_BLOCK
-            ? `Need ${STA_BLOCK} STA (have ${sta})` : !blockMs ? 'No block style' : undefined,
+            ? `${t.ui.need_sta_pre} ${STA_BLOCK} STA (${t.ui.have_sta_label} ${sta})` : !blockMs ? t.ui.no_block_style : undefined,
           onSelect: () => dispatch({ type: 'DEFENSE_CHOSEN', action: 'block' }),
         },
         {
           id: 'parry', customIcon: ICON_PARRY,
-          label: 'Parry',
+          label: t.ui.btn_parry,
           sublabel: parrySublabel,
           metaParts: [
-            { text: 'Full STA on success', color: 'var(--color-stamina)' },
-            { text: `${move.damage} dmg if fail`, color: '#cc6644' },
-            ...(parryArticle ? [{ text: '📤 Publishes article', color: '#88aacc' }] : []),
+            { text: t.ui.full_sta_success, color: 'var(--color-stamina)' },
+            { text: `${move.damage} ${t.ui.dmg_if_fail}`, color: '#cc6644' },
+            ...(parryArticle ? [{ text: t.ui.parry_publishes, color: '#88aacc' }] : []),
           ],
           canUse: canParry,
           disabledReason: !publishTask
-            ? 'No publish task'
+            ? t.ui.no_publish_task
             : !parryArticle
-            ? 'No articles at Publish phase'
+            ? t.ui.no_articles_publish
             : undefined,
           onSelect: () => {
             if (parryArticle) setPendingParryPublishId(parryArticle.id)
@@ -479,10 +481,10 @@ export default function CombatScreen() {
         },
         {
           id: 'take', customIcon: ICON_TAKE_HIT,
-          label: 'Take Hit',
-          sublabel: 'No task required',
+          label: t.ui.btn_take_hit,
+          sublabel: t.ui.no_task_required,
           metaParts: [
-            { text: `${move.damage} dmg`, color: '#cc6644' },
+            { text: `${move.damage} ${t.ui.dmg_suffix}`, color: '#cc6644' },
             { text: `+${STA_DEFENSE_GAIN} STA`, color: 'var(--color-stamina)' },
           ],
           canUse: true,
@@ -490,7 +492,7 @@ export default function CombatScreen() {
         },
         ...(!state.enemyData.is_boss ? [{
           id: 'flee', customIcon: ICON_FLEE,
-          label: 'Flee', sublabel: 'Ends the run',
+          label: t.ui.btn_flee, sublabel: t.ui.flee_sublabel,
           metaParts: [] as RadialItem['metaParts'],
           canUse: true,
           onSelect: () => dispatch({ type: 'DEFENSE_CHOSEN', action: 'flee' }),
@@ -648,7 +650,7 @@ export default function CombatScreen() {
 
       {/* ── Stagger banner ────────────────────────────────────────────── */}
       {state.phase === 'ENEMY_STAGGERED' && (
-        <div className={s.staggerBanner}>STAGGERED!</div>
+        <div className={s.staggerBanner}>{t.ui.staggered}</div>
       )}
 
       {/* ── Radial action menu ────────────────────────────────────────── */}
@@ -665,8 +667,8 @@ export default function CombatScreen() {
       {state.phase === 'VICTORY' && lootRevealed && lootItems && (
         <div className={s.endOverlay}>
           <div className={s.endBox}>
-            <div className={`${s.endTitle} ${s.victoryTitle}`}>Victory</div>
-            <div className={s.lootEnemyName}>{loc?.boss_name ?? enemyData.name} defeated</div>
+            <div className={`${s.endTitle} ${s.victoryTitle}`}>{t.ui.victory}</div>
+            <div className={s.lootEnemyName}>{loc?.boss_name ?? enemyData.name} {t.ui.enemy_defeated_suffix}</div>
 
             {lootItems.some(item => item.obtained) && (
               <div className={s.lootSection}>
@@ -687,12 +689,12 @@ export default function CombatScreen() {
             )}
 
             <div className={s.lootRunes}>
-              ✦ {runesEarned} runes earned
-              {runesRecovered > 0 && <span className={s.runesRecovered}> · +{runesRecovered} recovered!</span>}
+              ✦ {runesEarned} {t.ui.runes_earned_suffix}
+              {runesRecovered > 0 && <span className={s.runesRecovered}> · +{runesRecovered} {t.ui.runes_recovered_suffix}</span>}
             </div>
 
             <button className={s.endBtn} onClick={handleVictoryContinue}>
-              {enemyData.is_remembrance ? 'Run Complete' : 'Continue →'}
+              {enemyData.is_remembrance ? t.ui.run_complete_short : t.ui.btn_continue_arrow}
             </button>
           </div>
         </div>
@@ -702,14 +704,14 @@ export default function CombatScreen() {
       {state.phase === 'DEFEAT' && (
         <div className={s.endOverlay}>
           <div className={s.endBox}>
-            <div className={`${s.endTitle} ${s.defeatTitle}`}>Defeated</div>
+            <div className={`${s.endTitle} ${s.defeatTitle}`}>{t.ui.defeated_label}</div>
             <div className={s.endSub}>
-              You have been overcome.<br/>
+              {t.ui.defeated_msg}<br/>
               {store.runes > 0
-                ? `✦ ${store.runes} runes dropped here. Recover them next attempt.`
-                : 'The run ends here.'}
+                ? `✦ ${store.runes} ${t.ui.runes_dropped_suffix}`
+                : t.ui.run_ends_here}
             </div>
-            <button className={s.endBtn} onClick={handleDefeat}>Return</button>
+            <button className={s.endBtn} onClick={handleDefeat}>{t.ui.btn_return}</button>
           </div>
         </div>
       )}
@@ -718,11 +720,11 @@ export default function CombatScreen() {
       {state.phase === 'FLED' && (
         <div className={s.endOverlay}>
           <div className={s.endBox}>
-            <div className={`${s.endTitle} ${s.fleedTitle}`}>Retreated</div>
+            <div className={`${s.endTitle} ${s.fleedTitle}`}>{t.ui.retreated_label}</div>
             <div className={s.endSub}>
-              You escaped safely.<br/>Runes are preserved.
+              {t.ui.fled_msg}<br/>{t.ui.runes_preserved}
             </div>
-            <button className={s.endBtn} onClick={handleFlee}>Return</button>
+            <button className={s.endBtn} onClick={handleFlee}>{t.ui.btn_return}</button>
           </div>
         </div>
       )}
@@ -735,15 +737,15 @@ export default function CombatScreen() {
         const stageMatch    = !!pendingAdvance.taskStage && pendingAdvance.taskStage === item.phase
         const stageMismatch = !!pendingAdvance.taskStage && pendingAdvance.taskStage !== item.phase
         const chips = [
-          item.stamped_product && `Product: ${item.stamped_product}`,
-          item.stamped_origin && `Origin: ${item.stamped_origin}`,
-          item.stamped_status && `Tone: ${item.stamped_status}`,
+          item.stamped_product && `${t.ui.stamp_product_prefix} ${item.stamped_product}`,
+          item.stamped_origin && `${t.ui.stamp_origin_prefix} ${item.stamped_origin}`,
+          item.stamped_status && `${t.ui.stamp_status_prefix} ${item.stamped_status}`,
         ].filter(Boolean) as string[]
         return (
           <div className={s.advanceOverlay}>
             <div className={s.advanceBox}>
-              <div className={s.advanceHeader}>Phase Advance?</div>
-              <div className={s.advanceArticle}>{item.name || '(unnamed)'}</div>
+              <div className={s.advanceHeader}>{t.ui.phase_advance_q}</div>
+              <div className={s.advanceArticle}>{item.name || t.ui.unnamed_item}</div>
               {chips.length > 0 && (
                 <div className={s.advanceStamps}>
                   {chips.map((chip, i) => <span key={i} className={s.advanceStamp}>{chip}</span>)}
@@ -755,15 +757,15 @@ export default function CombatScreen() {
                 {next && <span className={s.advancePhaseNext}>{next}</span>}
               </div>
               {stageMatch && (
-                <div className={s.advanceMatch}>✓ Task stage matches — great time to advance!</div>
+                <div className={s.advanceMatch}>{t.ui.stage_match_advance}</div>
               )}
               {stageMismatch && (
                 <div className={s.advanceMismatch}>
-                  ⚠ Task was <strong>{pendingAdvance.taskStage}</strong> — article is at {item.phase}
+                  {t.ui.stage_mismatch_pre} <strong>{pendingAdvance.taskStage}</strong> {t.ui.stage_mismatch_post} {item.phase}
                 </div>
               )}
               {next === 'Published' && (
-                <div className={s.advanceLoad}>📤 Publishing frees 0.5 equip load</div>
+                <div className={s.advanceLoad}>{t.ui.publish_frees_load}</div>
               )}
               <div className={s.advanceBtns}>
                 {next && (
@@ -776,11 +778,11 @@ export default function CombatScreen() {
                     }
                     setPendingAdvance(null)
                   }}>
-                    {next === 'Published' ? '🎉 Publish!' : `Advance to ${next}`}
+                    {next === 'Published' ? t.ui.btn_publish_article : `${t.ui.advance_to_prefix} ${next}`}
                   </button>
                 )}
                 <button className={s.btnAdvanceSkip} onClick={() => setPendingAdvance(null)}>
-                  {next ? `Stay at ${item.phase}` : 'OK'}
+                  {next ? `${t.ui.stay_at_prefix} ${item.phase}` : t.ui.btn_ok}
                 </button>
               </div>
             </div>

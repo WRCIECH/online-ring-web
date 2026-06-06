@@ -2,11 +2,13 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useGameStore } from '../store/gameStore'
 import { hasSave, eraseSave } from '../engine/save'
+import { useT } from '../i18n'
 import s from './TitleScreen.module.css'
 
 export default function TitleScreen() {
-  const navigate  = useNavigate()
-  const store     = useGameStore()
+  const navigate   = useNavigate()
+  const store      = useGameStore()
+  const t          = useT()
   const saveExists = hasSave()
   const [confirming, setConfirming] = useState(false)
   const [showIntro, setShowIntro]   = useState(false)
@@ -37,32 +39,40 @@ export default function TitleScreen() {
 
   return (
     <div className={s.root}>
-      <h1 className={s.title}>Online Ring</h1>
-      <p className={s.subtitle}>A Content Creator RPG</p>
+      <h1 className={s.title}>{t.ui.title}</h1>
+      <p className={s.subtitle}>{t.ui.subtitle}</p>
 
       {store.run_count > 0 && (
-        <p className={s.runCount}>Great Run #{store.run_count}</p>
+        <p className={s.runCount}>{t.ui.great_run}{store.run_count}</p>
       )}
 
       <div className={s.buttons}>
         {saveExists && (
           <button className={s.btnPrimary} onClick={handleContinue}>
-            Continue
+            {t.ui.btn_continue}
           </button>
         )}
         <button className={s.btnPrimary} onClick={handleNewGame}>
-          New Game
+          {t.ui.btn_new_game}
         </button>
       </div>
+
+      <button
+        className={s.btnLang}
+        onClick={() => store.setLocale(store.locale === 'pl' ? 'en' : 'pl')}
+        title={store.locale === 'pl' ? 'Switch to English' : 'Przełącz na polski'}
+      >
+        {t.ui.lang_toggle}
+      </button>
 
       {confirming && (
         <div className={s.confirmOverlay}>
           <div className={s.confirmBox}>
-            <h2>Erase Save?</h2>
-            <p>Your current run and all progress will be permanently erased.</p>
+            <h2>{t.ui.erase_title}</h2>
+            <p>{t.ui.erase_body}</p>
             <div className={s.confirmButtons}>
-              <button className={s.btnDanger} onClick={startFresh}>Erase &amp; Start</button>
-              <button onClick={() => setConfirming(false)}>Cancel</button>
+              <button className={s.btnDanger} onClick={startFresh}>{t.ui.btn_erase_start}</button>
+              <button onClick={() => setConfirming(false)}>{t.ui.btn_cancel}</button>
             </div>
           </div>
         </div>
@@ -71,12 +81,12 @@ export default function TitleScreen() {
       {showIntro && (
         <div className={s.introOverlay}>
           <div className={s.introPanel}>
-            <p>Defeat Monsters &amp; Bosses.</p>
-            <p>Gain Weapons.</p>
-            <p>Produce &amp; Publish Content.</p>
-            <p className={s.introTagline}>Become Online Lord.</p>
+            <p>{t.ui.intro_monsters}</p>
+            <p>{t.ui.intro_weapons}</p>
+            <p>{t.ui.intro_content}</p>
+            <p className={s.introTagline}>{t.ui.intro_tagline}</p>
             <button className={s.btnPrimary} onClick={() => navigate('/start-class')}>
-              Enter the Ring
+              {t.ui.btn_enter}
             </button>
           </div>
         </div>

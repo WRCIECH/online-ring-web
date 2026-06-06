@@ -166,3 +166,21 @@
   background: rgba(200, 20, 20, 0.12);
   border-color: var(--color-text-danger);
 }
+
+.btnLang {
+  position: absolute;
+  top: 18px;
+  right: 20px;
+  font-size: 0.7rem;
+  letter-spacing: 0.12em;
+  padding: 5px 10px;
+  color: var(--color-text-dim);
+  border-color: var(--color-border);
+  opacity: 0.6;
+}
+
+.btnLang:hover {
+  opacity: 1;
+  color: var(--color-gold-dim);
+  border-color: var(--color-gold-dim);
+}

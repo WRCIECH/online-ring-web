@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { useGameStore } from '../store/gameStore'
 import { LOCATION_DEFINITIONS, getUnlockedLocationIds, SIZE_LABEL, SIZE_COLOUR } from '../data/locations'
 import StatsOverlay from '../components/overlays/StatsOverlay'
+import { useT } from '../i18n'
 import s from './LocationSelectScreen.module.css'
 
 const SIZE_TIME: Record<string, string> = {
@@ -21,6 +22,7 @@ function LockIcon() {
 export default function LocationSelectScreen() {
   const navigate   = useNavigate()
   const store      = useGameStore()
+  const t          = useT()
   const [showStats, setShowStats] = useState(false)
 
   const completedSet = new Set(store.completed_locations)
@@ -34,18 +36,18 @@ export default function LocationSelectScreen() {
     <div className={s.root}>
       {showStats && <StatsOverlay onClose={() => setShowStats(false)} />}
       <div className={s.header}>
-        <h1 className={s.title}>Choose Your Dungeon</h1>
+        <h1 className={s.title}>{t.ui.choose_dungeon_title}</h1>
         <p className={s.subtitle}>
           {store.completed_locations.length === 0
-            ? 'Begin your journey — only the first steps are open to you'
-            : 'Choose your next challenge'}
+            ? t.ui.choose_dungeon_first
+            : t.ui.choose_dungeon_next}
         </p>
         <p className={s.progress}>
-          {store.completed_locations.length} / {LOCATION_DEFINITIONS.length} locations finished
+          {store.completed_locations.length} / {LOCATION_DEFINITIONS.length} {t.ui.locations_progress}
         </p>
         <div className={s.headerActions}>
           <span className={s.runeDisplay}>✦ {store.runes.toLocaleString()}</span>
-          <button className={s.btnStats} onClick={() => setShowStats(true)}>Stats &amp; Level Up</button>
+          <button className={s.btnStats} onClick={() => setShowStats(true)}>{t.ui.btn_stats_levelup}</button>
         </div>
       </div>
 
@@ -67,16 +69,13 @@ export default function LocationSelectScreen() {
               disabled={isLocked}
               onClick={() => handleSelect(loc.id, loc.numSublocations, loc.runDuration)}
             >
-              {/* Top colour accent bar */}
               <div className={s.topBar} style={{ background: isLocked ? 'rgba(255,255,255,0.06)' : colour }}/>
-
               <div className={s.body}>
                 <div className={s.nameRow}>
                   {isLocked && <span className={s.lockIcon}><LockIcon/></span>}
                   <span className={s.name}>{loc.id}</span>
                   {isCompleted && <span className={s.doneTag}>✓</span>}
                 </div>
-
                 {!isLocked && (
                   <>
                     <div className={s.boss}>★ {loc.boss}</div>
@@ -84,7 +83,7 @@ export default function LocationSelectScreen() {
                       <span className={s.sizeBadge} style={{ color: colour, borderColor: `${colour}60` }}>
                         {SIZE_LABEL[loc.size]}
                       </span>
-                      <span>{loc.numSublocations} locations</span>
+                      <span>{loc.numSublocations} {t.ui.loc_locations}</span>
                       <span>·</span>
                       <span>{SIZE_TIME[loc.size]}</span>
                     </div>

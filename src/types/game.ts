@@ -1,3 +1,4 @@
+export type Locale = 'pl' | 'en'
 export type StatKey = 'VIG' | 'END' | 'MND' | 'STR' | 'DEX' | 'INT' | 'FAI' | 'ARC'
 export type Grade = 'S' | 'A' | 'B' | 'C' | 'D' | 'E'
 
@@ -54,7 +55,8 @@ export interface WeaponInstance extends Weapon {
 
 // ── Atomic move / moveset generation types ─────────────────────────────────
 
-export type { ContentProductType } from '../data/contentProducts'
+import type { ContentProductType } from '../data/contentProducts'
+export type { ContentProductType }
 export type AtomicStage = 'Research' | 'Outline' | 'Produce' | 'Glue' | 'Refine' | 'Publish'
 
 export type AtomicOrigin = 'New' | 'Compression' | 'Expansion' | 'Recycled' | 'Remastered' | 'Revamped' | 'Reboot' | 'ZoomIn' | 'ZoomOut' | 'AudienceAlter' | 'Commentary'
@@ -94,9 +96,11 @@ export type CombatPhase =
   | 'ENEMY_ATTACK' | 'ENEMY_STAGGERED' | 'VICTORY' | 'DEFEAT' | 'FLED'
 
 export interface StepBadge {
-  label: string   // Short chip text, e.g. "Generate", "Fiery", "Audio"
-  detail: string   // Tooltip explanation shown on hover
-  color?: string   // Optional accent color (used for damage-type badges)
+  label: string    // Short chip text (English fallback for old saves)
+  detail: string   // Tooltip explanation (English fallback for old saves)
+  color?: string   // Optional accent color
+  tr_key?: string          // e.g. 'product.Plaintext', 'stage.Research'
+  tr_detail_key?: string   // Override key for detail text (defaults to tr_key)
 }
 
 export interface Step {
@@ -245,4 +249,6 @@ export interface GameState {
   run_start_owned_movesets: string[]
   // Content pipeline
   content_items: ContentItem[]
+  // UI locale
+  locale: Locale
 }

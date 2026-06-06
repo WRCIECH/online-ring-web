@@ -3,6 +3,7 @@ import type { CombatAction } from '../../engine/combat'
 import type { WeaponInstance } from '../../types/game'
 import { WEAPONS } from '../../data/weapons'
 import WeaponSprite from '../icons/WeaponSprite'
+import { useT } from '../../i18n'
 import s from './QuickBar.module.css'
 
 const EMPTY_SLOT = (
@@ -21,6 +22,7 @@ interface Props {
 }
 
 export default function QuickBar({ equippedWeapons, activeWeaponIdx, playerEstus, phase, dispatch, weaponHeatAccumulated }: Props) {
+  const t         = useT()
   const canAct    = phase === 'PLAYER_ATTACK' || phase === 'ENEMY_ATTACK'
   const canSwitch = phase === 'PLAYER_ATTACK'
 
@@ -101,19 +103,17 @@ export default function QuickBar({ equippedWeapons, activeWeaponIdx, playerEstus
             return (
               <>
                 <div className={s.tipHeat}>
-                  🔥 Heat: {uses2} / {thresh2 === Infinity ? '∞' : thresh2} uses
-                  {over2 > 0 ? ` · −${penalty2}% dmg` : ''}
+                  {t.ui.heat_label} {uses2} / {thresh2 === Infinity ? '∞' : thresh2} {t.ui.heat_uses_suffix}
+                  {over2 > 0 ? ` · −${penalty2}% ${t.ui.dmg_suffix}` : ''}
                 </div>
                 <div className={s.tipHeatDesc}>
-                  Each writing task with this weapon adds heat. Exceeding the
-                  limit reduces damage by 2.5% per extra use (max −75%).
-                  Heat resets between runs.
+                  {t.ui.heat_desc}
                 </div>
               </>
             )
           })()}
           <div className={s.tipHint}>
-            {weaponTip.idx === activeWeaponIdx ? 'Active weapon' : 'Click to switch'}
+            {weaponTip.idx === activeWeaponIdx ? t.ui.active_weapon : t.ui.click_to_switch}
           </div>
         </div>
       )}
@@ -124,9 +124,9 @@ export default function QuickBar({ equippedWeapons, activeWeaponIdx, playerEstus
           className={s.weaponTooltip}
           style={{ left: estusTip.left, top: estusTip.top - 8 }}
         >
-          <div className={s.tipName}>Estus Flask</div>
-          <div className={s.tipSub}>{playerEstus} / 3 remaining</div>
-          <div className={s.tipHint}>Heals 40% HP</div>
+          <div className={s.tipName}>{t.ui.estus_flask}</div>
+          <div className={s.tipSub}>{playerEstus} / 3 {t.ui.estus_remaining}</div>
+          <div className={s.tipHint}>{t.ui.estus_heal}</div>
         </div>
       )}
 
@@ -140,7 +140,7 @@ export default function QuickBar({ equippedWeapons, activeWeaponIdx, playerEstus
         onMouseLeave={() => setEstusTip(null)}
       >
         <span className={s.icon} style={{ fontSize: '1.5rem', lineHeight: 1 }}>🧪</span>
-        <span className={s.label}>Estus</span>
+        <span className={s.label}>{t.ui.estus_label}</span>
         <span className={s.badge}>{playerEstus}</span>
       </button>
     </div>

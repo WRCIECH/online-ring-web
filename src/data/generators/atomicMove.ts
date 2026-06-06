@@ -289,20 +289,16 @@ export function buildBadges(d: AtomicDimensions, damageType?: DamageType): StepB
   const originInfo  = CONTENT_ORIGIN_INFO[d.content_origin]
   const dmgInfo     = DMG_TYPE_INFO[dmgKey]
   return [
-    // 1. Stage — what workflow phase this step belongs to
-    { label: stageInfo.badge_label,   detail: stageInfo.detail,   color: STAGE_BADGE_COLOR[d.stage]      },
-    // 2. Product — what content format is being produced
-    { label: productInfo.badge_label, detail: productInfo.detail, color: PRODUCT_BADGE_COLOR[d.product]  },
-    // 3. Content origin — new vs derivative vs recontextualised
-    { label: originInfo.badge_label,  detail: originInfo.detail,  color: ORIGIN_BADGE_COLOR[d.content_origin] },
-    // 4. Damage type — the content style that powers this move
-    { label: dmgInfo.badge_label,     detail: dmgInfo.detail,     color: DMG_TYPE_BADGE_COLOR[dmgKey]    },
+    { label: stageInfo.badge_label,   detail: stageInfo.detail,   color: STAGE_BADGE_COLOR[d.stage],            tr_key: `stage.${d.stage}` },
+    { label: productInfo.badge_label, detail: productInfo.detail, color: PRODUCT_BADGE_COLOR[d.product],        tr_key: `product.${d.product}` },
+    { label: originInfo.badge_label,  detail: originInfo.detail,  color: ORIGIN_BADGE_COLOR[d.content_origin],  tr_key: `origin.${d.content_origin}` },
+    { label: dmgInfo.badge_label,     detail: dmgInfo.detail,     color: DMG_TYPE_BADGE_COLOR[dmgKey],          tr_key: `dmg_type.${dmgKey}` },
   ]
 }
 
 export function buildStatusBadge(statusType: StatusType): StepBadge {
   const info = STATUS_INFO[statusType]
-  return { label: info.badge_label, detail: info.detail, color: STATUS_BADGE_COLOR[statusType] }
+  return { label: info.badge_label, detail: info.detail, color: STATUS_BADGE_COLOR[statusType], tr_key: `status.${statusType}` }
 }
 
 export const NO_STATUS_BADGE: StepBadge = {
