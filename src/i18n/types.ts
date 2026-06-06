@@ -18,8 +18,11 @@ export interface TranslationBundle {
     status:   Record<StatusType, ContentEntry>
     stage:    Record<AtomicStage, ContentEntry>
   }
-  weapons:  Record<string, { name: string; description: string }>
-  enemies:  Record<string, { name: string; description: string }>
-  classes:  Record<string, { name: string; description: string }>
-  ui:       Record<string, string>
+  weapons:        Record<string, { name: string; description: string }>
+  enemies:        Record<string, { name: string; description: string }>
+  classes:        Record<string, { name: string; description: string }>
+  subloc_names:   Record<string, string>   // English sublocation name → locale name
+  weapon_prefixes: Record<string, string>  // English rarity prefix → locale prefix
+  locations:      Record<string, string>   // English loc.id → locale name
+  ui:             Record<string, string>
 }

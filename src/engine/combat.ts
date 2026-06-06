@@ -373,6 +373,8 @@ export function initCombatState(
   playerEstus: number,
   playerStats: Stats,
   equipLoadRatio = 0,
+  enemyIntroMsg?: string,
+  enemyDescMsg?: string,
 ): CombatState {
   const maxHp = Math.floor(enemyData.max_hp * enemyMult)
   const rollCfg = ENEMY_ROLL_CONFIG[enemyId]
@@ -410,8 +412,8 @@ export function initCombatState(
     statusAccumulation: {},
     activeStatuses: {},
     log: [], logId: 0,
-  }, `You face ${enemyData.name}.`, '#c9a93a')
-  state = log(state, enemyData.description, '#7a7570')
+  }, enemyIntroMsg ?? `You face ${enemyData.name}.`, '#c9a93a')
+  state = log(state, enemyDescMsg ?? enemyData.description, '#7a7570')
   if (equipLoadRatio > 1) {
     const pct     = Math.round(equipLoadRatio * 100)
     const penalty = Math.round((1 - effectiveMaxSta / playerMaxStamina) * 100)

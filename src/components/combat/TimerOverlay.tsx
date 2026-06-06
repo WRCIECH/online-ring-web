@@ -5,7 +5,7 @@ import { WEAPONS, calcStepDamage } from '../../data/weapons'
 import { WEAPON_CLASSES } from '../../data/generators/weaponClasses'
 import type { WeaponInstance, DamageType, AtomicStage, AtomicOrigin, StatusType, ContentItem, GeneratedMoveset } from '../../types/game'
 import type { ContentProductType } from '../../data/contentProducts'
-import { useT, resolveBadge } from '../../i18n'
+import { useT, resolveBadge, localizeWeaponName } from '../../i18n'
 import { useGameStore } from '../../store/gameStore'
 import WeaponSprite from '../icons/WeaponSprite'
 import s from './TimerOverlay.module.css'
@@ -169,7 +169,7 @@ export default function TimerOverlay({
                     poiseWeight={wi.poise_weight}
                     size={44}
                   />
-                  {wi.name}
+                  {localizeWeaponName(wi, t)}
                   {/* ── Hover tooltip ── */}
                   <span className={s.weaponTip}>
                     <div className={s.weaponTipRow}>

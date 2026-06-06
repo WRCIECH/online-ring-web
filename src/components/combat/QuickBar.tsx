@@ -91,7 +91,7 @@ export default function QuickBar({ equippedWeapons, activeWeaponIdx, playerEstus
         >
           <div className={s.tipName}>{tipWeapon.name}</div>
           <div className={s.tipSub}>
-            {tipWeapon.weapon_class?.replace(/_/g, ' ')}
+            {tipWeapon.weapon_class ? (t.weapons[tipWeapon.weapon_class]?.name ?? tipWeapon.weapon_class.replace(/_/g, ' ')) : ''}
             {tipWeapon.rarity ? ` · ${tipWeapon.rarity}` : ''}
           </div>
           {(() => {

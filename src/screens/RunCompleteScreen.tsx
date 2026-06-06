@@ -20,7 +20,7 @@ export default function RunCompleteScreen() {
   return (
     <div className={s.root}>
       <h1 className={s.title}>{t.ui.run_complete_title}</h1>
-      <p className={s.subtitle}>{store.run_location_name || `Run #${store.run_count}`} — {t.ui.location_cleared}</p>
+      <p className={s.subtitle}>{store.run_location_name ? (t.locations[store.run_location_name] ?? store.run_location_name) : `Run #${store.run_count}`} — {t.ui.location_cleared}</p>
 
       <div className={s.runeBalance}>
         <span className={s.runeIcon}>✦</span>

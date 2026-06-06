@@ -1,5 +1,5 @@
 import type { Locale, TranslationBundle, ContentEntry } from './types'
-import type { StepBadge } from '../types/game'
+import type { StepBadge, WeaponInstance } from '../types/game'
 import en from './en'
 import pl from './pl'
 import { useGameStore } from '../store/gameStore'
@@ -38,6 +38,17 @@ export function resolveBadge(badge: StepBadge, locale: Locale): { label: string;
     label:  entry?.badge_label ?? badge.label,
     detail: detailEntry?.detail ?? badge.detail,
   }
+}
+
+/** Translate a generated weapon's display name using locale prefix + class name.
+ *  Falls back to the stored English name for any unexpected format. */
+export function localizeWeaponName(wi: WeaponInstance, t: TranslationBundle): string {
+  const spaceIdx = wi.name.indexOf(' ')
+  if (spaceIdx < 0) return wi.name
+  const prefix          = wi.name.slice(0, spaceIdx)
+  const translatedPrefix = t.weapon_prefixes[prefix] ?? prefix
+  const translatedClass  = t.weapons[wi.weapon_class]?.name ?? wi.name.slice(spaceIdx + 1)
+  return `${translatedPrefix} ${translatedClass}`
 }
 
 /** Hook — returns the active translation bundle for the current locale. */

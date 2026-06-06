@@ -116,6 +116,8 @@ export default function CombatScreen() {
             store.run_estus_count,
             store.stats,
             loadRatio,
+            `${t.ui.combat_intro_face} ${loc.boss_name ?? (t.enemies[loc.enemy_id]?.name ?? enemyData.name)}.`,
+            t.enemies[loc.enemy_id]?.description ?? enemyData.description,
           )
         : initCombatState(
             'procrastination_mob', ENEMIES['procrastination_mob'], 1,
@@ -556,7 +558,7 @@ export default function CombatScreen() {
             >
               <div className={s.enemyBarOverlay}>
                 <EnemyBars
-                  name={loc?.boss_name ?? enemyData.name}
+                  name={loc?.boss_name ?? (t.enemies[loc.enemy_id]?.name ?? enemyData.name)}
                   hp={state.enemyHp} maxHp={state.enemyMaxHp}
                   poise={state.enemyPoise} maxPoise={state.enemyMaxPoise}
                 />
@@ -668,7 +670,7 @@ export default function CombatScreen() {
         <div className={s.endOverlay}>
           <div className={s.endBox}>
             <div className={`${s.endTitle} ${s.victoryTitle}`}>{t.ui.victory}</div>
-            <div className={s.lootEnemyName}>{loc?.boss_name ?? enemyData.name} {t.ui.enemy_defeated_suffix}</div>
+            <div className={s.lootEnemyName}>{loc?.boss_name ?? (t.enemies[loc.enemy_id]?.name ?? enemyData.name)} {t.ui.enemy_defeated_suffix}</div>
 
             {lootItems.some(item => item.obtained) && (
               <div className={s.lootSection}>

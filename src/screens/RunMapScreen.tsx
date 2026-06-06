@@ -270,10 +270,10 @@ export default function RunMapScreen() {
       {/* Hover tooltip */}
       {hoverIdx >= 0 && hoverIdx !== current && hoverLoc && hoverEnemy && (
         <div className={s.tooltip} style={{ left: tooltipPos.x, top: tooltipPos.y }}>
-          <div className={s.tooltipName}>{hoverLoc.name}</div>
+          <div className={s.tooltipName}>{t.subloc_names[hoverLoc.name] ?? hoverLoc.name}</div>
           <div className={s.tooltipEnemy}>
             {hoverIdx < current
-              ? (hoverLoc.boss_name ?? hoverEnemy.name)
+              ? (hoverLoc.boss_name ?? (t.enemies[hoverLoc.enemy_id]?.name ?? hoverEnemy.name))
               : hoverLoc.sublocation_type === 'event'
                 ? (hoverLoc.event_type === 'site_of_grace' ? t.ui.event_site_of_grace : t.ui.event_trial_gate)
                 : hoverLoc.sublocation_type === 'elite' ? t.ui.enemy_elite_label
@@ -291,14 +291,14 @@ export default function RunMapScreen() {
         <>
           <div className={s.popupOverlay} onClick={() => setPopupIdx(-1)} />
           <div className={s.popup} style={{ left: popupPos.x, top: popupPos.y }}>
-            <div className={s.popupName}>{popupLoc.name}</div>
+            <div className={s.popupName}>{t.subloc_names[popupLoc.name] ?? popupLoc.name}</div>
             <div className={s.popupEnemy}>
               {popupLoc.sublocation_type === 'elite' && <span className={s.eliteBadge}>{t.ui.badge_elite}</span>}
               {popupLoc.sublocation_type === 'boss'  && <span className={s.bossBadge}>{t.ui.badge_boss}</span>}
-              {popupEnemy.name}
+              {t.enemies[popupLoc.enemy_id]?.name ?? popupEnemy.name}
             </div>
             <div className={s.popupMult}>×{popupLoc.mult.toFixed(2)} {t.ui.difficulty_label}</div>
-            <div className={s.popupDesc}>{popupEnemy.description}</div>
+            <div className={s.popupDesc}>{t.enemies[popupLoc.enemy_id]?.description ?? popupEnemy.description}</div>
             {!canEnterFight && (
               <div className={s.pipelineGate}>
                 {t.ui.pipeline_gate_need} {MIN_PIPELINE} {t.ui.pipeline_gate_to_fight}

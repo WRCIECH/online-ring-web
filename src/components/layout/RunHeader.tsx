@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react'
 import { useGameStore, selectRunRemainingSeconds } from '../../store/gameStore'
-import EquipOverlay    from '../overlays/EquipOverlay'
-import NotepadOverlay  from '../overlays/NotepadOverlay'
-import StatsOverlay    from '../overlays/StatsOverlay'
-import ContentOverlay  from '../overlays/ContentOverlay'
+import EquipOverlay     from '../overlays/EquipOverlay'
+import NotepadOverlay   from '../overlays/NotepadOverlay'
+import StatsOverlay     from '../overlays/StatsOverlay'
+import ContentOverlay   from '../overlays/ContentOverlay'
+import LocationsOverlay from '../overlays/LocationsOverlay'
 import { useT } from '../../i18n'
 import s from './RunHeader.module.css'
 
@@ -22,7 +23,7 @@ function fmtTime(secs: number): string {
   return `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(sc).padStart(2,'0')}`
 }
 
-const HP_CAP  = 3000
+const HP_CAP  = 2000
 const STA_CAP = 500
 const FP_CAP  = 500
 
@@ -44,10 +45,11 @@ export default function RunHeader({ hp, maxHp, stamina, maxStamina, fp, maxFp, c
   const [remaining, setRemaining] = useState(() =>
     selectRunRemainingSeconds(store as Parameters<typeof selectRunRemainingSeconds>[0])
   )
-  const [showEquip,    setShowEquip]    = useState(false)
-  const [showNotepad,  setShowNotepad]  = useState(false)
-  const [showStats,    setShowStats]    = useState(false)
-  const [showContent,  setShowContent]  = useState(false)
+  const [showEquip,     setShowEquip]     = useState(false)
+  const [showNotepad,   setShowNotepad]   = useState(false)
+  const [showStats,     setShowStats]     = useState(false)
+  const [showContent,   setShowContent]   = useState(false)
+  const [showLocations, setShowLocations] = useState(false)
 
   useEffect(() => {
     const id = setInterval(() => {
@@ -63,22 +65,22 @@ export default function RunHeader({ hp, maxHp, stamina, maxStamina, fp, maxFp, c
       <header className={s.header}>
         {/* Run info */}
         <div className={s.runInfo}>
-          <span className={s.runTitle}>
-            {store.run_location_name || `Run #${store.run_count + 1}`}
-          </span>
+          <button className={s.runTitle} onClick={() => setShowLocations(true)}>
+            {store.run_location_name ? (t.locations[store.run_location_name] ?? store.run_location_name) : `Run #${store.run_count + 1}`}
+          </button>
           <span className={[s.timer, isUrgent ? s.urgent : ''].join(' ')}>{fmtTime(remaining)}</span>
         </div>
 
         <div className={s.bars}>
-          <div className={s.barGroup} data-tip={`Health · ${Math.floor(hp)} / ${maxHp} — reaches zero = defeated`}>
+          <div className={s.barGroup} data-tip={`${Math.floor(hp)} / ${maxHp}`}>
             <span className={s.barLabel}>HP</span>
             <Bar current={hp} playerMax={maxHp} cap={HP_CAP} color="var(--color-hp)" />
           </div>
-          <div className={s.barGroup} data-tip={`Stamina · ${Math.floor(stamina)} / ${maxStamina} — spent on every writing task`}>
+          <div className={s.barGroup} data-tip={`${Math.floor(stamina)} / ${maxStamina}`}>
             <span className={s.barLabel}>STA</span>
             <Bar current={stamina} playerMax={maxStamina} cap={STA_CAP} color="var(--color-stamina)" />
           </div>
-          <div className={s.barGroup} data-tip={`Focus Points · ${Math.floor(fp)} / ${maxFp} — consumed by skill-type moves`}>
+          <div className={s.barGroup} data-tip={`${Math.floor(fp)} / ${maxFp}`}>
             <span className={s.barLabel}>FP</span>
             <Bar current={fp} playerMax={maxFp} cap={FP_CAP} color="var(--color-fp)" />
           </div>
@@ -93,10 +95,11 @@ export default function RunHeader({ hp, maxHp, stamina, maxStamina, fp, maxFp, c
         </div>
       </header>
 
-      {showEquip   && <EquipOverlay   onClose={() => setShowEquip(false)} />}
-      {showStats   && <StatsOverlay   onClose={() => setShowStats(false)} canLevel={false} />}
-      {showContent && <ContentOverlay onClose={() => setShowContent(false)} canAdd={canAddContent} />}
-      {showNotepad && <NotepadOverlay onClose={() => setShowNotepad(false)} />}
+      {showEquip     && <EquipOverlay     onClose={() => setShowEquip(false)} />}
+      {showStats     && <StatsOverlay     onClose={() => setShowStats(false)} canLevel={false} />}
+      {showContent   && <ContentOverlay   onClose={() => setShowContent(false)} canAdd={canAddContent} />}
+      {showNotepad   && <NotepadOverlay   onClose={() => setShowNotepad(false)} />}
+      {showLocations && <LocationsOverlay onClose={() => setShowLocations(false)} />}
     </>
   )
 }

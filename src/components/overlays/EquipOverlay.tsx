@@ -9,7 +9,7 @@ import InfoTooltip from '../ui/InfoTooltip'
 import type { WeaponInstance, WeaponRarity, GeneratedMoveset, StatKey, Grade, DamageType } from '../../types/game'
 import MovesetIcon from '../icons/MovesetIcon'
 import WeaponSprite from '../icons/WeaponSprite'
-import { useT } from '../../i18n'
+import { useT, localizeWeaponName } from '../../i18n'
 import s from './EquipOverlay.module.css'
 
 const RARITY_COLOURS: Record<WeaponRarity, string> = {
@@ -146,7 +146,7 @@ function WeaponCard({ weaponId, store, onPickSlot }: {
             size={40}
           />
         )}
-        <span className={s.weaponName}>{weapon.name}</span>
+        <span className={s.weaponName}>{localizeWeaponName(wi, t)}</span>
         {wi.rarity && (
           <span className={s.rarityBadge} style={{ color: RARITY_COLOURS[wi.rarity] }}>
             {wi.rarity.toUpperCase()}

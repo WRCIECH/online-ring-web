@@ -3,7 +3,7 @@ import { useGameStore, calcMaxHp } from '../../store/gameStore'
 import { WEAPONS, calcStepDamage, statLevelCost, weaponUpgradeCost, LEVEL_MULT } from '../../data/weapons'
 import { MOVES } from '../../data/movesets'
 import type { StatKey, WeaponInstance } from '../../types/game'
-import { useT } from '../../i18n'
+import { useT, localizeWeaponName } from '../../i18n'
 import s from './StatsOverlay.module.css'
 
 interface Props { onClose: () => void; canLevel?: boolean }
@@ -175,7 +175,7 @@ export default function StatsOverlay({ onClose, canLevel = true }: Props) {
               return (
                 <div key={wid} className={s.weaponBlock}>
                   <div className={s.weaponRow}>
-                    <span className={s.weaponName}>{weapon.name}</span>
+                    <span className={s.weaponName}>{localizeWeaponName(weapon, t)}</span>
                     <span className={s.weaponLevel}>+{level}{isMax ? ` ${t.ui.max_tag}` : ` → +${level + 1}`}</span>
                     {curDmg !== null && nxtDmg !== null && (
                       <span className={s.weaponPreview}>{curDmg} → {nxtDmg} {t.ui.dmg_suffix} (+{pctPerLvl}%/lvl)</span>
@@ -195,7 +195,7 @@ export default function StatsOverlay({ onClose, canLevel = true }: Props) {
                   {isConfirming && (
                     <div className={s.confirmRow}>
                       <span className={s.confirmText}>
-                        {t.ui.confirm_spend_pre} {cost} ✦ {t.ui.confirm_to_upgrade} {weapon.name}?
+                        {t.ui.confirm_spend_pre} {cost} ✦ {t.ui.confirm_to_upgrade} {localizeWeaponName(weapon, t)}?
                       </span>
                       <button className={s.btnConfirm} onClick={() => confirmWeapon(wid)}>{t.ui.btn_yes_spend}</button>
                       <button className={s.btnCancel} onClick={() => setConfirming(null)}>{t.ui.btn_cancel}</button>

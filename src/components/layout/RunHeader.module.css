@@ -22,6 +22,15 @@
   letter-spacing: 0.18em;
   text-transform: uppercase;
   color: var(--color-gold-dim);
+  background: none;
+  border: none;
+  padding: 0;
+  text-align: left;
+  cursor: pointer;
+  transition: color 0.14s;
+}
+.runTitle:hover {
+  color: var(--color-gold);
 }
 
 .timer {

@@ -73,7 +73,7 @@ export default function LocationSelectScreen() {
               <div className={s.body}>
                 <div className={s.nameRow}>
                   {isLocked && <span className={s.lockIcon}><LockIcon/></span>}
-                  <span className={s.name}>{loc.id}</span>
+                  <span className={s.name}>{t.locations[loc.id] ?? loc.id}</span>
                   {isCompleted && <span className={s.doneTag}>✓</span>}
                 </div>
                 {!isLocked && (

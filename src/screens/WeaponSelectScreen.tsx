@@ -7,7 +7,7 @@ import { WEAPON_CLASSES } from '../data/generators/weaponClasses'
 import type { WeaponInstance, WeaponRarity } from '../types/game'
 import WeaponSprite from '../components/icons/WeaponSprite'
 import StatsOverlay from '../components/overlays/StatsOverlay'
-import { useT } from '../i18n'
+import { useT, localizeWeaponName } from '../i18n'
 import s from './WeaponSelectScreen.module.css'
 
 const MAX_WEAPONS = 2
@@ -94,7 +94,7 @@ export default function WeaponSelectScreen() {
                     size={52}
                   />
                 )}
-                <span className={s.weaponName}>{weapon.name}</span>
+                <span className={s.weaponName}>{localizeWeaponName(weapon as WeaponInstance, t)}</span>
                 {rarity && (
                   <span className={s.rarityBadge} style={{ color: RARITY_COLOURS[rarity] }}>
                     {rarity.toUpperCase()}
