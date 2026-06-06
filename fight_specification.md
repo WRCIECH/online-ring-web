@@ -280,7 +280,7 @@ time         = TIME_SECS[time_budget]
 
 **Stamina per step:** `round(TIME_STA[time_budget] × MEDIUM_STA[medium])`
 TIME_STA: Micro=2, Short=4, Medium=7, Long=10, Deep=18
-MEDIUM_STA: Writing×1.0, Audio×1.1, Video×1.3, Image×0.9, Design×1.2, Outline×0.6, Hybrid×1.4
+MEDIUM_STA: Writing×1.0, Audio×1.1, Video×1.3, Image×0.9, Design×1.2, Outline×0.6
 
 ### Rarity multipliers (applied to all steps)
 

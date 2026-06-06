@@ -89,7 +89,7 @@ const ARCHETYPE_MEDIUM: Record<MovesetArchetype, AtomicMedium[]> = {
   commentary:   ['Writing','Writing','Video'],
   research:     ['Writing','Audio','Writing'],
   compression:  ['Writing','Writing','Writing'],
-  remix:        ['Writing','Video','Hybrid'],
+  remix:        ['Writing','Video'],
   storytelling: ['Writing','Video','Audio'],
   hot_take:     ['Writing','Writing','Audio'],
   async:        ['Writing','Audio','Writing'],

@@ -53,7 +53,7 @@ export interface WeaponInstance extends Weapon {
 }
 
 // ── Atomic move / moveset generation types ─────────────────────────────────
-export type AtomicMedium = 'Writing' | 'Audio' | 'Video' | 'Image' | 'Hybrid'
+export type AtomicMedium = 'Writing' | 'Audio' | 'Video' | 'Image'
 export type AtomicStage = 'Research' | 'Outline' | 'Produce' | 'Glue' | 'Refine' | 'Publish'
 export type AtomicTime = 'Micro' | 'Short' | 'Medium' | 'Long' | 'Deep'
 export type AtomicOrigin = 'New' | 'Compression' | 'Expansion' | 'Recycled' | 'Remastered' | 'Revamped' | 'Reboot' | 'ZoomIn' | 'ZoomOut' | 'AudienceAlter' | 'Commentary'

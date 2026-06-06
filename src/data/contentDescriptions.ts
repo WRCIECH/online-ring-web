@@ -303,13 +303,7 @@ export const MEDIUM_INFO: Record<AtomicMedium, ContentEntry> = {
     label:       'Image — visual or graphic',
     detail:      'Create or source visuals — graphics, photos, or illustrations.',
     example:     'Designing a single-image carousel slide or sourcing a hero photo.',
-  },
-  Hybrid: {
-    badge_label: 'Hybrid',
-    label:       'Hybrid — cross-format work',
-    detail:      'Cross-format work combining two or more media types.',
-    example:     'Writing a script, recording audio, and adding visuals for a video essay.',
-  },
+  }
 }
 
 // ─── Backward-compatible string exports ──────────────────────────────────────

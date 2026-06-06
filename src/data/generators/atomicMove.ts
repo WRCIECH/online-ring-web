@@ -65,8 +65,7 @@ const STAGE_VERBS: Record<AtomicStage, string> = {
 const MEDIUM_SUFFIX: Partial<Record<AtomicMedium, string>> = {
   Audio:  'as audio/voice',
   Video:  'as video',
-  Image:  'as an image/visual',
-  Hybrid: 'across formats',
+  Image:  'as an image/visual'
 }
 
 const ORIGIN_MODIFIER: Partial<Record<AtomicOrigin, string>> = {
@@ -103,7 +102,7 @@ const ORIGIN_MULT: Partial<Record<AtomicOrigin, number>> = {
   ZoomIn: 0.7,   ZoomOut: 0.7,   AudienceAlter: 0.7,
 }
 const MEDIUM_STA: Record<AtomicMedium, number> = {
-  Writing:1.0, Audio:1.1, Video:1.3, Image:0.9, Hybrid:1.4,
+  Writing:1.0, Audio:1.1, Video:1.3, Image:0.9,
 }
 
 // ── Stat calculations ─────────────────────────────────────────────────────────
@@ -185,8 +184,7 @@ const MEDIUM_BADGE_COLOR: Record<AtomicMedium, string> = {
   Writing: '#999999',
   Audio:   '#9966cc',
   Video:   '#cc4444',
-  Image:   '#44aacc',
-  Hybrid:  '#88aa44',
+  Image:   '#44aacc'
 }
 
 const ORIGIN_BADGE_COLOR: Record<AtomicOrigin, string> = {
