@@ -3,7 +3,8 @@ import type { CombatState, CombatAction } from '../../engine/combat'
 import { STA_DEFENSE_GAIN } from '../../engine/combat'
 import { WEAPONS, calcStepDamage } from '../../data/weapons'
 import { WEAPON_CLASSES } from '../../data/generators/weaponClasses'
-import type { WeaponInstance, DamageType, AtomicStage, AtomicMedium, AtomicOrigin, StatusType, ContentItem, GeneratedMoveset } from '../../types/game'
+import type { WeaponInstance, DamageType, AtomicStage, AtomicOrigin, StatusType, ContentItem, GeneratedMoveset } from '../../types/game'
+import type { ContentProductType } from '../../data/contentProducts'
 import { DMG_TYPE_INFO } from '../../data/contentDescriptions'
 import WeaponSprite from '../icons/WeaponSprite'
 import s from './TimerOverlay.module.css'
@@ -18,7 +19,7 @@ interface Props {
   onTaskAccomplished:   (
     contentId:  string | null,
     taskStage:  AtomicStage | null,
-    stamps:     { medium?: AtomicMedium; origin?: AtomicOrigin; status?: StatusType; style?: DamageType } | null,
+    stamps:     { product?: ContentProductType; origin?: AtomicOrigin; status?: StatusType; style?: DamageType } | null,
   ) => void
   // Publish-as-parry
   onParryAccomplished?: () => void
@@ -102,7 +103,7 @@ export default function TimerOverlay({
   const gm           = pendingMoveset as GeneratedMoveset | null
 
   const taskStage    = pendingStep?.stage        ?? null
-  const taskMedium   = gm?.dominant_medium       ?? null
+  const taskProduct  = gm?.dominant_product       ?? null
   const taskOrigin   = gm?.content_origin        ?? null
   const taskStatus   = gm?.status_buildup        ?? null
   const taskStyle    = pendingStep?.damage_type  ?? null
@@ -111,29 +112,29 @@ export default function TimerOverlay({
   const displayId   = dropdownOpen && hoveredId !== null ? hoveredId : selectedContentId
   const displayItem = activeContentItems.find(c => c.id === displayId) ?? null
 
-  const stageMismatch  = !!displayItem && !!taskStage && displayItem.phase !== taskStage
-  const mediumMismatch = !!displayItem?.stamped_medium && !!taskMedium && displayItem.stamped_medium !== taskMedium
+  const stageMismatch   = !!displayItem && !!taskStage && displayItem.phase !== taskStage
+  const productMismatch = !!displayItem?.stamped_product && !!taskProduct && displayItem.stamped_product !== taskProduct
   const originMismatch = !!displayItem?.stamped_origin && !!taskOrigin && displayItem.stamped_origin !== taskOrigin
   const statusMismatch = !!displayItem?.stamped_status && !!taskStatus && displayItem.stamped_status !== taskStatus
   const styleMismatch  = !!displayItem?.stamped_style  && !!taskStyle  && displayItem.stamped_style  !== taskStyle
 
   let mismatchMult = 1
-  if (stageMismatch)  mismatchMult *= 0.65
-  if (mediumMismatch) mismatchMult *= 0.85
-  if (originMismatch) mismatchMult *= 0.85
+  if (stageMismatch)   mismatchMult *= 0.65
+  if (productMismatch) mismatchMult *= 0.85
+  if (originMismatch)  mismatchMult *= 0.85
   if (statusMismatch) mismatchMult *= 0.85
   if (styleMismatch)  mismatchMult *= 0.85
   mismatchMult = Math.max(0.35, mismatchMult)
 
   const showImpact  = !timerIsDefense && !!displayItem
-  const anyMismatch = stageMismatch || mediumMismatch || originMismatch || statusMismatch || styleMismatch
+  const anyMismatch = stageMismatch || productMismatch || originMismatch || statusMismatch || styleMismatch
   const penaltyPct  = Math.round((1 - mismatchMult) * 100)
 
   // ── Per-item mismatch score (for dropdown ordering + inline hint) ─────────
   function itemMult(item: ContentItem): number {
     let m = 1
     if (taskStage  && item.phase !== taskStage)                                              m *= 0.65
-    if (taskMedium && item.stamped_medium && item.stamped_medium !== taskMedium)             m *= 0.85
+    if (taskProduct && item.stamped_product && item.stamped_product !== taskProduct)         m *= 0.85
     if (taskOrigin && item.stamped_origin && item.stamped_origin !== taskOrigin)             m *= 0.85
     if (taskStatus && item.stamped_status && item.stamped_status !== taskStatus)             m *= 0.85
     if (taskStyle  && item.stamped_style  && item.stamped_style  !== taskStyle)              m *= 0.85
@@ -356,25 +357,25 @@ export default function TimerOverlay({
                       : taskStage}
                   </span>
                 )}
-                {taskMedium && (
+                {taskProduct && (
                   <span
                     className={
-                      mediumMismatch             ? s.impactMismatch :
-                      !displayItem!.stamped_medium ? s.impactNew :
+                      productMismatch              ? s.impactMismatch :
+                      !displayItem!.stamped_product ? s.impactNew :
                       s.impactMatch
                     }
                     title={
-                      mediumMismatch
-                        ? `Article locked to ${displayItem!.stamped_medium}; task uses ${taskMedium} (−15% dmg)`
-                        : !displayItem!.stamped_medium
-                        ? `Will stamp article with ${taskMedium} medium`
-                        : `Medium matches`
+                      productMismatch
+                        ? `Article locked to ${displayItem!.stamped_product}; task uses ${taskProduct} (−15% dmg)`
+                        : !displayItem!.stamped_product
+                        ? `Will stamp article with ${taskProduct} product type`
+                        : `Product type matches`
                     }
                   >
-                    {mediumMismatch
-                      ? `${displayItem!.stamped_medium} ≠ ${taskMedium}`
-                      : taskMedium.replace(/_/g, ' ')}
-                    {!mediumMismatch && !displayItem!.stamped_medium && ' ✦'}
+                    {productMismatch
+                      ? `${displayItem!.stamped_product} ≠ ${taskProduct}`
+                      : taskProduct}
+                    {!productMismatch && !displayItem!.stamped_product && ' ✦'}
                   </span>
                 )}
                 {taskOrigin && (
@@ -479,7 +480,7 @@ export default function TimerOverlay({
             <button className={s.btnPrimary} onClick={() => {
               if (!timerIsDefense) onTaskAccomplished(
                 selectedContentId, taskStage,
-                selectedContentId ? { medium: taskMedium ?? undefined, origin: taskOrigin ?? undefined, status: taskStatus ?? undefined, style: taskStyle ?? undefined } : null,
+                selectedContentId ? { product: taskProduct ?? undefined, origin: taskOrigin ?? undefined, status: taskStatus ?? undefined, style: taskStyle ?? undefined } : null,
               )
               if (timerIsDefense && pendingDefenseAction === 'parry') onParryAccomplished?.()
               dispatch({ type: 'TIMER_RESULT', accomplished: true, statusApplied: true, mismatchMult })
@@ -496,7 +497,7 @@ export default function TimerOverlay({
               <button className={s.btnYes} onClick={() => {
                 if (!timerIsDefense) onTaskAccomplished(
                   selectedContentId, taskStage,
-                  selectedContentId ? { medium: taskMedium ?? undefined, origin: taskOrigin ?? undefined, status: taskStatus ?? undefined, style: taskStyle ?? undefined } : null,
+                  selectedContentId ? { product: taskProduct ?? undefined, origin: taskOrigin ?? undefined, status: taskStatus ?? undefined, style: taskStyle ?? undefined } : null,
                 )
                 if (timerIsDefense && pendingDefenseAction === 'parry') onParryAccomplished?.()
                 dispatch({ type: 'TIMER_RESULT', accomplished: true, statusApplied: true, mismatchMult })

@@ -1,4 +1,5 @@
-import type { AtomicOrigin, AtomicStage, AtomicMedium, DamageType, StatusType } from '../types/game'
+import type { AtomicOrigin, AtomicStage, DamageType, StatusType } from '../types/game'
+import type { ContentProductType } from './contentProducts'
 
 export type ContentEntry = {
   /** Short chip label used in badge rendering */
@@ -277,33 +278,30 @@ export const STAGE_INFO: Record<AtomicStage, ContentEntry> = {
   },
 }
 
-// ─── Medium ───────────────────────────────────────────────────────────────────
+// ─── Product type ─────────────────────────────────────────────────────────────
 
-export const MEDIUM_INFO: Record<AtomicMedium, ContentEntry> = {
-  Writing: {
-    badge_label: 'Text Medium',
-    label:       'Text — text-based format',
-    detail:      'Written content — articles, posts, essays, scripts, or any text-based format.',
-    example:     'A long-form newsletter issue, blog post, or Twitter/X thread.',
-  },
-  Audio: {
-    badge_label: 'Audio Medium',
-    label:       'Audio — spoken or recorded sound',
-    detail:      'Produce or record audio — podcast, voice note, or narration.',
-    example:     'Recording a podcast episode or a voice-memo brain dump.',
-  },
-  Video: {
-    badge_label: 'Video Medium',
-    label:       'Video — moving image content',
-    detail:      'Create video content — record, edit, or script for video.',
-    example:     'Filming and editing a YouTube video or a short-form Reel/TikTok.',
-  },
-  Image: {
-    badge_label: 'Image Medium',
-    label:       'Image — visual or graphic',
-    detail:      'Create or source visuals — graphics, photos, or illustrations.',
-    example:     'Designing a single-image carousel slide or sourcing a hero photo.',
-  }
+export const PRODUCT_INFO: Record<ContentProductType, ContentEntry> = {
+  Plaintext:          { badge_label: 'Plaintext',         label: 'Czysty tekst liniowy',                   detail: 'Surowy strumień świadomości, przemyślenie lub manifest pozbawiony formatowania.',                          example: 'Notatka, surowy wpis, skrypt, szkic myśli.' },
+  StructuredText:     { badge_label: 'Structured',        label: 'Tekst strukturyzowany',                  detail: 'Treść sformatowana pod szybką konsumpcję: wypunktowania, nagłówki, tabele.',                             example: 'Poradnik w punktach, FAQ, instrukcja obsługi.' },
+  IllustratedText:    { badge_label: 'Illustrated',       label: 'Artykuł ilustrowany',                    detail: 'Obszerna treść pisana, gdzie statyczne obrazy lub wykresy pełnią rolę wsparcia narracji.',               example: 'Artykuł blogowy z infografikami i zdjęciami.' },
+  SingleGraphic:      { badge_label: 'Graphic',           label: 'Pojedyncza grafika',                     detail: 'Samodzielny komunikat wizualny: mem, plakat autorski lub pojedyncze zdjęcie.',                           example: 'Mem, autorska fotografia, plakat promocyjny.' },
+  Carousel:           { badge_label: 'Carousel',          label: 'Sekwencja grafik (Karuzela)',             detail: 'Seria powiązanych obrazów przeglądanych linearnie bez dźwięku.',                                         example: 'Karuzela na IG, komiks, slajdy informacyjne.' },
+  Infographic:        { badge_label: 'Infographic',       label: 'Infografika syntezująca',                detail: 'Głęboka fuzja danych liczbowych z architekturą graficzną, opowiadająca zamkniętą historię.',              example: 'Mapa myśli, diagram procesu, wizualizacja danych.' },
+  RawAudio:           { badge_label: 'Raw Audio',         label: 'Surowy zapis audio',                     detail: 'Rejestracja głosu bez czyszczenia szumów, efektów i muzyki tła. Czysta autentyczność.',                  example: 'Surowa notatka głosowa, wywiad bez obróbki.' },
+  ProducedAudio:      { badge_label: 'Produced Audio',    label: 'Słuchowisko reżyserowane',               detail: 'Zmontowana ścieżka dźwiękowa: mastering, sound design, efekty i muzyka tła.',                            example: 'Podcast z muzyką i sound designem.' },
+  ARollVideo:         { badge_label: 'A-Roll Video',      label: 'Rejestracja rzeczywistości (A-Roll)',    detail: 'Gadająca głowa lub bezpośrednia relacja z kamery telefonu z prostymi cięciami.',                          example: 'Vlog, gadająca głowa, relacja z eventu.' },
+  SlideshowVideo:     { badge_label: 'Slideshow Video',   label: 'Kompozycja statyczno-dynamiczna',        detail: 'Oś audio (lektor) zsynchronizowana z montażem grafik, slajdów lub klipów stockowych.',                   example: 'Explainer z lektorem i slajdami, video essay.' },
+  Screencast:         { badge_label: 'Screencast',        label: 'Nagranie interfejsu (Screencast)',       detail: 'Przechwycony obraz z ekranu komputera z nałożonym komentarzem lub samouczkiem.',                         example: 'Tutorial software, demo aplikacji.' },
+  CinematicVideo:     { badge_label: 'Cinematic',         label: 'Wideo wielowarstwowe (Cinematic)',       detail: 'Skomplikowana struktura: zaawansowany montaż, korekcja barwna, wielokamerowość, reżyseria.',              example: 'Mini-dokument, cinematic vlog, short film.' },
+  MotionGraphics:     { badge_label: 'Motion',            label: 'Animacja cyfrowa (Motion)',              detail: 'Obraz wygenerowany w całości cyfrowo (2D/3D). Brak ujęć z realnego świata.',                             example: 'Animowany explainer, logo animation, motion reel.' },
+  LiveStream:         { badge_label: 'Live Stream',       label: 'Strumień na żywo (Live)',                detail: 'Produkcja i dystrybucja w czasie rzeczywistym. Brak postprodukcji, pełna improwizacja.',                 example: 'Stream na Twitchu, live na YouTube, IG Live.' },
+  MultimediaPage:     { badge_label: 'Multimedia Page',   label: 'Strona wielomedialna',                   detail: 'Nieliniowy reportaż internetowy łączący tekst, wideo i interaktywne osie czasu.',                       example: 'Interaktywny reportaż webowy, long-form feature.' },
+  BranchingNarrative: { badge_label: 'Branching Story',  label: 'Treść drzewiasta',                       detail: 'Interaktywne wideo lub tekst, gdzie decyzje odbiorcy rozgałęziają fabułę.',                              example: 'Interaktywne wideo, "wybierz własną przygodę".' },
+  AssetPack:          { badge_label: 'Asset Pack',        label: 'Paczka aktywów (Asset Pack)',            detail: 'Cyfrowe narzędzia dla innych twórców: presety, sample, szablony systemów, kody źródłowe.',               example: 'Preset Lightroom, szablon Notion, sample audio.' },
+  CurationFeed:       { badge_label: 'Curation',         label: 'Kuracja treści (Agregacja)',             detail: 'Autorskie filtrowanie chaosu sieci: bazy linków, prasówki, rankingi cudzych dzieł.',                     example: 'Newsletter z prasówką, baza narzędzi, katalog.' },
+  CommunitySpace:     { badge_label: 'Community',        label: 'Przestrzeń społecznościowa',             detail: 'Tworzenie architektury relacji – serwery, fora i zamknięte ekosystemy dyskusyjne.',                      example: 'Serwer Discord, zamknięte forum, Slack workspace.' },
+  InteractiveApp:     { badge_label: 'App / Tool',       label: 'Aplikacja / Gry / Widgety',              detail: 'Pełna nieliniowość kodu. Narzędzia jednofunkcyjne, kalkulatory lub pełnoprawne gry.',                   example: 'Kalkulator, quiz, mini-gra, interaktywne narzędzie.' },
+  _blank:             { badge_label: 'Experiment',       label: 'Coś innego (Eksperyment)',               detail: 'Awangardowa publikacja łamiąca standardowe ramy produkcji i percepcji internetu.',                       example: 'ARG, cyfrowy rytuał, antycontent, kapsuła czasu.' },
 }
 
 // ─── Backward-compatible string exports ──────────────────────────────────────

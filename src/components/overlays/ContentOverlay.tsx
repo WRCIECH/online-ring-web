@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from 'react'
 import { useGameStore, selectEquipLoad } from '../../store/gameStore'
 import type { ContentPhase, ContentItem } from '../../types/game'
-import { MEDIUM_INFO, CONTENT_ORIGIN_INFO, STATUS_INFO } from '../../data/contentDescriptions'
+import { PRODUCT_INFO, CONTENT_ORIGIN_INFO, STATUS_INFO } from '../../data/contentDescriptions'
 import s from './ContentOverlay.module.css'
 
 interface Props {
@@ -103,9 +103,9 @@ export default function ContentOverlay({ onClose, canAdd = true }: Props) {
 
   function renderStamps(item: ContentItem) {
     const chips: { label: string; color?: string }[] = []
-    if (item.stamped_medium) {
-      const info = MEDIUM_INFO[item.stamped_medium]
-      chips.push({ label: info?.badge_label ?? item.stamped_medium, color: '#888899' })
+    if (item.stamped_product) {
+      const info = PRODUCT_INFO[item.stamped_product]
+      chips.push({ label: info?.badge_label ?? item.stamped_product, color: '#888899' })
     }
     if (item.stamped_origin) {
       const info = CONTENT_ORIGIN_INFO[item.stamped_origin]

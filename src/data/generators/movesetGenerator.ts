@@ -1,11 +1,11 @@
 import type {
   GeneratedMoveset, MovesetVariant, WeaponClass, WeaponRarity, Step,
-  AtomicMedium, AtomicOrigin, StatKey, DamageType,
+  AtomicOrigin, StatKey, DamageType,
 } from '../../types/game'
+import type { ContentProductType } from '../contentProducts'
 import {
-  rollAtomicMove, pickStageChain, toStep, calcStaminaCost,
-  buildStatusBadge, NO_STATUS_BADGE,
-  type MovesetArchetype,
+  rollAtomicMove, toStep, calcStaminaCost,
+  buildStatusBadge, NO_STATUS_BADGE, UNIFIED_STAGE_CHAIN,
 } from './atomicMove'
 import { WEAPON_CLASSES } from './weaponClasses'
 import { registerMoveset } from '../movesets'
@@ -46,7 +46,6 @@ const VARIANT_MAX: Record<MovesetVariant, number> = {
 function rollComboLength(variant: MovesetVariant, rarity: WeaponRarity): number {
   const rarityBonus = rarity === 'epic' || rarity === 'legendary' ? 1 : 0
   const max = Math.min(7, VARIANT_MAX[variant] + rarityBonus)
-  // Roll from base distribution, clamped to max
   const available = COMBO_LENGTHS.slice(0, max)
   const weights   = COMBO_BASE_WEIGHTS.slice(0, max)
   return pick(available, weights)
@@ -64,50 +63,41 @@ const DMG_ADJ: Partial<Record<string, string>> = {
   occult: 'Occult', grafting: 'Grafted', poison: 'Venomous',
 }
 
-const ARCHETYPE_NOUN: Record<MovesetArchetype, string> = {
-  long_form:    'Manifesto',
-  micro:        'Burst',
-  commentary:   'Response',
-  research:     'Report',
-  compression:  'Digest',
-  remix:        'Remix',
-  storytelling: 'Chronicle',
-  hot_take:     'Opinion',
-  async:        'Dispatch',
-  editing:      'Revision',
+const PRODUCT_NOUN: Record<ContentProductType, string> = {
+  Plaintext:          'Draft',
+  StructuredText:     'Article',
+  IllustratedText:    'Feature',
+  SingleGraphic:      'Visual',
+  Carousel:           'Carousel',
+  Infographic:        'Report',
+  RawAudio:           'Voice',
+  ProducedAudio:      'Podcast',
+  ARollVideo:         'Clip',
+  SlideshowVideo:     'Slideshow',
+  Screencast:         'Tutorial',
+  CinematicVideo:     'Film',
+  MotionGraphics:     'Motion',
+  LiveStream:         'Stream',
+  MultimediaPage:     'Feature',
+  BranchingNarrative: 'Story',
+  AssetPack:          'Pack',
+  CurationFeed:       'Digest',
+  CommunitySpace:     'Community',
+  InteractiveApp:     'App',
+  _blank:             'Experiment',
 }
 
 const COMBO_SUFFIX: Record<number, string> = {
   2: 'Duo', 3: 'Trio', 4: 'Combo', 5: 'Barrage', 6: 'Cascade', 7: 'Onslaught',
 }
 
-// ── Dominant axis picking ─────────────────────────────────────────────────
+// ── All origins for random selection ─────────────────────────────────────
 
-const ARCHETYPE_MEDIUM: Record<MovesetArchetype, AtomicMedium[]> = {
-  long_form:    ['Writing','Writing','Audio'],
-  micro:        ['Writing','Image','Writing'],
-  commentary:   ['Writing','Writing','Video'],
-  research:     ['Writing','Audio','Writing'],
-  compression:  ['Writing','Writing','Writing'],
-  remix:        ['Writing','Video'],
-  storytelling: ['Writing','Video','Audio'],
-  hot_take:     ['Writing','Writing','Audio'],
-  async:        ['Writing','Audio','Writing'],
-  editing:      ['Writing','Writing','Writing'],
-}
-
-const ARCHETYPE_ORIGIN: Record<MovesetArchetype, AtomicOrigin> = {
-  long_form:    'New',
-  micro:        'New',
-  commentary:   'Commentary',
-  research:     'New',
-  compression:  'Compression',
-  remix:        'Recycled',
-  storytelling: 'New',
-  hot_take:     'New',
-  async:        'New',
-  editing:      'ZoomIn',
-}
+const ALL_ORIGINS: AtomicOrigin[] = [
+  'New', 'Commentary', 'Compression', 'Expansion',
+  'Recycled', 'Remastered', 'Revamped', 'Reboot',
+  'ZoomIn', 'ZoomOut', 'AudienceAlter',
+]
 
 // ── Time label from average step time ────────────────────────────────────
 
@@ -128,30 +118,28 @@ export function rollMoveset(
   rarity: WeaponRarity,
   forcedVariant?: MovesetVariant,
 ): GeneratedMoveset {
-  const classDef  = WEAPON_CLASSES[weaponClass]
-  const archetype: MovesetArchetype = pick(classDef.preferred_archetypes)
+  const classDef = WEAPON_CLASSES[weaponClass]
+  const dominantProduct = pick(classDef.supported_products) as ContentProductType
 
-  const variantWeights: number[]    = [40, 25, 30, 5]
-  const variants: MovesetVariant[]  = ['Light','Heavy','Skill','Jump']
-  const variant: MovesetVariant     = forcedVariant ?? pick(variants, variantWeights)
+  const variantWeights: number[]   = [40, 25, 30, 5]
+  const variants: MovesetVariant[] = ['Light', 'Heavy', 'Skill', 'Jump']
+  const variant: MovesetVariant    = forcedVariant ?? pick(variants, variantWeights)
 
   const len   = rollComboLength(variant, rarity)
-  const chain = pickStageChain(archetype).slice(0, len)
+  const chain = UNIFIED_STAGE_CHAIN.slice(0, len)
 
-  const mediumPool       = ARCHETYPE_MEDIUM[archetype]
-  const dominantMedium   = pick(mediumPool) as AtomicMedium
-  const dominantOrigin   = ARCHETYPE_ORIGIN[archetype]
+  const dominantOrigin = pick(ALL_ORIGINS)
 
   const primaryDmgType: DamageType | undefined = classDef.base_damage_types[0]
 
-  // Build steps with medium coherence (80% chance same medium as previous step)
-  let prevMedium: AtomicMedium = dominantMedium
+  // Build steps with product coherence (80% chance same product as previous step)
+  let prevProduct: ContentProductType = dominantProduct
   const steps: Step[] = chain.map((stage, i) => {
-    const medium: AtomicMedium = i === 0
-      ? dominantMedium
-      : Math.random() < 0.8 ? prevMedium : (pick(mediumPool) as AtomicMedium)
-    prevMedium = medium
-    const dims = rollAtomicMove(stage, variant, archetype, medium, dominantOrigin)
+    const product: ContentProductType = i === 0
+      ? dominantProduct
+      : Math.random() < 0.8 ? prevProduct : pick(classDef.supported_products) as ContentProductType
+    prevProduct = product
+    const dims = rollAtomicMove(stage, variant, product, dominantOrigin)
     return toStep(dims, primaryDmgType)
   })
 
@@ -173,21 +161,21 @@ export function rollMoveset(
     }))
   }
 
-  const sampleMove = rollAtomicMove(chain[0] ?? 'Produce', variant, archetype, dominantMedium, dominantOrigin)
+  const sampleMove = rollAtomicMove(chain[0] ?? 'Produce', variant, dominantProduct, dominantOrigin)
   const rawStamina = Math.round(
     scaledSteps.reduce((sum) => sum + calcStaminaCost(sampleMove), 0) * staMult
   )
   const totalStamina = Math.max(5, Math.round(rawStamina * classDef.stamina_mod))
   const totalFp = scaledSteps.length > 2 ? 3 : 0
 
-  // Build name: "[TimeAdj] [DmgAdj] [ArchetypeNoun]" + combo suffix for 2+ steps
-  const timeLabel  = dominantTimeLabel(scaledSteps)
-  const timeAdj    = TIME_ADJ[timeLabel] ?? timeLabel
-  const dmgAdj     = (primaryDmgType ? DMG_ADJ[primaryDmgType] : null) ?? 'Balanced'
-  const noun       = ARCHETYPE_NOUN[archetype]
-  const combo      = COMBO_SUFFIX[scaledSteps.length] ?? ''
-  const nameParts  = [timeAdj, dmgAdj, noun, combo].filter(Boolean)
-  const name       = nameParts.join(' ')
+  // Build name: "[TimeAdj] [DmgAdj] [ProductNoun]" + combo suffix for 2+ steps
+  const timeLabel = dominantTimeLabel(scaledSteps)
+  const timeAdj   = TIME_ADJ[timeLabel] ?? timeLabel
+  const dmgAdj    = (primaryDmgType ? DMG_ADJ[primaryDmgType] : null) ?? 'Balanced'
+  const noun      = PRODUCT_NOUN[dominantProduct]
+  const combo     = COMBO_SUFFIX[scaledSteps.length] ?? ''
+  const nameParts = [timeAdj, dmgAdj, noun, combo].filter(Boolean)
+  const name      = nameParts.join(' ')
 
   const primaryStat = (Object.keys(classDef.scaling)[0] ?? 'STR') as StatKey
 
@@ -218,7 +206,7 @@ export function rollMoveset(
     pipeline: { all_steps: [], unlocked_at: [], drops_at: [] },
     primary_damage_type: primaryDmgType,
     content_origin: dominantOrigin,
-    dominant_medium: dominantMedium,
+    dominant_product: dominantProduct,
     ...(infusion ? { infusion } : {}),
     ...(status_buildup ? { status_buildup } : {}),
   }
@@ -232,7 +220,7 @@ export function rollBlockMoveset(weaponClass: WeaponClass): GeneratedMoveset {
   const id = uid()
   const m: GeneratedMoveset = {
     id, name: 'Block', scaling_stat: 'END', stamina_cost: 0, fp_cost: 0,
-    types: ['defense','block'], rarity: 'common', variant_type: 'Skill', weapon_class: weaponClass,
+    types: ['defense', 'block'], rarity: 'common', variant_type: 'Skill', weapon_class: weaponClass,
     steps: [{ name: 'Write 3 words describing what you are building right now', time: 25, base_damage: 0, poise_damage: 0 }],
     pipeline: { all_steps: [], unlocked_at: [], drops_at: [] },
   }
