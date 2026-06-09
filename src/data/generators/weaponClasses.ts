@@ -26,7 +26,7 @@ export const WEAPON_CLASSES: Record<WeaponClass, WeaponClassDef> = {
   daggers: {
     id: 'daggers', name: 'Dagger', description: 'Micro-content: tweets, shorts, quick reactions.',
     poise_weight: 'light', heat_threshold: 60, base_damage_mult: 0.7,
-    supported_products: ['Plaintext', 'SingleGraphic'],
+    supported_products: ['SingleGraphic', 'Carousel', 'ARollVideo', 'LiveStream'],
     scaling: { DEX: 'S' },
     weight: 1.5, poise_value: 5,
     base_damage_types: ['lightning', 'standard'], damage_type_bonus: 1.25,
@@ -56,7 +56,7 @@ export const WEAPON_CLASSES: Record<WeaponClass, WeaponClassDef> = {
   katanas: {
     id: 'katanas', name: 'Katana', description: 'Polished craft pieces — quality over quantity.',
     poise_weight: 'medium', heat_threshold: 36, base_damage_mult: 1.1,
-    supported_products: ['IllustratedText', 'CinematicVideo', 'ProducedAudio'],
+    supported_products: ['ARollVideo', 'LiveStream', 'Plaintext', 'CommunitySpace'],
     scaling: { DEX: 'A' },
     weight: 5.5, poise_value: 20,
     base_damage_types: ['slash', 'standard'], damage_type_bonus: 1.25,
@@ -77,7 +77,7 @@ export const WEAPON_CLASSES: Record<WeaponClass, WeaponClassDef> = {
   spears: {
     id: 'spears', name: 'Spear', description: 'Research-driven content.',
     poise_weight: 'medium', heat_threshold: 33, base_damage_mult: 1.0,
-    supported_products: ['IllustratedText', 'Infographic', 'StructuredText'],
+    supported_products: ['CurationFeed', 'StructuredText', 'Carousel', 'MultimediaPage'],
     scaling: { DEX: 'B', STR: 'D' },
     weight: 4.5, poise_value: 25,
     base_damage_types: ['pierce'], damage_type_bonus: 1.30,
@@ -115,7 +115,7 @@ export const WEAPON_CLASSES: Record<WeaponClass, WeaponClassDef> = {
   colossal_swords: {
     id: 'colossal_swords', name: 'Colossal Sword', description: 'Books, courses, and long-form products.',
     poise_weight: 'colossal', heat_threshold: 9, base_damage_mult: 2.2,
-    supported_products: ['IllustratedText', 'MultimediaPage', 'InteractiveApp'],
+    supported_products: ['Plaintext', 'ARollVideo', 'LiveStream', 'ProducedAudio'],
     scaling: { STR: 'S' },
     weight: 22.0, poise_value: 100,
     base_damage_types: ['strike', 'standard'], damage_type_bonus: 1.40,
@@ -126,7 +126,7 @@ export const WEAPON_CLASSES: Record<WeaponClass, WeaponClassDef> = {
   thrusting_swords: {
     id: 'thrusting_swords', name: 'Thrusting Sword', description: 'Comments and reply content.',
     poise_weight: 'light', heat_threshold: 45, base_damage_mult: 0.75,
-    supported_products: ['Plaintext', 'SingleGraphic'],
+    supported_products: ['Plaintext', 'StructuredText', 'CurationFeed', 'CommunitySpace'],
     scaling: { INT: 'A', DEX: 'D' },
     weight: 2.5, poise_value: 10,
     base_damage_types: ['pierce', 'magic'], damage_type_bonus: 1.15,
@@ -136,7 +136,7 @@ export const WEAPON_CLASSES: Record<WeaponClass, WeaponClassDef> = {
   heavy_thrusting: {
     id: 'heavy_thrusting', name: 'Heavy Thrusting Sword', description: 'In-depth analysis and commentary.',
     poise_weight: 'medium', heat_threshold: 30, base_damage_mult: 1.1,
-    supported_products: ['IllustratedText', 'Infographic', 'StructuredText'],
+    supported_products: ['IllustratedText', 'Infographic', 'SlideshowVideo', 'MultimediaPage'],
     scaling: { INT: 'B', STR: 'D' },
     weight: 6.5, poise_value: 35,
     base_damage_types: ['pierce', 'magic'], damage_type_bonus: 1.20,
@@ -146,7 +146,7 @@ export const WEAPON_CLASSES: Record<WeaponClass, WeaponClassDef> = {
   curved_swords: {
     id: 'curved_swords', name: 'Curved Sword', description: 'Storytelling and narrative content.',
     poise_weight: 'medium', heat_threshold: 48, base_damage_mult: 1.0,
-    supported_products: ['Plaintext', 'IllustratedText', 'ARollVideo'],
+    supported_products: ['Plaintext', 'ProducedAudio', 'SlideshowVideo', 'CinematicVideo'],
     scaling: { DEX: 'A' },
     weight: 4.0, poise_value: 15,
     base_damage_types: ['slash'], damage_type_bonus: 1.20,
@@ -156,7 +156,7 @@ export const WEAPON_CLASSES: Record<WeaponClass, WeaponClassDef> = {
   curved_greatswords: {
     id: 'curved_greatswords', name: 'Curved Greatsword', description: 'Epic series and narrative sagas.',
     poise_weight: 'heavy', heat_threshold: 21, base_damage_mult: 1.4,
-    supported_products: ['MultimediaPage', 'CinematicVideo', 'IllustratedText'],
+    supported_products: ['ARollVideo', 'LiveStream', 'CinematicVideo', 'ProducedAudio'],
     scaling: { DEX: 'B', STR: 'D' },
     weight: 10.0, poise_value: 40,
     base_damage_types: ['slash'], damage_type_bonus: 1.30,
@@ -176,7 +176,7 @@ export const WEAPON_CLASSES: Record<WeaponClass, WeaponClassDef> = {
   great_hammers: {
     id: 'great_hammers', name: 'Great Hammer', description: 'Manifestos and major opinion pieces.',
     poise_weight: 'heavy', heat_threshold: 15, base_damage_mult: 1.7,
-    supported_products: ['Plaintext', 'IllustratedText'],
+    supported_products: ['Plaintext', 'SlideshowVideo', 'ProducedAudio', 'MultimediaPage'],
     scaling: { STR: 'A' },
     weight: 12.0, poise_value: 75,
     base_damage_types: ['strike'], damage_type_bonus: 1.40,
@@ -218,7 +218,7 @@ export const WEAPON_CLASSES: Record<WeaponClass, WeaponClassDef> = {
   great_spears: {
     id: 'great_spears', name: 'Great Spear', description: 'Investigative content.',
     poise_weight: 'heavy', heat_threshold: 18, base_damage_mult: 1.25,
-    supported_products: ['IllustratedText', 'Infographic', 'StructuredText'],
+    supported_products: ['StructuredText', 'IllustratedText', 'MultimediaPage', 'InteractiveApp'],
     scaling: { STR: 'B', DEX: 'C' },
     weight: 9.5, poise_value: 50,
     base_damage_types: ['pierce'], damage_type_bonus: 1.40,
@@ -228,7 +228,7 @@ export const WEAPON_CLASSES: Record<WeaponClass, WeaponClassDef> = {
   halberds: {
     id: 'halberds', name: 'Halberd', description: 'Hybrid research and opinion.',
     poise_weight: 'medium', heat_threshold: 27, base_damage_mult: 1.1,
-    supported_products: ['Infographic', 'IllustratedText', 'StructuredText'],
+    supported_products: ['StructuredText', 'Screencast', 'SlideshowVideo', 'MotionGraphics'],
     scaling: { STR: 'C', DEX: 'C' },
     weight: 8.0, poise_value: 40,
     base_damage_types: ['pierce', 'slash'], damage_type_bonus: 1.20,
@@ -238,7 +238,7 @@ export const WEAPON_CLASSES: Record<WeaponClass, WeaponClassDef> = {
   reapers: {
     id: 'reapers', name: 'Reaper', description: 'Commentary, takedowns, and critiques.',
     poise_weight: 'heavy', heat_threshold: 18, base_damage_mult: 1.2,
-    supported_products: ['Plaintext', 'IllustratedText', 'ARollVideo'],
+    supported_products: ['SingleGraphic', 'CinematicVideo', 'Carousel', 'MotionGraphics'],
     scaling: { ARC: 'A', DEX: 'D' },
     weight: 9.5, poise_value: 45,
     base_damage_types: ['slash', 'occult'], damage_type_bonus: 1.20,
@@ -248,7 +248,7 @@ export const WEAPON_CLASSES: Record<WeaponClass, WeaponClassDef> = {
   whips: {
     id: 'whips', name: 'Whip', description: 'Series and content cycles.',
     poise_weight: 'medium', heat_threshold: 42, base_damage_mult: 0.9,
-    supported_products: ['SlideshowVideo', 'CommunitySpace', 'Carousel'],
+    supported_products: ['Plaintext', 'ProducedAudio', 'SlideshowVideo', 'MultimediaPage'],
     scaling: { ARC: 'B', DEX: 'C' },
     weight: 3.0, poise_value: 5,
     base_damage_types: ['poison', 'occult'], damage_type_bonus: 1.20,
@@ -258,7 +258,7 @@ export const WEAPON_CLASSES: Record<WeaponClass, WeaponClassDef> = {
   greatbows: {
     id: 'greatbows', name: 'Greatbow', description: 'Long-tail evergreen content.',
     poise_weight: 'colossal', heat_threshold: 12, base_damage_mult: 1.6,
-    supported_products: ['IllustratedText', 'StructuredText', 'Infographic'],
+    supported_products: ['ARollVideo', 'SingleGraphic', 'LiveStream', 'CommunitySpace'],
     scaling: { FAI: 'A', STR: 'D' },
     weight: 11.0, poise_value: 60,
     base_damage_types: ['holy'], damage_type_bonus: 1.40,
@@ -287,7 +287,7 @@ export const WEAPON_CLASSES: Record<WeaponClass, WeaponClassDef> = {
   torches: {
     id: 'torches', name: 'Torch', description: 'Lifestyle and lo-fi vlog content.',
     poise_weight: 'light', heat_threshold: 9999, base_damage_mult: 0.6,
-    supported_products: ['ARollVideo', 'RawAudio', 'Plaintext'],
+    supported_products: ['RawAudio', 'ProducedAudio', 'ARollVideo', 'LiveStream'],
     scaling: { FAI: 'A', INT: 'D' },
     weight: 1.5, poise_value: 2,
     base_damage_types: ['fire'], damage_type_bonus: 1.30,

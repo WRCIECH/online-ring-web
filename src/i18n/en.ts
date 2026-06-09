@@ -117,12 +117,21 @@ const en: TranslationBundle = {
   },
 
   classes: {
-    chronicler: { name: 'Chronicler', description: 'Balanced and methodical. Covers all formats with equal confidence.' },
-    sprinter:   { name: 'Sprinter',   description: 'Fast, high-volume output. Many small pieces over one large one.' },
-    architect:  { name: 'Architect',  description: 'Heavy and deliberate. Builds structures designed to last.' },
-    researcher: { name: 'Researcher', description: 'Evidence-based and analytical. Depth before breadth.' },
-    storyteller:{ name: 'Storyteller',description: 'Narrative, emotional arc. Puts story above everything else.' },
-    orator:     { name: 'Orator',     description: 'Voice-first, spoken content. Presence and clarity above polish.' },
+    chronicler:   { name: 'Chronicler',   description: 'Balanced and methodical. Covers all formats with equal confidence.' },
+    sprinter:     { name: 'Sprinter',     description: 'Fast, high-volume output. Many small pieces over one large one.' },
+    architect:    { name: 'Architect',    description: 'Heavy and deliberate. Builds structures designed to last.' },
+    researcher:   { name: 'Researcher',   description: 'Evidence-based and analytical. Depth before breadth.' },
+    storyteller:  { name: 'Storyteller',  description: 'Narrative, emotional arc. Puts story above everything else.' },
+    orator:       { name: 'Orator',       description: 'Voice-first, spoken content. Presence and clarity above polish.' },
+    curator:      { name: 'Curator',      description: 'Discovers and organises. Connects scattered ideas into something valuable.' },
+    teacher:      { name: 'Teacher',      description: 'Simplifies complexity. Turns knowledge into actionable understanding.' },
+    experimenter: { name: 'Experimenter', description: 'Learns by doing. Publishes results instead of theories.' },
+    performer:    { name: 'Performer',    description: 'Leads with personality. People return for the creator more than the topic.' },
+    polemicist:   { name: 'Polemicist',   description: 'Confrontational and uncompromising. Thrives in the clash of ideas.' },
+    aesthete:     { name: 'Aesthete',     description: 'Form is content. Builds atmosphere, beauty, and a distinctive mood.' },
+    influencer:   { name: 'Influencer',   description: 'Aspirational and magnetic. Makes audiences want to be part of their world.' },
+    exposer:      { name: 'Exposer',      description: 'Hunts hidden truths. Uncovers what others prefer to leave unsaid.' },
+    prophet:      { name: 'Prophet',      description: 'Watches for coming change. Warns of threats and points toward the future.' },
   },
 
   subloc_names: {

@@ -117,12 +117,21 @@ const pl: TranslationBundle = {
   },
 
   classes: {
-    chronicler: { name: 'Kronikarz',    description: 'Zrównoważony i metodyczny. Obejmuje wszystkie formaty z jednakową pewnością siebie.' },
-    sprinter:   { name: 'Sprinter',     description: 'Szybkie, duże wolumeny. Wiele małych kawałków zamiast jednego dużego.' },
-    architect:  { name: 'Architekt',    description: 'Ciężki i celowy. Buduje struktury przeznaczone do przetrwania.' },
-    researcher: { name: 'Badacz',       description: 'Oparty na dowodach i analityczny. Głębia przed szerokością.' },
-    storyteller:{ name: 'Gawędziarz',   description: 'Narracja, emocjonalny łuk. Stawia historię ponad wszystko inne.' },
-    orator:     { name: 'Orator',       description: 'Treści głosowe, mówione. Obecność i jasność ponad szlifem.' },
+    chronicler:   { name: 'Kronikarz',       description: 'Zrównoważony i metodyczny. Obejmuje wszystkie formaty z jednakową pewnością siebie.' },
+    sprinter:     { name: 'Sprinter',        description: 'Szybkie, duże wolumeny. Wiele małych kawałków zamiast jednego dużego.' },
+    architect:    { name: 'Architekt',       description: 'Ciężki i celowy. Buduje struktury przeznaczone do przetrwania.' },
+    researcher:   { name: 'Badacz',          description: 'Oparty na dowodach i analityczny. Głębia przed szerokością.' },
+    storyteller:  { name: 'Gawędziarz',      description: 'Narracja, emocjonalny łuk. Stawia historię ponad wszystko inne.' },
+    orator:       { name: 'Orator',          description: 'Treści głosowe, mówione. Obecność i jasność ponad szlifem.' },
+    curator:      { name: 'Kurator',         description: 'Odkrywa i organizuje. Łączy rozproszone idee w wartościową całość.' },
+    teacher:      { name: 'Nauczyciel',      description: 'Upraszcza złożoność. Zamienia wiedzę w praktyczne zrozumienie.' },
+    experimenter: { name: 'Eksperymentator', description: 'Uczy się przez działanie. Publikuje wyniki zamiast teorii.' },
+    performer:    { name: 'Performer',       description: 'Przyciąga osobowością. Ludzie wracają dla twórcy bardziej niż dla tematu.' },
+    polemicist:   { name: 'Polemista',       description: 'Konfrontacyjny i bezkompromisowy. Rozwija się w starciu idei.' },
+    aesthete:     { name: 'Esteta',          description: 'Forma jest treścią. Buduje atmosferę, piękno i charakterystyczny klimat.' },
+    influencer:   { name: 'Idol',            description: 'Aspiracyjny i magnetyczny. Sprawia, że odbiorcy chcą być częścią jego świata.' },
+    exposer:      { name: 'Demaskator',      description: 'Poluje na ukryte prawdy. Odsłania to, co inni wolą przemilczeć.' },
+    prophet:      { name: 'Prorok',          description: 'Wypatruje nadchodzących zmian. Ostrzega przed zagrożeniami i wskazuje przyszłość.' },
   },
 
   subloc_names: {
