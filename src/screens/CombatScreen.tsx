@@ -17,7 +17,7 @@ import EnemyBars    from '../components/combat/EnemyBars'
 import CombatLog    from '../components/combat/CombatLog'
 import QuickBar     from '../components/combat/QuickBar'
 import RadialMenu, { type RadialItem } from '../components/combat/RadialMenu'
-import { useT } from '../i18n'
+import { useT, localizeStepName } from '../i18n'
 import s from './CombatScreen.module.css'
 
 // Map legacy drop IDs → new generation instructions
@@ -384,7 +384,7 @@ export default function CombatScreen() {
         return [{
           id: moveset.id, movesetId: moveset.id,
           label: moveset.name,
-          sublabel: `${prefix}${step.name}`,
+          sublabel: `${prefix}${localizeStepName(step, t)}`,
           metaParts: [
             { text: fmtTime(step.time) },
             { text: `${displayDmg} ${t.ui.dmg_suffix}`, color: '#cc6644' },

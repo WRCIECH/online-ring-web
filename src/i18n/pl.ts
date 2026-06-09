@@ -296,6 +296,8 @@ const pl: TranslationBundle = {
     notes_placeholder:      'Szkice notatek, linki, pomysły…',
     btn_add_article:        '+ Dodaj artykuł',
     add_article_disabled:   'Nie można dodawać w trakcie aktywnego zadania',
+    content_label_new:      'Nowy',
+    content_label_source:   'Źródło',
     published_label:        'Opublikowano',
     btn_collapse:           'Zwiń',
     btn_notes_toggle:       'Notatki',
@@ -337,7 +339,6 @@ const pl: TranslationBundle = {
     btn_equip:    '⚙ Ekwipunek',
     btn_stats:    '📊 Statystyki',
     btn_pipeline: '📋 Content',
-    btn_notes:    '✏ Notatki',
 
     // EquipOverlay
     equip_title:          '⚙ Ekwipunek',

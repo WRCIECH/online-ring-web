@@ -296,6 +296,8 @@ const en: TranslationBundle = {
     notes_placeholder:      'Rough notes, links, ideas…',
     btn_add_article:        '+ Add article',
     add_article_disabled:   'Cannot add during an active task',
+    content_label_new:      'New',
+    content_label_source:   'Source',
     published_label:        'Published',
     btn_collapse:           'Collapse',
     btn_notes_toggle:       'Notes',
@@ -337,7 +339,6 @@ const en: TranslationBundle = {
     btn_equip:    '⚙ Equip',
     btn_stats:    '📊 Stats',
     btn_pipeline: '📋 Pipeline',
-    btn_notes:    '✏ Notes',
 
     // EquipOverlay
     equip_title:          '⚙ Equipment',

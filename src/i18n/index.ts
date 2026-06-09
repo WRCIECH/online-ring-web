@@ -1,5 +1,5 @@
 import type { Locale, TranslationBundle, ContentEntry } from './types'
-import type { StepBadge, WeaponInstance } from '../types/game'
+import type { StepBadge, WeaponInstance, Step } from '../types/game'
 import en from './en'
 import pl from './pl'
 import { useGameStore } from '../store/gameStore'
@@ -49,6 +49,19 @@ export function localizeWeaponName(wi: WeaponInstance, t: TranslationBundle): st
   const translatedPrefix = t.weapon_prefixes[prefix] ?? prefix
   const translatedClass  = t.weapons[wi.weapon_class]?.name ?? wi.name.slice(spaceIdx + 1)
   return `${translatedPrefix} ${translatedClass}`
+}
+
+/** Build a localized step description from stored stage + product badge. */
+export function localizeStepName(step: Step, t: TranslationBundle): string {
+  const stageLabel = step.stage
+    ? ((t.content.stage as Record<string, ContentEntry>)[step.stage]?.label ?? step.name)
+    : step.name
+  const productTrKey = step.badges?.[1]?.tr_key
+  const productKey = productTrKey?.startsWith('product.') ? productTrKey.slice('product.'.length) : undefined
+  const productLabel = productKey
+    ? (t.content.product as Record<string, ContentEntry>)[productKey]?.badge_label
+    : undefined
+  return productLabel ? `${stageLabel} [${productLabel}]` : stageLabel
 }
 
 /** Hook — returns the active translation bundle for the current locale. */

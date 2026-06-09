@@ -5,7 +5,7 @@ import { WEAPONS, calcStepDamage } from '../../data/weapons'
 import { WEAPON_CLASSES } from '../../data/generators/weaponClasses'
 import type { WeaponInstance, DamageType, AtomicStage, AtomicOrigin, StatusType, ContentItem, GeneratedMoveset } from '../../types/game'
 import type { ContentProductType } from '../../data/contentProducts'
-import { useT, resolveBadge, localizeWeaponName } from '../../i18n'
+import { useT, resolveBadge, localizeWeaponName, localizeStepName } from '../../i18n'
 import { useGameStore } from '../../store/gameStore'
 import WeaponSprite from '../icons/WeaponSprite'
 import s from './TimerOverlay.module.css'
@@ -86,7 +86,7 @@ export default function TimerOverlay({
   if (isActive && timerIsDefense && pendingDefenseAction === 'parry') { header = t.ui.header_parry; headerColor = '#cc4422' }
   if (isExpired) { header = t.ui.header_times_up; headerColor = '#c9a93a' }
 
-  const taskName  = pendingStep?.name ?? ''
+  const taskName  = pendingStep ? localizeStepName(pendingStep, t) : ''
   const backLabel = timerIsDefense
     ? t.ui.give_up
     : isActive ? t.ui.back_with_cost : t.ui.back

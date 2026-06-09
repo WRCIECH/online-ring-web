@@ -238,7 +238,7 @@ export interface GameStore extends GameState {
   initClass: (classId: string) => void
 
   // Content pipeline
-  addContentItem: (name: string, phase?: ContentPhase) => void
+  addContentItem: (name: string, is_source?: boolean) => void
   updateContentItem: (id: string, patch: Partial<Pick<ContentItem, 'name' | 'phase' | 'notes'>>) => void
   removeContentItem: (id: string) => void
   publishContentItem: (id: string) => number   // returns rune reward granted
@@ -513,9 +513,9 @@ export const useGameStore = create<GameStore>((set, get) => ({
   },
 
   // ── Content pipeline ────────────────────────────────────────────────────
-  addContentItem: (name, phase = 'Research') => {
+  addContentItem: (name, is_source) => {
     const id = 'c_' + Math.random().toString(36).slice(2, 9)
-    const item: ContentItem = { id, name, phase }
+    const item: ContentItem = { id, name, phase: 'Research', ...(is_source ? { is_source: true } : {}) }
     set(s => ({ content_items: [...s.content_items, item] }))
     get().save()
   },

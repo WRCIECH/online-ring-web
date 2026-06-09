@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useGameStore, selectRunRemainingSeconds } from '../../store/gameStore'
 import EquipOverlay     from '../overlays/EquipOverlay'
-import NotepadOverlay   from '../overlays/NotepadOverlay'
 import StatsOverlay     from '../overlays/StatsOverlay'
 import ContentOverlay   from '../overlays/ContentOverlay'
 import LocationsOverlay from '../overlays/LocationsOverlay'
@@ -46,7 +45,6 @@ export default function RunHeader({ hp, maxHp, stamina, maxStamina, fp, maxFp, c
     selectRunRemainingSeconds(store as Parameters<typeof selectRunRemainingSeconds>[0])
   )
   const [showEquip,     setShowEquip]     = useState(false)
-  const [showNotepad,   setShowNotepad]   = useState(false)
   const [showStats,     setShowStats]     = useState(false)
   const [showContent,   setShowContent]   = useState(false)
   const [showLocations, setShowLocations] = useState(false)
@@ -91,14 +89,12 @@ export default function RunHeader({ hp, maxHp, stamina, maxStamina, fp, maxFp, c
           <button className={s.btn} onClick={() => setShowEquip(true)}>{t.ui.btn_equip}</button>
           <button className={s.btn} onClick={() => setShowStats(true)}>{t.ui.btn_stats}</button>
           <button className={s.btn} onClick={() => setShowContent(true)}>{t.ui.btn_pipeline}</button>
-          <button className={s.btn} onClick={() => setShowNotepad(true)}>{t.ui.btn_notes}</button>
         </div>
       </header>
 
       {showEquip     && <EquipOverlay     onClose={() => setShowEquip(false)} />}
       {showStats     && <StatsOverlay     onClose={() => setShowStats(false)} canLevel={false} />}
       {showContent   && <ContentOverlay   onClose={() => setShowContent(false)} canAdd={canAddContent} />}
-      {showNotepad   && <NotepadOverlay   onClose={() => setShowNotepad(false)} />}
       {showLocations && <LocationsOverlay onClose={() => setShowLocations(false)} />}
     </>
   )

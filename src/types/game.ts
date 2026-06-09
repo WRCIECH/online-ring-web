@@ -203,6 +203,7 @@ export interface ContentItem {
   phase: ContentPhase
   published_at?: number     // Date.now() when phase → 'Published'
   notes?: string     // optional rough notes
+  is_source?: boolean       // true = already-published source material (not going through pipeline)
   // Stamps applied on first task completion (lock the article's character)
   stamped_product?: ContentProductType  // from moveset's dominant_product
   stamped_origin?: AtomicOrigin         // from moveset's content_origin

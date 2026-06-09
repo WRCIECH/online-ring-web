@@ -13,8 +13,6 @@ const PHASES: ContentPhase[] = [
   'Research', 'Outline', 'Produce', 'Glue', 'Refine', 'Publish', 'Published',
 ]
 
-// Phases available when adding a new item (Published excluded — you can't start there)
-const ADD_PHASES: ContentPhase[] = ['Research', 'Outline', 'Produce', 'Glue', 'Refine', 'Publish']
 
 const PHASE_COLOR: Record<ContentPhase, string> = {
   Research:  '#5599dd',
@@ -42,7 +40,7 @@ export default function ContentOverlay({ onClose, canAdd = true }: Props) {
   const [editingNameVal,   setEditingNameVal]   = useState('')
   const [addingNew,        setAddingNew]        = useState(false)
   const [newName,          setNewName]          = useState('')
-  const [newPhase,         setNewPhase]         = useState<ContentPhase>('Research')
+  const [newIsSource,      setNewIsSource]      = useState(false)
   const newInputRef = useRef<HTMLInputElement>(null)
   const nameInputRef = useRef<HTMLInputElement>(null)
 
@@ -65,10 +63,10 @@ export default function ContentOverlay({ onClose, canAdd = true }: Props) {
 
   function handleAddConfirm() {
     const name = newName.trim()
-    if (!name) { setAddingNew(false); setNewName(''); setNewPhase('Research'); return }
-    store.addContentItem(name, newPhase)
+    if (!name) { setAddingNew(false); setNewName(''); setNewIsSource(false); return }
+    store.addContentItem(name, newIsSource)
     setNewName('')
-    setNewPhase('Research')
+    setNewIsSource(false)
     setAddingNew(false)
   }
 
@@ -202,6 +200,11 @@ export default function ContentOverlay({ onClose, canAdd = true }: Props) {
           </div>
         </div>
 
+        {/* Source badge */}
+        {item.is_source && (
+          <span className={s.sourceBadge}>{t.ui.content_label_source}</span>
+        )}
+
         {/* Stamps */}
         {renderStamps(item)}
 
@@ -261,14 +264,14 @@ export default function ContentOverlay({ onClose, canAdd = true }: Props) {
           {/* New item row */}
           {addingNew ? (
             <div className={s.newRow}>
-              <select
-                className={s.phaseSelect}
-                value={newPhase}
-                style={{ color: PHASE_COLOR[newPhase], borderColor: PHASE_COLOR[newPhase] + '66' }}
-                onChange={e => setNewPhase(e.target.value as ContentPhase)}
+              <button
+                className={[s.sourceToggle, newIsSource ? s.sourceToggleActive : ''].join(' ')}
+                type="button"
+                onMouseDown={e => e.preventDefault()}
+                onClick={() => setNewIsSource(v => !v)}
               >
-                {ADD_PHASES.map(p => <option key={p} value={p}>{p}</option>)}
-              </select>
+                {newIsSource ? t.ui.content_label_source : t.ui.content_label_new}
+              </button>
               <input
                 ref={newInputRef}
                 className={s.nameInput}
@@ -278,7 +281,7 @@ export default function ContentOverlay({ onClose, canAdd = true }: Props) {
                 onBlur={handleAddConfirm}
                 onKeyDown={e => {
                   if (e.key === 'Enter') handleAddConfirm()
-                  if (e.key === 'Escape') { setAddingNew(false); setNewName(''); setNewPhase('Research') }
+                  if (e.key === 'Escape') { setAddingNew(false); setNewName(''); setNewIsSource(false) }
                 }}
               />
             </div>
