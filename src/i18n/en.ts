@@ -302,8 +302,6 @@ const en: TranslationBundle = {
     learning_placeholder:   'Topic / material to learn…',
     btn_add_learning:       '+ Add learning task',
     learning_btn_done:      'Done',
-    content_label_new:      'New',
-    content_label_source:   'Source',
     published_label:        'Published',
     click_to_rename:        'Click to rename',
     untitled:               'Untitled',

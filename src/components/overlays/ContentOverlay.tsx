@@ -40,7 +40,6 @@ export default function ContentOverlay({ onClose, canAdd = true }: Props) {
   const [editingNameVal,   setEditingNameVal]   = useState('')
   const [addingNew,        setAddingNew]        = useState(false)
   const [newName,          setNewName]          = useState('')
-  const [newIsSource,      setNewIsSource]      = useState(false)
   const newInputRef = useRef<HTMLInputElement>(null)
   const nameInputRef = useRef<HTMLInputElement>(null)
   // Learning tab state
@@ -73,7 +72,7 @@ export default function ContentOverlay({ onClose, canAdd = true }: Props) {
   function handleAddConfirm() {
     const name = newName.trim()
     if (!name) { setAddingNew(false); setNewName(''); setNewIsSource(false); return }
-    store.addContentItem(name, newIsSource)
+    store.addContentItem(name)
     setNewName('')
     setNewIsSource(false)
     setAddingNew(false)
@@ -236,11 +235,6 @@ export default function ContentOverlay({ onClose, canAdd = true }: Props) {
           </div>
         </div>
 
-        {/* Source badge */}
-        {item.is_source && (
-          <span className={s.sourceBadge}>{t.ui.content_label_source}</span>
-        )}
-
         {/* Stamps */}
         {renderStamps(item)}
 
@@ -308,14 +302,6 @@ export default function ContentOverlay({ onClose, canAdd = true }: Props) {
           {/* New item row */}
           {addingNew ? (
             <div className={s.newRow}>
-              <button
-                className={[s.sourceToggle, newIsSource ? s.sourceToggleActive : ''].join(' ')}
-                type="button"
-                onMouseDown={e => e.preventDefault()}
-                onClick={() => setNewIsSource(v => !v)}
-              >
-                {newIsSource ? t.ui.content_label_source : t.ui.content_label_new}
-              </button>
               <input
                 ref={newInputRef}
                 className={s.nameInput}
@@ -325,7 +311,7 @@ export default function ContentOverlay({ onClose, canAdd = true }: Props) {
                 onBlur={handleAddConfirm}
                 onKeyDown={e => {
                   if (e.key === 'Enter') handleAddConfirm()
-                  if (e.key === 'Escape') { setAddingNew(false); setNewName(''); setNewIsSource(false) }
+                  if (e.key === 'Escape') { setAddingNew(false); setNewName('') }
                 }}
               />
             </div>

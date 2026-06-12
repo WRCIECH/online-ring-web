@@ -1,10 +1,10 @@
 import { create } from 'zustand'
-import type { GameState, LocationData, Stats, GeneratedMoveset, WeaponInstance, SublocationType, ContentItem, ContentPhase, AtomicOrigin, StatusType, DamageType, Locale } from '../types/game'
+import type { GameState, LocationData, Stats, GeneratedMoveset, WeaponInstance, SublocationType, ContentItem, ContentPhase, AtomicOrigin, StatusType, DamageType, Locale, LearningItem } from '../types/game'
 import type { ContentProductType } from '../data/contentProducts'
 import { ENEMIES } from '../data/enemies'
 import { saveGame, loadGame } from '../engine/save'
 import { registerWeapon } from '../data/weapons'
-import { RUN_DURATION_SECONDS, RUN_ESTUS_MAX, ESTUS_HEAL_FRACTION, ARTICLE_EQUIP_WEIGHT, statLevelCost, weaponUpgradeCost } from '../data/constants'
+import { RUN_DURATION_SECONDS, RUN_ESTUS_MAX, ESTUS_HEAL_FRACTION, ARTICLE_EQUIP_WEIGHT, LEARNING_ITEM_WEIGHT, statLevelCost, weaponUpgradeCost } from '../data/constants'
 import { MOVES, registerMoveset } from '../data/movesets'
 import { rollWeapon } from '../data/generators/weaponGenerator'
 import { LOCATION_DEFINITIONS } from '../data/locations'
@@ -114,6 +114,7 @@ function generateLocationSequence(numSublocations: number = 20, bossName?: strin
         enemy_id: enc.enemy_id,
         name: LOCATION_NAMES[i] ?? `Location ${i + 1}`,
         mult: baseMult,
+        tier: enc.tier,
         sublocation_type: 'boss' as SublocationType,
         ...(bossName ? { boss_name: bossName } : {}),
       }
@@ -137,6 +138,7 @@ function generateLocationSequence(numSublocations: number = 20, bossName?: strin
       enemy_id: enc.enemy_id,
       name: LOCATION_NAMES[i] ?? `Location ${i + 1}`,
       mult: finalMult,
+      tier: enc.tier,
       sublocation_type: type,
       ...(event_type ? { event_type } : {}),
     }
@@ -187,6 +189,8 @@ function initialState(): GameState {
     completed_locations: [],
     run_start_owned_movesets: [],
     content_items: [],
+    learning_items: [],
+    last_victory_time: 0,
     locale: 'pl',
   }
 }
@@ -238,11 +242,19 @@ export interface GameStore extends GameState {
   initClass: (classId: string) => void
 
   // Content pipeline
-  addContentItem: (name: string, is_source?: boolean) => void
+  addContentItem: (name: string) => void
   updateContentItem: (id: string, patch: Partial<Pick<ContentItem, 'name' | 'phase' | 'notes'>>) => void
   removeContentItem: (id: string) => void
   publishContentItem: (id: string) => number   // returns rune reward granted
   stampContentItem: (id: string, stamps: { product?: ContentProductType; origin?: AtomicOrigin; status?: StatusType; style?: DamageType }) => void
+
+  // Learning items
+  addLearningItem: (name: string) => void
+  completeLearningItem: (id: string) => void
+  removeLearningItem: (id: string) => void
+
+  // Momentum
+  setLastVictoryTime: (t: number) => void
 
   // Locale
   setLocale: (locale: Locale) => void
@@ -513,9 +525,9 @@ export const useGameStore = create<GameStore>((set, get) => ({
   },
 
   // ── Content pipeline ────────────────────────────────────────────────────
-  addContentItem: (name, is_source) => {
+  addContentItem: (name) => {
     const id = 'c_' + Math.random().toString(36).slice(2, 9)
-    const item: ContentItem = { id, name, phase: 'Research', ...(is_source ? { is_source: true } : {}) }
+    const item: ContentItem = { id, name, phase: 'Research' }
     set(s => ({ content_items: [...s.content_items, item] }))
     get().save()
   },
@@ -568,6 +580,30 @@ export const useGameStore = create<GameStore>((set, get) => ({
     get().save()
   },
 
+  // ── Learning items ───────────────────────────────────────────────────────
+  addLearningItem: (name) => {
+    const id = 'l_' + Math.random().toString(36).slice(2, 9)
+    const item: LearningItem = { id, name }
+    set(s => ({ learning_items: [...s.learning_items, item] }))
+    get().save()
+  },
+
+  completeLearningItem: (id) => {
+    set(s => ({
+      learning_items: s.learning_items.map(li =>
+        li.id === id ? { ...li, completed_at: Date.now() } : li
+      ),
+    }))
+    get().save()
+  },
+
+  removeLearningItem: (id) => {
+    set(s => ({ learning_items: s.learning_items.filter(li => li.id !== id) }))
+    get().save()
+  },
+
+  setLastVictoryTime: (t) => { set({ last_victory_time: t }); get().save() },
+
   setLocale: (locale) => { set({ locale }); get().save() },
 
   save: () => saveGame(get()),
@@ -578,6 +614,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
     // Back-fill fields added after a save was created (migration safety)
     if (!data.content_items) data.content_items = []
     if (!data.locale) data.locale = 'pl'
+    if (!data.last_victory_time) data.last_victory_time = 0
     hydrateRegistries(data)
     set({ ...data })
     return true
@@ -612,7 +649,9 @@ export const selectEnemyData = (s: GameStore) => {
 }
 
 export const selectEquipLoad = (s: GameStore) => {
-  const used     = s.content_items.filter(c => c.phase !== 'Published').length * ARTICLE_EQUIP_WEIGHT
+  const contentUsed  = s.content_items.filter(c => c.phase !== 'Published').length * ARTICLE_EQUIP_WEIGHT
+  const learningUsed = s.learning_items.filter(li => !li.completed_at).length * LEARNING_ITEM_WEIGHT
+  const used     = contentUsed + learningUsed
   const capacity = s.stats.END
   return { used, capacity }
 }

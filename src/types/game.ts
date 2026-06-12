@@ -176,6 +176,7 @@ export interface LocationData {
   enemy_id: string
   name: string
   mult: number
+  tier: number
   sublocation_type: SublocationType
   event_type?: string
   boss_name?: string
@@ -192,6 +193,13 @@ export interface Stats {
   ARC: number
 }
 
+// ── Learning items ────────────────────────────────────────────────────────
+export interface LearningItem {
+  id: string
+  name: string
+  completed_at?: number   // Date.now() when marked done; undefined = active
+}
+
 // ── Content pipeline ──────────────────────────────────────────────────────
 export type ContentPhase =
   | 'Research' | 'Outline' | 'Produce' | 'Glue'
@@ -203,7 +211,6 @@ export interface ContentItem {
   phase: ContentPhase
   published_at?: number     // Date.now() when phase → 'Published'
   notes?: string     // optional rough notes
-  is_source?: boolean       // true = already-published source material (not going through pipeline)
   // Stamps applied on first task completion (lock the article's character)
   stamped_product?: ContentProductType  // from moveset's dominant_product
   stamped_origin?: AtomicOrigin         // from moveset's content_origin
@@ -250,6 +257,10 @@ export interface GameState {
   run_start_owned_movesets: string[]
   // Content pipeline
   content_items: ContentItem[]
+  // Learning items
+  learning_items: LearningItem[]
+  // Momentum bonus timestamp (ms); 0 = no active momentum
+  last_victory_time: number
   // UI locale
   locale: Locale
 }
