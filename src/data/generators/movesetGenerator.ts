@@ -126,7 +126,15 @@ export function rollMoveset(
   const variant: MovesetVariant    = forcedVariant ?? pick(variants, variantWeights)
 
   const len   = rollComboLength(variant, rarity)
-  const chain = UNIFIED_STAGE_CHAIN.slice(0, len)
+  const startIdx = Math.floor(Math.random() * UNIFIED_STAGE_CHAIN.length)
+  let stageIdx = startIdx
+  const chain: AtomicStage[] = []
+  for (let i = 0; i < len; i++) {
+    chain.push(UNIFIED_STAGE_CHAIN[stageIdx])
+    if (i < len - 1 && stageIdx < UNIFIED_STAGE_CHAIN.length - 1 && Math.random() < 0.75) {
+      stageIdx++
+    }
+  }
 
   const dominantOrigin = pick(ALL_ORIGINS)
 
