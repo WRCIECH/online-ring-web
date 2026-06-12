@@ -71,10 +71,9 @@ export default function ContentOverlay({ onClose, canAdd = true }: Props) {
 
   function handleAddConfirm() {
     const name = newName.trim()
-    if (!name) { setAddingNew(false); setNewName(''); setNewIsSource(false); return }
+    if (!name) { setAddingNew(false); setNewName(''); return }
     store.addContentItem(name)
     setNewName('')
-    setNewIsSource(false)
     setAddingNew(false)
   }
 

@@ -1,8 +1,7 @@
-import type { CombatPhase, DefenseAction, Enemy, EnemyMove, GeneratedMoveset, Moveset, Step, Stats, WeaponClass, WeaponInstance, WeaponRarity, StatusType, DamageType } from '../types/game'
+import type { CombatPhase, DefenseAction, Enemy, EnemyMove, GeneratedMoveset, LearningItem, Moveset, Step, Stats, WeaponClass, WeaponInstance, StatusType, DamageType } from '../types/game'
 import { ENEMY_MOVES } from '../data/enemyMovesets'
 import { MOVES } from '../data/movesets'
 import { WEAPONS, calcStepDamage, getWeaponMovesets } from '../data/weapons'
-import { rollMoveset } from '../data/generators/movesetGenerator'
 import {
   STA_BLOCK, STA_DEFENSE_GAIN,
   FLOW_GAP_HOT_MINS, FLOW_GAP_WARM_MINS, FLOW_GAP_COLD_MINS,
@@ -10,6 +9,7 @@ import {
   OVERHEAT_PENALTY_PER_USE, OVERHEAT_PENALTY_MAX,
   STATUS_BUILDUP_PER_HIT,
   DMG_WEAKNESS_MULT, DMG_RESISTANCE_MULT,
+  momentumMult,
 } from '../data/constants'
 export { getActiveSteps } from '../data/generators/movesetGenerator'
 
@@ -95,15 +95,17 @@ export function getClassMod(wclass: WeaponClass | undefined, chainIdx: number): 
   }
 }
 
-// Generated roll moveset per enemy type (weapon class + rarity aligned with mob character)
-const ENEMY_ROLL_CONFIG: Record<string, { wclass: WeaponClass; rarity: WeaponRarity }> = {
-  procrastination_mob:  { wclass: 'daggers',         rarity: 'common' },
-  burnout_shade:        { wclass: 'fists',            rarity: 'common' },
-  hater:                { wclass: 'hammers',          rarity: 'magic'  },
-  blank_page_omen:      { wclass: 'straight_swords',  rarity: 'magic'  },
-  comparison_engine:    { wclass: 'thrusting_swords', rarity: 'rare'   },
-  fear_phantom:         { wclass: 'spears',           rarity: 'magic'  },
-  perfectionism_knight: { wclass: 'axes',             rarity: 'rare'   },
+// Dodge time range in seconds per mob tier [min, max]
+const DODGE_TIME_RANGES: Record<number, [number, number]> = {
+  1: [300,  900],   // 5–15 min
+  2: [900,  1800],  // 15–30 min
+  3: [1200, 2700],  // 20–45 min
+  4: [1800, 3540],  // 30–59 min
+}
+
+function rollDodgeTime(tier: number): number {
+  const [min, max] = DODGE_TIME_RANGES[tier] ?? DODGE_TIME_RANGES[2]
+  return Math.floor(Math.random() * (max - min) + min)
 }
 
 export interface LogEntry { id: number; text: string; color?: string }
@@ -151,10 +153,12 @@ export interface CombatState {
   lastMovesetCompletionMs: number
   // Heat accumulated this combat per weapon (flushed to store on end)
   weaponHeatAccumulated: Record<string, number>
-  // Enemy roll moveset (generated from mob's archetype; steps chain across rolls)
-  enemyRollMoveset: GeneratedMoveset | null
-  enemyRollStep: number       // next step index (advances on each successful roll)
+  // Dodge / learning
+  enemyTier: number
+  learningItems: LearningItem[]
   hasRolledSuccessfully: boolean
+  // Momentum bonus snapshotted at combat start
+  momentumMult: number
   // Status effects
   statusAccumulation: Partial<Record<import('../types/game').StatusType, number>>
   activeStatuses: Partial<Record<import('../types/game').StatusType, { turnsLeft: number }>>
@@ -319,8 +323,10 @@ function getDefenseTask(state: CombatState, action: DefenseAction) {
   const move = state.currentMove
   if (!move) return null
   if (action === 'roll') {
-    if (state.enemyRollMoveset) {
-      return state.enemyRollMoveset.steps[state.enemyRollStep] ?? move.dodge_task
+    const active = state.learningItems.filter(li => !li.completed_at)
+    if (active.length > 0) {
+      const item = active[Math.floor(Math.random() * active.length)]
+      return { name: item.name, time: rollDodgeTime(state.enemyTier) }
     }
     return move.dodge_task
   }
@@ -380,10 +386,11 @@ export function initCombatState(
   equipLoadRatio = 0,
   enemyIntroMsg?: string,
   enemyDescMsg?: string,
+  enemyTier = 2,
+  learningItems: LearningItem[] = [],
+  lastVictoryTime = 0,
 ): CombatState {
   const maxHp = Math.floor(enemyData.max_hp * enemyMult)
-  const rollCfg = ENEMY_ROLL_CONFIG[enemyId]
-  const enemyRollMoveset = rollCfg ? rollMoveset(rollCfg.wclass, rollCfg.rarity, 'Light') : null
 
   // Equip-load stamina penalty: each 10% over capacity = −5% max stamina (cap at −50%)
   const effectiveMaxSta = equipLoadRatio > 1
@@ -411,9 +418,10 @@ export function initCombatState(
     playerStats,
     lastMovesetCompletionMs: 0,
     weaponHeatAccumulated: {},
-    enemyRollMoveset,
-    enemyRollStep: 0,
+    enemyTier,
+    learningItems,
     hasRolledSuccessfully: false,
+    momentumMult: momentumMult(lastVictoryTime),
     statusAccumulation: {},
     activeStatuses: {},
     log: [], logId: 0,
@@ -514,19 +522,10 @@ export function combatReducer(state: CombatState, action: CombatAction): CombatS
         // Succeeded
         switch (action2) {
           case 'roll': {
-            const newSta   = Math.min(state.playerMaxStamina, state.playerStamina + STA_DEFENSE_GAIN)
-            const steps    = state.enemyRollMoveset?.steps ?? []
-            const nextStep = steps.length > 0
-              ? (state.enemyRollStep + 1) % steps.length
-              : 0
-            const stepLabel = steps.length > 1
-              ? ` [step ${state.enemyRollStep + 1}/${steps.length}]`
-              : ''
+            const newSta = Math.min(state.playerMaxStamina, state.playerStamina + STA_DEFENSE_GAIN)
             return enterPlayerAttack(log(
-              { ...state, playerStamina: newSta,
-                enemyRollStep: nextStep,
-                hasRolledSuccessfully: true },
-              `You roll away — no damage. (+${STA_DEFENSE_GAIN} STA)${stepLabel}`, '#55cc55'
+              { ...state, playerStamina: newSta, hasRolledSuccessfully: true },
+              `You roll away — no damage. (+${STA_DEFENSE_GAIN} STA)`, '#55cc55'
             ))
           }
           case 'parry': {
@@ -586,7 +585,7 @@ export function combatReducer(state: CombatState, action: CombatAction): CombatS
       const usesAfterThis = prevHeat + 1
       const overHeat      = Math.max(0, usesAfterThis - heatThreshold)
       const overheatMult  = Math.max(1 - OVERHEAT_PENALTY_MAX, 1 - overHeat * OVERHEAT_PENALTY_PER_USE)
-      const finalDmg  = Math.floor(baseDmg * cls.dmgMult * typeMult * frostDebuff * mismatchMult * overheatMult)
+      const finalDmg  = Math.floor(baseDmg * cls.dmgMult * typeMult * frostDebuff * mismatchMult * overheatMult * state.momentumMult)
       const dualDmg   = cls.dualStrike ? Math.floor(finalDmg * 0.4) : 0
       const totalDmg  = finalDmg + dualDmg
 

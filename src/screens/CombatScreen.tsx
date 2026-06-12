@@ -2,6 +2,7 @@ import { useReducer, useEffect, useCallback, useState, useMemo, useRef } from 'r
 import { useNavigate } from 'react-router-dom'
 import { combatReducer, initCombatState, STAGGER_PAUSE_MS, STA_BLOCK, STA_DEFENSE_GAIN, getClassMod } from '../engine/combat'
 import { useGameStore, selectEquipLoad } from '../store/gameStore'
+import { IDLE_KICK_MS } from '../data/constants'
 import { ENEMIES } from '../data/enemies'
 import { playSound } from '../engine/sound'
 import { WEAPONS, getWeaponMovesets, calcStepDamage } from '../data/weapons'
@@ -118,6 +119,9 @@ export default function CombatScreen() {
             loadRatio,
             `${t.ui.combat_intro_face} ${loc.boss_name ?? (t.enemies[loc.enemy_id]?.name ?? enemyData.name)}.`,
             t.enemies[loc.enemy_id]?.description ?? enemyData.description,
+            loc.tier ?? 2,
+            store.learning_items.filter(li => !li.completed_at),
+            store.last_victory_time,
           )
         : initCombatState(
             'procrastination_mob', ENEMIES['procrastination_mob'], 1,
@@ -128,6 +132,19 @@ export default function CombatScreen() {
           )
     }
   )
+
+  // ── Idle kick timer — redirect back to map if no task started within 2 min ─
+  const kickRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  useEffect(() => {
+    kickRef.current = setTimeout(() => navigate('/map'), IDLE_KICK_MS)
+    return () => { if (kickRef.current) clearTimeout(kickRef.current) }
+  }, [])
+  useEffect(() => {
+    if (state.stepStarted && kickRef.current) {
+      clearTimeout(kickRef.current)
+      kickRef.current = null
+    }
+  }, [state.stepStarted])
 
   // ── Side effects on phase change ───────────────────────────────────────
   useEffect(() => {
@@ -243,19 +260,6 @@ export default function CombatScreen() {
       }
     })
 
-    if (state.enemyRollMoveset) {
-      const dropChance = state.hasRolledSuccessfully ? 0.60 : 0.20
-      const obtained   = Math.random() < dropChance
-      items.push({
-        id:        state.enemyRollMoveset.id,
-        name:      state.enemyRollMoveset.name,
-        type:      'moveset',
-        obtained,
-        rarity:    state.enemyRollMoveset.rarity,
-        generated: state.enemyRollMoveset,
-      })
-    }
-
     setLootItems(items)
     setRunesEarned(enemy.rune_reward)
 
@@ -280,6 +284,7 @@ export default function CombatScreen() {
   // ── Victory handler ────────────────────────────────────────────────────
   const handleVictoryContinue = useCallback(() => {
     if (!loc || !lootItems) return
+    store.setLastVictoryTime(Date.now())
     store.syncCombatResult(state.playerHp, state.playerEstus, state.playerFp)
     store.applyWeaponHeat(state.weaponHeatAccumulated)
     // Earn runes from this kill
@@ -366,7 +371,7 @@ export default function CombatScreen() {
         // Class-adjusted values for display
         const level      = state.weaponLevels[weaponId] ?? 0
         const baseDmg    = weapon ? calcStepDamage(step, weapon, level) : step.base_damage
-        const mainDmg    = Math.floor(baseDmg * cls.dmgMult)
+        const mainDmg    = Math.floor(baseDmg * cls.dmgMult * state.momentumMult)
         const displayDmg = cls.dualStrike ? Math.floor(mainDmg * 1.4) : mainDmg
         const actualSta  = Math.floor(moveset.stamina_cost * cls.staCoeff)
 
@@ -418,12 +423,13 @@ export default function CombatScreen() {
       const publishTask = move.publish_task
       const blockMs     = weapon ? MOVES[weapon.defense_movesets.block]?.steps[0] : null
 
-      // Roll sublabel: show current step of the generated mob roll moveset
-      const rollSteps  = state.enemyRollMoveset?.steps ?? []
-      const rollStep   = rollSteps[state.enemyRollStep]
-      const rollPrefix = rollSteps.length > 1 ? `[${state.enemyRollStep + 1}/${rollSteps.length}] ` : ''
-      const rollSublabel = rollStep
-        ? `${rollPrefix}${rollStep.name} · ${fmtTime(rollStep.time)}`
+      // Roll sublabel: preview a random active learning item (or fallback to static dodge task)
+      const activeLearning = state.learningItems.filter(li => !li.completed_at)
+      const previewItem = activeLearning.length > 0
+        ? activeLearning[Math.floor(Math.random() * activeLearning.length)]
+        : null
+      const rollSublabel = previewItem
+        ? `🎓 ${previewItem.name}`
         : (move.dodge_task ? `${move.dodge_task.name} · ${fmtTime(move.dodge_task.time)}` : '???')
 
       const sta = Math.floor(state.playerStamina)
@@ -437,7 +443,7 @@ export default function CombatScreen() {
 
       const opts: Omit<RadialItem, 'tx' | 'ty'>[] = [
         {
-          id: 'roll', movesetId: state.enemyRollMoveset?.id ?? 'recovery_roll',
+          id: 'roll', movesetId: 'recovery_roll',
           label: t.ui.btn_roll,
           sublabel: rollSublabel,
           metaParts: [

@@ -39,42 +39,58 @@ const LOCATION_NAMES = [
   'Burnout Vale', 'Threshold Point', 'The Last Revision', 'Final Threshold',
 ]
 
-// Full 30-entry pool (supports up to very large locations)
 const ENCOUNTER_POOL: Array<{ enemy_id: string; tier: number }> = [
-  // Tier 1 (easy) — 10
-  { enemy_id: 'procrastination_mob', tier: 1 },
-  { enemy_id: 'procrastination_mob', tier: 1 },
-  { enemy_id: 'procrastination_mob', tier: 1 },
-  { enemy_id: 'procrastination_mob', tier: 1 },
-  { enemy_id: 'procrastination_mob', tier: 1 },
-  { enemy_id: 'burnout_shade',       tier: 1 },
-  { enemy_id: 'burnout_shade',       tier: 1 },
-  { enemy_id: 'burnout_shade',       tier: 1 },
-  { enemy_id: 'burnout_shade',       tier: 1 },
-  { enemy_id: 'burnout_shade',       tier: 1 },
-  // Tier 2 (medium) — 12
-  { enemy_id: 'fear_phantom',        tier: 2 },
-  { enemy_id: 'fear_phantom',        tier: 2 },
-  { enemy_id: 'fear_phantom',        tier: 2 },
-  { enemy_id: 'comparison_engine',   tier: 2 },
-  { enemy_id: 'comparison_engine',   tier: 2 },
-  { enemy_id: 'comparison_engine',   tier: 2 },
-  { enemy_id: 'hater',               tier: 2 },
-  { enemy_id: 'hater',               tier: 2 },
-  { enemy_id: 'hater',               tier: 2 },
-  { enemy_id: 'blank_page_omen',     tier: 2 },
-  { enemy_id: 'blank_page_omen',     tier: 2 },
-  { enemy_id: 'blank_page_omen',     tier: 2 },
-  // Tier 3 (hard) — 7
-  { enemy_id: 'blank_page_omen',     tier: 3 },
-  { enemy_id: 'blank_page_omen',     tier: 3 },
-  { enemy_id: 'comparison_engine',   tier: 3 },
-  { enemy_id: 'comparison_engine',   tier: 3 },
-  { enemy_id: 'fear_phantom',        tier: 3 },
-  { enemy_id: 'fear_phantom',        tier: 3 },
-  { enemy_id: 'hater',               tier: 3 },
-  // Boss (fixed) — 1
+  // Tier 1 (easy) — 15
+  { enemy_id: 'procrastination_mob',  tier: 1 },
+  { enemy_id: 'procrastination_mob',  tier: 1 },
+  { enemy_id: 'procrastination_mob',  tier: 1 },
+  { enemy_id: 'procrastination_mob',  tier: 1 },
+  { enemy_id: 'procrastination_mob',  tier: 1 },
+  { enemy_id: 'burnout_shade',        tier: 1 },
+  { enemy_id: 'burnout_shade',        tier: 1 },
+  { enemy_id: 'burnout_shade',        tier: 1 },
+  { enemy_id: 'burnout_shade',        tier: 1 },
+  { enemy_id: 'burnout_shade',        tier: 1 },
+  { enemy_id: 'notification_swarm',   tier: 1 },
+  { enemy_id: 'notification_swarm',   tier: 1 },
+  { enemy_id: 'notification_swarm',   tier: 1 },
+  { enemy_id: 'notification_swarm',   tier: 1 },
+  { enemy_id: 'notification_swarm',   tier: 1 },
+  // Tier 2 (medium) — 18
+  { enemy_id: 'fear_phantom',         tier: 2 },
+  { enemy_id: 'fear_phantom',         tier: 2 },
+  { enemy_id: 'fear_phantom',         tier: 2 },
+  { enemy_id: 'comparison_engine',    tier: 2 },
+  { enemy_id: 'comparison_engine',    tier: 2 },
+  { enemy_id: 'comparison_engine',    tier: 2 },
+  { enemy_id: 'hater',                tier: 2 },
+  { enemy_id: 'hater',                tier: 2 },
+  { enemy_id: 'hater',                tier: 2 },
+  { enemy_id: 'blank_page_omen',      tier: 2 },
+  { enemy_id: 'blank_page_omen',      tier: 2 },
+  { enemy_id: 'blank_page_omen',      tier: 2 },
+  { enemy_id: 'impostor_shade',       tier: 2 },
+  { enemy_id: 'impostor_shade',       tier: 2 },
+  { enemy_id: 'impostor_shade',       tier: 2 },
+  { enemy_id: 'algorithm_specter',    tier: 2 },
+  { enemy_id: 'algorithm_specter',    tier: 2 },
+  { enemy_id: 'algorithm_specter',    tier: 2 },
+  // Tier 3 (hard) — 10
+  { enemy_id: 'blank_page_omen',      tier: 3 },
+  { enemy_id: 'blank_page_omen',      tier: 3 },
+  { enemy_id: 'comparison_engine',    tier: 3 },
+  { enemy_id: 'comparison_engine',    tier: 3 },
+  { enemy_id: 'fear_phantom',         tier: 3 },
+  { enemy_id: 'fear_phantom',         tier: 3 },
+  { enemy_id: 'hater',                tier: 3 },
+  { enemy_id: 'deadline_wraith',      tier: 3 },
+  { enemy_id: 'deadline_wraith',      tier: 3 },
+  { enemy_id: 'deadline_wraith',      tier: 3 },
+  // Boss pool (one selected randomly per run) — 4
   { enemy_id: 'perfectionism_knight', tier: 4 },
+  { enemy_id: 'overload_colossus',    tier: 4 },
+  { enemy_id: 'distraction_weaver',   tier: 4 },
+  { enemy_id: 'void_tyrant',          tier: 4 },
 ]
 
 // Tier distribution per total sublocation count: [tier1, tier2, tier3]
@@ -99,11 +115,12 @@ function shuffle<T>(arr: T[]): T[] {
 
 function generateLocationSequence(numSublocations: number = 20, bossName?: string): LocationData[] {
   const [t1, t2, t3] = TIER_DIST[numSublocations] ?? TIER_DIST[20]
-  const tier1 = shuffle(ENCOUNTER_POOL.filter(e => e.tier === 1)).slice(0, t1)
-  const tier2 = shuffle(ENCOUNTER_POOL.filter(e => e.tier === 2)).slice(0, t2)
-  const tier3 = shuffle(ENCOUNTER_POOL.filter(e => e.tier === 3)).slice(0, t3)
-  const boss  = ENCOUNTER_POOL.filter(e => e.tier === 4)
-  const ordered = [...tier1, ...tier2, ...tier3, ...boss]
+  const tier1    = shuffle(ENCOUNTER_POOL.filter(e => e.tier === 1)).slice(0, t1)
+  const tier2    = shuffle(ENCOUNTER_POOL.filter(e => e.tier === 2)).slice(0, t2)
+  const tier3    = shuffle(ENCOUNTER_POOL.filter(e => e.tier === 3)).slice(0, t3)
+  const bossPool = ENCOUNTER_POOL.filter(e => e.tier === 4)
+  const boss     = [bossPool[Math.floor(Math.random() * bossPool.length)]]
+  const ordered  = [...tier1, ...tier2, ...tier3, ...boss]
 
   return ordered.map((enc, i) => {
     const baseMult = TIER_MULTS[enc.tier] ?? 1.0

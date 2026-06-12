@@ -11,7 +11,7 @@ export const RUN_DURATION_SECONDS = 172800
 export const RUN_ESTUS_MAX = 3
 
 /** Minimum active pipeline items required to enter combat. */
-export const MIN_PIPELINE_TO_FIGHT = 3
+export const MIN_PIPELINE_TO_FIGHT = 2
 
 /** Maximum weapons the player may equip for a run. */
 export const MAX_RUN_WEAPONS = 2
@@ -20,6 +20,9 @@ export const MAX_RUN_WEAPONS = 2
 
 /** Equip load contributed by each active (non-published) content item. */
 export const ARTICLE_EQUIP_WEIGHT = 1.0
+
+/** Equip load contributed by each active (non-completed) learning item. */
+export const LEARNING_ITEM_WEIGHT = 3.0
 
 // ── Healing ──────────────────────────────────────────────────────────────────
 
@@ -85,6 +88,28 @@ export const STATUS_BUILDUP_PER_HIT = 35
 export const DMG_WEAKNESS_MULT   = 1.3
 /** Damage multiplier when hitting a resistance. */
 export const DMG_RESISTANCE_MULT = 0.7
+
+// ── Momentum damage bonus ─────────────────────────────────────────────────────
+
+/** How long the post-victory momentum bonus lasts (ms). */
+export const MOMENTUM_DURATION_MS = 30 * 60 * 1000
+
+/** Starting bonus multiplier above 1.0 (0.30 = +30%). */
+export const MOMENTUM_MAX_BONUS = 0.30
+
+/** Seconds after combat start before an idle player is kicked back to the map. */
+export const IDLE_KICK_MS = 2 * 60 * 1000
+
+/**
+ * Returns the current damage multiplier from the momentum bonus.
+ * Decays linearly from 1.30 → 1.00 over MOMENTUM_DURATION_MS.
+ */
+export function momentumMult(lastVictoryTime: number): number {
+  if (!lastVictoryTime) return 1
+  const elapsed = Date.now() - lastVictoryTime
+  if (elapsed >= MOMENTUM_DURATION_MS) return 1
+  return 1 + MOMENTUM_MAX_BONUS * (1 - elapsed / MOMENTUM_DURATION_MS)
+}
 
 // ── Leveling ─────────────────────────────────────────────────────────────────
 

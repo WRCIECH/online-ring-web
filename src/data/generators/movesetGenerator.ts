@@ -1,6 +1,6 @@
 import type {
   GeneratedMoveset, MovesetVariant, WeaponClass, WeaponRarity, Step,
-  AtomicOrigin, StatKey, DamageType,
+  AtomicOrigin, AtomicStage, StatKey, DamageType,
 } from '../../types/game'
 import type { ContentProductType } from '../contentProducts'
 import {

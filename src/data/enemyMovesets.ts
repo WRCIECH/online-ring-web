@@ -134,6 +134,146 @@ export const ENEMY_MOVES: Record<string, EnemyMove> = {
     dodge_task: { name: 'Write what you want readers to feel after reading your piece', time: 20 },
     publish_task: { name: 'Write when and where you will publish your most important piece', time: 900 },
   },
+
+  // ── notification_swarm ──────────────────────────────────────────────────────
+  ping_attack: {
+    id: 'ping_attack', name: 'Ping Attack',
+    description: 'A barrage of alerts breaks your concentration.',
+    damage: 11, block_damage: 5, poise_damage: 6,
+    dodge_task: { name: 'Write the next sentence of your piece without checking any notifications', time: 20 },
+    publish_task: { name: 'Write your publish plan: title, platform, and date — then silence your phone', time: 900 },
+  },
+  alert_flood: {
+    id: 'alert_flood', name: 'Alert Flood',
+    description: 'Every app screams for your attention at once.',
+    damage: 17, block_damage: 7, poise_damage: 9,
+    dodge_task: { name: 'Write one sentence — do not look away from the page', time: 20 },
+    publish_task: { name: 'Write the next piece you will publish and its deadline — notifications off', time: 900 },
+  },
+
+  // ── impostor_shade ──────────────────────────────────────────────────────────
+  identity_erosion: {
+    id: 'identity_erosion', name: 'Identity Erosion',
+    description: "Who are you to write about any of this?",
+    damage: 23, block_damage: 10, poise_damage: 12,
+    dodge_task: { name: 'Write one true thing you have learned that others would benefit from', time: 20 },
+    publish_task: { name: 'Write why you specifically are the right person to publish this piece', time: 900 },
+  },
+  credential_doubt: {
+    id: 'credential_doubt', name: 'Credential Doubt',
+    description: 'Whispers that every reader will notice you do not belong.',
+    damage: 30, block_damage: 13, poise_damage: 17,
+    dodge_task: { name: 'Write one experience that gives you the right to speak on your topic', time: 20 },
+    publish_task: { name: 'Write the piece title, platform, and publish date — publish it as yourself', time: 900 },
+  },
+
+  // ── algorithm_specter ───────────────────────────────────────────────────────
+  engagement_trap: {
+    id: 'engagement_trap', name: 'Engagement Trap',
+    description: 'Rewrites your ideas for clicks instead of meaning.',
+    damage: 24, block_damage: 10, poise_damage: 13,
+    dodge_task: { name: 'Write the core idea you actually want to say — not what the algorithm wants', time: 20 },
+    publish_task: { name: 'Write your authentic title for this piece — one that serves the reader, not the feed', time: 900 },
+  },
+  shadow_ban: {
+    id: 'shadow_ban', name: 'Shadow Ban',
+    description: 'Makes you feel your work is vanishing into the void unseen.',
+    damage: 28, block_damage: 12, poise_damage: 15,
+    dodge_task: { name: 'Write the name of one real person your piece is written for', time: 20 },
+    publish_task: { name: 'Write where and when you will publish — one reader is enough', time: 900 },
+  },
+  virality_curse: {
+    id: 'virality_curse', name: 'Virality Curse',
+    description: 'Forces you to chase trends instead of your own voice.',
+    damage: 36, block_damage: 16, poise_damage: 20,
+    dodge_task: { name: 'Write one sentence that only you could write', time: 20 },
+    publish_task: { name: 'Write the title of your most honest upcoming piece — not the one most likely to trend', time: 900 },
+  },
+
+  // ── deadline_wraith ─────────────────────────────────────────────────────────
+  time_pressure: {
+    id: 'time_pressure', name: 'Time Pressure',
+    description: 'The clock ticks louder until you cannot think.',
+    damage: 29, block_damage: 13, poise_damage: 15,
+    dodge_task: { name: 'Write the next sentence — you have more time than you think', time: 20 },
+    publish_task: { name: 'Write your publish deadline — choose it, own it, commit to it', time: 900 },
+  },
+  clock_crush: {
+    id: 'clock_crush', name: 'Clock Crush',
+    description: 'The weight of the deadline slams down on your creative output.',
+    damage: 40, block_damage: 18, poise_damage: 23,
+    dodge_task: { name: 'Write one paragraph — done is better than perfect', time: 20 },
+    publish_task: { name: 'Write the exact date and time you will ship this piece — no more extensions', time: 900 },
+  },
+
+  // ── overload_colossus ───────────────────────────────────────────────────────
+  data_tsunami: {
+    id: 'data_tsunami', name: 'Data Tsunami',
+    description: 'An ocean of information crashes over your ability to focus.',
+    damage: 38, block_damage: 17, poise_damage: 22,
+    dodge_task: { name: 'Write the single most important point you want to make — just that', time: 20 },
+    publish_task: { name: 'Write what ONE idea your reader will walk away with from this piece', time: 900 },
+  },
+  tab_avalanche: {
+    id: 'tab_avalanche', name: 'Tab Avalanche',
+    description: 'Forty-seven open tabs collapse onto your working memory.',
+    damage: 32, block_damage: 15, poise_damage: 18,
+    dodge_task: { name: 'Close everything except your writing — write the next word', time: 20 },
+    publish_task: { name: 'Write the one piece you will finish today — close everything else', time: 900 },
+  },
+  context_switch: {
+    id: 'context_switch', name: 'Context Switch',
+    description: 'Splits your attention across three half-finished pieces.',
+    damage: 46, block_damage: 22, poise_damage: 28,
+    dodge_task: { name: 'Write only about the piece in front of you — just this one', time: 20 },
+    publish_task: { name: 'Write which single piece you will publish next and when — ignore the others', time: 900 },
+  },
+
+  // ── distraction_weaver ──────────────────────────────────────────────────────
+  attention_snare: {
+    id: 'attention_snare', name: 'Attention Snare',
+    description: 'Weaves a web of notifications you cannot stop checking.',
+    damage: 36, block_damage: 16, poise_damage: 20,
+    dodge_task: { name: 'Write one sentence — you are not trapped', time: 20 },
+    publish_task: { name: 'Write your publish commitment and set a phone-free writing block around it', time: 900 },
+  },
+  rabbit_hole: {
+    id: 'rabbit_hole', name: 'Rabbit Hole',
+    description: 'Pulls you into an endless research spiral you never asked for.',
+    damage: 28, block_damage: 12, poise_damage: 14,
+    dodge_task: { name: 'Write from what you already know — no new tabs', time: 20 },
+    publish_task: { name: 'Write the title and publish date for the piece you will stop researching and ship', time: 900 },
+  },
+  hypnotic_feed: {
+    id: 'hypnotic_feed', name: 'Hypnotic Feed',
+    description: 'The scroll is infinite. An hour passes without a word written.',
+    damage: 48, block_damage: 23, poise_damage: 30,
+    dodge_task: { name: 'Write the first thing on your mind about your topic — unfiltered', time: 20 },
+    publish_task: { name: 'Write the publish plan for your next piece before you open any social app again', time: 900 },
+  },
+
+  // ── void_tyrant ─────────────────────────────────────────────────────────────
+  creative_void: {
+    id: 'creative_void', name: 'Creative Void',
+    description: 'Every idea you have dissolves before it can become a sentence.',
+    damage: 40, block_damage: 18, poise_damage: 25,
+    dodge_task: { name: 'Write anything — one bad sentence still exists in the void', time: 20 },
+    publish_task: { name: 'Write the title of the piece you will not let the void take from you', time: 900 },
+  },
+  meaningless_abyss: {
+    id: 'meaningless_abyss', name: 'Meaningless Abyss',
+    description: "Why write if no one reads? Why create if it doesn't matter?",
+    damage: 52, block_damage: 25, poise_damage: 33,
+    dodge_task: { name: 'Write why one specific person would benefit from reading your work', time: 20 },
+    publish_task: { name: 'Write the title and date of the next piece you will publish — it matters', time: 900 },
+  },
+  void_embrace: {
+    id: 'void_embrace', name: 'Void Embrace',
+    description: 'Offers you comfortable silence in place of the difficulty of creation.',
+    damage: 30, block_damage: 14, poise_damage: 16,
+    dodge_task: { name: 'Write one sentence — reject the silence', time: 20 },
+    publish_task: { name: 'Write the piece you have been putting off — title, platform, publish date', time: 900 },
+  },
 }
 
 export function getEnemyMoves(ids: string[]): EnemyMove[] {

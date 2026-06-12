@@ -103,4 +103,139 @@ export const MOB_ANIMATIONS: Record<string, AnimFn> = {
       opacity: 0.55, duration: 1.8, ease: 'sine.inOut', yoyo: true, repeat: -1, delay: 0.6,
     })
   },
+
+  notification_swarm: () => {
+    // Whole swarm bobs nervously
+    gsap.to('[data-anim="mob-root"]', {
+      y: -10, duration: 0.7, ease: 'sine.inOut', yoyo: true, repeat: -1,
+    })
+    // Each bubble jitters independently — chaotic attention-seeking
+    gsap.to('[data-anim="bubble"]', {
+      y: -8, rotation: 10, svgOrigin: '0 0',
+      duration: 0.42, ease: 'power1.inOut', yoyo: true, repeat: -1,
+      stagger: { each: 0.08, from: 'random' },
+    })
+    // Trailing dots flash on and off
+    gsap.to('[data-anim="dot"]', {
+      opacity: 0.05, scale: 0.5, transformOrigin: '50% 50%',
+      duration: 0.5, ease: 'sine.inOut', yoyo: true, repeat: -1,
+      stagger: { each: 0.12, from: 'random' },
+    })
+  },
+
+  impostor_shade: () => {
+    // Uncertain body sway
+    gsap.to('[data-anim="mob-root"]', {
+      x: -5, duration: 2.2, ease: 'sine.inOut', yoyo: true, repeat: -1,
+    })
+    // Mask flickers — identity destabilising
+    gsap.to('[data-anim="mask"]', {
+      opacity: 0.2, scaleX: 1.06, svgOrigin: '0 -62',
+      duration: 1.3, ease: 'power2.inOut', yoyo: true, repeat: -1, repeatDelay: 0.9,
+    })
+    // Real eyes pulse — visible when mask fades
+    gsap.to('[data-anim="real-eyes"]', {
+      opacity: 0.25, duration: 0.9, ease: 'sine.inOut', yoyo: true, repeat: -1,
+      stagger: { each: 0.35, from: 'random' },
+    })
+  },
+
+  algorithm_specter: () => {
+    // Outer ring orbits continuously
+    gsap.to('[data-anim="ring-outer"]', {
+      rotation: 360, svgOrigin: '0 -20',
+      duration: 7, ease: 'none', repeat: -1,
+    })
+    // Data bars slide up then reset — scrolling feed effect
+    gsap.to('[data-anim="data-inner"]', {
+      y: -8, duration: 1.6, ease: 'sine.inOut', yoyo: true, repeat: -1,
+    })
+    // Core pulses
+    gsap.to('[data-anim="core"]', {
+      scale: 1.35, svgOrigin: '0 -20',
+      duration: 1.1, ease: 'sine.inOut', yoyo: true, repeat: -1,
+    })
+  },
+
+  deadline_wraith: () => {
+    // Slow ghostly float
+    gsap.to('[data-anim="mob-root"]', {
+      y: -10, duration: 3.5, ease: 'sine.inOut', yoyo: true, repeat: -1,
+    })
+    // Clock face pulses — time is running out
+    gsap.to('[data-anim="clock"]', {
+      scale: 1.06, svgOrigin: '0 -30',
+      duration: 2, ease: 'power1.inOut', yoyo: true, repeat: -1,
+    })
+    // Eyes glow and fade alternately
+    gsap.to('[data-anim="eye"]', {
+      opacity: 0.12, duration: 2, ease: 'sine.inOut', yoyo: true, repeat: -1,
+      stagger: 0.7,
+    })
+  },
+
+  overload_colossus: () => {
+    // Heavy teetering sway — too much weight to stand still
+    gsap.to('[data-anim="mob-root"]', {
+      x: -5, duration: 2.4, ease: 'sine.inOut', yoyo: true, repeat: -1,
+    })
+    // Main screen flickers — data overload
+    gsap.to('[data-anim="main-screen"]', {
+      opacity: 0.45, duration: 0.9, ease: 'power1.inOut', yoyo: true, repeat: -1, repeatDelay: 0.3,
+    })
+    // Eyes blink staggered like a wall of monitors turning on/off
+    gsap.to('[data-anim="eye"]', {
+      opacity: 0.3, duration: 1.3, ease: 'sine.inOut', yoyo: true, repeat: -1,
+      stagger: { each: 0.45, from: 'center' },
+    })
+    // Overflow papers flutter
+    gsap.to('[data-anim="paper"]', {
+      y: 6, duration: 2, ease: 'sine.inOut', yoyo: true, repeat: -1,
+      stagger: { each: 0.28, from: 'random' },
+    })
+  },
+
+  distraction_weaver: () => {
+    // Body pulses — predatory patience
+    gsap.to('[data-anim="mob-root"]', {
+      y: -7, duration: 2.8, ease: 'sine.inOut', yoyo: true, repeat: -1,
+    })
+    // Legs twitch like weaving/spinning
+    gsap.to('[data-anim="leg"]', {
+      rotation: 7, transformOrigin: '50% 50%',
+      duration: 1, ease: 'sine.inOut', yoyo: true, repeat: -1,
+      stagger: { each: 0.22, from: 'edges' },
+    })
+    // Compound eyes blink erratically
+    gsap.to('[data-anim="eye"]', {
+      opacity: 0.1, duration: 0.6, ease: 'power2.inOut', yoyo: true, repeat: -1,
+      stagger: { each: 0.14, from: 'random' },
+    })
+    // Notification dots on web flash
+    gsap.to('[data-anim="notif-dot"]', {
+      opacity: 0.15, duration: 0.55, ease: 'sine.inOut', yoyo: true, repeat: -1,
+      stagger: { each: 0.19, from: 'random' },
+    })
+  },
+
+  void_tyrant: () => {
+    // Vast slow drift — cosmic scale
+    gsap.to('[data-anim="mob-root"]', {
+      y: -8, duration: 4.5, ease: 'sine.inOut', yoyo: true, repeat: -1,
+    })
+    // Starfield inside twinkles
+    gsap.to('[data-anim="void-stars"] > *', {
+      opacity: 0.04, duration: 1.8, ease: 'sine.inOut', yoyo: true, repeat: -1,
+      stagger: { each: 0.14, from: 'random' },
+    })
+    // Eyes blaze then dim — alien indifference
+    gsap.to('[data-anim="eyes"]', {
+      opacity: 0.25, duration: 2.2, ease: 'power2.inOut', yoyo: true, repeat: -1,
+    })
+    // Crown tendrils ripple outward
+    gsap.to('[data-anim="tendrils"] > *', {
+      x: 6, duration: 2.5, ease: 'sine.inOut', yoyo: true, repeat: -1,
+      stagger: { each: 0.22, from: 'center' },
+    })
+  },
 }

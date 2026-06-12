@@ -7,7 +7,7 @@ import RunHeader from '../components/layout/RunHeader'
 import StatsOverlay    from '../components/overlays/StatsOverlay'
 import ContentOverlay  from '../components/overlays/ContentOverlay'
 import { useT } from '../i18n'
-import { MIN_PIPELINE_TO_FIGHT, GRACE_HEAL_FRACTION, GRACE_ESTUS_GAIN, GRACE_ESTUS_CAP } from '../data/constants'
+import { MIN_PIPELINE_TO_FIGHT, GRACE_HEAL_FRACTION, GRACE_ESTUS_GAIN, GRACE_ESTUS_CAP, MOMENTUM_DURATION_MS } from '../data/constants'
 import s from './RunMapScreen.module.css'
 
 // ── Map geometry (mirrors Godot constants) ────────────────────────────────
@@ -56,6 +56,8 @@ export default function RunMapScreen() {
   const [graceTimerActive, setGraceTimerActive] = useState(false)
   const [graceTimerLeft,   setGraceTimerLeft]   = useState(600)
   const [graceTimerDone,   setGraceTimerDone]   = useState(false)
+  const [momentumPct, setMomentumPct]   = useState(0)
+  const [momentumLeft, setMomentumLeft] = useState(0)
 
   const activeItemCount = store.content_items.filter(c => c.phase !== 'Published').length
   const canEnterFight   = activeItemCount >= MIN_PIPELINE_TO_FIGHT
@@ -185,6 +187,22 @@ export default function RunMapScreen() {
     draw()
   }, [draw])
 
+  // Momentum indicator — refresh every second
+  useEffect(() => {
+    function tick() {
+      const lvt = store.last_victory_time
+      if (!lvt) { setMomentumPct(0); setMomentumLeft(0); return }
+      const elapsed = Date.now() - lvt
+      if (elapsed >= MOMENTUM_DURATION_MS) { setMomentumPct(0); setMomentumLeft(0); return }
+      const frac = elapsed / MOMENTUM_DURATION_MS
+      setMomentumPct(Math.round(30 * (1 - frac)))
+      setMomentumLeft(Math.ceil((MOMENTUM_DURATION_MS - elapsed) / 1000))
+    }
+    tick()
+    const id = setInterval(tick, 1000)
+    return () => clearInterval(id)
+  }, [store.last_victory_time])
+
   // ── Input ────────────────────────────────────────────────────────────────
   function canvasCoords(e: React.MouseEvent<HTMLCanvasElement>) {
     const rect = canvasRef.current!.getBoundingClientRect()
@@ -297,6 +315,20 @@ export default function RunMapScreen() {
         onClick={handleClick}
         style={{ cursor: hoverIdx === current ? 'pointer' : 'default' }}
       />
+
+      {/* Momentum bonus indicator */}
+      {momentumPct > 0 && (
+        <div className={s.momentumIndicator}>
+          <span className={s.momentumLabel}>⚡ {t.ui.momentum_label}</span>
+          <span className={s.momentumBonus}>+{momentumPct}%</span>
+          <div className={s.momentumBar}>
+            <div className={s.momentumFill} style={{ width: `${(momentumLeft / (MOMENTUM_DURATION_MS / 1000)) * 100}%` }} />
+          </div>
+          <span className={s.momentumTimer}>
+            {Math.floor(momentumLeft / 60)}:{String(momentumLeft % 60).padStart(2, '0')}
+          </span>
+        </div>
+      )}
 
       {/* Hover tooltip */}
       {hoverIdx >= 0 && hoverIdx !== current && hoverLoc && hoverEnemy && (

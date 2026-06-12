@@ -173,6 +173,205 @@ function PerfectionismKnight() {
   )
 }
 
+function NotificationSwarm() {
+  const bubbles: [number, number, number, string, string][] = [
+    [-42, -15, 16, '#e85555', '!'],
+    [ 28, -38, 14, '#5588ee', '@'],
+    [ -8,  15, 18, '#e85555', '3'],
+    [ 50,  -5, 13, '#ee8833', '!'],
+    [-55,   5, 12, '#5588ee', '!'],
+    [  5, -55, 15, '#e85555', '7'],
+    [ 38,  28, 14, '#ee8833', '?'],
+  ]
+  return (
+    <g data-anim="mob-root" opacity={0.9}>
+      {bubbles.map(([x, y, r, color, label], i) => (
+        <g key={i} data-anim="bubble" transform={`translate(${x},${y})`}>
+          <circle r={r} fill="#12101e" stroke={color} strokeWidth={1.5}/>
+          <text textAnchor="middle" dy="0.35em" fontSize={r * 0.75} fill={color} fontFamily="monospace" fontWeight="bold">{label}</text>
+        </g>
+      ))}
+      {([[-25,-70],[45,-50],[-65,-30],[65,15],[-20,55],[15,55],[55,50]] as [number,number][]).map(([x,y],i) => (
+        <circle key={i} cx={x} cy={y} r={4} fill="#e85555" opacity={0.3+i*0.06} data-anim="dot"/>
+      ))}
+    </g>
+  )
+}
+
+function ImpostorShade() {
+  return (
+    <g data-anim="mob-root">
+      <ellipse cx={0} cy={-60} rx={22} ry={24} fill="#14101e" stroke="#665588" strokeWidth={1} strokeDasharray="4 3" opacity={0.7}/>
+      <path d="M0 -36 Q-12 -15 -18 20 Q-22 45 -14 65" stroke="#554477" strokeWidth={9} fill="none" strokeLinecap="round" opacity={0.6}/>
+      <path d="M0 -36 Q12 -15 18 20 Q22 45 14 65"    stroke="#554477" strokeWidth={9} fill="none" strokeLinecap="round" opacity={0.6}/>
+      <g data-anim="mask">
+        <ellipse cx={0} cy={-62} rx={28} ry={30} fill="#1c1630" stroke="#aa88cc" strokeWidth={2}/>
+        <line x1={-12} y1={-70} x2={-6} y2={-67} stroke="#aa88cc" strokeWidth={2} strokeLinecap="round"/>
+        <line x1={12}  y1={-70} x2={6}  y2={-67} stroke="#aa88cc" strokeWidth={2} strokeLinecap="round"/>
+        <path d="M-10 -52 Q0 -48 10 -52" stroke="#aa88cc" strokeWidth={2} fill="none"/>
+        <path d="M8 -92 L2 -72 L12 -50 L6 -36" stroke="#e85555" strokeWidth={1} fill="none" opacity={0.8}/>
+        <path d="M2 -72 L-4 -65"              stroke="#e85555" strokeWidth={1} fill="none" opacity={0.6}/>
+      </g>
+      <g data-anim="real-eyes">
+        <circle cx={-10} cy={-64} r={4} fill="#0a0818" stroke="#ee4444" strokeWidth={1}/>
+        <circle cx={10}  cy={-64} r={4} fill="#0a0818" stroke="#ee4444" strokeWidth={1}/>
+        <circle cx={-10} cy={-64} r={1.5} fill="#ee4444"/>
+        <circle cx={10}  cy={-64} r={1.5} fill="#ee4444"/>
+      </g>
+    </g>
+  )
+}
+
+function AlgorithmSpecter() {
+  return (
+    <g data-anim="mob-root">
+      <circle cx={0} cy={-20} r={58} fill="none" stroke="#1a7a7a" strokeWidth={1} strokeDasharray="8 4" opacity={0.5}/>
+      <g data-anim="ring-outer">
+        {([0,60,120,180,240,300] as number[]).map((deg,i) => {
+          const rad = deg * Math.PI / 180
+          return <circle key={i} cx={58*Math.cos(rad)} cy={-20+58*Math.sin(rad)} r={5} fill="#1a7a7a" stroke="#22bbbb" strokeWidth={1}/>
+        })}
+      </g>
+      <polygon points="0,-80 40,-25 25,30 -25,30 -40,-25" fill="#0a1818" stroke="#22bbbb" strokeWidth={2}/>
+      <polygon points="0,-80 40,-25 0,-50" fill="#1a4a4a" opacity={0.4}/>
+      <polygon points="0,-80 -40,-25 0,-50" fill="#0d3030" opacity={0.3}/>
+      <g data-anim="data-inner">
+        {([-15,-8,0,8,15] as number[]).map((x,i) => (
+          <rect key={i} x={x-2} y={-35+i*6} width={4} height={15+i*2} rx={1} fill="#22bbbb" opacity={0.5+i*0.08}/>
+        ))}
+      </g>
+      <circle cx={0} cy={-20} r={10} fill="#22bbbb" opacity={0.6} data-anim="core"/>
+      <circle cx={0} cy={-20} r={5}  fill="#88ffff" opacity={0.9}/>
+      {([[-35,30],[-15,30],[5,30],[25,30]] as [number,number][]).map(([x,y],i) => (
+        <line key={i} x1={x} y1={y} x2={x+i} y2={y+20+i*6} stroke="#22bbbb" strokeWidth={1} opacity={0.35}/>
+      ))}
+    </g>
+  )
+}
+
+function DeadlineWraith() {
+  return (
+    <g data-anim="mob-root">
+      <path d="M0 -110 Q25 -90 35 -50 Q45 0 40 60 Q20 80 0 75 Q-20 80 -40 60 Q-45 0 -35 -50 Q-25 -90 0 -110Z"
+        fill="#100d18" stroke="#663344" strokeWidth={1.5}/>
+      <ellipse cx={0} cy={-80} rx={22} ry={20} fill="#0a0812" stroke="#553344" strokeWidth={1}/>
+      <ellipse cx={-9} cy={-83} rx={5} ry={2.5} fill="#cc2233" opacity={0.9} data-anim="eye"/>
+      <ellipse cx={ 9} cy={-83} rx={5} ry={2.5} fill="#cc2233" opacity={0.9} data-anim="eye"/>
+      <g data-anim="clock">
+        <circle cx={0} cy={-30} r={24} fill="#0d0b15" stroke="#995566" strokeWidth={2}/>
+        <circle cx={0} cy={-30} r={2} fill="#cc2233"/>
+        {([0,30,60,90,120,150,180,210,240,270,300,330] as number[]).map((deg,i) => {
+          const rad = deg * Math.PI / 180
+          return <line key={i} x1={20*Math.sin(rad)} y1={-30-20*Math.cos(rad)} x2={23*Math.sin(rad)} y2={-30-23*Math.cos(rad)} stroke="#995566" strokeWidth={i%3===0?2:1}/>
+        })}
+        <line x1={0} y1={-30} x2={-4} y2={-49} stroke="#cc2233"  strokeWidth={2.5} strokeLinecap="round"/>
+        <line x1={0} y1={-30} x2={9}  y2={-12} stroke="#995566"  strokeWidth={1.5} strokeLinecap="round"/>
+      </g>
+      <path d="M-35 -10 Q-55 -5 -62 10 M-62 10 Q-65 18 -58 20 M-62 10 Q-64 20 -56 24 M-62 10 Q-60 22 -52 23"
+        stroke="#663344" strokeWidth={1.5} fill="none" strokeLinecap="round"/>
+      <path d="M35 -10 Q55 -5 62 10 M62 10 Q65 18 58 20 M62 10 Q64 20 56 24 M62 10 Q60 22 52 23"
+        stroke="#663344" strokeWidth={1.5} fill="none" strokeLinecap="round"/>
+    </g>
+  )
+}
+
+function OverloadColossus() {
+  return (
+    <g data-anim="mob-root">
+      <rect x={-55} y={20}  width={110} height={50} rx={3} fill="#1a1510" stroke="#887755" strokeWidth={1.5}/>
+      <rect x={-48} y={-30} width={96}  height={54} rx={3} fill="#1c1812" stroke="#998866" strokeWidth={1.5}/>
+      <rect x={-42} y={-75} width={84}  height={48} rx={3} fill="#1a1610" stroke="#887755" strokeWidth={1.5}/>
+      <g data-anim="main-screen">
+        <rect x={-36} y={-118} width={72} height={46} rx={3} fill="#0e0c08" stroke="#aa9966" strokeWidth={2}/>
+        {([0,1,2,3,4,5] as number[]).map(i => (
+          <line key={i} x1={-28} y1={-110+i*8} x2={28} y2={-110+i*8} stroke="#887755" strokeWidth={1} opacity={0.6}/>
+        ))}
+        <circle cx={0} cy={-95} r={10} fill="#887755" opacity={0.3}/>
+      </g>
+      {([[-28,-55],[0,-55],[28,-55]] as [number,number][]).map(([x,y],i) => (
+        <g key={i} data-anim="eye">
+          <rect x={x-10} y={y-8} width={20} height={16} rx={2} fill="#0a0804" stroke="#cc9944" strokeWidth={1}/>
+          <circle cx={x} cy={y} r={5} fill="#cc9944" opacity={0.8}/>
+        </g>
+      ))}
+      <rect x={-80} y={-70} width={28} height={60} rx={6} fill="#1a1510" stroke="#887755" strokeWidth={1.5}/>
+      <rect x={52}  y={-70} width={28} height={60} rx={6} fill="#1a1510" stroke="#887755" strokeWidth={1.5}/>
+      {([[-45,70],[-20,68],[10,72],[35,68],[55,70]] as [number,number][]).map(([x,y],i) => (
+        <path key={i} d={`M${x} ${y-10} Q${x+5} ${y} ${x+i*3} ${y+15}`} stroke="#887755" strokeWidth={2} fill="none" opacity={0.5} data-anim="paper"/>
+      ))}
+    </g>
+  )
+}
+
+function DistractionWeaver() {
+  const legs: [number, number, number, number, string][] = [
+    [-35, -20, -112, -10, '#e85555'],
+    [-35, -20, -106,  42, '#5588ee'],
+    [-35, -20,  -80,  75, '#ee8833'],
+    [ 35, -20,  112, -10, '#e85555'],
+    [ 35, -20,  106,  42, '#5588ee'],
+    [ 35, -20,   80,  75, '#ee8833'],
+  ]
+  return (
+    <g data-anim="mob-root">
+      {legs.map(([x1,y1,x2,y2,notifColor], i) => (
+        <g key={i} data-anim="leg">
+          <line x1={x1} y1={y1} x2={x2} y2={y2} stroke="#2a1a88" strokeWidth={3}/>
+          <line x1={x1} y1={y1} x2={x2} y2={y2} stroke="#5544cc" strokeWidth={1}/>
+          <circle cx={x2} cy={y2} r={5} fill={notifColor} opacity={0.85} data-anim="notif-dot"/>
+        </g>
+      ))}
+      <path d="M-112,-10 Q-109,16 -106,42 Q-93,58 -80,75" stroke="#2a1a88" strokeWidth={1} fill="none" opacity={0.5}/>
+      <path d="M112,-10 Q109,16 106,42 Q93,58 80,75"      stroke="#2a1a88" strokeWidth={1} fill="none" opacity={0.5}/>
+      <path d="M-80,75 Q0,66 80,75"                        stroke="#2a1a88" strokeWidth={1} fill="none" opacity={0.4}/>
+      <circle cx={0} cy={-20} r={40} fill="#0e0c18" stroke="#5544cc" strokeWidth={2}/>
+      <circle cx={0} cy={-20} r={28} fill="#0a0814" stroke="#3322aa" strokeWidth={1}/>
+      {([[-16,-30],[0,-34],[16,-30],[-22,-18],[22,-18]] as [number,number][]).map(([x,y],i) => (
+        <circle key={i} cx={x} cy={y} r={i<3?7:6} fill="#0a0812" stroke="#7766ee" strokeWidth={1.5} data-anim="eye"/>
+      ))}
+      <path d="M-14 -6 Q0 -2 14 -6 L12 5 Q0 9 -12 5Z" fill="#0a0812" stroke="#5544cc" strokeWidth={1}/>
+    </g>
+  )
+}
+
+function VoidTyrant() {
+  const stars: [number, number, number][] = [
+    [-20,-120,2.5],[15,-140,2],[-35,-100,1.5],[30,-110,2],
+    [-10,-80,1.5],[25,-85,2.5],[-40,-70,1.5],[40,-95,1.5],
+    [0,-60,2],[-25,-55,1.5],[20,-50,1.5],[-5,-130,1.5],
+    [35,-140,1],[-45,-130,1],
+  ]
+  return (
+    <g data-anim="mob-root">
+      <ellipse cx={0} cy={-50} rx={80} ry={110} fill="#0a0810" stroke="#330055" strokeWidth={1} opacity={0.7}/>
+      <path d="M-50 -130 Q0 -160 50 -130 L65 -60 Q70 0 50 50 Q20 80 0 75 Q-20 80 -50 50 Q-70 0 -65 -60Z"
+        fill="#0d0a14" stroke="#6600aa" strokeWidth={2}/>
+      <g data-anim="void-stars">
+        {stars.map(([x,y,r],i) => (
+          <circle key={i} cx={x} cy={y} r={r} fill="#ffffff" opacity={0.25+Math.abs(Math.sin(i))*0.2}/>
+        ))}
+      </g>
+      <g data-anim="eyes">
+        <ellipse cx={-20} cy={-105} rx={16} ry={13} fill="#0a0810" stroke="#9900ff" strokeWidth={1.5}/>
+        <ellipse cx={ 20} cy={-105} rx={16} ry={13} fill="#0a0810" stroke="#9900ff" strokeWidth={1.5}/>
+        <ellipse cx={-20} cy={-105} rx={10} ry={8} fill="#5500cc" opacity={0.8}/>
+        <ellipse cx={ 20} cy={-105} rx={10} ry={8} fill="#5500cc" opacity={0.8}/>
+        <circle cx={-20} cy={-105} r={3} fill="#cc00ff"/>
+        <circle cx={ 20} cy={-105} r={3} fill="#cc00ff"/>
+      </g>
+      <g data-anim="tendrils">
+        {([-50,-25,0,25,50] as number[]).map((x,i) => (
+          <path key={i} d={`M${x} -145 Q${x+10} -170 ${x+5} -195`} stroke="#6600aa" strokeWidth={2} fill="none" strokeLinecap="round"/>
+        ))}
+      </g>
+      <path d="M-65 -30 Q-90 -20 -100 -5 Q-105 5 -100 15 Q-105 5 -108 10"
+        stroke="#6600aa" strokeWidth={2} fill="none" strokeLinecap="round"/>
+      <path d="M65 -30 Q90 -20 100 -5 Q105 5 100 15 Q105 5 108 10"
+        stroke="#6600aa" strokeWidth={2} fill="none" strokeLinecap="round"/>
+    </g>
+  )
+}
+
 const ART: Record<string, () => React.ReactElement> = {
   procrastination_mob:    ProcrastinationMob,
   hater:                  Hater,
@@ -181,6 +380,13 @@ const ART: Record<string, () => React.ReactElement> = {
   comparison_engine:      ComparisonEngine,
   fear_phantom:           FearPhantom,
   perfectionism_knight:   PerfectionismKnight,
+  notification_swarm:     NotificationSwarm,
+  impostor_shade:         ImpostorShade,
+  algorithm_specter:      AlgorithmSpecter,
+  deadline_wraith:        DeadlineWraith,
+  overload_colossus:      OverloadColossus,
+  distraction_weaver:     DistractionWeaver,
+  void_tyrant:            VoidTyrant,
 }
 
 // ── Component ─────────────────────────────────────────────────────────────────
