@@ -18,6 +18,8 @@ import EnemyBars    from '../components/combat/EnemyBars'
 import CombatLog    from '../components/combat/CombatLog'
 import QuickBar     from '../components/combat/QuickBar'
 import RadialMenu, { type RadialItem } from '../components/combat/RadialMenu'
+import CombatMusic  from '../components/combat/CombatMusic'
+import { COMBAT_MUSIC } from '../data/combatMusic'
 import { useT, localizeStepName } from '../i18n'
 import s from './CombatScreen.module.css'
 
@@ -132,6 +134,8 @@ export default function CombatScreen() {
           )
     }
   )
+
+  const [musicMuted, setMusicMuted] = useState(false)
 
   // ── Idle kick timer — redirect back to map if no task started within 2 min ─
   const kickRef = useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -547,6 +551,13 @@ export default function CombatScreen() {
 
   return (
     <div className={s.root}>
+      <CombatMusic
+        videoId={loc ? COMBAT_MUSIC[loc.enemy_id] : undefined}
+        label={loc?.boss_name ?? (t.enemies[loc?.enemy_id ?? '']?.name ?? enemyData.name)}
+        muted={musicMuted}
+        onToggleMute={() => setMusicMuted(m => !m)}
+      />
+
       <RunHeader
         hp={state.playerHp}      maxHp={state.playerMaxHp}
         stamina={state.playerStamina} maxStamina={state.playerMaxStamina}

@@ -6,10 +6,6 @@ import s from './DefensePanel.module.css'
 
 interface Props { state: CombatState; dispatch: React.Dispatch<CombatAction> }
 
-function fmtTime(secs: number): string {
-  const m = Math.floor(secs / 60), sc = secs % 60
-  return m > 0 ? `${m}m ${sc}s` : `${sc}s`
-}
 
 export default function DefensePanel({ state, dispatch }: Props) {
   const { currentMove, playerStamina, enemyData, equippedWeapons } = state
@@ -19,7 +15,6 @@ export default function DefensePanel({ state, dispatch }: Props) {
   const wid        = equippedWeapons[0]
   const weapon     = WEAPONS[wid]
 
-  const dodge  = currentMove.dodge_task
   const publish = currentMove.publish_task
   const blockMs  = weapon ? MOVES[weapon.defense_movesets.block]?.steps[0] : null
 
@@ -52,7 +47,7 @@ export default function DefensePanel({ state, dispatch }: Props) {
       <div className={s.list}>
         {btn(
           `Roll  →  +${STA_DEFENSE_GAIN} STA, 0 dmg`,
-          dodge ? `${dodge.name}  ·  ${fmtTime(dodge.time)}` : '???',
+          'Need 2+ learning items',
           false,
           () => dispatch({ type: 'DEFENSE_CHOSEN', action: 'roll' }),
         )}
