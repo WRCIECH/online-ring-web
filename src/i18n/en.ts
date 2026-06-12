@@ -293,7 +293,6 @@ const en: TranslationBundle = {
     overload_warning:       '⚠ Overloaded — increase Endurance to carry more',
     empty_pipeline:         'No active content. Add an article to get started.',
     article_placeholder:    'Article title…',
-    notes_placeholder:      'Rough notes, links, ideas…',
     btn_add_article:        '+ Add article',
     add_article_disabled:   'Cannot add during an active task',
     tab_content:            'Content',
@@ -306,8 +305,6 @@ const en: TranslationBundle = {
     content_label_new:      'New',
     content_label_source:   'Source',
     published_label:        'Published',
-    btn_collapse:           'Collapse',
-    btn_notes_toggle:       'Notes',
     click_to_rename:        'Click to rename',
     untitled:               'Untitled',
 
@@ -492,6 +489,9 @@ const en: TranslationBundle = {
 
     // Combat init log
     combat_intro_face:    'You face',
+
+    // Momentum bonus indicator
+    momentum_label:       'Momentum',
   },
 }
 

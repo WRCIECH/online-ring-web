@@ -293,7 +293,6 @@ const pl: TranslationBundle = {
     overload_warning:       '⚠ Przeciążony — zwiększ Wytrzymałość, by nosić więcej',
     empty_pipeline:         'Brak aktywnych treści. Dodaj artykuł, by zacząć.',
     article_placeholder:    'Tytuł artykułu…',
-    notes_placeholder:      'Szkice notatek, linki, pomysły…',
     btn_add_article:        '+ Dodaj artykuł',
     add_article_disabled:   'Nie można dodawać w trakcie aktywnego zadania',
     tab_content:            'Treści',
@@ -306,8 +305,6 @@ const pl: TranslationBundle = {
     content_label_new:      'Nowy',
     content_label_source:   'Źródło',
     published_label:        'Opublikowano',
-    btn_collapse:           'Zwiń',
-    btn_notes_toggle:       'Notatki',
     click_to_rename:        'Kliknij, aby zmienić nazwę',
     untitled:               'Bez tytułu',
 
@@ -492,6 +489,9 @@ const pl: TranslationBundle = {
 
     // Combat init log
     combat_intro_face:    'Stajesz naprzeciw',
+
+    // Momentum bonus indicator
+    momentum_label:       'Impet',
   },
 }
 

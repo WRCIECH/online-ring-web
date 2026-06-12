@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react'
 import { useGameStore, selectEquipLoad } from '../../store/gameStore'
-import type { ContentPhase, ContentItem } from '../../types/game'
+import type { ContentPhase, ContentItem, LearningItem } from '../../types/game'
 import { useT } from '../../i18n'
 import s from './ContentOverlay.module.css'
 
@@ -33,8 +33,8 @@ export default function ContentOverlay({ onClose, canAdd = true }: Props) {
   const t      = useT()
   const load   = selectEquipLoad(store as Parameters<typeof selectEquipLoad>[0])
 
+  const [activeTab,        setActiveTab]        = useState<'content' | 'learning'>('content')
   const [showPublished,    setShowPublished]    = useState(false)
-  const [expandedId,       setExpandedId]       = useState<string | null>(null)
   const [confirmDeleteId,  setConfirmDeleteId]  = useState<string | null>(null)
   const [editingNameId,    setEditingNameId]    = useState<string | null>(null)
   const [editingNameVal,   setEditingNameVal]   = useState('')
@@ -43,6 +43,10 @@ export default function ContentOverlay({ onClose, canAdd = true }: Props) {
   const [newIsSource,      setNewIsSource]      = useState(false)
   const newInputRef = useRef<HTMLInputElement>(null)
   const nameInputRef = useRef<HTMLInputElement>(null)
+  // Learning tab state
+  const [addingLearn,      setAddingLearn]      = useState(false)
+  const [newLearnName,     setNewLearnName]     = useState('')
+  const learnInputRef = useRef<HTMLInputElement>(null)
 
   const active    = store.content_items.filter(c => c.phase !== 'Published')
   const published = store.content_items.filter(c => c.phase === 'Published')
@@ -61,6 +65,11 @@ export default function ContentOverlay({ onClose, canAdd = true }: Props) {
     if (editingNameId) nameInputRef.current?.focus()
   }, [editingNameId])
 
+  // Auto-focus learning input
+  useEffect(() => {
+    if (addingLearn) learnInputRef.current?.focus()
+  }, [addingLearn])
+
   function handleAddConfirm() {
     const name = newName.trim()
     if (!name) { setAddingNew(false); setNewName(''); setNewIsSource(false); return }
@@ -69,6 +78,42 @@ export default function ContentOverlay({ onClose, canAdd = true }: Props) {
     setNewIsSource(false)
     setAddingNew(false)
   }
+
+  function handleLearnConfirm() {
+    const name = newLearnName.trim()
+    if (!name) { setAddingLearn(false); setNewLearnName(''); return }
+    store.addLearningItem(name)
+    setNewLearnName('')
+    setAddingLearn(false)
+  }
+
+  function renderLearningItem(item: LearningItem) {
+    return (
+      <div key={item.id} className={s.learnItem}>
+        <span className={s.learnName}>{item.name}</span>
+        <div className={s.learnActions}>
+          <button
+            className={s.btnDone}
+            onClick={() => store.completeLearningItem(item.id)}
+            title={t.ui.learning_btn_done}
+          >
+            {t.ui.learning_btn_done}
+          </button>
+          <button
+            className={s.btnDelete}
+            onClick={() => store.removeLearningItem(item.id)}
+            title={t.ui.btn_delete ?? 'Delete'}
+          >
+            ✕
+          </button>
+        </div>
+      </div>
+    )
+  }
+
+  const completedLearning = store.learning_items.filter(li => !!li.completed_at)
+    .sort((a, b) => (b.completed_at ?? 0) - (a.completed_at ?? 0))
+  const activeLearning = store.learning_items.filter(li => !li.completed_at)
 
   function handleNameEdit(item: ContentItem) {
     setEditingNameId(item.id)
@@ -93,7 +138,6 @@ export default function ContentOverlay({ onClose, canAdd = true }: Props) {
   function handleDelete(item: ContentItem) {
     if (item.phase === 'Research' || confirmDeleteId === item.id) {
       store.removeContentItem(item.id)
-      if (expandedId === item.id) setExpandedId(null)
       setConfirmDeleteId(null)
     } else {
       setConfirmDeleteId(item.id)
@@ -127,7 +171,6 @@ export default function ContentOverlay({ onClose, canAdd = true }: Props) {
   }
 
   function renderItem(item: ContentItem) {
-    const isExpanded  = expandedId === item.id
     const isEditName  = editingNameId === item.id
     const isConfirmDel = confirmDeleteId === item.id
     const color = PHASE_COLOR[item.phase]
@@ -172,13 +215,6 @@ export default function ContentOverlay({ onClose, canAdd = true }: Props) {
 
           {/* Actions */}
           <div className={s.itemActions}>
-            <button
-              className={s.btnToggle}
-              onClick={() => setExpandedId(isExpanded ? null : item.id)}
-              title={isExpanded ? t.ui.btn_collapse : t.ui.btn_notes_toggle}
-            >
-              {isExpanded ? '▲' : '▼'}
-            </button>
             {isConfirmDel ? (
               <>
                 <button className={s.btnConfirmDel} onClick={() => handleDelete(item)}>
@@ -208,17 +244,6 @@ export default function ContentOverlay({ onClose, canAdd = true }: Props) {
         {/* Stamps */}
         {renderStamps(item)}
 
-        {/* Expandable notes */}
-        {isExpanded && (
-          <div className={s.notesWrap}>
-            <textarea
-              className={s.notes}
-              placeholder={t.ui.notes_placeholder}
-              value={item.notes ?? ''}
-              onChange={e => store.updateContentItem(item.id, { notes: e.target.value })}
-            />
-          </div>
-        )}
       </div>
     )
   }
@@ -229,8 +254,24 @@ export default function ContentOverlay({ onClose, canAdd = true }: Props) {
 
         {/* ── Header ─────────────────────────────────────────────── */}
         <div className={s.header}>
-          <div className={s.title}>{t.ui.pipeline_title}</div>
+          <div className={s.title}>{activeTab === 'content' ? t.ui.pipeline_title : t.ui.learning_title}</div>
           <button className={s.btnClose} onClick={onClose}>{t.ui.btn_close}</button>
+        </div>
+
+        {/* ── Tab bar ─────────────────────────────────────────────── */}
+        <div className={s.tabBar}>
+          <button
+            className={[s.tab, activeTab === 'content' ? s.tabActive : ''].join(' ')}
+            onClick={() => setActiveTab('content')}
+          >
+            {t.ui.tab_content}
+          </button>
+          <button
+            className={[s.tab, activeTab === 'learning' ? s.tabActive : ''].join(' ')}
+            onClick={() => setActiveTab('learning')}
+          >
+            {t.ui.tab_learning}
+          </button>
         </div>
 
         {/* ── Equip load bar ──────────────────────────────────────── */}
@@ -253,6 +294,9 @@ export default function ContentOverlay({ onClose, canAdd = true }: Props) {
         </div>
 
         <hr className={s.sep} />
+
+        {/* ── Content tab ─────────────────────────────────────────── */}
+        {activeTab === 'content' && <>
 
         {/* ── Active items ────────────────────────────────────────── */}
         <div className={s.itemList}>
@@ -333,6 +377,62 @@ export default function ContentOverlay({ onClose, canAdd = true }: Props) {
             )}
           </>
         )}
+
+        </>}
+
+        {/* ── Learning tab ─────────────────────────────────────────── */}
+        {activeTab === 'learning' && <>
+          <div className={s.itemList}>
+            {activeLearning.length === 0 && !addingLearn && (
+              <div className={s.empty}>{t.ui.empty_learning}</div>
+            )}
+            {activeLearning.map(renderLearningItem)}
+
+            {addingLearn ? (
+              <div className={s.newRow}>
+                <input
+                  ref={learnInputRef}
+                  className={s.nameInput}
+                  placeholder={t.ui.learning_placeholder}
+                  value={newLearnName}
+                  onChange={e => setNewLearnName(e.target.value)}
+                  onBlur={handleLearnConfirm}
+                  onKeyDown={e => {
+                    if (e.key === 'Enter') handleLearnConfirm()
+                    if (e.key === 'Escape') { setAddingLearn(false); setNewLearnName('') }
+                  }}
+                />
+              </div>
+            ) : (
+              <button className={s.btnAdd} onClick={() => setAddingLearn(true)}>
+                {t.ui.btn_add_learning}
+              </button>
+            )}
+          </div>
+
+          {completedLearning.length > 0 && (
+            <>
+              <hr className={s.sep} />
+              <div className={s.itemList}>
+                {completedLearning.map(item => (
+                  <div key={item.id} className={[s.learnItem, s.learnItemDone].join(' ')}>
+                    <span className={s.learnName}>{item.name}</span>
+                    <div className={s.learnActions}>
+                      <span className={s.learnDoneDate}>{item.completed_at ? fmtDate(item.completed_at) : ''}</span>
+                      <button
+                        className={s.btnDelete}
+                        onClick={() => store.removeLearningItem(item.id)}
+                        title="Remove"
+                      >
+                        ✕
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </>
+          )}
+        </>}
 
       </div>
     </div>

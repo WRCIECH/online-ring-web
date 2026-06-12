@@ -24,6 +24,37 @@
   gap: 12px;
 }
 
+/* ── Tab bar ──────────────────────────────────────────────────────────── */
+
+.tabBar {
+  display: flex;
+  gap: 4px;
+  border-bottom: 1px solid var(--color-sep);
+  padding-bottom: 0;
+  margin-bottom: -4px;
+}
+
+.tab {
+  font-size: 0.78rem;
+  letter-spacing: 0.06em;
+  padding: 6px 18px;
+  border-radius: var(--radius) var(--radius) 0 0;
+  border: 1px solid transparent;
+  border-bottom: none;
+  background: transparent;
+  color: var(--color-text-dim);
+  cursor: pointer;
+  transition: color 0.12s, background 0.12s;
+}
+
+.tab:hover { color: var(--color-text); }
+
+.tabActive {
+  background: var(--color-bg-panel);
+  border-color: var(--color-sep);
+  color: var(--color-text);
+}
+
 /* ── Header ───────────────────────────────────────────────────────────── */
 
 .header {
@@ -275,24 +306,6 @@
   white-space: nowrap;
 }
 
-/* ── Notes textarea ───────────────────────────────────────────────────── */
-
-.notesWrap {
-  padding: 0 10px 10px;
-}
-
-.notes {
-  width: 100%;
-  min-height: 90px;
-  resize: vertical;
-  font-size: 0.82rem;
-  padding: 8px 10px;
-  background: rgba(0,0,0,0.25);
-  border: 1px solid var(--color-sep);
-  border-radius: 3px;
-  color: var(--color-text);
-  line-height: 1.5;
-}
 
 /* ── New item row ─────────────────────────────────────────────────────── */
 
@@ -383,3 +396,58 @@
 }
 
 .collapseToggle:hover { color: var(--color-text); }
+
+/* ── Learning items ───────────────────────────────────────────────────── */
+
+.learnItem {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--color-sep);
+}
+
+.learnItem:last-child { border-bottom: none; }
+
+.learnItemDone {
+  opacity: 0.45;
+}
+
+.learnName {
+  flex: 1;
+  font-size: 0.85rem;
+  color: var(--color-text);
+}
+
+.learnItemDone .learnName {
+  text-decoration: line-through;
+  color: var(--color-text-dim);
+}
+
+.learnActions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.learnDoneDate {
+  font-size: 0.68rem;
+  color: var(--color-text-dim);
+  white-space: nowrap;
+}
+
+.btnDone {
+  font-size: 0.68rem;
+  letter-spacing: 0.05em;
+  padding: 3px 10px;
+  border-radius: 3px;
+  border: 1px solid #44aa7766;
+  background: rgba(68,170,119,0.08);
+  color: #55bb88;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.12s;
+}
+
+.btnDone:hover { background: rgba(68,170,119,0.18); }
