@@ -426,6 +426,7 @@ const pl: TranslationBundle = {
     btn_end_turn:         'Zakończ turę',
     end_turn_sublabel:    'Przekaż wrogowi',
     btn_roll:             'Unik',
+    roll_needs_learning:  'Potrzeba 2+ elementów do nauki',
     sta_on_success:       'STA przy sukcesie',
     btn_block:            'Blok',
     block_sublabel:       'Natychmiast — bez zadania',

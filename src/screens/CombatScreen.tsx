@@ -423,14 +423,14 @@ export default function CombatScreen() {
       const publishTask = move.publish_task
       const blockMs     = weapon ? MOVES[weapon.defense_movesets.block]?.steps[0] : null
 
-      // Roll sublabel: preview a random active learning item (or fallback to static dodge task)
       const activeLearning = state.learningItems.filter(li => !li.completed_at)
-      const previewItem = activeLearning.length > 0
+      const canRoll = activeLearning.length >= 2
+      const rollPreview = canRoll
         ? activeLearning[Math.floor(Math.random() * activeLearning.length)]
         : null
-      const rollSublabel = previewItem
-        ? `🎓 ${previewItem.name}`
-        : (move.dodge_task ? `${move.dodge_task.name} · ${fmtTime(move.dodge_task.time)}` : '???')
+      const rollSublabel = rollPreview
+        ? `🎓 ${rollPreview.name}`
+        : `${t.ui.roll_needs_learning ?? 'Need 2+ learning items'}`
 
       const sta = Math.floor(state.playerStamina)
       const parryArticle: ContentItem | null = publishReadyItems[0] ?? null
@@ -450,8 +450,8 @@ export default function CombatScreen() {
             { text: `+${STA_DEFENSE_GAIN} ${t.ui.sta_on_success}`, color: 'var(--color-stamina)' },
             { text: `0 ${t.ui.dmg_suffix}`, color: 'var(--color-text-success)' },
           ],
-          canUse: true,
-          disabledReason: undefined,
+          canUse: canRoll,
+          disabledReason: !canRoll ? (t.ui.roll_needs_learning ?? 'Need 2+ learning items') : undefined,
           onSelect: () => dispatch({ type: 'DEFENSE_CHOSEN', action: 'roll' }),
         },
         {

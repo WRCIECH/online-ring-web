@@ -324,11 +324,9 @@ function getDefenseTask(state: CombatState, action: DefenseAction) {
   if (!move) return null
   if (action === 'roll') {
     const active = state.learningItems.filter(li => !li.completed_at)
-    if (active.length > 0) {
-      const item = active[Math.floor(Math.random() * active.length)]
-      return { name: item.name, time: rollDodgeTime(state.enemyTier) }
-    }
-    return move.dodge_task
+    if (active.length < 2) return null
+    const item = active[Math.floor(Math.random() * active.length)]
+    return { name: item.name, time: rollDodgeTime(state.enemyTier) }
   }
   if (action === 'block') {
     const wid = state.equippedWeapons[0]

@@ -426,6 +426,7 @@ const en: TranslationBundle = {
     btn_end_turn:         'End Turn',
     end_turn_sublabel:    'Pass to enemy',
     btn_roll:             'Roll',
+    roll_needs_learning:  'Need 2+ learning items',
     sta_on_success:       'STA on success',
     btn_block:            'Block',
     block_sublabel:       'Instant — no task',

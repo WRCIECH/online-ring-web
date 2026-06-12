@@ -135,7 +135,6 @@ export interface EnemyMove {
   damage: number
   block_damage: number
   poise_damage: number
-  dodge_task: Task
   publish_task: Task
 }
 
