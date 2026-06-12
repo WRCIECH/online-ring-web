@@ -5,24 +5,24 @@
 export const COMBAT_MUSIC: Partial<Record<string, string>> = {
 
   // ── T1 — background dread / dark lofi ──────────────────────────────────────
-  procrastination_mob: 'jZENJ8inu5o',
-  burnout_shade:       'jZENJ8inu5o',
-  notification_swarm:  'jZENJ8inu5o',
+  procrastination_mob: 'ajuY4ervxIg',
+  burnout_shade:       'IyOAoj_Qzjc',
+  notification_swarm:  '1FyPE0u2muE',
 
   // ── T2 — unsettling electronic / dark ambient ───────────────────────────────
-  hater:               'n61ULEU7CO0',
-  blank_page_omen:     'n61ULEU7CO0',
-  comparison_engine:   'n61ULEU7CO0',
-  fear_phantom:        'n61ULEU7CO0',
-  impostor_shade:      'n61ULEU7CO0',
-  algorithm_specter:   'n61ULEU7CO0',
+  hater:               '64elMyXoBtQ',
+  blank_page_omen:     'c7s9eKDQn9c',
+  comparison_engine:   '88sARuFu-tc',
+  fear_phantom:        'lkY0cTOQKHs',
+  impostor_shade:      'Y6dXVXF7Uw',
+  algorithm_specter:   'K-a8s8OLBSE',
 
   // ── T3 — tension / countdown ────────────────────────────────────────────────
-  deadline_wraith:     'kfZOBJhUSWE',
+  deadline_wraith:     'JDVIXexHJao',
 
   // ── T4 bosses — each unique ─────────────────────────────────────────────────
-  perfectionism_knight: 'ZVdgHqQjuMs',
-  overload_colossus:    '6h30mKPHW20',
-  distraction_weaver:   '4oStw0r33so',
-  void_tyrant:          '2n1Y3xT9qTY',
+  perfectionism_knight: 'nPkoXItrLSM',
+  overload_colossus:    '27t_q_jAvD0',
+  distraction_weaver:   '77VUJ12kcSQ',
+  void_tyrant:          'ZQRrpxz104Y',
 }

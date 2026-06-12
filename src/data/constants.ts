@@ -22,7 +22,7 @@ export const MAX_RUN_WEAPONS = 2
 export const ARTICLE_EQUIP_WEIGHT = 1.0
 
 /** Equip load contributed by each active (non-completed) learning item. */
-export const LEARNING_ITEM_WEIGHT = 3.0
+export const LEARNING_ITEM_WEIGHT = 1.0
 
 // ── Healing ──────────────────────────────────────────────────────────────────
 
