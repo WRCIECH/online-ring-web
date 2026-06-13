@@ -54,6 +54,19 @@ export default function TimerOverlay({
   const [dropdownOpen, setDropdownOpen] = useState(false)
   const [hoveredId,    setHoveredId]    = useState<string | null>(null)
 
+  // Update browser tab title with live countdown while timer is running
+  useEffect(() => {
+    if (!stepStarted || timerExpired) {
+      document.title = 'Online Ring'
+      return
+    }
+    const secs = Math.ceil(stepTimer)
+    const m    = Math.floor(secs / 60)
+    const sc   = String(secs % 60).padStart(2, '0')
+    document.title = `⏱ ${m}:${sc} — ${pendingStep?.name ?? ''}`
+    return () => { document.title = 'Online Ring' }
+  }, [stepStarted, timerExpired, Math.ceil(stepTimer), pendingStep?.name])
+
   // rAF-based countdown
   useEffect(() => {
     if (!stepStarted || timerExpired) return
