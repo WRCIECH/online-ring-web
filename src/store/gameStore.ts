@@ -113,7 +113,7 @@ function shuffle<T>(arr: T[]): T[] {
   return a
 }
 
-function generateLocationSequence(numSublocations: number = 20, bossName?: string): LocationData[] {
+function generateLocationSequence(numSublocations: number = 20): LocationData[] {
   const [t1, t2, t3] = TIER_DIST[numSublocations] ?? TIER_DIST[20]
   const tier1    = shuffle(ENCOUNTER_POOL.filter(e => e.tier === 1)).slice(0, t1)
   const tier2    = shuffle(ENCOUNTER_POOL.filter(e => e.tier === 2)).slice(0, t2)
@@ -133,7 +133,7 @@ function generateLocationSequence(numSublocations: number = 20, bossName?: strin
         mult: baseMult,
         tier: enc.tier,
         sublocation_type: 'boss' as SublocationType,
-        ...(bossName ? { boss_name: bossName } : {}),
+        boss_name: ENEMIES[enc.enemy_id]?.name ?? enc.enemy_id,
       }
     }
 
@@ -294,7 +294,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
 
   startRun: (weapons, locationName = '', numSublocations = 20, runDuration = RUN_DURATION_SECONDS) => {
     const locDef = LOCATION_DEFINITIONS.find(l => l.id === locationName)
-    const seq = generateLocationSequence(numSublocations, locDef?.boss)
+    const seq = generateLocationSequence(numSublocations)
     const runStartMovesets = get().owned_movesets
     const prevCooldown = get().weapon_cooldown
     const newCooldown = Object.fromEntries(

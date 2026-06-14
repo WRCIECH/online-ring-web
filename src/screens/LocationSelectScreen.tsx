@@ -78,7 +78,7 @@ export default function LocationSelectScreen() {
                 </div>
                 {!isLocked && (
                   <>
-                    <div className={s.boss}>★ {loc.boss}</div>
+                    <div className={s.boss}>{t.ui.enemy_boss_label}</div>
                     <div className={s.meta}>
                       <span className={s.sizeBadge} style={{ color: colour, borderColor: `${colour}60` }}>
                         {SIZE_LABEL[loc.size]}

@@ -358,7 +358,9 @@ export default function RunMapScreen() {
             <div className={s.popupEnemy}>
               {popupLoc.sublocation_type === 'elite' && <span className={s.eliteBadge}>{t.ui.badge_elite}</span>}
               {popupLoc.sublocation_type === 'boss'  && <span className={s.bossBadge}>{t.ui.badge_boss}</span>}
-              {t.enemies[popupLoc.enemy_id]?.name ?? popupEnemy.name}
+              {popupLoc.sublocation_type === 'boss'
+                ? (popupLoc.boss_name ?? t.enemies[popupLoc.enemy_id]?.name ?? popupEnemy.name)
+                : (t.enemies[popupLoc.enemy_id]?.name ?? popupEnemy.name)}
             </div>
             <div className={s.popupMult}>×{popupLoc.mult.toFixed(2)} {t.ui.difficulty_label}</div>
             <div className={s.popupDesc}>{t.enemies[popupLoc.enemy_id]?.description ?? popupEnemy.description}</div>
