@@ -54,18 +54,26 @@ export default function TimerOverlay({
   const [dropdownOpen, setDropdownOpen] = useState(false)
   const [hoveredId,    setHoveredId]    = useState<string | null>(null)
 
-  // Update browser tab title with live countdown while timer is running
+  // Update browser tab title with live countdown — uses setInterval + wall-clock
+  // so the title keeps ticking even when the tab is in the background (rAF pauses there)
   useEffect(() => {
     if (!stepStarted || timerExpired) {
       document.title = 'Online Ring'
       return
     }
-    const secs = Math.ceil(stepTimer)
-    const m    = Math.floor(secs / 60)
-    const sc   = String(secs % 60).padStart(2, '0')
-    document.title = `⏱ ${m}:${sc} — ${pendingStep?.name ?? ''}`
-    return () => { document.title = 'Online Ring' }
-  }, [stepStarted, timerExpired, Math.ceil(stepTimer), pendingStep?.name])
+    const startedAt = Date.now()
+    const name = pendingStep?.name ?? ''
+    const tick = () => {
+      const remaining = Math.max(0, stepTotal - (Date.now() - startedAt) / 1000)
+      const secs = Math.ceil(remaining)
+      const m  = Math.floor(secs / 60)
+      const sc = String(secs % 60).padStart(2, '0')
+      document.title = `⏱ ${m}:${sc} — ${name}`
+    }
+    tick()
+    const id = setInterval(tick, 500)
+    return () => { clearInterval(id); document.title = 'Online Ring' }
+  }, [stepStarted, timerExpired, stepTotal, pendingStep?.name])
 
   // rAF-based countdown
   useEffect(() => {
