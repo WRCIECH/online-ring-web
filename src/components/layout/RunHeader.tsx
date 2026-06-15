@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useGameStore, selectRunRemainingSeconds } from '../../store/gameStore'
 import EquipOverlay     from '../overlays/EquipOverlay'
-import StatsOverlay     from '../overlays/StatsOverlay'
+import CharacterOverlay     from '../overlays/CharacterOverlay'
 import ContentOverlay   from '../overlays/ContentOverlay'
 import LocationsOverlay from '../overlays/LocationsOverlay'
 import { useT } from '../../i18n'
@@ -93,7 +93,7 @@ export default function RunHeader({ hp, maxHp, stamina, maxStamina, fp, maxFp, c
       </header>
 
       {showEquip     && <EquipOverlay     onClose={() => setShowEquip(false)} />}
-      {showStats     && <StatsOverlay     onClose={() => setShowStats(false)} canLevel={false} />}
+      {showStats     && <CharacterOverlay     onClose={() => setShowStats(false)} canLevel={false} />}
       {showContent   && <ContentOverlay   onClose={() => setShowContent(false)} canAdd={canAddContent} />}
       {showLocations && <LocationsOverlay onClose={() => setShowLocations(false)} />}
     </>

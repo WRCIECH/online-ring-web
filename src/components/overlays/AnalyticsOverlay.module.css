@@ -1,0 +1,154 @@
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.75);
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.panel {
+  background: var(--color-bg-panel);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: 28px 36px;
+  width: 540px;
+  max-width: 96vw;
+  max-height: 90vh;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.title {
+  font-size: 0.75rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--color-text-dim);
+}
+
+.btnClose {
+  background: transparent;
+  border: none;
+  color: var(--color-text-dim);
+  font-size: 1rem;
+  padding: 2px 6px;
+  cursor: pointer;
+  line-height: 1;
+}
+.btnClose:hover { color: var(--color-text); }
+
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.sectionHeader {
+  font-size: 0.7rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--color-text-dim);
+  border-bottom: 1px solid var(--color-sep);
+  padding-bottom: 6px;
+  margin-bottom: 2px;
+}
+
+.row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  font-size: 0.9rem;
+}
+
+.label { color: var(--color-text-dim); }
+
+.value {
+  font-size: 1rem;
+  color: var(--color-gold);
+  font-variant-numeric: tabular-nums;
+}
+
+.bigStat {
+  font-size: 2.2rem;
+  font-weight: 600;
+  color: var(--color-gold);
+  text-shadow: var(--glow-gold);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Phase breakdown */
+.phaseBar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 2px;
+}
+
+.phaseChip {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 10px;
+  border-radius: 99px;
+  border: 1px solid var(--color-border);
+  font-size: 0.78rem;
+}
+
+.phaseLabel { color: var(--color-text-dim); }
+.phaseCount { color: var(--color-text); font-weight: 600; }
+
+/* Published list */
+.publishedList {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  margin-top: 4px;
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.publishedItem {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  font-size: 0.85rem;
+  gap: 12px;
+}
+
+.publishedName {
+  color: var(--color-text);
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.publishedDate {
+  color: var(--color-text-dim);
+  font-size: 0.78rem;
+  white-space: nowrap;
+}
+
+/* Location progress bar */
+.progressBarWrap {
+  height: 6px;
+  background: rgba(255,255,255,0.08);
+  border-radius: 99px;
+  overflow: hidden;
+}
+
+.progressBarFill {
+  height: 100%;
+  background: var(--color-gold);
+  border-radius: 99px;
+  transition: width 0.4s ease;
+}

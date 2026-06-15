@@ -260,6 +260,8 @@ export interface GameState {
   learning_items: LearningItem[]
   // Momentum bonus timestamp (ms); 0 = no active momentum
   last_victory_time: number
+  // Cumulative seconds of successfully completed writing task steps
+  total_task_time_s: number
   // UI locale
   locale: Locale
 }

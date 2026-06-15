@@ -208,6 +208,7 @@ function initialState(): GameState {
     content_items: [],
     learning_items: [],
     last_victory_time: 0,
+    total_task_time_s: 0,
     locale: 'pl',
   }
 }
@@ -272,6 +273,9 @@ export interface GameStore extends GameState {
 
   // Momentum
   setLastVictoryTime: (t: number) => void
+
+  // Analytics
+  addTaskTime: (seconds: number) => void
 
   // Locale
   setLocale: (locale: Locale) => void
@@ -638,6 +642,11 @@ export const useGameStore = create<GameStore>((set, get) => ({
 
   setLastVictoryTime: (t) => { set({ last_victory_time: t }); get().save() },
 
+  addTaskTime: (seconds) => {
+    set(s => ({ total_task_time_s: (s.total_task_time_s ?? 0) + seconds }))
+    get().save()
+  },
+
   setLocale: (locale) => { set({ locale }); get().save() },
 
   save: () => saveGame(get()),
@@ -649,6 +658,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
     if (!data.content_items) data.content_items = []
     if (!data.locale) data.locale = 'pl'
     if (!data.last_victory_time) data.last_victory_time = 0
+    if (!data.total_task_time_s) data.total_task_time_s = 0
     hydrateRegistries(data)
     set({ ...data })
     return true

@@ -2,7 +2,8 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useGameStore } from '../store/gameStore'
 import { LOCATION_DEFINITIONS, getUnlockedLocationIds, SIZE_LABEL, SIZE_COLOUR } from '../data/locations'
-import StatsOverlay from '../components/overlays/StatsOverlay'
+import CharacterOverlay  from '../components/overlays/CharacterOverlay'
+import AnalyticsOverlay from '../components/overlays/AnalyticsOverlay'
 import { useT } from '../i18n'
 import s from './LocationSelectScreen.module.css'
 
@@ -23,7 +24,8 @@ export default function LocationSelectScreen() {
   const navigate   = useNavigate()
   const store      = useGameStore()
   const t          = useT()
-  const [showStats, setShowStats] = useState(false)
+  const [showStats,     setShowStats]     = useState(false)
+  const [showAnalytics, setShowAnalytics] = useState(false)
 
   const completedSet = new Set(store.completed_locations)
   const unlockedSet  = getUnlockedLocationIds(store.completed_locations)
@@ -34,7 +36,8 @@ export default function LocationSelectScreen() {
 
   return (
     <div className={s.root}>
-      {showStats && <StatsOverlay onClose={() => setShowStats(false)} />}
+      {showStats     && <CharacterOverlay  onClose={() => setShowStats(false)} />}
+      {showAnalytics && <AnalyticsOverlay onClose={() => setShowAnalytics(false)} />}
       <div className={s.header}>
         <h1 className={s.title}>{t.ui.choose_dungeon_title}</h1>
         <p className={s.subtitle}>
@@ -48,6 +51,7 @@ export default function LocationSelectScreen() {
         <div className={s.headerActions}>
           <span className={s.runeDisplay}>✦ {store.runes.toLocaleString()}</span>
           <button className={s.btnStats} onClick={() => setShowStats(true)}>{t.ui.btn_stats_levelup}</button>
+          <button className={s.btnStats} onClick={() => setShowAnalytics(true)}>{t.ui.btn_analytics}</button>
         </div>
       </div>
 

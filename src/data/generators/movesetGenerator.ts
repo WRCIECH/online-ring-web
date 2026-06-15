@@ -111,6 +111,13 @@ function dominantTimeLabel(steps: Step[]): string {
   return 'Deep'
 }
 
+// ── Stage start weights ───────────────────────────────────────────────────
+// Mirrors real writing-time distribution: Research and Produce dominate;
+// Outline, Glue, and Publish are comparatively quick.
+// Order matches UNIFIED_STAGE_CHAIN: Research Outline Produce Glue Refine Publish
+const STAGE_INDICES      = [0, 1, 2, 3, 4, 5]
+const STAGE_START_WEIGHTS = [25, 10, 35, 10, 15, 5]
+
 // ── Main roll function ────────────────────────────────────────────────────
 
 export function rollMoveset(
@@ -126,7 +133,7 @@ export function rollMoveset(
   const variant: MovesetVariant    = forcedVariant ?? pick(variants, variantWeights)
 
   const len   = rollComboLength(variant, rarity)
-  const startIdx = Math.floor(Math.random() * UNIFIED_STAGE_CHAIN.length)
+  const startIdx = pick(STAGE_INDICES, STAGE_START_WEIGHTS)
   let stageIdx = startIdx
   const chain: AtomicStage[] = []
   for (let i = 0; i < len; i++) {

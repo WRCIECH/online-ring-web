@@ -257,7 +257,7 @@ const en: TranslationBundle = {
     choose_dungeon_first: 'Begin your journey — only the first steps are open to you',
     choose_dungeon_next:  'Choose your next challenge',
     locations_progress:   'locations finished',
-    btn_stats_levelup:    'Stats & Level Up',
+    btn_stats_levelup:    'Character',
     map_site_of_grace:    '⬥ Site of Grace',
     map_trial_gate:       '⚔ Trial Gate',
     map_elite:            '⚔ Elite',
@@ -344,7 +344,16 @@ const en: TranslationBundle = {
     // RunHeader
     run_prefix:   'Run #',
     btn_equip:    '⚙ Equip',
-    btn_stats:    '📊 Stats',
+    btn_stats:           '📊 Character',
+    btn_analytics:       '📈 Statistics',
+    analytics_title:     'Statistics',
+    analytics_content_hdr: 'Content',
+    analytics_time_hdr:  'Time Invested',
+    analytics_runs_hdr:  'Expeditions',
+    analytics_published: 'Published',
+    analytics_in_progress: 'In Progress',
+    analytics_runs:      'Completed Runs',
+    analytics_locations: 'Locations Cleared',
     btn_pipeline: '📋 Pipeline',
 
     // EquipOverlay

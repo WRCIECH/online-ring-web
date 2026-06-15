@@ -143,7 +143,7 @@ export default function TimerOverlay({
   const styleMismatch  = !!displayItem?.stamped_style  && !!taskStyle  && displayItem.stamped_style  !== taskStyle
 
   let mismatchMult = 1
-  if (stageMismatch)   mismatchMult *= 0.90
+  if (stageMismatch)   mismatchMult *= 0.95
   if (productMismatch) mismatchMult *= 0.85
   if (originMismatch)  mismatchMult *= 0.85
   if (statusMismatch) mismatchMult *= 0.85

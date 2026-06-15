@@ -254,6 +254,7 @@ export default function CombatScreen() {
     taskStage: AtomicStage | null,
     stamps: { product?: ContentProductType; origin?: AtomicOrigin; status?: StatusType; style?: DamageType } | null,
   ) {
+    if (state.pendingStep) store.addTaskTime(state.pendingStep.time)
     if (contentId) {
       setPendingAdvance({ itemId: contentId, taskStage })
       if (stamps) store.stampContentItem(contentId, stamps)

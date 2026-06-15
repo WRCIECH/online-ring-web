@@ -257,7 +257,7 @@ const pl: TranslationBundle = {
     choose_dungeon_first: 'Rozpocznij podróż — tylko pierwsze kroki są dla ciebie otwarte',
     choose_dungeon_next:  'Wybierz kolejne wyzwanie',
     locations_progress:   'lokacji ukończono',
-    btn_stats_levelup:    'Statystyki i awans',
+    btn_stats_levelup:    'Postać',
     map_site_of_grace:    '⬥ Miejsce łaski',
     map_trial_gate:       '⚔ Brama próby',
     map_elite:            '⚔ Elite',
@@ -344,7 +344,16 @@ const pl: TranslationBundle = {
     // RunHeader
     run_prefix:   'Run #',
     btn_equip:    '⚙ Ekwipunek',
-    btn_stats:    '📊 Statystyki',
+    btn_stats:           '📊 Postać',
+    btn_analytics:       '📈 Statystyki',
+    analytics_title:     'Statystyki',
+    analytics_content_hdr: 'Treść',
+    analytics_time_hdr:  'Czas pracy',
+    analytics_runs_hdr:  'Ekspedycje',
+    analytics_published: 'Opublikowane',
+    analytics_in_progress: 'W toku',
+    analytics_runs:      'Ukończone wyprawy',
+    analytics_locations: 'Lokacje',
     btn_pipeline: '📋 Content',
 
     // EquipOverlay

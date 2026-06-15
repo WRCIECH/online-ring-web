@@ -4,7 +4,7 @@ import { WEAPONS, calcStepDamage, statLevelCost, weaponUpgradeCost, LEVEL_MULT }
 import { MOVES } from '../../data/movesets'
 import type { StatKey, WeaponInstance } from '../../types/game'
 import { useT, localizeWeaponName } from '../../i18n'
-import s from './StatsOverlay.module.css'
+import s from './CharacterOverlay.module.css'
 
 interface Props { onClose: () => void; canLevel?: boolean }
 
@@ -31,7 +31,7 @@ function statEffectPreview(stat: StatKey, val: number): string {
   return ''
 }
 
-export default function StatsOverlay({ onClose, canLevel = true }: Props) {
+export default function CharacterOverlay({ onClose, canLevel = true }: Props) {
   const store = useGameStore()
   const t     = useT()
   const [confirming, setConfirming] = useState<Confirming | null>(null)

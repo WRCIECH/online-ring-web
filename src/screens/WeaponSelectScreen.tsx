@@ -6,7 +6,7 @@ import { MOVES } from '../data/movesets'
 import { WEAPON_CLASSES } from '../data/generators/weaponClasses'
 import type { WeaponInstance, WeaponRarity } from '../types/game'
 import WeaponSprite from '../components/icons/WeaponSprite'
-import StatsOverlay from '../components/overlays/StatsOverlay'
+import CharacterOverlay from '../components/overlays/CharacterOverlay'
 import { useT, localizeWeaponName } from '../i18n'
 import { MAX_RUN_WEAPONS } from '../data/constants'
 import s from './WeaponSelectScreen.module.css'
@@ -48,7 +48,7 @@ export default function WeaponSelectScreen() {
 
   return (
     <div className={s.root}>
-      {showStats && <StatsOverlay onClose={() => setShowStats(false)} />}
+      {showStats && <CharacterOverlay onClose={() => setShowStats(false)} />}
       <div className={s.header}>
         <h1>{t.ui.select_weapons_title}</h1>
         <p>{t.ui.select_weapons_sub} {MAX_RUN_WEAPONS} {t.ui.select_weapons_sub2}</p>

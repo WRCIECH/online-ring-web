@@ -4,8 +4,9 @@ import { useGameStore, selectRunRemainingSeconds } from '../store/gameStore'
 import { ENEMIES } from '../data/enemies'
 import type { LocationData } from '../types/game'
 import RunHeader from '../components/layout/RunHeader'
-import StatsOverlay    from '../components/overlays/StatsOverlay'
-import ContentOverlay  from '../components/overlays/ContentOverlay'
+import CharacterOverlay  from '../components/overlays/CharacterOverlay'
+import AnalyticsOverlay from '../components/overlays/AnalyticsOverlay'
+import ContentOverlay   from '../components/overlays/ContentOverlay'
 import { useT } from '../i18n'
 import { MIN_PIPELINE_TO_FIGHT, GRACE_HEAL_FRACTION, GRACE_ESTUS_GAIN, GRACE_ESTUS_CAP, MOMENTUM_DURATION_MS } from '../data/constants'
 import s from './RunMapScreen.module.css'
@@ -51,8 +52,9 @@ export default function RunMapScreen() {
   const [popupIdx, setPopupIdx]     = useState(-1)
   const [popupPos, setPopupPos]     = useState({ x: 0, y: 0 })
   const [eventNode, setEventNode]   = useState<LocationData | null>(null)
-  const [showStats, setShowStats]   = useState(false)
-  const [showContent, setShowContent] = useState(false)
+  const [showStats,     setShowStats]     = useState(false)
+  const [showAnalytics, setShowAnalytics] = useState(false)
+  const [showContent,   setShowContent]   = useState(false)
   const [graceTimerActive, setGraceTimerActive] = useState(false)
   const [graceTimerLeft,   setGraceTimerLeft]   = useState(600)
   const [graceTimerDone,   setGraceTimerDone]   = useState(false)
@@ -424,7 +426,10 @@ export default function RunMapScreen() {
                     </button>
                   )}
                   <button className={s.btnGrace} onClick={() => setShowStats(true)}>
-                    {t.ui.stats_level_up}
+                    {t.ui.btn_stats}
+                  </button>
+                  <button className={s.btnGrace} onClick={() => setShowAnalytics(true)}>
+                    {t.ui.btn_analytics}
                   </button>
                   <button onClick={() => { resetGraceTimer(); setEventNode(null) }}>{t.ui.btn_leave}</button>
                 </div>
@@ -458,8 +463,9 @@ export default function RunMapScreen() {
       )}
 
 
-      {showStats   && <StatsOverlay   onClose={() => setShowStats(false)} />}
-      {showContent && <ContentOverlay onClose={() => setShowContent(false)} canAdd={true} />}
+      {showStats     && <CharacterOverlay  onClose={() => setShowStats(false)} />}
+      {showAnalytics && <AnalyticsOverlay onClose={() => setShowAnalytics(false)} />}
+      {showContent   && <ContentOverlay   onClose={() => setShowContent(false)} canAdd={true} />}
 
       {/* Run expired banner */}
       {selectRunRemainingSeconds(store as Parameters<typeof selectRunRemainingSeconds>[0]) <= 0 && (
