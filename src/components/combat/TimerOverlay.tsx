@@ -514,6 +514,18 @@ export default function TimerOverlay({
             }}>
               {t.ui.btn_done}
             </button>
+            {!timerIsDefense && (
+              <button className={s.btnSacrifice} onClick={() => {
+                const timeFrac = stepTotal > 0 ? stepTimer / stepTotal : 0
+                onTaskAccomplished(
+                  selectedContentId, taskStage,
+                  selectedContentId ? { product: taskProduct ?? undefined, origin: taskOrigin ?? undefined, status: taskStatus ?? undefined, style: taskStyle ?? undefined } : null,
+                )
+                dispatch({ type: 'TIMER_RESULT', accomplished: true, statusApplied: true, mismatchMult, sacrificeTimeFrac: timeFrac })
+              }}>
+                {t.ui.btn_sacrifice}
+              </button>
+            )}
           </div>
         )}
 

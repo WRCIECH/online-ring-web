@@ -9,7 +9,7 @@ import {
   OVERHEAT_PENALTY_PER_USE, OVERHEAT_PENALTY_MAX,
   STATUS_BUILDUP_PER_HIT,
   DMG_WEAKNESS_MULT, DMG_RESISTANCE_MULT,
-  momentumMult,
+  momentumMult, SACRIFICE_MULT,
 } from '../data/constants'
 export { getActiveSteps } from '../data/generators/movesetGenerator'
 
@@ -171,7 +171,7 @@ export type CombatAction =
   | { type: 'STEP_CLICKED'; step: Step; moveset: Moveset; weaponId: string }
   | { type: 'START_TIMER' }
   | { type: 'TICK'; delta: number }
-  | { type: 'TIMER_RESULT'; accomplished: boolean; statusApplied?: boolean; mismatchMult?: number }
+  | { type: 'TIMER_RESULT'; accomplished: boolean; statusApplied?: boolean; mismatchMult?: number; sacrificeTimeFrac?: number }
   | { type: 'CANCEL_TIMER' }
   | { type: 'END_TURN' }
   | { type: 'DEFENSE_CHOSEN'; action: DefenseAction }
@@ -672,6 +672,14 @@ export function combatReducer(state: CombatState, action: CombatAction): CombatS
 
       if (s.enemyHp <= 0) return { ...s, phase: 'VICTORY' }
       if (s.enemyPoise <= 0) return { ...s, enemyPoise: 0, phase: 'ENEMY_STAGGERED' }
+
+      // Sacrifice: skip remaining task time at cost of proportional self-damage
+      if (action.sacrificeTimeFrac !== undefined && action.sacrificeTimeFrac > 0) {
+        const selfDmg     = Math.round(finalDmg * action.sacrificeTimeFrac * SACRIFICE_MULT)
+        const sacrificeHp = Math.max(0, s.playerHp - selfDmg)
+        s = log({ ...s, playerHp: sacrificeHp }, `⚔ Sacrifice — ${selfDmg} self-damage`, '#cc3333')
+        if (sacrificeHp <= 0) return { ...s, phase: 'DEFEAT' }
+      }
 
       if (shouldInterrupt(s, newChainId)) {
         s = log(s, `The ${s.enemyData.name} interrupts!`, '#e85555')

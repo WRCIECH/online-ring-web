@@ -426,14 +426,31 @@ export const useGameStore = create<GameStore>((set, get) => ({
 
   addWeaponInstance: (w) => {
     registerWeapon(w)
-    set(s => ({
-      weapon_instances: [...s.weapon_instances.filter(x => x.instance_id !== w.instance_id), w],
-      owned_weapons: s.owned_weapons.includes(w.instance_id) ? s.owned_weapons : [...s.owned_weapons, w.instance_id],
-      weapon_level: s.weapon_level[w.instance_id] !== undefined ? s.weapon_level : { ...s.weapon_level, [w.instance_id]: 0 },
-      weapon_extra_movesets: s.weapon_extra_movesets[w.instance_id]
-        ? s.weapon_extra_movesets
-        : { ...s.weapon_extra_movesets, [w.instance_id]: [] },
-    }))
+    // Collect every moveset ID the weapon references so we can persist them.
+    // Without this, MOVES['m_xxx'] is undefined after a page reload and the
+    // weapon's movesets become unselectable.
+    const msIds = [
+      ...(w.constant_movesets ?? []),
+      ...Object.values(w.defense_movesets ?? {}),
+    ]
+    set(s => {
+      const newMovesetInsts = [...s.moveset_instances]
+      for (const id of msIds) {
+        const ms = MOVES[id] as GeneratedMoveset | undefined
+        if (ms && !newMovesetInsts.find(x => x.id === id)) {
+          newMovesetInsts.push(ms as GeneratedMoveset)
+        }
+      }
+      return {
+        moveset_instances: newMovesetInsts,
+        weapon_instances: [...s.weapon_instances.filter(x => x.instance_id !== w.instance_id), w],
+        owned_weapons: s.owned_weapons.includes(w.instance_id) ? s.owned_weapons : [...s.owned_weapons, w.instance_id],
+        weapon_level: s.weapon_level[w.instance_id] !== undefined ? s.weapon_level : { ...s.weapon_level, [w.instance_id]: 0 },
+        weapon_extra_movesets: s.weapon_extra_movesets[w.instance_id]
+          ? s.weapon_extra_movesets
+          : { ...s.weapon_extra_movesets, [w.instance_id]: [] },
+      }
+    })
     get().save()
   },
 

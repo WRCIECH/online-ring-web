@@ -434,6 +434,8 @@
 .actions {
   display: flex;
   justify-content: center;
+  align-items: center;
+  gap: 12px;
 }
 
 .btnPrimary {
@@ -447,6 +449,18 @@
 }
 
 .btnPrimary:hover { background: rgba(230,191,51,0.16); box-shadow: var(--glow-gold); }
+
+.btnSacrifice {
+  min-width: 140px;
+  padding: 10px 18px;
+  font-size: 0.85rem;
+  letter-spacing: 0.06em;
+  background: rgba(180,30,30,0.10);
+  border-color: #5a1515;
+  color: #cc4444;
+}
+
+.btnSacrifice:hover { background: rgba(180,30,30,0.20); border-color: #cc4444; box-shadow: 0 0 8px rgba(180,30,30,0.4); }
 
 .expiredHint {
   text-align: center;

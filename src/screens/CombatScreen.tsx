@@ -2,7 +2,7 @@ import { useReducer, useEffect, useCallback, useState, useMemo, useRef } from 'r
 import { useNavigate } from 'react-router-dom'
 import { combatReducer, initCombatState, STAGGER_PAUSE_MS, STA_BLOCK, STA_DEFENSE_GAIN, getClassMod } from '../engine/combat'
 import { useGameStore, selectEquipLoad } from '../store/gameStore'
-import { IDLE_KICK_MS } from '../data/constants'
+import { IDLE_KICK_MS, BOSS_PUBLISH_TIME_S } from '../data/constants'
 import { ENEMIES } from '../data/enemies'
 import { playSound } from '../engine/sound'
 import { WEAPONS, getWeaponMovesets, calcStepDamage } from '../data/weapons'
@@ -197,6 +197,42 @@ export default function CombatScreen() {
   const [runesEarned, setRunesEarned]   = useState(0)
   const [runesRecovered, setRunesRecovered] = useState(0)
 
+  // ── Boss publish ritual ─────────────────────────────────────────────────
+  type BossPublishStatus = 'idle' | 'needed' | 'done'
+  const [bossPublishStatus, setBossPublishStatus] = useState<BossPublishStatus>('idle')
+  const [bossPublishItem,   setBossPublishItem]   = useState<ContentItem | null>(null)
+  const [bossPublishTimer,  setBossPublishTimer]  = useState(BOSS_PUBLISH_TIME_S)
+
+  // Detect boss victory → enter publish phase (or skip if no publishable item)
+  useEffect(() => {
+    if (state.phase !== 'VICTORY' || !loc || bossPublishStatus !== 'idle') return
+    if (loc.sublocation_type !== 'boss') { setBossPublishStatus('done'); return }
+    const item = store.content_items.find(c => c.phase === 'Publish') ?? null
+    if (!item) { setBossPublishStatus('done'); return }
+    setBossPublishItem(item)
+    setBossPublishStatus('needed')
+    setBossPublishTimer(BOSS_PUBLISH_TIME_S)
+  }, [state.phase, loc, bossPublishStatus, store.content_items])
+
+  // Countdown while publish is pending
+  useEffect(() => {
+    if (bossPublishStatus !== 'needed') return
+    const id = setInterval(() => {
+      setBossPublishTimer(t => {
+        if (t <= 1) { setBossPublishStatus('done'); return 0 }
+        return t - 1
+      })
+    }, 1000)
+    return () => clearInterval(id)
+  }, [bossPublishStatus])
+
+  function handleBossPublish() {
+    if (!bossPublishItem) return
+    const reward = store.publishContentItem(bossPublishItem.id)
+    dispatch({ type: 'ADD_LOG', text: `📤 "${bossPublishItem.name}" published! ✦ +${reward} runes.`, color: '#e6bf33' })
+    setBossPublishStatus('done')
+  }
+
   // ── Content pipeline ────────────────────────────────────────────────────
   const [selectedContentId, setSelectedContentId] = useState<string | null>(null)
   interface PendingAdvance { itemId: string; taskStage: AtomicStage | null }
@@ -251,6 +287,7 @@ export default function CombatScreen() {
       subtype === 'boss'  ? 'rare'   :
       subtype === 'elite' ? 'magic'  :
       subtype === 'event' ? 'rare'   : 'common'
+    let movesetDropped = false
     const items: LootItem[] = enemy.drops.map(drop => {
       const obtained = Math.random() < (defeatedBefore ? drop.repeat_chance : drop.first_kill_chance)
       const meta = DROP_MAP[drop.id] ?? { type: 'moveset' as const, wclass: 'straight_swords' as WeaponClass }
@@ -259,6 +296,8 @@ export default function CombatScreen() {
         const w = rollWeapon(meta.wclass, minRarity)
         return { id: w.instance_id, name: w.name, type: 'weapon', obtained: true, rarity: w.rarity, generated: w }
       } else {
+        if (movesetDropped) return { id: drop.id, name: drop.id, type: 'moveset', obtained: false }
+        movesetDropped = true
         const m = rollMoveset(meta.wclass, minRarity)
         return { id: m.id, name: m.name, type: 'moveset', obtained: true, rarity: m.rarity, generated: m }
       }
@@ -277,6 +316,7 @@ export default function CombatScreen() {
 
   function handleCorpseClick() {
     if (state.phase !== 'VICTORY' || lootRevealed || !lootItems) return
+    if (bossPublishStatus === 'needed') return
     setBloodActive(true)
     playSound('RUNE_GAIN')
     lootItems.forEach((item, i) => {
@@ -680,6 +720,26 @@ export default function CombatScreen() {
           items={radialItems}
           onClose={() => setRadialPos(null)}
         />
+      )}
+
+      {/* ── Boss publish ritual ──────────────────────────────────────── */}
+      {state.phase === 'VICTORY' && bossPublishStatus === 'needed' && bossPublishItem && (
+        <div className={s.bossPublishOverlay}>
+          <div className={s.bossPublishPanel}>
+            <div className={s.bpHeader}>{t.ui.boss_publish_title}</div>
+            <div className={s.bpSubtitle}>{t.ui.boss_publish_subtitle}</div>
+            <div className={s.bpItemName}>{bossPublishItem.name || t.ui.unnamed_item}</div>
+            <div className={s.bpTimer} style={{ color: bossPublishTimer < 60 ? '#e85555' : '#c9a93a' }}>
+              {Math.floor(bossPublishTimer / 60)}:{String(bossPublishTimer % 60).padStart(2, '0')}
+            </div>
+            <button className={s.bpBtn} onClick={handleBossPublish}>
+              {t.ui.boss_publish_btn}
+            </button>
+            <button className={s.bpSkip} onClick={() => setBossPublishStatus('done')}>
+              {t.ui.boss_publish_skip}
+            </button>
+          </div>
+        </div>
       )}
 
       {/* ── Victory / loot reveal ─────────────────────────────────────── */}

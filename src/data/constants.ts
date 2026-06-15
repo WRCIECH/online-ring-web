@@ -89,6 +89,11 @@ export const DMG_WEAKNESS_MULT   = 1.3
 /** Damage multiplier when hitting a resistance. */
 export const DMG_RESISTANCE_MULT = 0.7
 
+// ── Sacrifice (skip task early at HP cost) ────────────────────────────────────
+
+/** Multiplier applied to self-damage when sacrificing time remaining on a task. */
+export const SACRIFICE_MULT = 2.0
+
 // ── Momentum damage bonus ─────────────────────────────────────────────────────
 
 /** How long the post-victory momentum bonus lasts (ms). */
@@ -99,6 +104,9 @@ export const MOMENTUM_MAX_BONUS = 0.30
 
 /** Seconds after combat start before an idle player is kicked back to the map. */
 export const IDLE_KICK_MS = 2 * 60 * 1000
+
+/** Seconds the player has to publish content after defeating a boss. */
+export const BOSS_PUBLISH_TIME_S = 600
 
 /**
  * Returns the current damage multiplier from the momentum bonus.

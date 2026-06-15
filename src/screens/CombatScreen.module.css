@@ -474,3 +474,83 @@
 }
 
 .btnAdvanceSkip:hover { color: var(--color-text); }
+
+/* ── Boss publish ritual ──────────────────────────────────────────────────── */
+.bossPublishOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.88);
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.bossPublishPanel {
+  background: var(--color-bg-panel);
+  border: 1px solid #5a1010;
+  border-radius: var(--radius-lg);
+  padding: 48px 56px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 18px;
+  max-width: 460px;
+  box-shadow: 0 0 40px rgba(180,30,30,0.25);
+}
+
+.bpHeader {
+  font-size: 1.3rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--color-gold);
+  text-shadow: var(--glow-gold);
+}
+
+.bpSubtitle {
+  font-size: 0.88rem;
+  color: var(--color-text-dim);
+  line-height: 1.5;
+}
+
+.bpItemName {
+  font-size: 1rem;
+  color: var(--color-text);
+  padding: 8px 16px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  background: rgba(255,255,255,0.04);
+  max-width: 100%;
+  word-break: break-word;
+}
+
+.bpTimer {
+  font-size: 2.4rem;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.08em;
+  font-weight: 600;
+}
+
+.bpBtn {
+  min-width: 180px;
+  padding: 13px 24px;
+  font-size: 1rem;
+  letter-spacing: 0.08em;
+  color: var(--color-gold);
+  border-color: var(--color-gold-dim);
+  background: rgba(230,191,51,0.08);
+}
+
+.bpBtn:hover { background: rgba(230,191,51,0.18); box-shadow: var(--glow-gold); }
+
+.bpSkip {
+  font-size: 0.78rem;
+  color: var(--color-text-dim);
+  border: none;
+  background: transparent;
+  padding: 4px 8px;
+  opacity: 0.6;
+}
+
+.bpSkip:hover { opacity: 1; color: var(--color-text); }
