@@ -670,16 +670,16 @@ export function combatReducer(state: CombatState, action: CombatAction): CombatS
         s = triggerStatus(s, statusType)
       }
 
-      if (s.enemyHp <= 0) return { ...s, phase: 'VICTORY' }
-      if (s.enemyPoise <= 0) return { ...s, enemyPoise: 0, phase: 'ENEMY_STAGGERED' }
-
-      // Sacrifice: skip remaining task time at cost of proportional self-damage
+      // Sacrifice: apply self-damage before victory check so killing blow still costs HP
       if (action.sacrificeTimeFrac !== undefined && action.sacrificeTimeFrac > 0) {
         const selfDmg     = Math.round(finalDmg * action.sacrificeTimeFrac * SACRIFICE_MULT)
         const sacrificeHp = Math.max(0, s.playerHp - selfDmg)
         s = log({ ...s, playerHp: sacrificeHp }, `⚔ Sacrifice — ${selfDmg} self-damage`, '#cc3333')
         if (sacrificeHp <= 0) return { ...s, phase: 'DEFEAT' }
       }
+
+      if (s.enemyHp <= 0) return { ...s, phase: 'VICTORY' }
+      if (s.enemyPoise <= 0) return { ...s, enemyPoise: 0, phase: 'ENEMY_STAGGERED' }
 
       if (shouldInterrupt(s, newChainId)) {
         s = log(s, `The ${s.enemyData.name} interrupts!`, '#e85555')

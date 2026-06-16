@@ -157,7 +157,7 @@ export default function TimerOverlay({
   // ── Per-item mismatch score (for dropdown ordering + inline hint) ─────────
   function itemMult(item: ContentItem): number {
     let m = 1
-    if (taskStage  && item.phase !== taskStage)                                              m *= 0.90
+    if (taskStage  && item.phase !== taskStage)                                              m *= 0.95
     if (taskProduct && item.stamped_product && item.stamped_product !== taskProduct)         m *= 0.85
     if (taskOrigin && item.stamped_origin && item.stamped_origin !== taskOrigin)             m *= 0.85
     if (taskStatus && item.stamped_status && item.stamped_status !== taskStatus)             m *= 0.85
@@ -514,18 +514,28 @@ export default function TimerOverlay({
             }}>
               {t.ui.btn_done}
             </button>
-            {!timerIsDefense && (
-              <button className={s.btnSacrifice} onClick={() => {
-                const timeFrac = stepTotal > 0 ? stepTimer / stepTotal : 0
-                onTaskAccomplished(
-                  selectedContentId, taskStage,
-                  selectedContentId ? { product: taskProduct ?? undefined, origin: taskOrigin ?? undefined, status: taskStatus ?? undefined, style: taskStyle ?? undefined } : null,
-                )
-                dispatch({ type: 'TIMER_RESULT', accomplished: true, statusApplied: true, mismatchMult, sacrificeTimeFrac: timeFrac })
-              }}>
-                {t.ui.btn_sacrifice}
-              </button>
-            )}
+            {!timerIsDefense && (() => {
+              const timeFrac    = stepTotal > 0 ? stepTimer / stepTotal : 0
+              const selfDmg     = computedDmg !== null ? Math.round(computedDmg * timeFrac * 2.0) : null
+              const tooltipText = selfDmg !== null
+                ? `Mob takes full damage. You take ~${selfDmg} HP self-damage (${Math.round(timeFrac * 100)}% time remaining × 2.0).`
+                : undefined
+              return (
+                <button
+                  className={s.btnSacrifice}
+                  title={tooltipText}
+                  onClick={() => {
+                    onTaskAccomplished(
+                      selectedContentId, taskStage,
+                      selectedContentId ? { product: taskProduct ?? undefined, origin: taskOrigin ?? undefined, status: taskStatus ?? undefined, style: taskStyle ?? undefined } : null,
+                    )
+                    dispatch({ type: 'TIMER_RESULT', accomplished: true, statusApplied: true, mismatchMult, sacrificeTimeFrac: timeFrac })
+                  }}
+                >
+                  {t.ui.btn_sacrifice}{selfDmg !== null && selfDmg > 0 ? ` (−${selfDmg} HP)` : ''}
+                </button>
+              )
+            })()}
           </div>
         )}
 

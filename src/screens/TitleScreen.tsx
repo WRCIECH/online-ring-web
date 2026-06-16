@@ -11,7 +11,7 @@ export default function TitleScreen() {
   const t          = useT()
   const saveExists = hasSave()
   const [confirming, setConfirming] = useState(false)
-  const [showIntro, setShowIntro]   = useState(false)
+  const [showIntro,  setShowIntro]  = useState(false)
 
   function handleContinue() {
     store.load()

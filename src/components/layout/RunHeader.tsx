@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react'
 import { useGameStore, selectRunRemainingSeconds } from '../../store/gameStore'
-import EquipOverlay     from '../overlays/EquipOverlay'
-import CharacterOverlay     from '../overlays/CharacterOverlay'
-import ContentOverlay   from '../overlays/ContentOverlay'
-import LocationsOverlay from '../overlays/LocationsOverlay'
+import EquipOverlay      from '../overlays/EquipOverlay'
+import CharacterOverlay  from '../overlays/CharacterOverlay'
+import ContentOverlay    from '../overlays/ContentOverlay'
+import LocationsOverlay  from '../overlays/LocationsOverlay'
+import AnalyticsOverlay  from '../overlays/AnalyticsOverlay'
 import { useT } from '../../i18n'
 import s from './RunHeader.module.css'
 
@@ -48,6 +49,7 @@ export default function RunHeader({ hp, maxHp, stamina, maxStamina, fp, maxFp, c
   const [showStats,     setShowStats]     = useState(false)
   const [showContent,   setShowContent]   = useState(false)
   const [showLocations, setShowLocations] = useState(false)
+  const [showAnalytics, setShowAnalytics] = useState(false)
 
   useEffect(() => {
     const id = setInterval(() => {
@@ -89,13 +91,15 @@ export default function RunHeader({ hp, maxHp, stamina, maxStamina, fp, maxFp, c
           <button className={s.btn} onClick={() => setShowEquip(true)}>{t.ui.btn_equip}</button>
           <button className={s.btn} onClick={() => setShowStats(true)}>{t.ui.btn_stats}</button>
           <button className={s.btn} onClick={() => setShowContent(true)}>{t.ui.btn_pipeline}</button>
+          <button className={s.btn} onClick={() => setShowAnalytics(true)}>{t.ui.btn_analytics}</button>
         </div>
       </header>
 
       {showEquip     && <EquipOverlay     onClose={() => setShowEquip(false)} />}
-      {showStats     && <CharacterOverlay     onClose={() => setShowStats(false)} canLevel={false} />}
+      {showStats     && <CharacterOverlay onClose={() => setShowStats(false)} canLevel={false} />}
       {showContent   && <ContentOverlay   onClose={() => setShowContent(false)} canAdd={canAddContent} />}
       {showLocations && <LocationsOverlay onClose={() => setShowLocations(false)} />}
+      {showAnalytics && <AnalyticsOverlay onClose={() => setShowAnalytics(false)} />}
     </>
   )
 }
