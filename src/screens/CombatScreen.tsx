@@ -415,7 +415,7 @@ export default function CombatScreen() {
 
         // Class-adjusted values for display
         const level      = state.weaponLevels[weaponId] ?? 0
-        const baseDmg    = weapon ? calcStepDamage(step, weapon, level) : step.base_damage
+        const baseDmg    = weapon ? calcStepDamage(step, weapon, level, state.playerStats) : step.base_damage
         const mainDmg    = Math.floor(baseDmg * cls.dmgMult * state.momentumMult)
         const displayDmg = cls.dualStrike ? Math.floor(mainDmg * 1.4) : mainDmg
         const actualSta  = Math.floor(moveset.stamina_cost * cls.staCoeff)

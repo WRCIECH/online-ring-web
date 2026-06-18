@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react'
 import type { CombatState, CombatAction } from '../../engine/combat'
-import { STA_DEFENSE_GAIN } from '../../engine/combat'
+import { STA_DEFENSE_GAIN, getClassMod } from '../../engine/combat'
 import { WEAPONS, calcStepDamage } from '../../data/weapons'
+import { DMG_WEAKNESS_MULT, DMG_RESISTANCE_MULT, OVERHEAT_PENALTY_PER_USE, OVERHEAT_PENALTY_MAX } from '../../data/constants'
 import { WEAPON_CLASSES } from '../../data/generators/weaponClasses'
 import type { WeaponInstance, DamageType, AtomicStage, AtomicOrigin, StatusType, ContentItem, GeneratedMoveset } from '../../types/game'
 import type { ContentProductType } from '../../data/contentProducts'
@@ -116,9 +117,21 @@ export default function TimerOverlay({
   const weapon   = pendingWeaponId ? WEAPONS[pendingWeaponId] : null
   const wi       = weapon as WeaponInstance | undefined
   const wLevel   = weaponLevels[pendingWeaponId] ?? 0
-  const computedDmg  = (!timerIsDefense && pendingStep && weapon)
-    ? calcStepDamage(pendingStep, weapon, wLevel, playerStats)
-    : null
+  const computedDmg: number | null = (!timerIsDefense && pendingStep && weapon && wi) ? (() => {
+    const chainIdx   = (state.chainMovesetId === pendingMoveset?.id && pendingMoveset?.id !== '') ? state.chainStepIdx : 0
+    const cls        = getClassMod(wi.weapon_class, chainIdx)
+    const base       = calcStepDamage(pendingStep, weapon, wLevel, playerStats)
+    const dmgT       = pendingStep.damage_type as DamageType | undefined
+    const typeMult   = dmgT && state.enemyData.weaknesses.includes(dmgT)  ? DMG_WEAKNESS_MULT
+                     : dmgT && state.enemyData.resistances.includes(dmgT) ? DMG_RESISTANCE_MULT
+                     : 1.0
+    const frost      = state.activeStatuses.frostbite ? 1.2 : 1.0
+    const prevHeat   = state.weaponHeatAccumulated[pendingWeaponId] ?? 0
+    const overHeat   = Math.max(0, (prevHeat + 1) - (wi.heat_threshold ?? Infinity))
+    const ovhMult    = Math.max(1 - OVERHEAT_PENALTY_MAX, 1 - overHeat * OVERHEAT_PENALTY_PER_USE)
+    const main       = Math.floor(base * cls.dmgMult * typeMult * frost * ovhMult * state.momentumMult)
+    return cls.dualStrike ? Math.floor(main * 1.4) : main
+  })() : null
   const dmgType = pendingStep?.damage_type
   const dmgTypeColor = dmgType ? (DMG_TYPE_COLOURS[dmgType] ?? '#aaaaaa') : null
 
