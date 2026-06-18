@@ -7,7 +7,6 @@ import { registerWeapon } from '../data/weapons'
 import { RUN_DURATION_SECONDS, RUN_ESTUS_MAX, ESTUS_HEAL_FRACTION, ARTICLE_EQUIP_WEIGHT, LEARNING_ITEM_WEIGHT, statLevelCost, weaponUpgradeCost } from '../data/constants'
 import { MOVES, registerMoveset } from '../data/movesets'
 import { rollWeapon } from '../data/generators/weaponGenerator'
-import { LOCATION_DEFINITIONS } from '../data/locations'
 import { CLASS_DEFINITIONS } from '../data/classes'
 
 /** Re-populate WEAPONS/MOVES registries from persisted instances (called on load & init). */
@@ -297,7 +296,6 @@ export const useGameStore = create<GameStore>((set, get) => ({
   maxFp:      () => calcMaxFp(get().stats.MND),
 
   startRun: (weapons, locationName = '', numSublocations = 20, runDuration = RUN_DURATION_SECONDS) => {
-    const locDef = LOCATION_DEFINITIONS.find(l => l.id === locationName)
     const seq = generateLocationSequence(numSublocations)
     const runStartMovesets = get().owned_movesets
     const prevCooldown = get().weapon_cooldown
