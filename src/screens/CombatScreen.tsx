@@ -169,6 +169,7 @@ export default function CombatScreen() {
   }, [store, navigate, state])
 
   const [musicMuted, setMusicMuted] = useState(false)
+  const [showAbandonConfirm, setShowAbandonConfirm] = useState(false)
   // If a content item was already locked in the store, skip the picker entirely
   const [selectedContentId, setSelectedContentId] = useState<string | null>(
     store.active_content_id ?? null
@@ -301,7 +302,7 @@ export default function CombatScreen() {
         playerEstus={state.playerEstus}
         canAct={isPlayerTurn}
         onEstus={() => dispatch({ type: 'USE_ESTUS' })}
-        onAbandon={() => dispatch({ type: 'ABANDON' })}
+        onAbandon={() => setShowAbandonConfirm(true)}
       />
 
       {/* ── Content selection overlay ──────────────────────────────────── */}
@@ -396,6 +397,32 @@ export default function CombatScreen() {
         muted={musicMuted}
         onToggleMute={() => setMusicMuted(m => !m)}
       />
+
+      {/* ── Abandon confirmation ──────────────────────────────────────── */}
+      {showAbandonConfirm && (
+        <div className={s.endOverlay}>
+          <div className={s.endBox}>
+            <div className={`${s.endTitle} ${s.fleedTitle}`}>Abandon Workflow?</div>
+            <ul className={s.abandonList}>
+              <li className={s.abandonCon}>✗ Ends this run immediately — same as a defeat.</li>
+              <li className={s.abandonCon}>✗ Forfeits all progress and runes earned this fight.</li>
+              <li className={s.abandonCon}>✗ −{Math.round(ABANDON_PENALTY * 100)}% rewards on your next run's first workflow.</li>
+              <li className={s.abandonPro}>✓ Your banked runes stay safe — nothing drops here, unlike a defeat.</li>
+            </ul>
+            <div className={s.confirmActions}>
+              <button className={s.btnCancel} onClick={() => setShowAbandonConfirm(false)}>
+                Keep fighting
+              </button>
+              <button
+                className={s.btnConfirmDanger}
+                onClick={() => { setShowAbandonConfirm(false); dispatch({ type: 'ABANDON' }) }}
+              >
+                Abandon anyway
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* ── Fled overlay ───────────────────────────────────────────────── */}
       {state.phase === 'FLED' && (
