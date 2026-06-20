@@ -3,7 +3,7 @@ import type {
   Enemy, WeaponInstance, Stats,
 } from '../types/game'
 import { WEAPONS, calcTileReward } from '../data/weapons'
-import { REPEAT_PENALTY_PER_RETRY, REPEAT_PENALTY_MAX } from '../data/constants'
+import { REPEAT_PENALTY_PER_RETRY, REPEAT_PENALTY_MAX, REPEAT_DAMAGE_PENALTY } from '../data/constants'
 
 export interface LogEntry { id: number; text: string; color?: string }
 
@@ -146,6 +146,8 @@ export function combatReducer(state: CombatState, action: CombatAction): CombatS
       if (state.phase !== 'PLAYER_TURN') return state
       const tile = state.workflow.tiles.find(t => t.id === action.tileId)
       if (!tile) return state
+      // Allow completed tiles (repeat with penalty) and reachable tiles
+      if (!tile.is_completed && !getReachableTiles(state.workflow).has(action.tileId)) return state
       return { ...state, selectedTileId: action.tileId }
     }
 
@@ -227,7 +229,9 @@ export function combatReducer(state: CombatState, action: CombatAction): CombatS
       })
       const newWorkflow = { ...state.workflow, tiles: updatedTiles }
 
-      const damage     = calcTileDamage(tile, move, state.weaponLevel)
+      const isRepeat   = tile.is_completed
+      const rawDamage  = calcTileDamage(tile, move, state.weaponLevel)
+      const damage     = isRepeat ? Math.round(rawDamage * (1 - REPEAT_DAMAGE_PENALTY)) : rawDamage
       const newEnemyHp = Math.max(0, state.enemyHp - damage)
 
       let s = log(
@@ -235,11 +239,11 @@ export function combatReducer(state: CombatState, action: CombatAction): CombatS
           currentTileId: tile.id, enemyHp: newEnemyHp,
           timerExpired: false, stepStarted: false,
           pendingTile: null, pendingMove: null, selectedTileId: null },
-        `✓ ${tile.name}. ✦ +${finalReward} runes. ⚔ −${damage} HP.`,
+        `✓ ${tile.name}. ✦ +${finalReward} runes. ⚔ −${damage} HP${isRepeat ? ' (repeat)' : ''}.`,
         '#c9a93a'
       )
       if (repeatPenalty > 0) {
-        s = log(s, `Repeat penalty: −${Math.round(repeatPenalty * 100)}%`, '#888')
+        s = log(s, `Repeat penalty: −${Math.round(repeatPenalty * 100)}% runes, −${Math.round(REPEAT_DAMAGE_PENALTY * 100)}% dmg`, '#888')
       }
 
       if (newEnemyHp <= 0) {
@@ -278,4 +282,4 @@ export function combatReducer(state: CombatState, action: CombatAction): CombatS
 }
 
 // Re-export constants for UI
-export { ABANDON_PENALTY, REPEAT_PENALTY_PER_RETRY, REPEAT_PENALTY_MAX } from '../data/constants'
+export { ABANDON_PENALTY, REPEAT_PENALTY_PER_RETRY, REPEAT_PENALTY_MAX, REPEAT_DAMAGE_PENALTY } from '../data/constants'

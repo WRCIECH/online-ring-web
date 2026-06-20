@@ -144,3 +144,6 @@ export const REPEAT_PENALTY_PER_RETRY = 0.15
 
 /** Maximum cumulative repeat penalty (cap). */
 export const REPEAT_PENALTY_MAX = 0.60
+
+/** Damage penalty when repeating an already-completed tile. */
+export const REPEAT_DAMAGE_PENALTY = 0.20

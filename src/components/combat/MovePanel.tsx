@@ -24,8 +24,8 @@ export default function MovePanel({ tile, playerEstus, onMove, onEstus, onAbando
         <div className={s.tileInfo}>
           <span className={s.tileType}>{tile.type}</span>
           <span className={s.tileName}>{tile.name}</span>
-          {tile.repeat_count > 0 && (
-            <span className={s.repeatBadge}>repeat ×{tile.repeat_count}</span>
+          {tile.is_completed && (
+            <span className={s.repeatBadge}>repeat — −20% dmg</span>
           )}
         </div>
       )}

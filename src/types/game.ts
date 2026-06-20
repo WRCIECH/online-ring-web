@@ -156,28 +156,11 @@ export interface Stats {
   STR: number; DEX: number; INT: number; FAI: number; ARC: number
 }
 
-// ── Learning items ────────────────────────────────────────────────────────
-export interface LearningItem {
-  id: string
-  name: string
-  completed_at?: number
-}
-
 // ── Content pipeline ──────────────────────────────────────────────────────
-export type ContentPhase =
-  | 'Research' | 'Outline' | 'Produce' | 'Glue'
-  | 'Refine' | 'Publish' | 'Published'
-
 export interface ContentItem {
   id: string
   name: string
-  phase: ContentPhase
-  published_at?: number
   notes?: string
-  stamped_product?: ContentProductType
-  stamped_origin?: AtomicOrigin
-  stamped_status?: StatusType
-  stamped_style?: DamageType
 }
 
 // ── Game state ────────────────────────────────────────────────────────────
@@ -214,10 +197,11 @@ export interface GameState {
   completed_locations: string[]
   // Workflow abandon penalty (0.0 = none, resets after workflow completion)
   abandon_penalty: number
+  // Active workflow (persisted across mob fights until all tiles done or abandoned)
+  active_workflow: WorkflowGraph | null
+  active_content_id: string | null
   // Content pipeline
   content_items: ContentItem[]
-  // Learning items
-  learning_items: LearningItem[]
   // Analytics
   total_task_time_s: number
   // UI locale

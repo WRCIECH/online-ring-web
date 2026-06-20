@@ -395,15 +395,6 @@ const en: TranslationBundle = {
     confirm_on_label:      'on',
     confirm_to_upgrade:    'to upgrade',
 
-    // Content phases
-    phase_Research:  'Research',
-    phase_Outline:   'Outline',
-    phase_Produce:   'Produce',
-    phase_Glue:      'Glue',
-    phase_Refine:    'Refine',
-    phase_Publish:   'Publish',
-    phase_Published: 'Published',
-
     // RunMapScreen
     event_site_of_grace:  '⬥ Site of Grace',
     event_trial_gate:     '⚔ Trial Gate',

@@ -296,12 +296,6 @@ const pl: TranslationBundle = {
     btn_add_article:        '+ Dodaj artykuł',
     add_article_disabled:   'Nie można dodawać w trakcie aktywnego zadania',
     tab_content:            'Treści',
-    tab_learning:           'Nauka',
-    learning_title:         'Zadania nauki',
-    empty_learning:         'Brak zadań nauki. Dodaj temat, który chcesz opanować.',
-    learning_placeholder:   'Temat / materiał do nauki…',
-    btn_add_learning:       '+ Dodaj zadanie nauki',
-    learning_btn_done:      'Gotowe',
     published_label:        'Opublikowano',
     click_to_rename:        'Kliknij, aby zmienić nazwę',
     untitled:               'Bez tytułu',
@@ -395,15 +389,6 @@ const pl: TranslationBundle = {
     confirm_on_label:      'na',
     confirm_to_upgrade:    'aby ulepszyć',
 
-    // Content phases
-    phase_Research:  'Badania',
-    phase_Outline:   'Konspekt',
-    phase_Produce:   'Produkcja',
-    phase_Glue:      'Łączenie',
-    phase_Refine:    'Dopracowanie',
-    phase_Publish:   'Publikacja',
-    phase_Published: 'Opublikowano',
-
     // RunMapScreen
     event_site_of_grace:  '⬥ Miejsce Łaski',
     event_trial_gate:     '⚔ Brama Próby',
@@ -440,7 +425,6 @@ const pl: TranslationBundle = {
     btn_end_turn:         'Zakończ turę',
     end_turn_sublabel:    'Przekaż wrogowi',
     btn_roll:             'Unik',
-    roll_needs_learning:  'Potrzeba 2+ elementów do nauki',
     sta_on_success:       'STA przy sukcesie',
     btn_block:            'Blok',
     block_sublabel:       'Natychmiast — bez zadania',

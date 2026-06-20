@@ -56,7 +56,8 @@ export default function CombatScreen() {
           0,
         )
       }
-      const workflow = generateWorkflow(wClass, wRarity, enemyData.is_boss)
+      // Resume persisted workflow or generate fresh
+      const workflow = store.active_workflow ?? generateWorkflow(wClass, wRarity, enemyData.is_boss)
       return initCombatState(
         workflow, enemyData,
         equippedWeaponId, wLevel,
@@ -122,6 +123,10 @@ export default function CombatScreen() {
     store.clearAbandonPenalty()
     lootItems?.forEach(item => store.addWeaponInstance(item.instance))
     store.addDefeatedEnemy(loc.enemy_id)
+    // Persist or clear workflow
+    const allDone = state.workflow.tiles.every(t => t.is_completed)
+    if (allDone) store.clearActiveWorkflow()
+    else         store.saveWorkflowProgress(state.workflow)
     const isLast = store.run_current_index >= store.run_location_sequence.length - 1
     store.advanceRun()
     if (isLast) { store.endRunVictory(); navigate('/run-complete') }
@@ -140,15 +145,24 @@ export default function CombatScreen() {
   const handleFlee = useCallback(() => {
     store.syncCombatResult(state.playerHp, state.playerEstus, store.current_fp)
     store.setAbandonPenalty(ABANDON_PENALTY)
+    store.clearActiveWorkflow()
     store.endRunFailure()
     navigate('/')
   }, [store, navigate, state])
 
   const [musicMuted, setMusicMuted] = useState(false)
-  const [selectedContentId, setSelectedContentId] = useState<string | null>(null)
+  // If a content item was already locked in the store, skip the picker entirely
+  const [selectedContentId, setSelectedContentId] = useState<string | null>(
+    store.active_content_id ?? null
+  )
 
-  const activeContent = store.content_items.filter(c => c.phase !== 'Published')
+  const activeContent = store.content_items
   const selectedContent = activeContent.find(c => c.id === selectedContentId) ?? null
+
+  const handleSelectContent = (id: string) => {
+    setSelectedContentId(id)
+    store.setActiveContentId(id)
+  }
 
   // ── Selected tile (derived) ───────────────────────────────────────────────
   const selectedTile = state.selectedTileId
@@ -198,7 +212,6 @@ export default function CombatScreen() {
         <div className={s.contentBar}>
           <span className={s.contentBarLabel}>Working on:</span>
           <span className={s.contentBarTitle}>{selectedContent.name}</span>
-          <span className={s.contentBarPhase}>{selectedContent.phase}</span>
         </div>
       )}
 
@@ -252,10 +265,9 @@ export default function CombatScreen() {
                     <button
                       key={item.id}
                       className={s.contentPickItem}
-                      onClick={() => setSelectedContentId(item.id)}
+                      onClick={() => handleSelectContent(item.id)}
                     >
                       <span className={s.contentPickName}>{item.name}</span>
-                      <span className={s.contentPickPhase}>{item.phase}</span>
                     </button>
                   ))}
                 </div>

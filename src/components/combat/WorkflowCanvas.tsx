@@ -1,6 +1,6 @@
 import { useEffect, useRef, useMemo, useState } from 'react'
 import type { WorkflowGraph, WorkflowTile, TileType } from '../../types/game'
-import { getReachableTiles } from '../../engine/combat'
+import { getReachableTiles, REPEAT_DAMAGE_PENALTY } from '../../engine/combat'
 import s from './WorkflowCanvas.module.css'
 
 interface Props {
@@ -150,9 +150,10 @@ function render(
 
     // Border
     let bc = 'rgba(38,34,75,0.45)', bw = 1
-    if (isSelected)   { bc = '#e6bf33';               bw = 2.5 }
-    else if (isReach) { bc = 'rgba(110,175,255,0.9)'; bw = 2   }
-    else if (done)    { bc = 'rgba(48,92,52,0.55)';   bw = 1   }
+    if (isSelected && done) { bc = '#e6bf33';               bw = 2.5 }
+    else if (isSelected)    { bc = '#e6bf33';               bw = 2.5 }
+    else if (isReach)       { bc = 'rgba(110,175,255,0.9)'; bw = 2   }
+    else if (done)          { bc = 'rgba(48,92,52,0.75)';   bw = 1.5 }
 
     ctx.beginPath()
     ctx.roundRect(p.x, p.y, TILE, TILE, TILE_RX)
@@ -281,7 +282,15 @@ export default function WorkflowCanvas({ workflow, selectedTileId, onSelectTile 
         <div className={s.tooltip} style={{ left: hovered.cx + 16, top: hovered.cy - 8 }}>
           <span className={s.ttType}>{TILE_LABEL[hovered.tile.type]}</span>
           <span className={s.ttName}>{hovered.tile.name}</span>
-          {hovered.tile.is_completed && <span className={s.ttDone}>✓ Completed</span>}
+          {hovered.tile.is_completed && (
+            <>
+              <span className={s.ttDone}>✓ Completed — repeat allowed</span>
+              <span className={s.ttRepeat}>−{Math.round(REPEAT_DAMAGE_PENALTY * 100)}% dmg penalty</span>
+              <span className={s.ttTimes}>
+                Light {fmtTime(hovered.tile.time_light)} · Heavy {fmtTime(hovered.tile.time_heavy)}
+              </span>
+            </>
+          )}
           {!hovered.tile.is_completed && !reachable.has(hovered.tile.id) && (
             <span className={s.ttLocked}>Locked — complete previous tiles first</span>
           )}
