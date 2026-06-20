@@ -1,5 +1,6 @@
 import { useEffect } from 'react'
-import type { CombatState, CombatAction } from '../../engine/combat'
+import { previewMove, type CombatState, type CombatAction } from '../../engine/combat'
+import { SACRIFICE_MULT } from '../../data/constants'
 import type { MoveType } from '../../types/game'
 import s from './TimerOverlay.module.css'
 
@@ -106,6 +107,19 @@ export default function TimerOverlay({ state, dispatch }: Props) {
             <button className={s.btnPrimary} onClick={() => dispatch({ type: 'TIMER_RESULT', accomplished: true })}>
               Done
             </button>
+            {pendingTile && pendingMove && (() => {
+              const timeFrac = stepTotal > 0 ? stepTimer / stepTotal : 0
+              const selfDmg  = Math.round(previewMove(state, pendingTile, pendingMove).damage * timeFrac * SACRIFICE_MULT)
+              return (
+                <button
+                  className={s.btnSacrifice}
+                  title={`Finish instantly — enemy still takes full damage, but you take ~${selfDmg} HP self-damage (${Math.round(timeFrac * 100)}% time remaining × ${SACRIFICE_MULT}).`}
+                  onClick={() => dispatch({ type: 'TIMER_RESULT', accomplished: true, sacrificeTimeFrac: timeFrac })}
+                >
+                  Sacrifice{selfDmg > 0 ? ` (−${selfDmg} HP)` : ''}
+                </button>
+              )
+            })()}
           </div>
         )}
 

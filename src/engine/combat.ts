@@ -3,7 +3,7 @@ import type {
   Enemy, WeaponInstance, Stats,
 } from '../types/game'
 import { WEAPONS, calcTileReward } from '../data/weapons'
-import { REPEAT_PENALTY_PER_RETRY, REPEAT_PENALTY_MAX, REPEAT_DAMAGE_PENALTY } from '../data/constants'
+import { REPEAT_PENALTY_PER_RETRY, REPEAT_PENALTY_MAX, REPEAT_DAMAGE_PENALTY, SACRIFICE_MULT } from '../data/constants'
 
 export interface LogEntry { id: number; text: string; color?: string }
 
@@ -47,7 +47,7 @@ export type CombatAction =
   | { type: 'CHOOSE_MOVE'; move: MoveType }
   | { type: 'START_TIMER' }
   | { type: 'TICK'; delta: number }
-  | { type: 'TIMER_RESULT'; accomplished: boolean }
+  | { type: 'TIMER_RESULT'; accomplished: boolean; sacrificeTimeFrac?: number }
   | { type: 'CANCEL_TIMER' }
   | { type: 'USE_ESTUS' }
   | { type: 'ABANDON' }
@@ -265,6 +265,15 @@ export function combatReducer(state: CombatState, action: CombatAction): CombatS
       )
       if (repeatPenalty > 0) {
         s = log(s, `Repeat penalty: −${Math.round(repeatPenalty * 100)}% runes, −${Math.round(REPEAT_DAMAGE_PENALTY * 100)}% dmg`, '#888')
+      }
+
+      // Sacrifice: finishing early at HP cost — applied before the victory
+      // check so a killing blow still costs HP.
+      if (action.sacrificeTimeFrac !== undefined && action.sacrificeTimeFrac > 0) {
+        const selfDmg     = Math.round(damage * action.sacrificeTimeFrac * SACRIFICE_MULT)
+        const sacrificeHp = Math.max(0, s.playerHp - selfDmg)
+        s = log({ ...s, playerHp: sacrificeHp }, `⚔ Sacrifice — ${selfDmg} self-damage`, '#cc3333')
+        if (sacrificeHp <= 0) return { ...s, phase: 'DEFEAT' }
       }
 
       if (newEnemyHp <= 0) {
