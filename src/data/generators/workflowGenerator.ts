@@ -1,4 +1,5 @@
-import type { WeaponClass, WeaponRarity, TileType, WorkflowTile, WorkflowEdge, WorkflowGraph } from '../../types/game'
+import type { WeaponClass, WeaponRarity, TileType, WorkflowTile, WorkflowEdge, WorkflowGraph, ContentProductType } from '../../types/game'
+import { WEAPON_CLASSES } from './weaponClasses'
 
 // ── Time tables (seconds) ─────────────────────────────────────────────────
 
@@ -120,34 +121,39 @@ function tid(): string { return `t_${++_seq}_${Math.random().toString(36).slice(
 
 // ── Graph builders ────────────────────────────────────────────────────────
 
-function makeTile(type: TileType): WorkflowTile {
+function pickContentType(pool: ContentProductType[]): ContentProductType {
+  return pool[Math.floor(Math.random() * pool.length)]
+}
+
+function makeTile(type: TileType, pool: ContentProductType[]): WorkflowTile {
   return {
     id: tid(), type, name: pickName(type),
     time_light: TILE_TIME_LIGHT[type],
     time_heavy: TILE_TIME_HEAVY[type],
+    content_type: pickContentType(pool),
     is_completed: false, repeat_count: 0,
   }
 }
 
-function buildLinear(count: number): { tiles: WorkflowTile[]; edges: WorkflowEdge[] } {
-  const tiles = Array.from({ length: count }, (_, i) => makeTile(tileTypeForPosition(i, count)))
+function buildLinear(count: number, pool: ContentProductType[]): { tiles: WorkflowTile[]; edges: WorkflowEdge[] } {
+  const tiles = Array.from({ length: count }, (_, i) => makeTile(tileTypeForPosition(i, count), pool))
   const edges: WorkflowEdge[] = tiles.slice(0, -1).map((t, i) => ({ from: t.id, to: tiles[i + 1].id }))
   return { tiles, edges }
 }
 
-function buildBranch(count: number): { tiles: WorkflowTile[]; edges: WorkflowEdge[] } {
+function buildBranch(count: number, pool: ContentProductType[]): { tiles: WorkflowTile[]; edges: WorkflowEdge[] } {
   // Structure: start → [branch A (2-3 tiles), branch B (2-3 tiles)] → merge → end
   const branchSize = Math.max(2, Math.floor((count - 3) / 2))
-  const startTile  = makeTile('research')
-  const mergeTile  = makeTile('edit')
-  const endTile    = makeTile('publish')
+  const startTile  = makeTile('research', pool)
+  const mergeTile  = makeTile('edit', pool)
+  const endTile    = makeTile('publish', pool)
 
   const branchACount = branchSize
   const branchBCount = count - 3 - branchACount
   const branchA = Array.from({ length: Math.max(1, branchACount) }, (_, i) =>
-    makeTile(tileTypeForPosition(i + 1, count)))
+    makeTile(tileTypeForPosition(i + 1, count), pool))
   const branchB = Array.from({ length: Math.max(1, branchBCount) }, (_, i) =>
-    makeTile(tileTypeForPosition(i + 1, count)))
+    makeTile(tileTypeForPosition(i + 1, count), pool))
 
   const tiles = [startTile, ...branchA, ...branchB, mergeTile, endTile]
   const edges: WorkflowEdge[] = [
@@ -162,16 +168,16 @@ function buildBranch(count: number): { tiles: WorkflowTile[]; edges: WorkflowEdg
   return { tiles, edges }
 }
 
-function buildDualBranch(count: number): { tiles: WorkflowTile[]; edges: WorkflowEdge[] } {
+function buildDualBranch(count: number, pool: ContentProductType[]): { tiles: WorkflowTile[]; edges: WorkflowEdge[] } {
   // Two sets of branches with a central hub
-  const startTile = makeTile('research')
-  const hub1      = makeTile('outline')
-  const hub2      = makeTile('edit')
-  const endTile   = makeTile('publish')
+  const startTile = makeTile('research', pool)
+  const hub1      = makeTile('outline', pool)
+  const hub2      = makeTile('edit', pool)
+  const endTile   = makeTile('publish', pool)
 
   const perBranch = Math.max(2, Math.floor((count - 4) / 4))
   const branches  = Array.from({ length: 4 }, () =>
-    Array.from({ length: perBranch }, (_, i) => makeTile(tileTypeForPosition(i + 1, count)))
+    Array.from({ length: perBranch }, (_, i) => makeTile(tileTypeForPosition(i + 1, count), pool))
   )
 
   const allBranchTiles = branches.flat()
@@ -219,16 +225,17 @@ export function generateWorkflow(
   const spec = getShapeSpec(weaponClass)
   const extra = RARITY_EXTRA[rarity] ?? 0
   const targetCount = spec.minTiles + Math.floor(Math.random() * (spec.maxTiles - spec.minTiles + 1)) + extra
+  const pool = WEAPON_CLASSES[weaponClass].supported_products
 
   let tiles: WorkflowTile[]
   let edges: WorkflowEdge[]
 
   if (spec.shape === 'dual_branch') {
-    ({ tiles, edges } = buildDualBranch(targetCount))
+    ({ tiles, edges } = buildDualBranch(targetCount, pool))
   } else if (spec.shape === 'branch') {
-    ({ tiles, edges } = buildBranch(targetCount))
+    ({ tiles, edges } = buildBranch(targetCount, pool))
   } else {
-    ({ tiles, edges } = buildLinear(targetCount))
+    ({ tiles, edges } = buildLinear(targetCount, pool))
   }
 
   // Boss: make the last tile a mandatory publish gate

@@ -49,7 +49,7 @@ export interface WorkflowTile {
   name: string
   time_light: number   // seconds for Light Attack timer
   time_heavy: number   // seconds for Heavy Attack timer
-  content_type?: string
+  content_type?: ContentProductType
   is_completed: boolean
   repeat_count: number
 }

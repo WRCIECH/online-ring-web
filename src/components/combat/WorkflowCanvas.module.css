@@ -47,6 +47,7 @@
   line-height: 1.35;
 }
 
+.ttContentType { font-size: 0.7rem; color: var(--color-gold-dim); letter-spacing: 0.02em; }
 .ttDone    { font-size: 0.75rem; color: #44884a; }
 .ttRepeat  { font-size: 0.72rem; color: #cc8833; }
 .ttLocked  { font-size: 0.75rem; color: var(--color-text-dim); font-style: italic; }

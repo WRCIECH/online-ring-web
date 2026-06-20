@@ -1,4 +1,6 @@
-import type { WeaponInstance, WeaponRarity, Stats, Grade } from '../types/game'
+import type { WeaponInstance, WeaponRarity, Stats, Grade, ContentProductType } from '../types/game'
+import { CONTENT_TYPE_STATS } from './contentTypeScaling'
+import { CONTENT_TYPE_STAT_BONUS } from './constants'
 
 // Runtime registry of weapon instances (populated by rollWeapon + store hydration)
 export const WEAPONS: Record<string, WeaponInstance> = {}
@@ -21,12 +23,19 @@ export function calcTileReward(
   weapon: WeaponInstance,
   level: number,
   stats: Stats,
+  contentType?: ContentProductType,
 ): number {
   const levelMult = LEVEL_MULT[weapon.rarity] ?? 0.03
   let statBonus = 0
   for (const [stat, grade] of Object.entries(weapon.scaling) as [keyof Stats, Grade][]) {
     const points = Math.max(0, (stats[stat] ?? 8) - 8)
     statBonus += points * (GRADE_MULT[grade] ?? 0)
+  }
+  if (contentType) {
+    for (const stat of CONTENT_TYPE_STATS[contentType]?.stats ?? []) {
+      const points = Math.max(0, (stats[stat] ?? 8) - 8)
+      statBonus += points * CONTENT_TYPE_STAT_BONUS
+    }
   }
   const affixMult = weapon.affixes.reduce((m, a) => m * (a.damage_mult ?? 1), 1)
   return Math.floor(baseValue * weapon.base_damage_mult * affixMult * (1 + level * levelMult + statBonus))

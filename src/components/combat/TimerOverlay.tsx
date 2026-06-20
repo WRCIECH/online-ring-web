@@ -1,6 +1,7 @@
 import { useEffect } from 'react'
 import { previewMove, type CombatState, type CombatAction } from '../../engine/combat'
 import { SACRIFICE_MULT } from '../../data/constants'
+import { CONTENT_TYPE_STATS } from '../../data/contentTypeScaling'
 import type { MoveType } from '../../types/game'
 import s from './TimerOverlay.module.css'
 
@@ -73,6 +74,13 @@ export default function TimerOverlay({ state, dispatch }: Props) {
           <div className={s.taskName}>
             <span className={s.articlePhaseChip}>{pendingTile.type}</span>
             {' '}{pendingTile.name}
+            {pendingTile.content_type && (
+              <div style={{ marginTop: 4, fontSize: '0.74rem', color: 'var(--color-gold-dim)', letterSpacing: '0.02em' }}>
+                {CONTENT_TYPE_STATS[pendingTile.content_type].label}
+                {' · scales with '}
+                {CONTENT_TYPE_STATS[pendingTile.content_type].stats.join(' + ')}
+              </div>
+            )}
             {pendingMove && (
               <div style={{ marginTop: 6, fontSize: '0.78rem', color: 'var(--color-text-dim)', letterSpacing: '0.05em' }}>
                 {MOVE_LABEL[pendingMove]}

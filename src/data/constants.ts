@@ -94,6 +94,11 @@ export const DMG_RESISTANCE_MULT = 0.7
 /** Multiplier applied to self-damage when sacrificing time remaining on a task. */
 export const SACRIFICE_MULT = 2.0
 
+// ── Content-type stat scaling ──────────────────────────────────────────────────
+
+/** Bonus per stat point above 8, for each stat a tile's content type lists. Flat grade-B equivalent. */
+export const CONTENT_TYPE_STAT_BONUS = 0.015
+
 // ── Momentum damage bonus ─────────────────────────────────────────────────────
 
 /** How long the post-victory momentum bonus lasts (ms). */

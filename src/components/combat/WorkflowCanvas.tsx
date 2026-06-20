@@ -1,6 +1,7 @@
 import { useEffect, useRef, useMemo, useState, useCallback } from 'react'
 import type { WorkflowGraph, WorkflowTile, TileType } from '../../types/game'
 import { getReachableTiles, REPEAT_DAMAGE_PENALTY } from '../../engine/combat'
+import { CONTENT_TYPE_STATS } from '../../data/contentTypeScaling'
 import s from './WorkflowCanvas.module.css'
 
 interface Props {
@@ -39,6 +40,12 @@ function fmtTime(secs: number): string {
   const m = Math.floor(secs / 60)
   const sc = secs % 60
   return m > 0 ? (sc > 0 ? `${m}m ${sc}s` : `${m}m`) : `${sc}s`
+}
+
+function contentTypeHint(tile: WorkflowTile): string | null {
+  if (!tile.content_type) return null
+  const info = CONTENT_TYPE_STATS[tile.content_type]
+  return `${info.label} · scales with ${info.stats.join(' + ')}`
 }
 
 // ── Layout ────────────────────────────────────────────────────────────────
@@ -383,6 +390,9 @@ export default function WorkflowCanvas({ workflow, selectedTileId, onSelectTile 
         <div className={s.tooltip} style={{ left: hovered.cx, top: hovered.cy }}>
           <span className={s.ttType}>{TILE_LABEL[hovered.tile.type]}</span>
           <span className={s.ttName}>{hovered.tile.name}</span>
+          {contentTypeHint(hovered.tile) && (
+            <span className={s.ttContentType}>{contentTypeHint(hovered.tile)}</span>
+          )}
           {hovered.tile.is_completed && (
             <>
               <span className={s.ttDone}>✓ Completed — repeat allowed</span>
