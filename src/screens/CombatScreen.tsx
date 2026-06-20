@@ -12,8 +12,8 @@ import RunHeader    from '../components/layout/RunHeader'
 import TimerOverlay from '../components/combat/TimerOverlay'
 import CombatLog    from '../components/combat/CombatLog'
 import WorkflowCanvas from '../components/combat/WorkflowCanvas'
-import MovePanel    from '../components/combat/MovePanel'
 import MoveRadialMenu, { type RadialMoveItem } from '../components/combat/MoveRadialMenu'
+import CombatBottomBar from '../components/combat/CombatBottomBar'
 import EnemyDisplay from '../components/combat/EnemyDisplay'
 import CombatMusic  from '../components/combat/CombatMusic'
 import { COMBAT_MUSIC } from '../data/combatMusic'
@@ -239,31 +239,6 @@ export default function CombatScreen() {
         canAddContent={state.phase !== 'STEP_TIMER'}
       />
 
-      <div className={s.enemyHeader}>
-        <div className={s.enemySprite}>
-          <EnemyDisplay
-            enemyId={loc.enemy_id}
-            hp={state.phase === 'VICTORY' || state.phase === 'DEFEAT' || state.phase === 'FLED' ? 0 : state.enemyHp}
-            maxHp={state.enemyMaxHp}
-            sublocationtype={loc.sublocation_type}
-          />
-        </div>
-        <div className={s.enemyInfo}>
-          <div className={s.enemyNameRow}>
-            <span className={s.enemyName}>{enemyLabel}</span>
-            {state.isBoss && <span className={s.bossBadge}>Boss</span>}
-            <span className={s.enemyHpText}>{state.enemyHp} / {state.enemyMaxHp}</span>
-          </div>
-          <div className={s.enemyHpTrack}>
-            <div
-              className={s.enemyHpFill}
-              style={{ width: `${Math.max(0, state.enemyHp / state.enemyMaxHp * 100)}%` }}
-            />
-          </div>
-          <span className={s.enemyDesc}>{enemyData.description}</span>
-        </div>
-      </div>
-
       {selectedContent && (
         <div className={s.contentBar}>
           <span className={s.contentBarLabel}>Working on:</span>
@@ -288,18 +263,46 @@ export default function CombatScreen() {
           )}
         </div>
 
-        <div className={s.sidebar}>
-          <MovePanel
-            tile={selectedTile}
-            playerEstus={state.playerEstus}
-            onEstus={() => dispatch({ type: 'USE_ESTUS' })}
-            onAbandon={() => dispatch({ type: 'ABANDON' })}
-          />
-          <div className={s.logWrap}>
-            <CombatLog entries={state.log} />
+        <div className={s.enemyPanel}>
+          <div className={s.enemySprite}>
+            <EnemyDisplay
+              enemyId={loc.enemy_id}
+              hp={state.phase === 'VICTORY' || state.phase === 'DEFEAT' || state.phase === 'FLED' ? 0 : state.enemyHp}
+              maxHp={state.enemyMaxHp}
+              sublocationtype={loc.sublocation_type}
+            />
+          </div>
+          <div className={s.enemyInfo}>
+            <div className={s.enemyNameRow}>
+              <span className={s.enemyName}>{enemyLabel}</span>
+              {state.isBoss && <span className={s.bossBadge}>Boss</span>}
+            </div>
+            <div className={s.enemyHpRow}>
+              <div className={s.enemyHpTrack}>
+                <div
+                  className={s.enemyHpFill}
+                  style={{ width: `${Math.max(0, state.enemyHp / state.enemyMaxHp * 100)}%` }}
+                />
+              </div>
+              <span className={s.enemyHpText}>{state.enemyHp} / {state.enemyMaxHp}</span>
+            </div>
+            <span className={s.enemyDesc}>{enemyData.description}</span>
           </div>
         </div>
       </div>
+
+      <div className={s.logWrap}>
+        <CombatLog entries={state.log} />
+      </div>
+
+      <CombatBottomBar
+        weapon={weapon}
+        weaponLevel={wLevel}
+        playerEstus={state.playerEstus}
+        canAct={isPlayerTurn}
+        onEstus={() => dispatch({ type: 'USE_ESTUS' })}
+        onAbandon={() => dispatch({ type: 'ABANDON' })}
+      />
 
       {/* ── Content selection overlay ──────────────────────────────────── */}
       {selectedContentId === null && (

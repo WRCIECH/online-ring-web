@@ -1,0 +1,124 @@
+.bar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  background: rgba(0, 0, 0, 0.28);
+  border-top: 1px solid var(--color-sep);
+  flex-shrink: 0;
+}
+
+/* ── Slot base ────────────────────────────────────────────────────────────── */
+.slot {
+  width: 56px;
+  height: 56px;
+  border-radius: var(--radius);
+  background: var(--color-bg-panel);
+  border: 1px solid var(--color-border);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  position: relative;
+  cursor: default;
+  color: var(--color-text-dim);
+  padding: 0;
+}
+
+.icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.4rem;
+}
+
+.label {
+  font-size: 0.58rem;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  opacity: 0.7;
+  line-height: 1;
+}
+
+/* Estus-specific */
+.estusSlot {
+  color: #3aaa80;
+  cursor: pointer;
+  transition: border-color 0.14s, background 0.14s;
+}
+
+.estusSlot:hover:not(:disabled) {
+  border-color: var(--color-gold-dim);
+  background: rgba(230, 191, 51, 0.06);
+}
+
+.slotDepleted { opacity: 0.38; cursor: not-allowed; color: var(--color-text-dim); }
+
+.badge {
+  position: absolute;
+  top: 4px;
+  right: 6px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: var(--color-gold);
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+}
+
+/* ── Tooltip ──────────────────────────────────────────────────────────────── */
+.tooltip {
+  position: absolute;
+  bottom: calc(100% + 8px);
+  left: 0;
+  z-index: 20;
+  background: var(--color-bg-panel);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  padding: 7px 12px;
+  pointer-events: none;
+  white-space: nowrap;
+  min-width: 160px;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.5);
+}
+
+.tipName {
+  font-size: 0.84rem;
+  color: var(--color-gold-text);
+  font-weight: 600;
+  margin-bottom: 2px;
+}
+
+.tipSub {
+  font-size: 0.72rem;
+  color: var(--color-text-dim);
+  text-transform: capitalize;
+}
+
+.tipHint {
+  font-size: 0.68rem;
+  color: var(--color-text-dim);
+  opacity: 0.6;
+  margin-top: 3px;
+}
+
+.divider {
+  width: 1px;
+  height: 38px;
+  background: var(--color-sep);
+  margin: 0 4px;
+  flex-shrink: 0;
+}
+
+.abandonBtn {
+  margin-left: auto;
+  padding: 8px 14px;
+  font-size: 0.8rem;
+  background: transparent;
+  border: 1px solid rgba(120, 60, 60, 0.35);
+  border-radius: var(--radius);
+  color: var(--color-text-dim);
+  cursor: pointer;
+}
+
+.abandonBtn:hover { color: #cc6666; border-color: rgba(160, 60, 60, 0.55); }
