@@ -1,4 +1,4 @@
-import { useEffect, useRef, useMemo, useState } from 'react'
+import { useEffect, useRef, useMemo, useState, useCallback } from 'react'
 import type { WorkflowGraph, WorkflowTile, TileType } from '../../types/game'
 import { getReachableTiles, REPEAT_DAMAGE_PENALTY } from '../../engine/combat'
 import s from './WorkflowCanvas.module.css'
@@ -215,17 +215,38 @@ function render(
   }
 }
 
+// ── Zoom / pan ────────────────────────────────────────────────────────────
+const MIN_SCALE = 0.4
+const MAX_SCALE = 2.2
+const ZOOM_STEP = 1.08
+const DRAG_THRESHOLD = 4
+
+interface ViewState { scale: number; x: number; y: number }
+interface DragState { startX: number; startY: number; viewX: number; viewY: number; moved: boolean }
+
 // ── Component ─────────────────────────────────────────────────────────────
 
 export default function WorkflowCanvas({ workflow, selectedTileId, onSelectTile }: Props) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
+  const viewportRef = useRef<HTMLDivElement>(null)
   const [hovered, setHovered] = useState<{ tile: WorkflowTile; cx: number; cy: number } | null>(null)
+  const [view, setView] = useState<ViewState>({ scale: 1, x: 0, y: 0 })
+  const [isPanning, setIsPanning] = useState(false)
+  const dragRef = useRef<DragState | null>(null)
 
   const { positions, canvasW, canvasH } = useMemo(
     () => layoutGraph(workflow),
     [workflow.tiles.length, workflow.edges.length],
   )
   const reachable = useMemo(() => getReachableTiles(workflow), [workflow])
+
+  // Reset pan/zoom only when a genuinely new workflow graph starts — the
+  // start tile id stays stable across tile-completion updates within one fight.
+  const [resetForId, setResetForId] = useState(workflow.start_id)
+  if (workflow.start_id !== resetForId) {
+    setResetForId(workflow.start_id)
+    setView({ scale: 1, x: 0, y: 0 })
+  }
 
   useEffect(() => {
     const canvas = canvasRef.current
@@ -238,6 +259,58 @@ export default function WorkflowCanvas({ workflow, selectedTileId, onSelectTile 
     ctx.scale(dpr, dpr)
     render(ctx, workflow, positions, canvasW, canvasH, selectedTileId, reachable)
   }, [workflow, positions, canvasW, canvasH, selectedTileId, reachable])
+
+  // Pan via left-mouse-button drag, captured at the window level so the
+  // drag keeps tracking even if the cursor leaves the canvas.
+  useEffect(() => {
+    if (!isPanning) return
+    function onMove(e: MouseEvent) {
+      const d = dragRef.current
+      if (!d) return
+      const dx = e.clientX - d.startX
+      const dy = e.clientY - d.startY
+      if (Math.abs(dx) > DRAG_THRESHOLD || Math.abs(dy) > DRAG_THRESHOLD) d.moved = true
+      setView(v => ({ ...v, x: d.viewX + dx, y: d.viewY + dy }))
+    }
+    function onUp() { setIsPanning(false) }
+    window.addEventListener('mousemove', onMove)
+    window.addEventListener('mouseup', onUp)
+    return () => {
+      window.removeEventListener('mousemove', onMove)
+      window.removeEventListener('mouseup', onUp)
+    }
+  }, [isPanning])
+
+  function handleViewportMouseDown(e: React.MouseEvent) {
+    if (e.button !== 0) return
+    dragRef.current = { startX: e.clientX, startY: e.clientY, viewX: view.x, viewY: view.y, moved: false }
+    setIsPanning(true)
+    setHovered(null)
+  }
+
+  // Attached as a native, non-passive listener — React's synthetic onWheel
+  // is passive by default, so preventDefault() inside it is a silent no-op.
+  const handleWheel = useCallback((e: WheelEvent) => {
+    e.preventDefault()
+    const canvas = canvasRef.current
+    if (!canvas) return
+    const rect   = canvas.getBoundingClientRect()
+    const mouseX = e.clientX - rect.left
+    const mouseY = e.clientY - rect.top
+    setView(v => {
+      const factor   = e.deltaY < 0 ? ZOOM_STEP : 1 / ZOOM_STEP
+      const newScale = Math.min(MAX_SCALE, Math.max(MIN_SCALE, v.scale * factor))
+      const ratio    = 1 - newScale / v.scale
+      return { scale: newScale, x: v.x + mouseX * ratio, y: v.y + mouseY * ratio }
+    })
+  }, [])
+
+  useEffect(() => {
+    const el = viewportRef.current
+    if (!el) return
+    el.addEventListener('wheel', handleWheel, { passive: false })
+    return () => el.removeEventListener('wheel', handleWheel)
+  }, [handleWheel])
 
   function hitTest(e: React.MouseEvent<HTMLCanvasElement>): WorkflowTile | null {
     const canvas = canvasRef.current
@@ -255,6 +328,8 @@ export default function WorkflowCanvas({ workflow, selectedTileId, onSelectTile 
   }
 
   function handleClick(e: React.MouseEvent<HTMLCanvasElement>) {
+    if (dragRef.current?.moved) { dragRef.current = null; return }
+    dragRef.current = null
     const tile = hitTest(e)
     if (!tile) return
     const canvas = canvasRef.current
@@ -269,26 +344,37 @@ export default function WorkflowCanvas({ workflow, selectedTileId, onSelectTile 
   }
 
   function handleMouseMove(e: React.MouseEvent<HTMLCanvasElement>) {
-    const canvas = canvasRef.current
-    if (!canvas) return
-    const rect = canvas.getBoundingClientRect()
+    if (dragRef.current) return
     const tile = hitTest(e)
-    if (tile) setHovered({ tile, cx: e.clientX - rect.left, cy: e.clientY - rect.top })
+    if (tile) setHovered({ tile, cx: e.clientX + 16, cy: e.clientY - 8 })
     else setHovered(null)
   }
 
   return (
-    <div className={s.wrap}>
-      <canvas
-        ref={canvasRef}
-        className={s.canvas}
-        style={{ width: canvasW, height: canvasH }}
-        onClick={handleClick}
-        onMouseMove={handleMouseMove}
-        onMouseLeave={() => setHovered(null)}
-      />
+    <div
+      ref={viewportRef}
+      className={s.viewport}
+      style={{ cursor: isPanning ? 'grabbing' : 'grab' }}
+      onMouseDown={handleViewportMouseDown}
+    >
+      <div
+        className={s.stage}
+        style={{
+          width: canvasW, height: canvasH,
+          transform: `translate(${view.x}px, ${view.y}px) scale(${view.scale})`,
+        }}
+      >
+        <canvas
+          ref={canvasRef}
+          className={s.canvas}
+          style={{ width: canvasW, height: canvasH }}
+          onClick={handleClick}
+          onMouseMove={handleMouseMove}
+          onMouseLeave={() => setHovered(null)}
+        />
+      </div>
       {hovered && (
-        <div className={s.tooltip} style={{ left: hovered.cx + 16, top: hovered.cy - 8 }}>
+        <div className={s.tooltip} style={{ left: hovered.cx, top: hovered.cy }}>
           <span className={s.ttType}>{TILE_LABEL[hovered.tile.type]}</span>
           <span className={s.ttName}>{hovered.tile.name}</span>
           {hovered.tile.is_completed && (

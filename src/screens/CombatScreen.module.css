@@ -131,11 +131,9 @@
 .canvasWrap {
   flex: 1;
   padding: 16px 20px;
-  display: flex;
-  justify-content: center;
-  align-items: flex-start;
   min-width: 0;
-  overflow-y: auto;
+  min-height: 0;
+  overflow: hidden;
 }
 
 .logWrap {
