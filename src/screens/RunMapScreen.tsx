@@ -58,7 +58,7 @@ export default function RunMapScreen() {
   const [graceTimerActive, setGraceTimerActive] = useState(false)
   const [graceTimerLeft,   setGraceTimerLeft]   = useState(600)
   const [graceTimerDone,   setGraceTimerDone]   = useState(false)
-  const activeItemCount = store.content_items.length
+  const activeItemCount = store.content_items.filter(c => !c.completed).length
   const canEnterFight   = activeItemCount >= MIN_PIPELINE_TO_FIGHT
   const expiredRef = useRef(false)
 

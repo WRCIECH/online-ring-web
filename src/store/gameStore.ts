@@ -220,7 +220,7 @@ export interface GameStore extends GameState {
 
   // Content pipeline
   addContentItem:    (name: string) => void
-  updateContentItem: (id: string, patch: Partial<Pick<ContentItem, 'name' | 'notes'>>) => void
+  updateContentItem: (id: string, patch: Partial<Pick<ContentItem, 'name' | 'notes' | 'completed'>>) => void
   removeContentItem: (id: string) => void
 
   // Learning items
@@ -480,6 +480,6 @@ export const selectEnemyData = (s: GameStore) => {
 }
 
 export const selectEquipLoad = (s: GameStore) => {
-  const contentUsed = s.content_items.length * ARTICLE_EQUIP_WEIGHT
+  const contentUsed = s.content_items.filter(c => !c.completed).length * ARTICLE_EQUIP_WEIGHT
   return { used: contentUsed, capacity: s.stats.END }
 }

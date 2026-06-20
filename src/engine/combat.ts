@@ -98,6 +98,27 @@ function calcTileDamage(tile: WorkflowTile, move: MoveType, weaponLevel: number)
   return Math.round(timeMin * 8 * moveMult * lvlMult)
 }
 
+// Preview of a move's outcome — mirrors the CHOOSE_MOVE/TIMER_RESULT success math exactly,
+// so the move-picker tooltip never drifts from the actual reward/damage dealt.
+export function previewMove(state: CombatState, tile: WorkflowTile, move: MoveType): {
+  duration: number
+  reward:   number
+  damage:   number
+} {
+  const duration       = move === 'Heavy' ? tile.time_heavy : tile.time_light
+  const repeatPenalty  = Math.min(REPEAT_PENALTY_MAX, tile.repeat_count * REPEAT_PENALTY_PER_RETRY)
+  const baseReward     = tileRewardBase(tile, move)
+  const weapon         = WEAPONS[state.equippedWeaponId] as WeaponInstance | undefined
+  const scaledReward   = weapon
+    ? calcTileReward(baseReward, weapon, state.weaponLevel, state.playerStats)
+    : baseReward
+  const reward         = Math.round(scaledReward * (1 - repeatPenalty) * (1 - state.incomingPenalty))
+  const isRepeat       = tile.is_completed
+  const rawDamage      = calcTileDamage(tile, move, state.weaponLevel)
+  const damage         = isRepeat ? Math.round(rawDamage * (1 - REPEAT_DAMAGE_PENALTY)) : rawDamage
+  return { duration, reward, damage }
+}
+
 // ── Init ──────────────────────────────────────────────────────────────────
 
 export function initCombatState(

@@ -1,11 +1,11 @@
-import { useReducer, useEffect, useCallback, useState } from 'react'
+import { useReducer, useEffect, useCallback, useState, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { combatReducer, initCombatState, ABANDON_PENALTY } from '../engine/combat'
+import { combatReducer, initCombatState, getReachableTiles, previewMove, REPEAT_DAMAGE_PENALTY, ABANDON_PENALTY } from '../engine/combat'
 import { useGameStore } from '../store/gameStore'
 import { ENEMIES } from '../data/enemies'
 import { WEAPONS } from '../data/weapons'
 import { playSound } from '../engine/sound'
-import type { WeaponInstance, WeaponRarity } from '../types/game'
+import type { WeaponInstance, WeaponRarity, MoveType } from '../types/game'
 import { rollWeapon } from '../data/generators/weaponGenerator'
 import { generateWorkflow } from '../data/generators/workflowGenerator'
 import RunHeader    from '../components/layout/RunHeader'
@@ -13,10 +13,24 @@ import TimerOverlay from '../components/combat/TimerOverlay'
 import CombatLog    from '../components/combat/CombatLog'
 import WorkflowCanvas from '../components/combat/WorkflowCanvas'
 import MovePanel    from '../components/combat/MovePanel'
+import MoveRadialMenu, { type RadialMoveItem } from '../components/combat/MoveRadialMenu'
 import EnemyDisplay from '../components/combat/EnemyDisplay'
 import CombatMusic  from '../components/combat/CombatMusic'
 import { COMBAT_MUSIC } from '../data/combatMusic'
 import s from './CombatScreen.module.css'
+
+const MOVE_DEFS: Array<{ move: MoveType; label: string; desc: string; colorVar: string }> = [
+  { move: 'Light', label: 'Light', desc: 'Less time, base reward',   colorVar: '#88aadd' },
+  { move: 'Heavy', label: 'Heavy', desc: 'More time, 1.5× reward',   colorVar: '#dd9977' },
+  { move: 'Jump',  label: 'Jump',  desc: 'Quick work, 0.8× reward',  colorVar: '#bb88ee' },
+]
+const RADIAL_RADIUS = 86
+
+function fmtMoveTime(secs: number): string {
+  const m = Math.floor(secs / 60)
+  const sc = secs % 60
+  return m > 0 ? (sc > 0 ? `${m}m ${sc}s` : `${m}m`) : `${sc}s`
+}
 
 const RARITY_COLOURS: Record<WeaponRarity, string> = {
   common: '#aaaaaa', magic: '#4488cc', rare: '#ccaa22',
@@ -125,8 +139,12 @@ export default function CombatScreen() {
     store.addDefeatedEnemy(loc.enemy_id)
     // Persist or clear workflow
     const allDone = state.workflow.tiles.every(t => t.is_completed)
-    if (allDone) store.clearActiveWorkflow()
-    else         store.saveWorkflowProgress(state.workflow)
+    if (allDone) {
+      if (store.active_content_id) store.updateContentItem(store.active_content_id, { completed: true })
+      store.clearActiveWorkflow()
+    } else {
+      store.saveWorkflowProgress(state.workflow)
+    }
     const isLast = store.run_current_index >= store.run_location_sequence.length - 1
     store.advanceRun()
     if (isLast) { store.endRunVictory(); navigate('/run-complete') }
@@ -156,7 +174,7 @@ export default function CombatScreen() {
     store.active_content_id ?? null
   )
 
-  const activeContent = store.content_items
+  const activeContent = store.content_items.filter(c => !c.completed)
   const selectedContent = activeContent.find(c => c.id === selectedContentId) ?? null
 
   const handleSelectContent = (id: string) => {
@@ -169,10 +187,48 @@ export default function CombatScreen() {
     ? state.workflow.tiles.find(t => t.id === state.selectedTileId) ?? null
     : null
 
+  // ── Move radial menu (click a tile → circles to pick Light/Heavy/Jump) ────
+  const isPlayerTurn = state.phase === 'PLAYER_TURN'
+  const [radialPos, setRadialPos] = useState<{ x: number; y: number } | null>(null)
+  const reachableTiles = useMemo(() => getReachableTiles(state.workflow), [state.workflow])
+
+  const handleTileClick = useCallback((tileId: string, x: number, y: number) => {
+    if (!isPlayerTurn) return
+    const tile = state.workflow.tiles.find(t => t.id === tileId)
+    if (!tile) return
+    if (!tile.is_completed && !reachableTiles.has(tileId)) return
+    dispatch({ type: 'SELECT_TILE', tileId })
+    setRadialPos({ x, y })
+  }, [isPlayerTurn, state.workflow, reachableTiles])
+
+  const radialItems = useMemo<RadialMoveItem[]>(() => {
+    if (!radialPos || !selectedTile) return []
+    const N = MOVE_DEFS.length
+    return MOVE_DEFS.map((def, i) => {
+      const angle   = (i / N) * 2 * Math.PI - Math.PI / 2
+      const preview = previewMove(state, selectedTile, def.move)
+      return {
+        id: def.move,
+        label: def.label,
+        sublabel: `${fmtMoveTime(preview.duration)} · ${def.desc}`,
+        metaParts: [
+          { text: `✦ ${preview.reward}`, color: '#c9a93a' },
+          { text: `⚔ ${preview.damage}`, color: '#cc6644' },
+          ...(selectedTile.is_completed
+            ? [{ text: `repeat −${Math.round(REPEAT_DAMAGE_PENALTY * 100)}% dmg`, color: '#888' }]
+            : []),
+        ],
+        colorVar: def.colorVar,
+        tx: Math.cos(angle) * RADIAL_RADIUS,
+        ty: Math.sin(angle) * RADIAL_RADIUS,
+        onSelect: () => dispatch({ type: 'CHOOSE_MOVE', move: def.move }),
+      }
+    })
+  }, [radialPos, selectedTile, state])
+
   if (!loc || !enemyData) return null
 
   const enemyLabel = loc.boss_name ?? enemyData.name
-  const isPlayerTurn = state.phase === 'PLAYER_TURN'
 
   return (
     <div className={s.root}>
@@ -220,18 +276,22 @@ export default function CombatScreen() {
           <WorkflowCanvas
             workflow={state.workflow}
             selectedTileId={state.selectedTileId}
-            onSelectTile={id => isPlayerTurn && dispatch({ type: 'SELECT_TILE', tileId: id })}
+            onSelectTile={handleTileClick}
           />
+          {isPlayerTurn && radialPos && radialItems.length > 0 && (
+            <MoveRadialMenu
+              x={radialPos.x}
+              y={radialPos.y}
+              items={radialItems}
+              onClose={() => setRadialPos(null)}
+            />
+          )}
         </div>
 
         <div className={s.sidebar}>
           <MovePanel
             tile={selectedTile}
             playerEstus={state.playerEstus}
-            onMove={move => {
-              if (!isPlayerTurn || !state.selectedTileId) return
-              dispatch({ type: 'CHOOSE_MOVE', move })
-            }}
             onEstus={() => dispatch({ type: 'USE_ESTUS' })}
             onAbandon={() => dispatch({ type: 'ABANDON' })}
           />

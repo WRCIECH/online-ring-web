@@ -62,7 +62,7 @@ export default function ContentOverlay({ onClose, canAdd = true }: Props) {
     const isConfirmDel = confirmDeleteId === item.id
 
     return (
-      <div key={item.id} className={s.item}>
+      <div key={item.id} className={[s.item, item.completed ? s.itemPublished : ''].join(' ')}>
         <div className={s.itemRow}>
           {isEditName ? (
             <input
@@ -79,12 +79,14 @@ export default function ContentOverlay({ onClose, canAdd = true }: Props) {
           ) : (
             <span
               className={s.itemName}
-              onClick={() => handleNameEdit(item)}
-              title={t.ui.click_to_rename}
+              onClick={() => !item.completed && handleNameEdit(item)}
+              title={item.completed ? undefined : t.ui.click_to_rename}
             >
               {item.name || <em className={s.unnamed}>{t.ui.untitled}</em>}
             </span>
           )}
+
+          {item.completed && <span className={s.phaseChip}>{t.ui.content_item_completed}</span>}
 
           <div className={s.itemActions}>
             {isConfirmDel ? (

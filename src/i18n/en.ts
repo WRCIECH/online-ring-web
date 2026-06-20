@@ -295,6 +295,7 @@ const en: TranslationBundle = {
     article_placeholder:    'Article title…',
     btn_add_article:        '+ Add article',
     add_article_disabled:   'Cannot add during an active task',
+    content_item_completed: 'Done',
     tab_content:            'Content',
     tab_learning:           'Learning',
     learning_title:         'Learning tasks',

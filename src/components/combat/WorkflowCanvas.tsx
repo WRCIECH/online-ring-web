@@ -6,7 +6,7 @@ import s from './WorkflowCanvas.module.css'
 interface Props {
   workflow:      WorkflowGraph
   selectedTileId: string | null
-  onSelectTile:  (id: string) => void
+  onSelectTile:  (id: string, screenX: number, screenY: number) => void
 }
 
 // ── Layout constants ──────────────────────────────────────────────────────
@@ -256,7 +256,16 @@ export default function WorkflowCanvas({ workflow, selectedTileId, onSelectTile 
 
   function handleClick(e: React.MouseEvent<HTMLCanvasElement>) {
     const tile = hitTest(e)
-    if (tile) onSelectTile(tile.id)
+    if (!tile) return
+    const canvas = canvasRef.current
+    const p = positions.get(tile.id)
+    if (!canvas || !p) return
+    const rect = canvas.getBoundingClientRect()
+    const sx   = rect.width  / canvasW
+    const sy   = rect.height / canvasH
+    const screenX = rect.left + (p.x + TILE / 2) * sx
+    const screenY = rect.top  + (p.y + TILE / 2) * sy
+    onSelectTile(tile.id, screenX, screenY)
   }
 
   function handleMouseMove(e: React.MouseEvent<HTMLCanvasElement>) {

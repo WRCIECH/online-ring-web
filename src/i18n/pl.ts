@@ -295,6 +295,7 @@ const pl: TranslationBundle = {
     article_placeholder:    'Tytuł artykułu…',
     btn_add_article:        '+ Dodaj artykuł',
     add_article_disabled:   'Nie można dodawać w trakcie aktywnego zadania',
+    content_item_completed: 'Gotowe',
     tab_content:            'Treści',
     published_label:        'Opublikowano',
     click_to_rename:        'Kliknij, aby zmienić nazwę',

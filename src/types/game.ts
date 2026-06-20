@@ -161,6 +161,7 @@ export interface ContentItem {
   id: string
   name: string
   notes?: string
+  completed?: boolean
 }
 
 // ── Game state ────────────────────────────────────────────────────────────
