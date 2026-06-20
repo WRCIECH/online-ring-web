@@ -350,6 +350,12 @@ export default function WorkflowCanvas({ workflow, selectedTileId, onSelectTile 
     else setHovered(null)
   }
 
+  const canvasCursor = isPanning
+    ? 'grabbing'
+    : hovered && (hovered.tile.is_completed || reachable.has(hovered.tile.id))
+      ? 'pointer'
+      : 'grab'
+
   return (
     <div
       ref={viewportRef}
@@ -367,7 +373,7 @@ export default function WorkflowCanvas({ workflow, selectedTileId, onSelectTile 
         <canvas
           ref={canvasRef}
           className={s.canvas}
-          style={{ width: canvasW, height: canvasH }}
+          style={{ width: canvasW, height: canvasH, cursor: canvasCursor }}
           onClick={handleClick}
           onMouseMove={handleMouseMove}
           onMouseLeave={() => setHovered(null)}
