@@ -1,4 +1,6 @@
-import type { WeaponClass, WeaponRarity, PoiseWeight } from '../../types/game'
+import type { WeaponClass, WeaponRarity } from '../../types/game'
+
+type PoiseWeight = 'light' | 'medium' | 'heavy' | 'colossal'
 import s from './WeaponSprite.module.css'
 
 interface Props {

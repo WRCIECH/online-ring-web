@@ -1,4 +1,6 @@
-import type { WeaponClass, PoiseWeight, StatKey, Grade, DamageType, StatusType } from '../../types/game'
+import type { WeaponClass, StatKey, Grade, DamageType, StatusType } from '../../types/game'
+
+type PoiseWeight = 'light' | 'medium' | 'heavy' | 'colossal'
 import type { ContentProductType } from '../contentProducts'
 
 export interface WeaponClassDef {

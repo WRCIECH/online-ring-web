@@ -1,6 +1,16 @@
-import type { GeneratedMoveset, Moveset } from '../types/game'
+import type { Step } from '../types/game'
 
-// Mutable registry — generators populate it at runtime; legacy static moves below
+export interface Moveset {
+  id: string
+  name: string
+  scaling_stat: string
+  stamina_cost: number
+  fp_cost?: number
+  types: string[]
+  steps: Step[]
+}
+
+// Mutable registry — legacy static moves below; kept for CharacterOverlay display
 export const MOVES: Record<string, Moveset> = {
   starter_chain: {
     id: 'starter_chain', name: 'Starter Chain', scaling_stat: 'END', stamina_cost: 24,
@@ -102,7 +112,7 @@ export const MOVES: Record<string, Moveset> = {
   },
 }
 
-/** Register a generated moveset into the runtime registry. */
-export function registerMoveset(m: Moveset | GeneratedMoveset): void {
+/** Register a moveset into the runtime registry. */
+export function registerMoveset(m: Moveset): void {
   MOVES[m.id] = m
 }

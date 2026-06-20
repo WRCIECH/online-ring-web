@@ -3,11 +3,9 @@ import { useNavigate } from 'react-router-dom'
 import { useGameStore } from '../store/gameStore'
 import { rollWeapon } from '../data/generators/weaponGenerator'
 import { WEAPON_CLASSES } from '../data/generators/weaponClasses'
-import { MOVES } from '../data/movesets'
 import { LEVEL_MULT } from '../data/weapons'
-import type { WeaponClass, WeaponInstance, GeneratedMoveset } from '../types/game'
+import type { WeaponClass, WeaponInstance } from '../types/game'
 import WeaponSprite from '../components/icons/WeaponSprite'
-import MovesetIcon from '../components/icons/MovesetIcon'
 import s from './StartingWeaponScreen.module.css'
 
 // One candidate class from each weight tier — always obviously different
@@ -62,12 +60,10 @@ export default function StartingWeaponScreen() {
 
       <div className={s.cards}>
         {options.map((w, i) => {
-          const cls   = WEAPON_CLASSES[w.weapon_class]
-          const movesets = w.constant_movesets
-            .map(id => MOVES[id] as GeneratedMoveset | undefined)
-            .filter((m): m is GeneratedMoveset => !!m)
-          const isChosen = chosen === i
-          const colour   = WEIGHT_COLOUR[w.poise_weight]
+          const cls        = WEAPON_CLASSES[w.weapon_class]
+          const isChosen   = chosen === i
+          const poiseWeight = w.poise_weight ?? 'medium'
+          const colour     = WEIGHT_COLOUR[poiseWeight] ?? '#888'
 
           return (
             <button
@@ -81,7 +77,7 @@ export default function StartingWeaponScreen() {
                 <WeaponSprite
                   weaponClass={w.weapon_class}
                   rarity={w.rarity}
-                  poiseWeight={w.poise_weight}
+                  poiseWeight={poiseWeight}
                   size={110}
                 />
               </div>
@@ -92,7 +88,7 @@ export default function StartingWeaponScreen() {
                 <div className={s.className}>{cls.name}</div>
 
                 <div className={s.weightBadge} style={{ color: colour, borderColor: `${colour}55` }}>
-                  {WEIGHT_LABEL[w.poise_weight]}
+                  {WEIGHT_LABEL[poiseWeight]}
                 </div>
 
                 <p className={s.desc}>{w.description}</p>
@@ -101,17 +97,6 @@ export default function StartingWeaponScreen() {
                   <span className={s.levelBonus}>
                     +{((LEVEL_MULT[w.rarity] ?? 0.03) * 100).toFixed(0)}% dmg per level
                   </span>
-                  <span className={s.heat}>🔥 {cls.heat_threshold} uses/run</span>
-                </div>
-
-                <div className={s.movesets}>
-                  {movesets.map(m => (
-                    <div key={m.id} className={s.movesetRow}>
-                      <MovesetIcon movesetId={m.id} size={15} className={s.msIcon}/>
-                      <span className={s.msName}>{m.name}</span>
-                      <span className={s.msVariant}>{m.variant_type}</span>
-                    </div>
-                  ))}
                 </div>
               </div>
             </button>

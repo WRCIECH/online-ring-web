@@ -1,0 +1,42 @@
+.wrap {
+  position: relative;
+  display: inline-block;
+}
+
+.canvas {
+  display: block;
+  cursor: pointer;
+}
+
+.tooltip {
+  position: absolute;
+  pointer-events: none;
+  background: var(--color-bg-panel);
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  padding: 8px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  z-index: 20;
+  min-width: 170px;
+  max-width: 260px;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.55);
+}
+
+.ttType {
+  font-size: 0.65rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--color-text-dim);
+}
+
+.ttName {
+  font-size: 0.88rem;
+  color: var(--color-text);
+  line-height: 1.35;
+}
+
+.ttDone    { font-size: 0.75rem; color: #44884a; }
+.ttLocked  { font-size: 0.75rem; color: var(--color-text-dim); font-style: italic; }
+.ttTimes   { font-size: 0.75rem; color: var(--color-text-dim); }

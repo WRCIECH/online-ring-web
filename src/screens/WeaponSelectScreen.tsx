@@ -2,7 +2,6 @@ import { useState } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { useGameStore } from '../store/gameStore'
 import { WEAPONS, LEVEL_MULT } from '../data/weapons'
-import { MOVES } from '../data/movesets'
 import { WEAPON_CLASSES } from '../data/generators/weaponClasses'
 import type { WeaponInstance, WeaponRarity } from '../types/game'
 import WeaponSprite from '../components/icons/WeaponSprite'
@@ -64,19 +63,12 @@ export default function WeaponSelectScreen() {
           if (!weapon) return null
           const level  = store.weapon_level[wid] ?? 0
 
-          const cooldown        = store.weapon_cooldown[wid] ?? 0
-          const onCooldown      = cooldown > 0
           const isSelected      = selected.includes(wid)
           const isDisabled      = !isSelected && selected.length >= MAX_RUN_WEAPONS
           const rarity          = (weapon as WeaponInstance).rarity
           const affixes         = (weapon as WeaponInstance).affixes ?? []
           const weaponClass     = (weapon as WeaponInstance).weapon_class
           const inherentStatus  = weaponClass ? WEAPON_CLASSES[weaponClass]?.inherent_status : undefined
-
-          const allMovesetIds = [
-            ...weapon.constant_movesets,
-            ...(store.weapon_extra_movesets[wid] ?? []).filter(Boolean),
-          ]
 
           return (
             <button
@@ -90,7 +82,7 @@ export default function WeaponSelectScreen() {
                   <WeaponSprite
                     weaponClass={(weapon as WeaponInstance).weapon_class}
                     rarity={rarity}
-                    poiseWeight={(weapon as WeaponInstance).poise_weight}
+                    poiseWeight={(weapon as WeaponInstance).poise_weight ?? 'medium'}
                     size={52}
                   />
                 )}
@@ -102,9 +94,6 @@ export default function WeaponSelectScreen() {
                 )}
                 {inherentStatus && (
                   <span className={s.statusBadge}>{inherentStatus.replace(/_/g, ' ')}</span>
-                )}
-                {onCooldown && (
-                  <span className={s.cooldownBadge}>{t.ui.weapon_overheated} ({cooldown} {cooldown !== 1 ? t.ui.weapon_run_plural : t.ui.weapon_run_singular})</span>
                 )}
               </div>
               <div className={s.weaponDesc}>{weapon.description}</div>
@@ -125,12 +114,6 @@ export default function WeaponSelectScreen() {
               </div>
 
 
-              <div className={s.movesetList}>
-                {allMovesetIds.map(mid => {
-                  const m = MOVES[mid]
-                  return m ? <span key={mid} className={s.movesetTag}>{m.name}</span> : null
-                })}
-              </div>
             </button>
           )
         })}

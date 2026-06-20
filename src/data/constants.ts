@@ -133,3 +133,14 @@ export function statLevelCost(totalLevelsSpent: number): number {
 export function weaponUpgradeCost(currentLevel: number): number {
   return (currentLevel + 1) * 500
 }
+
+// ── Workflow mechanics ────────────────────────────────────────────────────
+
+/** Flat reward penalty fraction applied when abandoning a workflow (next run). */
+export const ABANDON_PENALTY = 0.25
+
+/** Reward penalty fraction per repeat attempt on a completed tile. */
+export const REPEAT_PENALTY_PER_RETRY = 0.15
+
+/** Maximum cumulative repeat penalty (cap). */
+export const REPEAT_PENALTY_MAX = 0.60

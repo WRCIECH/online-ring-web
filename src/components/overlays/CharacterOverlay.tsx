@@ -1,7 +1,6 @@
 import { useState } from 'react'
 import { useGameStore, calcMaxHp } from '../../store/gameStore'
-import { WEAPONS, calcStepDamage, statLevelCost, weaponUpgradeCost, LEVEL_MULT } from '../../data/weapons'
-import { MOVES } from '../../data/movesets'
+import { WEAPONS, statLevelCost, weaponUpgradeCost, LEVEL_MULT } from '../../data/weapons'
 import type { StatKey, WeaponInstance } from '../../types/game'
 import { useT, localizeWeaponName } from '../../i18n'
 import s from './CharacterOverlay.module.css'
@@ -13,16 +12,6 @@ const ALL_STATS: StatKey[] = ['VIG','END','MND','STR','DEX','INT','FAI','ARC']
 type Confirming =
   | { type: 'stat'; stat: StatKey }
   | { type: 'weapon'; id: string }
-
-function getRepresentativeStep(weapon: WeaponInstance) {
-  for (const msId of weapon.constant_movesets) {
-    const ms = MOVES[msId]
-    if (!ms) continue
-    const step = ms.steps.find(st => st.base_damage > 0)
-    if (step) return step
-  }
-  return null
-}
 
 function statEffectPreview(stat: StatKey, val: number): string {
   if (stat === 'VIG') return `HP: ${calcMaxHp(val)} → ${calcMaxHp(val + 1)}`
@@ -95,28 +84,9 @@ export default function CharacterOverlay({ onClose, canLevel = true }: Props) {
               const canAfford = canLevel && store.runes >= levelCost
               const isConfirming = confirming?.type === 'stat' && confirming.stat === stat
 
-              // Build preview lines
               const previewLines: string[] = []
               const simple = statEffectPreview(stat, val)
-              if (simple) {
-                previewLines.push(simple)
-              } else {
-                // Damage scaling: check owned weapons
-                const affectedWeapons = store.owned_weapons
-                  .map(wid => WEAPONS[wid] as WeaponInstance | undefined)
-                  .filter((w): w is WeaponInstance => !!w && !!(w.scaling?.[stat]))
-                affectedWeapons.forEach(w => {
-                  const step  = getRepresentativeStep(w)
-                  if (!step) return
-                  const lvl   = store.weapon_level[w.instance_id] ?? 0
-                  const cur   = calcStepDamage(step, w, lvl, store.stats)
-                  const next  = calcStepDamage(step, w, lvl, { ...store.stats, [stat]: val + 1 })
-                  previewLines.push(`${w.name}: ${cur} → ${next} ${t.ui.dmg_suffix}`)
-                })
-                if (previewLines.length === 0) {
-                  previewLines.push(t.ui.no_weapon_scaling)
-                }
-              }
+              if (simple) previewLines.push(simple)
 
               return (
                 <div key={stat} className={s.statBlock}>
@@ -167,19 +137,12 @@ export default function CharacterOverlay({ onClose, canLevel = true }: Props) {
               const rarity     = wi.rarity ?? 'common'
               const pctPerLvl  = ((LEVEL_MULT[rarity] ?? 0.03) * 100).toFixed(0)
 
-              // Damage preview for weapon upgrade
-              const repStep = getRepresentativeStep(wi)
-              const curDmg  = repStep ? calcStepDamage(repStep, weapon, level, store.stats) : null
-              const nxtDmg  = repStep && !isMax ? calcStepDamage(repStep, weapon, level + 1, store.stats) : null
-
               return (
                 <div key={wid} className={s.weaponBlock}>
                   <div className={s.weaponRow}>
                     <span className={s.weaponName}>{localizeWeaponName(weapon, t)}</span>
                     <span className={s.weaponLevel}>+{level}{isMax ? ` ${t.ui.max_tag}` : ` → +${level + 1}`}</span>
-                    {curDmg !== null && nxtDmg !== null && (
-                      <span className={s.weaponPreview}>{curDmg} → {nxtDmg} {t.ui.dmg_suffix} (+{pctPerLvl}%/lvl)</span>
-                    )}
+                    {!isMax && <span className={s.weaponPreview}>+{pctPerLvl}%/lvl</span>}
                     {isMax ? (
                       <span className={s.maxTag}>{t.ui.max_tag}</span>
                     ) : (

@@ -1,7 +1,12 @@
 export type Locale = 'pl' | 'en'
 export type StatKey = 'VIG' | 'END' | 'MND' | 'STR' | 'DEX' | 'INT' | 'FAI' | 'ARC'
 export type Grade = 'S' | 'A' | 'B' | 'C' | 'D' | 'E'
+export type WeaponRarity = 'common' | 'magic' | 'rare' | 'epic' | 'legendary'
+export type SublocationType = 'mob' | 'elite' | 'event' | 'boss'
+export type MoveType = 'Light' | 'Heavy' | 'Jump'
+export type TileType = 'research' | 'outline' | 'draft' | 'edit' | 'publish' | 'promote'
 
+// Kept for content pipeline stamps and badge colours
 export type DamageType =
   | 'standard' | 'strike' | 'slash' | 'pierce' | 'lightning'
   | 'fire' | 'magic' | 'holy' | 'occult' | 'grafting' | 'poison'
@@ -10,11 +15,6 @@ export type StatusType =
   | 'bleed' | 'scarlet_rot' | 'frostbite' | 'madness' | 'sleep'
   | 'death_blight' | 'glintstone' | 'frenzy_flame' | 'devotion'
   | 'yearning' | 'dread' | 'murmur' | 'grace'
-
-export type DefenseAction = 'roll' | 'block' | 'parry' | 'take' | 'flee'
-
-// ── Weapon generation types ────────────────────────────────────────────────
-export type WeaponRarity = 'common' | 'magic' | 'rare' | 'epic' | 'legendary'
 
 export type WeaponClass =
   | 'daggers' | 'straight_swords' | 'greatswords' | 'katanas'
@@ -25,44 +25,15 @@ export type WeaponClass =
   | 'great_spears' | 'halberds' | 'reapers' | 'whips'
   | 'greatbows' | 'crossbows' | 'ballistas' | 'torches'
 
-export type PoiseWeight = 'light' | 'medium' | 'heavy' | 'colossal'
-
-export type SublocationType = 'mob' | 'elite' | 'event' | 'boss'
-
-export interface Affix {
-  id: string
-  label: string
-  damage_mult?: number
-  stamina_mult?: number
-  fp_mult?: number
-  poise_mult?: number
-}
-
-// A generated weapon instance — stored in GameState and in the WEAPONS registry
-export interface WeaponInstance extends Weapon {
-  instance_id: string
-  weapon_class: WeaponClass
-  rarity: WeaponRarity
-  affixes: Affix[]
-  skill_slots: number
-  heat_threshold: number
-  poise_weight: PoiseWeight
-  base_damage_mult: number
-  numeric_weight?: number
-  poise_value?: number
-  scaling_original?: Partial<Record<StatKey, Grade>>
-}
-
-// ── Atomic move / moveset generation types ─────────────────────────────────
+// ── Content creation dimensions (kept for tile generation & stamps) ────────
+export type AtomicStage = 'Research' | 'Outline' | 'Produce' | 'Glue' | 'Refine' | 'Publish'
+export type AtomicOrigin =
+  | 'New' | 'Compression' | 'Expansion' | 'Recycled' | 'Remastered'
+  | 'Revamped' | 'Reboot' | 'ZoomIn' | 'ZoomOut' | 'AudienceAlter' | 'Commentary'
+export type AtomicTime = 'Micro' | 'Short' | 'Medium' | 'Long' | 'Deep'
 
 import type { ContentProductType } from '../data/contentProducts'
 export type { ContentProductType }
-export type AtomicStage = 'Research' | 'Outline' | 'Produce' | 'Glue' | 'Refine' | 'Publish'
-
-export type AtomicOrigin = 'New' | 'Compression' | 'Expansion' | 'Recycled' | 'Remastered' | 'Revamped' | 'Reboot' | 'ZoomIn' | 'ZoomOut' | 'AudienceAlter' | 'Commentary'
-
-export type AtomicTime = 'Micro' | 'Short' | 'Medium' | 'Long' | 'Deep'
-export type MovesetVariant = 'Light' | 'Heavy' | 'Skill' | 'Jump'
 
 export interface AtomicDimensions {
   product: ContentProductType
@@ -71,36 +42,91 @@ export interface AtomicDimensions {
   content_origin: AtomicOrigin
 }
 
-// Pipeline kept for structural compatibility but no longer used for level-gating
-export interface MovesetPipeline {
-  all_steps: Step[]
-  unlocked_at: number[]
-  drops_at: number[]
+// ── Workflow graph ─────────────────────────────────────────────────────────
+export interface WorkflowTile {
+  id: string
+  type: TileType
+  name: string
+  time_light: number   // seconds for Light Attack timer
+  time_heavy: number   // seconds for Heavy Attack timer
+  content_type?: string
+  is_completed: boolean
+  repeat_count: number
 }
 
-// Extended Moveset with generation metadata
-export interface GeneratedMoveset extends Moveset {
+export interface WorkflowEdge {
+  from: string
+  to: string
+}
+
+export interface WorkflowGraph {
+  tiles: WorkflowTile[]
+  edges: WorkflowEdge[]
+  start_id: string
+  end_id: string
+}
+
+// ── Weapon (now a workflow template) ──────────────────────────────────────
+export interface Affix {
+  id: string
+  label: string
+  damage_mult?: number
+  stamina_mult?: number
+  fp_mult?: number
+}
+
+export interface Weapon {
+  name: string
+  description: string
+  stat_req: Partial<Record<StatKey, number>>
+  scaling: Partial<Record<StatKey, Grade>>
+}
+
+export interface WeaponInstance extends Weapon {
+  instance_id: string
+  weapon_class: WeaponClass
   rarity: WeaponRarity
-  variant_type: MovesetVariant
-  weapon_class?: WeaponClass
-  pipeline: MovesetPipeline
-  primary_damage_type?: DamageType
-  status_buildup?: StatusType
-  infusion?: Partial<Record<StatKey, Grade>>
-  content_origin?: AtomicOrigin
-  dominant_product?: ContentProductType
+  affixes: Affix[]
+  base_damage_mult: number
+  // kept for WeaponSprite rendering
+  poise_weight?: 'light' | 'medium' | 'heavy' | 'colossal'
 }
 
-export type CombatPhase =
-  | 'INIT' | 'PLAYER_ATTACK' | 'STEP_TIMER'
-  | 'ENEMY_ATTACK' | 'ENEMY_STAGGERED' | 'VICTORY' | 'DEFEAT' | 'FLED'
+// ── Enemy (simplified — no attack movesets) ───────────────────────────────
+export interface EnemyDrop {
+  id: string
+  first_kill_chance: number
+  repeat_chance: number
+}
 
+export interface Enemy {
+  name: string
+  description: string
+  max_hp: number
+  rune_reward: number
+  is_boss: boolean
+  is_remembrance?: boolean
+  unlocks_area?: string
+  drops: EnemyDrop[]
+  // Legacy fields kept for display compat; not used in combat logic
+  initiative?: number
+  max_poise?: number
+  status_multipliers?: Partial<Record<StatusType, number>>
+  weaknesses?: DamageType[]
+  resistances?: DamageType[]
+  moveset?: string[]
+}
+
+// ── Combat phases ─────────────────────────────────────────────────────────
+export type CombatPhase = 'PLAYER_TURN' | 'STEP_TIMER' | 'VICTORY' | 'DEFEAT' | 'FLED'
+
+// ── Step (kept for TimerOverlay & tile display) ───────────────────────────
 export interface StepBadge {
-  label: string    // Short chip text (English fallback for old saves)
-  detail: string   // Tooltip explanation (English fallback for old saves)
-  color?: string   // Optional accent color
-  tr_key?: string          // e.g. 'product.Plaintext', 'stage.Research'
-  tr_detail_key?: string   // Override key for detail text (defaults to tr_key)
+  label: string
+  detail: string
+  color?: string
+  tr_key?: string
+  tr_detail_key?: string
 }
 
 export interface Step {
@@ -113,64 +139,7 @@ export interface Step {
   badges?: StepBadge[]
 }
 
-export interface Task {
-  name: string
-  time: number
-}
-
-export interface Moveset {
-  id: string
-  name: string
-  scaling_stat: StatKey
-  stamina_cost: number
-  fp_cost?: number
-  types: string[]
-  steps: Step[]
-}
-
-export interface EnemyMove {
-  id: string
-  name: string
-  description: string
-  damage: number
-  block_damage: number
-  poise_damage: number
-  publish_task: Task
-}
-
-export interface EnemyDrop {
-  id: string
-  first_kill_chance: number
-  repeat_chance: number
-}
-
-export interface Enemy {
-  name: string
-  description: string
-  max_hp: number
-  initiative: number
-  max_poise: number
-  rune_reward: number
-  is_boss: boolean
-  is_remembrance?: boolean
-  unlocks_area?: string
-  drops: EnemyDrop[]
-  status_multipliers: Partial<Record<StatusType, number>>
-  weaknesses: DamageType[]
-  resistances: DamageType[]
-  moveset: string[]
-}
-
-export interface Weapon {
-  name: string
-  description: string
-  stat_req: Partial<Record<StatKey, number>>
-  scaling: Partial<Record<StatKey, Grade>>
-  constant_movesets: string[]
-  moveset_slots: number
-  defense_movesets: { block: string }
-}
-
+// ── Location ──────────────────────────────────────────────────────────────
 export interface LocationData {
   enemy_id: string
   name: string
@@ -181,22 +150,17 @@ export interface LocationData {
   boss_name?: string
 }
 
+// ── Player stats ─────────────────────────────────────────────────────────
 export interface Stats {
-  VIG: number
-  END: number
-  MND: number
-  STR: number
-  DEX: number
-  INT: number
-  FAI: number
-  ARC: number
+  VIG: number; END: number; MND: number
+  STR: number; DEX: number; INT: number; FAI: number; ARC: number
 }
 
 // ── Learning items ────────────────────────────────────────────────────────
 export interface LearningItem {
   id: string
   name: string
-  completed_at?: number   // Date.now() when marked done; undefined = active
+  completed_at?: number
 }
 
 // ── Content pipeline ──────────────────────────────────────────────────────
@@ -205,18 +169,18 @@ export type ContentPhase =
   | 'Refine' | 'Publish' | 'Published'
 
 export interface ContentItem {
-  id: string     // uid, e.g. 'c_abc123'
-  name: string     // user-defined title
+  id: string
+  name: string
   phase: ContentPhase
-  published_at?: number     // Date.now() when phase → 'Published'
-  notes?: string     // optional rough notes
-  // Stamps applied on first task completion (lock the article's character)
-  stamped_product?: ContentProductType  // from moveset's dominant_product
-  stamped_origin?: AtomicOrigin         // from moveset's content_origin
-  stamped_status?: StatusType      // from moveset's status_buildup (emotional fingerprint)
-  stamped_style?: DamageType      // from step's damage_type (writing style)
+  published_at?: number
+  notes?: string
+  stamped_product?: ContentProductType
+  stamped_origin?: AtomicOrigin
+  stamped_status?: StatusType
+  stamped_style?: DamageType
 }
 
+// ── Game state ────────────────────────────────────────────────────────────
 export interface GameState {
   stats: Stats
   player_class: string
@@ -231,11 +195,6 @@ export interface GameState {
   weapon_instances: WeaponInstance[]
   equipped_run_weapons: string[]
   weapon_level: Record<string, number>
-  weapon_extra_movesets: Record<string, string[]>
-  weapon_cooldown: Record<string, number>
-  // Moveset inventory
-  owned_movesets: string[]
-  moveset_instances: GeneratedMoveset[]
   // Player resources
   current_hp: number
   current_stamina: number
@@ -253,14 +212,13 @@ export interface GameState {
   pending_run_reward: string
   run_location_name: string
   completed_locations: string[]
-  run_start_owned_movesets: string[]
+  // Workflow abandon penalty (0.0 = none, resets after workflow completion)
+  abandon_penalty: number
   // Content pipeline
   content_items: ContentItem[]
   // Learning items
   learning_items: LearningItem[]
-  // Momentum bonus timestamp (ms); 0 = no active momentum
-  last_victory_time: number
-  // Cumulative seconds of successfully completed writing task steps
+  // Analytics
   total_task_time_s: number
   // UI locale
   locale: Locale

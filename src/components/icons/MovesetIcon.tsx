@@ -1,67 +1,7 @@
-import type { WeaponRarity, MovesetVariant, GeneratedMoveset } from '../../types/game'
-import { MOVES } from '../../data/movesets'
-
 interface Props {
   movesetId: string
   size?: number
   className?: string
-}
-
-const RARITY_DOT: Record<WeaponRarity, string> = {
-  common: '#888', magic: '#4488cc', rare: '#ccaa22', epic: '#9944cc', legendary: '#ee8822',
-}
-
-function variantIcon(v: MovesetVariant) {
-  switch (v) {
-    case 'Light': return (
-      <>
-        <polyline points="3,14 7,9 11,14 15,9 19,14"/>
-        <line x1="11" y1="20" x2="11" y2="14"/>
-      </>
-    )
-    case 'Heavy': return (
-      <>
-        <rect x="4" y="9" width="16" height="10" rx="2" strokeWidth="2"/>
-        <line x1="12" y1="4" x2="12" y2="9" strokeWidth="2.5"/>
-      </>
-    )
-    case 'Skill': return (
-      <polygon points="12,2 14.5,9 21.5,9 16,13.5 18,21 12,16.5 6,21 8,13.5 2.5,9 9.5,9"/>
-    )
-    case 'Jump': return (
-      <>
-        <line x1="12" y1="20" x2="12" y2="7"/>
-        <polyline points="7,12 12,7 17,12"/>
-        <path d="M7,20 Q12,17 17,20" fill="none"/>
-      </>
-    )
-  }
-}
-
-function GeneratedMovesetIcon({ movesetId, size = 18, className }: Props) {
-  const raw = MOVES[movesetId]
-  const moveset = raw && 'variant_type' in raw ? (raw as GeneratedMoveset) : null
-  const variant: MovesetVariant = moveset?.variant_type ?? 'Skill'
-  const dotColor = moveset ? RARITY_DOT[moveset.rarity] : '#888'
-
-  return (
-    <svg
-      viewBox="0 0 24 24"
-      width={size}
-      height={size}
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.5"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      className={className}
-      aria-hidden="true"
-      style={{ flexShrink: 0 }}
-    >
-      {variantIcon(variant)}
-      <circle cx="20" cy="4" r="2.5" fill={dotColor} stroke="none"/>
-    </svg>
-  )
 }
 
 const ICONS: Record<string, React.ReactElement> = {
@@ -146,9 +86,6 @@ const FALLBACK = (
 )
 
 export default function MovesetIcon({ movesetId, size = 18, className }: Props) {
-  if (movesetId.startsWith('m_')) {
-    return <GeneratedMovesetIcon movesetId={movesetId} size={size} className={className}/>
-  }
   return (
     <svg
       viewBox="0 0 24 24"

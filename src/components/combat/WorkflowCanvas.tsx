@@ -1,0 +1,297 @@
+import { useEffect, useRef, useMemo, useState } from 'react'
+import type { WorkflowGraph, WorkflowTile, TileType } from '../../types/game'
+import { getReachableTiles } from '../../engine/combat'
+import s from './WorkflowCanvas.module.css'
+
+interface Props {
+  workflow:      WorkflowGraph
+  selectedTileId: string | null
+  onSelectTile:  (id: string) => void
+}
+
+// ── Layout constants ──────────────────────────────────────────────────────
+const TILE    = 52
+const TILE_RX = 10
+const H_GAP   = 28    // horizontal gap between tiles in same layer
+const V_GAP   = 40    // vertical gap between layers
+const PAD     = 28
+const MIN_W   = 180
+
+const TILE_COLOR: Record<TileType, string> = {
+  research: '#334488',
+  outline:  '#335566',
+  draft:    '#664422',
+  edit:     '#445533',
+  publish:  '#556622',
+  promote:  '#443388',
+}
+
+const TILE_LABEL: Record<TileType, string> = {
+  research: 'Research',
+  outline:  'Outline',
+  draft:    'Draft',
+  edit:     'Edit',
+  publish:  'Publish',
+  promote:  'Promote',
+}
+
+function fmtTime(secs: number): string {
+  const m = Math.floor(secs / 60)
+  const sc = secs % 60
+  return m > 0 ? (sc > 0 ? `${m}m ${sc}s` : `${m}m`) : `${sc}s`
+}
+
+// ── Layout ────────────────────────────────────────────────────────────────
+
+interface Pos { x: number; y: number }
+
+function layoutGraph(graph: WorkflowGraph): {
+  positions: Map<string, Pos>
+  canvasW: number
+  canvasH: number
+} {
+  const layer = new Map<string, number>()
+  const queue = [graph.start_id]
+  layer.set(graph.start_id, 0)
+  const visited = new Set([graph.start_id])
+
+  while (queue.length > 0) {
+    const cur  = queue.shift()!
+    const curL = layer.get(cur) ?? 0
+    for (const e of graph.edges) {
+      if (e.from === cur && !visited.has(e.to)) {
+        visited.add(e.to)
+        layer.set(e.to, curL + 1)
+        queue.push(e.to)
+      }
+    }
+  }
+
+  const byLayer = new Map<number, string[]>()
+  for (const t of graph.tiles) {
+    const l   = layer.get(t.id) ?? 0
+    const arr = byLayer.get(l) ?? []
+    arr.push(t.id)
+    byLayer.set(l, arr)
+  }
+
+  const numLayers   = Math.max(...byLayer.keys()) + 1
+  const maxPerLayer = Math.max(...Array.from(byLayer.values()).map(a => a.length))
+  const canvasW     = Math.max(MIN_W, PAD * 2 + maxPerLayer * TILE + (maxPerLayer - 1) * H_GAP)
+  const canvasH     = PAD * 2 + numLayers * TILE + (numLayers - 1) * V_GAP
+
+  const positions = new Map<string, Pos>()
+  for (const [l, ids] of byLayer) {
+    const rowW   = ids.length * TILE + (ids.length - 1) * H_GAP
+    const startX = (canvasW - rowW) / 2
+    ids.forEach((id, i) => {
+      positions.set(id, {
+        x: startX + i * (TILE + H_GAP),
+        y: PAD + l * (TILE + V_GAP),
+      })
+    })
+  }
+
+  return { positions, canvasW, canvasH }
+}
+
+// ── Renderer ──────────────────────────────────────────────────────────────
+
+function render(
+  ctx: CanvasRenderingContext2D,
+  graph: WorkflowGraph,
+  positions: Map<string, Pos>,
+  canvasW: number,
+  canvasH: number,
+  selectedTileId: string | null,
+  reachable: Set<string>,
+): void {
+  ctx.clearRect(0, 0, canvasW, canvasH)
+
+  // Edges
+  for (const e of graph.edges) {
+    const from = positions.get(e.from)
+    const to   = positions.get(e.to)
+    if (!from || !to) continue
+
+    const fromTile = graph.tiles.find(t => t.id === e.from)
+    const toTile   = graph.tiles.find(t => t.id === e.to)
+    const isActive = !!fromTile?.is_completed && !toTile?.is_completed
+
+    const x1 = from.x + TILE / 2,  y1 = from.y + TILE
+    const x2 = to.x   + TILE / 2,  y2 = to.y
+    const mY  = (y1 + y2) / 2
+
+    ctx.beginPath()
+    ctx.strokeStyle = isActive ? 'rgba(200,180,100,0.65)' : 'rgba(55,48,95,0.4)'
+    ctx.lineWidth   = isActive ? 2 : 1
+    ctx.setLineDash(isActive ? [] : [5, 4])
+    ctx.moveTo(x1, y1)
+    ctx.bezierCurveTo(x1, mY, x2, mY, x2, y2)
+    ctx.stroke()
+    ctx.setLineDash([])
+  }
+
+  // Tiles
+  for (const tile of graph.tiles) {
+    const p = positions.get(tile.id)
+    if (!p) continue
+
+    const done       = tile.is_completed
+    const isSelected = tile.id === selectedTileId
+    const isReach    = reachable.has(tile.id)
+    const locked     = !done && !isReach
+
+    // Background
+    ctx.beginPath()
+    ctx.roundRect(p.x, p.y, TILE, TILE, TILE_RX)
+    ctx.fillStyle = done ? '#171624' : locked ? '#0f0e1c' : TILE_COLOR[tile.type] ?? '#333355'
+    ctx.fill()
+
+    // Border
+    let bc = 'rgba(38,34,75,0.45)', bw = 1
+    if (isSelected)   { bc = '#e6bf33';               bw = 2.5 }
+    else if (isReach) { bc = 'rgba(110,175,255,0.9)'; bw = 2   }
+    else if (done)    { bc = 'rgba(48,92,52,0.55)';   bw = 1   }
+
+    ctx.beginPath()
+    ctx.roundRect(p.x, p.y, TILE, TILE, TILE_RX)
+    ctx.strokeStyle = bc
+    ctx.lineWidth   = bw
+    ctx.stroke()
+
+    // Reachable glow
+    if (isReach) {
+      ctx.save()
+      ctx.shadowColor = 'rgba(100,170,255,0.4)'
+      ctx.shadowBlur  = 12
+      ctx.beginPath()
+      ctx.roundRect(p.x, p.y, TILE, TILE, TILE_RX)
+      ctx.strokeStyle = 'rgba(100,170,255,0.25)'
+      ctx.lineWidth   = 1
+      ctx.stroke()
+      ctx.restore()
+    }
+
+    // Center content
+    ctx.textAlign    = 'center'
+    ctx.textBaseline = 'middle'
+    const cx = p.x + TILE / 2
+    const cy = p.y + TILE / 2
+
+    if (done) {
+      ctx.fillStyle = '#3d8845'
+      ctx.font      = 'bold 22px sans-serif'
+      ctx.fillText('✓', cx, cy)
+    } else if (locked) {
+      // Padlock — shackle arc + body rect
+      ctx.strokeStyle = 'rgba(55,52,95,0.7)'
+      ctx.lineWidth   = 2.5
+      ctx.beginPath()
+      ctx.arc(cx, cy - 6, 6, Math.PI, 0, false)
+      ctx.stroke()
+      ctx.beginPath()
+      ctx.roundRect(cx - 7, cy - 2, 14, 11, 2)
+      ctx.fillStyle   = 'rgba(38,35,80,0.7)'
+      ctx.fill()
+      ctx.strokeStyle = 'rgba(55,52,95,0.6)'
+      ctx.lineWidth   = 1
+      ctx.stroke()
+    } else {
+      ctx.fillStyle = '#c8c0d8'
+      ctx.font      = 'bold 18px sans-serif'
+      ctx.fillText((TILE_LABEL[tile.type] ?? '?')[0], cx, cy)
+    }
+
+    // Repeat badge
+    if (tile.repeat_count > 0) {
+      ctx.fillStyle    = '#666'
+      ctx.font         = '9px monospace'
+      ctx.textAlign    = 'right'
+      ctx.textBaseline = 'top'
+      ctx.fillText(`×${tile.repeat_count}`, p.x + TILE - 3, p.y + 3)
+    }
+  }
+}
+
+// ── Component ─────────────────────────────────────────────────────────────
+
+export default function WorkflowCanvas({ workflow, selectedTileId, onSelectTile }: Props) {
+  const canvasRef = useRef<HTMLCanvasElement>(null)
+  const [hovered, setHovered] = useState<{ tile: WorkflowTile; cx: number; cy: number } | null>(null)
+
+  const { positions, canvasW, canvasH } = useMemo(
+    () => layoutGraph(workflow),
+    [workflow.tiles.length, workflow.edges.length],
+  )
+  const reachable = useMemo(() => getReachableTiles(workflow), [workflow])
+
+  useEffect(() => {
+    const canvas = canvasRef.current
+    if (!canvas) return
+    const ctx = canvas.getContext('2d')
+    if (!ctx) return
+    const dpr      = window.devicePixelRatio || 1
+    canvas.width   = canvasW * dpr
+    canvas.height  = canvasH * dpr
+    ctx.scale(dpr, dpr)
+    render(ctx, workflow, positions, canvasW, canvasH, selectedTileId, reachable)
+  }, [workflow, positions, canvasW, canvasH, selectedTileId, reachable])
+
+  function hitTest(e: React.MouseEvent<HTMLCanvasElement>): WorkflowTile | null {
+    const canvas = canvasRef.current
+    if (!canvas) return null
+    const rect   = canvas.getBoundingClientRect()
+    const sx     = canvasW / rect.width
+    const sy     = canvasH / rect.height
+    const mx     = (e.clientX - rect.left) * sx
+    const my     = (e.clientY - rect.top)  * sy
+    for (const tile of workflow.tiles) {
+      const p = positions.get(tile.id)
+      if (p && mx >= p.x && mx <= p.x + TILE && my >= p.y && my <= p.y + TILE) return tile
+    }
+    return null
+  }
+
+  function handleClick(e: React.MouseEvent<HTMLCanvasElement>) {
+    const tile = hitTest(e)
+    if (tile) onSelectTile(tile.id)
+  }
+
+  function handleMouseMove(e: React.MouseEvent<HTMLCanvasElement>) {
+    const canvas = canvasRef.current
+    if (!canvas) return
+    const rect = canvas.getBoundingClientRect()
+    const tile = hitTest(e)
+    if (tile) setHovered({ tile, cx: e.clientX - rect.left, cy: e.clientY - rect.top })
+    else setHovered(null)
+  }
+
+  return (
+    <div className={s.wrap}>
+      <canvas
+        ref={canvasRef}
+        className={s.canvas}
+        style={{ width: canvasW, height: canvasH }}
+        onClick={handleClick}
+        onMouseMove={handleMouseMove}
+        onMouseLeave={() => setHovered(null)}
+      />
+      {hovered && (
+        <div className={s.tooltip} style={{ left: hovered.cx + 16, top: hovered.cy - 8 }}>
+          <span className={s.ttType}>{TILE_LABEL[hovered.tile.type]}</span>
+          <span className={s.ttName}>{hovered.tile.name}</span>
+          {hovered.tile.is_completed && <span className={s.ttDone}>✓ Completed</span>}
+          {!hovered.tile.is_completed && !reachable.has(hovered.tile.id) && (
+            <span className={s.ttLocked}>Locked — complete previous tiles first</span>
+          )}
+          {!hovered.tile.is_completed && reachable.has(hovered.tile.id) && (
+            <span className={s.ttTimes}>
+              Light {fmtTime(hovered.tile.time_light)} · Heavy {fmtTime(hovered.tile.time_heavy)}
+            </span>
+          )}
+        </div>
+      )}
+    </div>
+  )
+}
