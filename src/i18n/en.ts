@@ -68,10 +68,9 @@ const en: TranslationBundle = {
     },
     stage: {
       Research: { badge_label: 'Research Stage', label: 'Research — gather evidence and reference', detail: 'Actively gather evidence, examples, and reference material.',          example: 'Reading three competing articles before starting your own piece.' },
-      Outline:  { badge_label: 'Outline Stage',  label: 'Outline — map the structure first',        detail: 'Plan the full structure before writing a word.',                        example: 'Creating a numbered list of sections and the key point of each before drafting.' },
+      Plan:     { badge_label: 'Plan Stage',     label: 'Plan — map the structure first',           detail: 'Plan the full structure before writing a word.',                        example: 'Creating a numbered list of sections and the key point of each before drafting.' },
       Produce:  { badge_label: 'Produce Stage',  label: 'Produce — write the first draft',           detail: 'Write your raw first draft — commit without stopping.',                 example: 'Setting a timer and writing continuously until the draft is done, no backspace.' },
-      Glue:     { badge_label: 'Glue Stage',     label: 'Glue — connect pieces into a whole',        detail: 'Connect and order pieces into a coherent narrative.',                   example: 'Stitching together separate sections with transitions and a unifying thread.' },
-      Refine:   { badge_label: 'Refine Stage',   label: 'Refine — cut and elevate',                  detail: 'Cut the fat, tighten sentences, and elevate the writing.',              example: 'Reading your draft out loud and cutting every sentence that slows the pace.' },
+      Refine:   { badge_label: 'Refine Stage',   label: 'Refine — connect, cut, and elevate',        detail: 'Connect and order pieces into a coherent narrative, then cut the fat and elevate the writing.', example: 'Stitching together separate sections with transitions, then reading the draft out loud and cutting every sentence that slows the pace.' },
       Publish:  { badge_label: 'Publish Stage',  label: 'Publish — release to the world',            detail: 'Format, finalise, and commit to releasing.',                            example: 'Adding the thumbnail, writing the meta description, and hitting publish.' },
     },
   },

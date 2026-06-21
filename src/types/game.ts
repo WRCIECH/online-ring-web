@@ -4,7 +4,6 @@ export type Grade = 'S' | 'A' | 'B' | 'C' | 'D' | 'E'
 export type WeaponRarity = 'common' | 'magic' | 'rare' | 'epic' | 'legendary'
 export type SublocationType = 'mob' | 'elite' | 'event' | 'boss'
 export type MoveType = 'Light' | 'Heavy' | 'Jump'
-export type TileType = 'research' | 'outline' | 'draft' | 'edit' | 'publish' | 'promote'
 
 // Kept for content pipeline stamps and badge colours
 export type DamageType =
@@ -26,7 +25,7 @@ export type WeaponClass =
   | 'greatbows' | 'crossbows' | 'ballistas' | 'torches'
 
 // ── Content creation dimensions (kept for tile generation & stamps) ────────
-export type AtomicStage = 'Research' | 'Outline' | 'Produce' | 'Glue' | 'Refine' | 'Publish'
+export type AtomicStage = 'Research' | 'Plan' | 'Produce' | 'Refine' | 'Publish'
 export type AtomicOrigin =
   | 'New' | 'Compression' | 'Expansion' | 'Recycled' | 'Remastered'
   | 'Revamped' | 'Reboot' | 'ZoomIn' | 'ZoomOut' | 'AudienceAlter' | 'Commentary'
@@ -45,11 +44,14 @@ export interface AtomicDimensions {
 // ── Workflow graph ─────────────────────────────────────────────────────────
 export interface WorkflowTile {
   id: string
-  type: TileType
+  type: AtomicStage
   name: string
   time_light: number   // seconds for Light Attack timer
   time_heavy: number   // seconds for Heavy Attack timer
   content_type?: ContentProductType
+  content_origin?: AtomicOrigin
+  damage_type?: DamageType
+  status?: StatusType
   is_completed: boolean
   repeat_count: number
 }

@@ -68,10 +68,9 @@ const pl: TranslationBundle = {
     },
     stage: {
       Research: { badge_label: 'Etap badań',      label: 'Badania — zbieraj dowody i materiały',    detail: 'Aktywnie zbieraj dowody, przykłady i materiały referencyjne.',                    example: 'Przeczytanie trzech konkurencyjnych artykułów przed napisaniem własnego.' },
-      Outline:  { badge_label: 'Etap konspektu',  label: 'Konspekt — najpierw zaplanuj strukturę',  detail: 'Zaplanuj pełną strukturę zanim napiszesz choć słowo.',                            example: 'Tworzenie numerowanej listy sekcji i kluczowego punktu każdej z nich przed napisaniem szkicu.' },
+      Plan:     { badge_label: 'Etap planu',      label: 'Plan — najpierw zaplanuj strukturę',      detail: 'Zaplanuj pełną strukturę zanim napiszesz choć słowo.',                            example: 'Tworzenie numerowanej listy sekcji i kluczowego punktu każdej z nich przed napisaniem szkicu.' },
       Produce:  { badge_label: 'Etap produkcji',  label: 'Produkcja — napisz pierwszy szkic',        detail: 'Napisz surowy pierwszy szkic — angażuj się bez zatrzymywania.',                   example: "Ustawienie timera i ciągłe pisanie do czasu ukończenia szkicu, bez backspace'a." },
-      Glue:     { badge_label: 'Etap łączenia',   label: 'Łączenie — połącz elementy w całość',      detail: 'Połącz i ułóż elementy w spójną narrację.',                                       example: 'Łączenie osobnych sekcji przejściami i jednoczącym wątkiem.' },
-      Refine:   { badge_label: 'Etap dopracowania',label: 'Dopracowanie — wytnij i podnieś poziom',  detail: 'Wytnij tłuszcz, doskonal zdania i podnieś poziom pisania.',                       example: 'Głośne odczytanie swojego szkicu i wycięcie każdego zdania, które spowalnia tempo.' },
+      Refine:   { badge_label: 'Etap dopracowania',label: 'Dopracowanie — połącz, wytnij i podnieś poziom', detail: 'Połącz i ułóż elementy w spójną narrację, następnie wytnij tłuszcz i podnieś poziom pisania.', example: 'Łączenie osobnych sekcji przejściami, a potem głośne odczytanie szkicu i wycięcie każdego zdania, które spowalnia tempo.' },
       Publish:  { badge_label: 'Etap publikacji', label: 'Publikacja — uwolnij dla świata',          detail: 'Sformatuj, sfinalizuj i zdecyduj się na wydanie.',                                example: 'Dodanie miniatury, napisanie meta opisu i kliknięcie publikuj.' },
     },
   },

@@ -110,7 +110,7 @@ export function previewMove(state: CombatState, tile: WorkflowTile, move: MoveTy
   const baseReward     = tileRewardBase(tile, move)
   const weapon         = WEAPONS[state.equippedWeaponId] as WeaponInstance | undefined
   const scaledReward   = weapon
-    ? calcTileReward(baseReward, weapon, state.weaponLevel, state.playerStats, tile.content_type)
+    ? calcTileReward(baseReward, weapon, state.weaponLevel, state.playerStats, tile.content_type, tile.content_origin, tile.damage_type, tile.status)
     : baseReward
   const reward         = Math.round(scaledReward * (1 - repeatPenalty) * (1 - state.incomingPenalty))
   const isRepeat       = tile.is_completed
@@ -238,7 +238,7 @@ export function combatReducer(state: CombatState, action: CombatAction): CombatS
       const baseReward    = tileRewardBase(tile, move)
       const weapon        = WEAPONS[state.equippedWeaponId] as WeaponInstance | undefined
       const scaledReward  = weapon
-        ? calcTileReward(baseReward, weapon, state.weaponLevel, state.playerStats, tile.content_type)
+        ? calcTileReward(baseReward, weapon, state.weaponLevel, state.playerStats, tile.content_type, tile.content_origin, tile.damage_type, tile.status)
         : baseReward
       const finalReward   = Math.round(
         scaledReward * (1 - repeatPenalty) * (1 - state.incomingPenalty)

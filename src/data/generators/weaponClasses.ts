@@ -1,4 +1,4 @@
-import type { WeaponClass, StatKey, Grade, DamageType, StatusType } from '../../types/game'
+import type { WeaponClass, StatKey, Grade, DamageType, StatusType, AtomicOrigin } from '../../types/game'
 
 type PoiseWeight = 'light' | 'medium' | 'heavy' | 'colossal'
 import type { ContentProductType } from '../contentProducts'
@@ -22,6 +22,10 @@ export interface WeaponClassDef {
   moves_per_hit_bonus: number
   inherent_status?: StatusType
   infused_scaling?: Partial<Record<StatKey, Grade>>
+  // "transformation" candidate pool for drawTransformation() in weaponPatterns.ts.
+  // Empty array disables drawTransformation for this class (mirrors how a
+  // missing inherent_status disables drawEmotion).
+  allowed_transformations: AtomicOrigin[]
 }
 
 export const WEAPON_CLASSES: Record<WeaponClass, WeaponClassDef> = {
@@ -34,6 +38,7 @@ export const WEAPON_CLASSES: Record<WeaponClass, WeaponClassDef> = {
     base_damage_types: ['lightning', 'standard'], damage_type_bonus: 1.25,
     time_mod: 0.8, stamina_mod: 0.7, moves_per_hit_bonus: 0.05,
     infused_scaling: { ARC: 'A' },
+    allowed_transformations: ['Compression', 'Recycled'],
   },
   straight_swords: {
     id: 'straight_swords', name: 'Straight Sword', description: 'Standard articles and blog posts.',
@@ -44,6 +49,7 @@ export const WEAPON_CLASSES: Record<WeaponClass, WeaponClassDef> = {
     base_damage_types: ['standard'], damage_type_bonus: 1.15,
     time_mod: 1.0, stamina_mod: 1.0, moves_per_hit_bonus: 0,
     infused_scaling: { INT: 'A' },
+    allowed_transformations: ['Expansion', 'AudienceAlter', 'Remastered'],
   },
   greatswords: {
     id: 'greatswords', name: 'Greatsword', description: 'Long-form essays and deep dives.',
@@ -54,6 +60,7 @@ export const WEAPON_CLASSES: Record<WeaponClass, WeaponClassDef> = {
     base_damage_types: ['slash', 'standard'], damage_type_bonus: 1.20,
     time_mod: 1.15, stamina_mod: 1.2, moves_per_hit_bonus: 0.15,
     infused_scaling: { INT: 'A' },
+    allowed_transformations: ['Expansion', 'ZoomIn', 'ZoomOut'],
   },
   katanas: {
     id: 'katanas', name: 'Katana', description: 'Polished craft pieces — quality over quantity.',
@@ -65,6 +72,7 @@ export const WEAPON_CLASSES: Record<WeaponClass, WeaponClassDef> = {
     time_mod: 0.95, stamina_mod: 1.0, moves_per_hit_bonus: 0.06,
     inherent_status: 'bleed',
     infused_scaling: { INT: 'A' },
+    allowed_transformations: ['Remastered', 'Revamped'],
   },
   hammers: {
     id: 'hammers', name: 'Hammer', description: 'Hot takes and opinion pieces.',
@@ -75,6 +83,7 @@ export const WEAPON_CLASSES: Record<WeaponClass, WeaponClassDef> = {
     base_damage_types: ['strike'], damage_type_bonus: 1.30,
     time_mod: 1.0, stamina_mod: 1.15, moves_per_hit_bonus: 0,
     infused_scaling: { FAI: 'A' },
+    allowed_transformations: ['Commentary', 'AudienceAlter'],
   },
   spears: {
     id: 'spears', name: 'Spear', description: 'Research-driven content.',
@@ -85,6 +94,7 @@ export const WEAPON_CLASSES: Record<WeaponClass, WeaponClassDef> = {
     base_damage_types: ['pierce'], damage_type_bonus: 1.30,
     time_mod: 1.0, stamina_mod: 0.9, moves_per_hit_bonus: 0,
     infused_scaling: { FAI: 'A' },
+    allowed_transformations: ['ZoomIn', 'ZoomOut', 'Expansion'],
   },
   axes: {
     id: 'axes', name: 'Axe', description: 'Editing and compression of existing content.',
@@ -95,6 +105,7 @@ export const WEAPON_CLASSES: Record<WeaponClass, WeaponClassDef> = {
     base_damage_types: ['slash'], damage_type_bonus: 1.15,
     time_mod: 0.9, stamina_mod: 1.0, moves_per_hit_bonus: 0.08,
     infused_scaling: { INT: 'A' },
+    allowed_transformations: ['Compression', 'Recycled', 'Reboot'],
   },
   bows: {
     id: 'bows', name: 'Bow', description: 'Async content — newsletters, scheduled posts.',
@@ -104,6 +115,7 @@ export const WEAPON_CLASSES: Record<WeaponClass, WeaponClassDef> = {
     weight: 4.0, poise_value: 8,
     base_damage_types: ['lightning'], damage_type_bonus: 1.30,
     time_mod: 0.75, stamina_mod: 0.85, moves_per_hit_bonus: 0,
+    allowed_transformations: ['Recycled', 'Remastered'],
   },
   fists: {
     id: 'fists', name: 'Fists', description: 'Raw BTS content and vlogs.',
@@ -113,6 +125,7 @@ export const WEAPON_CLASSES: Record<WeaponClass, WeaponClassDef> = {
     weight: 1.0, poise_value: 5,
     base_damage_types: ['standard'], damage_type_bonus: 1.0,
     time_mod: 1.0, stamina_mod: 0, moves_per_hit_bonus: 0,
+    allowed_transformations: ['Recycled', 'Commentary'],
   },
   colossal_swords: {
     id: 'colossal_swords', name: 'Colossal Sword', description: 'Books, courses, and long-form products.',
@@ -124,6 +137,7 @@ export const WEAPON_CLASSES: Record<WeaponClass, WeaponClassDef> = {
     time_mod: 1.5, stamina_mod: 1.5, moves_per_hit_bonus: 0.40,
     inherent_status: 'madness',
     infused_scaling: { INT: 'A' },
+    allowed_transformations: ['Expansion', 'Remastered', 'Reboot'],
   },
   thrusting_swords: {
     id: 'thrusting_swords', name: 'Thrusting Sword', description: 'Comments and reply content.',
@@ -134,6 +148,7 @@ export const WEAPON_CLASSES: Record<WeaponClass, WeaponClassDef> = {
     base_damage_types: ['pierce', 'magic'], damage_type_bonus: 1.15,
     time_mod: 0.85, stamina_mod: 0.75, moves_per_hit_bonus: 0.07,
     inherent_status: 'sleep',
+    allowed_transformations: ['Commentary', 'AudienceAlter'],
   },
   heavy_thrusting: {
     id: 'heavy_thrusting', name: 'Heavy Thrusting Sword', description: 'In-depth analysis and commentary.',
@@ -144,6 +159,7 @@ export const WEAPON_CLASSES: Record<WeaponClass, WeaponClassDef> = {
     base_damage_types: ['pierce', 'magic'], damage_type_bonus: 1.20,
     time_mod: 1.05, stamina_mod: 1.1, moves_per_hit_bonus: 0.10,
     inherent_status: 'glintstone',
+    allowed_transformations: ['Commentary', 'ZoomIn', 'ZoomOut'],
   },
   curved_swords: {
     id: 'curved_swords', name: 'Curved Sword', description: 'Storytelling and narrative content.',
@@ -154,6 +170,7 @@ export const WEAPON_CLASSES: Record<WeaponClass, WeaponClassDef> = {
     base_damage_types: ['slash'], damage_type_bonus: 1.20,
     time_mod: 0.85, stamina_mod: 0.8, moves_per_hit_bonus: 0.05,
     infused_scaling: { ARC: 'A' },
+    allowed_transformations: ['Remastered', 'AudienceAlter', 'Expansion'],
   },
   curved_greatswords: {
     id: 'curved_greatswords', name: 'Curved Greatsword', description: 'Epic series and narrative sagas.',
@@ -163,6 +180,7 @@ export const WEAPON_CLASSES: Record<WeaponClass, WeaponClassDef> = {
     weight: 10.0, poise_value: 40,
     base_damage_types: ['slash'], damage_type_bonus: 1.30,
     time_mod: 1.15, stamina_mod: 1.15, moves_per_hit_bonus: 0.12,
+    allowed_transformations: ['Expansion', 'Remastered'],
   },
   twinblades: {
     id: 'twinblades', name: 'Twinblade', description: 'Multi-platform cross-posting.',
@@ -174,6 +192,7 @@ export const WEAPON_CLASSES: Record<WeaponClass, WeaponClassDef> = {
     time_mod: 0.9, stamina_mod: 1.1, moves_per_hit_bonus: 0.03,
     inherent_status: 'scarlet_rot',
     infused_scaling: { ARC: 'S' },
+    allowed_transformations: ['Recycled', 'AudienceAlter', 'Compression'],
   },
   great_hammers: {
     id: 'great_hammers', name: 'Great Hammer', description: 'Manifestos and major opinion pieces.',
@@ -185,6 +204,7 @@ export const WEAPON_CLASSES: Record<WeaponClass, WeaponClassDef> = {
     time_mod: 1.2, stamina_mod: 1.3, moves_per_hit_bonus: 0.10,
     inherent_status: 'death_blight',
     infused_scaling: { FAI: 'A' },
+    allowed_transformations: ['Commentary', 'Expansion'],
   },
   great_axes: {
     id: 'great_axes', name: 'Great Axe', description: 'Recaps, roundups, and year-in-review content.',
@@ -194,6 +214,7 @@ export const WEAPON_CLASSES: Record<WeaponClass, WeaponClassDef> = {
     weight: 13.0, poise_value: 65,
     base_damage_types: ['slash'], damage_type_bonus: 1.30,
     time_mod: 1.25, stamina_mod: 1.35, moves_per_hit_bonus: 0.15,
+    allowed_transformations: ['Compression', 'Recycled', 'Reboot'],
   },
   flails: {
     id: 'flails', name: 'Flail', description: 'Spontaneous and improv content.',
@@ -205,6 +226,7 @@ export const WEAPON_CLASSES: Record<WeaponClass, WeaponClassDef> = {
     time_mod: 1.0, stamina_mod: 0.85, moves_per_hit_bonus: 0.04,
     inherent_status: 'bleed',
     infused_scaling: { ARC: 'A' },
+    allowed_transformations: ['Commentary', 'ZoomIn'],
   },
   colossal_weapons: {
     id: 'colossal_weapons', name: 'Colossal Weapon', description: 'Mega-projects — documentaries, full series.',
@@ -216,6 +238,7 @@ export const WEAPON_CLASSES: Record<WeaponClass, WeaponClassDef> = {
     time_mod: 1.6, stamina_mod: 1.6, moves_per_hit_bonus: 0.30,
     inherent_status: 'madness',
     infused_scaling: { ARC: 'A' },
+    allowed_transformations: ['Expansion', 'Reboot', 'Remastered'],
   },
   great_spears: {
     id: 'great_spears', name: 'Great Spear', description: 'Investigative content.',
@@ -226,6 +249,7 @@ export const WEAPON_CLASSES: Record<WeaponClass, WeaponClassDef> = {
     base_damage_types: ['pierce'], damage_type_bonus: 1.40,
     time_mod: 1.1, stamina_mod: 1.2, moves_per_hit_bonus: 0.15,
     infused_scaling: { FAI: 'A' },
+    allowed_transformations: ['ZoomIn', 'ZoomOut', 'Expansion'],
   },
   halberds: {
     id: 'halberds', name: 'Halberd', description: 'Hybrid research and opinion.',
@@ -236,6 +260,7 @@ export const WEAPON_CLASSES: Record<WeaponClass, WeaponClassDef> = {
     base_damage_types: ['pierce', 'slash'], damage_type_bonus: 1.20,
     time_mod: 1.0, stamina_mod: 1.1, moves_per_hit_bonus: 0,
     infused_scaling: { INT: 'A' },
+    allowed_transformations: ['Commentary', 'ZoomIn', 'Expansion'],
   },
   reapers: {
     id: 'reapers', name: 'Reaper', description: 'Commentary, takedowns, and critiques.',
@@ -246,6 +271,7 @@ export const WEAPON_CLASSES: Record<WeaponClass, WeaponClassDef> = {
     base_damage_types: ['slash', 'occult'], damage_type_bonus: 1.20,
     time_mod: 1.2, stamina_mod: 1.2, moves_per_hit_bonus: 0.20,
     inherent_status: 'dread',
+    allowed_transformations: ['Commentary', 'AudienceAlter'],
   },
   whips: {
     id: 'whips', name: 'Whip', description: 'Series and content cycles.',
@@ -256,6 +282,7 @@ export const WEAPON_CLASSES: Record<WeaponClass, WeaponClassDef> = {
     base_damage_types: ['poison', 'occult'], damage_type_bonus: 1.20,
     time_mod: 0.9, stamina_mod: 0.95, moves_per_hit_bonus: 0,
     inherent_status: 'murmur',
+    allowed_transformations: ['Recycled', 'Remastered', 'Reboot'],
   },
   greatbows: {
     id: 'greatbows', name: 'Greatbow', description: 'Long-tail evergreen content.',
@@ -266,6 +293,7 @@ export const WEAPON_CLASSES: Record<WeaponClass, WeaponClassDef> = {
     base_damage_types: ['holy'], damage_type_bonus: 1.40,
     time_mod: 1.4, stamina_mod: 1.4, moves_per_hit_bonus: 0,
     inherent_status: 'yearning',
+    allowed_transformations: ['Remastered', 'Reboot', 'Recycled'],
   },
   crossbows: {
     id: 'crossbows', name: 'Crossbow', description: 'Email blasts and push notifications.',
@@ -275,6 +303,7 @@ export const WEAPON_CLASSES: Record<WeaponClass, WeaponClassDef> = {
     weight: 4.5, poise_value: 12,
     base_damage_types: ['standard'], damage_type_bonus: 1.0,
     time_mod: 0.5, stamina_mod: 0, moves_per_hit_bonus: 0,
+    allowed_transformations: ['Recycled', 'AudienceAlter'],
   },
   ballistas: {
     id: 'ballistas', name: 'Ballista', description: 'Major product launches.',
@@ -285,6 +314,7 @@ export const WEAPON_CLASSES: Record<WeaponClass, WeaponClassDef> = {
     base_damage_types: ['standard'], damage_type_bonus: 1.0,
     time_mod: 2.0, stamina_mod: 1.5, moves_per_hit_bonus: 0,
     inherent_status: 'death_blight',
+    allowed_transformations: ['Reboot', 'Expansion'],
   },
   torches: {
     id: 'torches', name: 'Torch', description: 'Lifestyle and lo-fi vlog content.',
@@ -295,6 +325,7 @@ export const WEAPON_CLASSES: Record<WeaponClass, WeaponClassDef> = {
     base_damage_types: ['fire'], damage_type_bonus: 1.30,
     time_mod: 0.7, stamina_mod: 0.5, moves_per_hit_bonus: 0,
     inherent_status: 'grace',
+    allowed_transformations: ['Recycled', 'Commentary'],
   },
 }
 

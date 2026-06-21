@@ -2,6 +2,9 @@ import { useEffect } from 'react'
 import { previewMove, type CombatState, type CombatAction } from '../../engine/combat'
 import { SACRIFICE_MULT } from '../../data/constants'
 import { CONTENT_TYPE_STATS } from '../../data/contentTypeScaling'
+import { ATOMIC_ORIGIN_STATS } from '../../data/atomicOriginScaling'
+import { DAMAGE_TYPE_STATS } from '../../data/damageTypeScaling'
+import { STATUS_TYPE_STATS } from '../../data/statusTypeScaling'
 import type { MoveType } from '../../types/game'
 import s from './TimerOverlay.module.css'
 
@@ -79,6 +82,28 @@ export default function TimerOverlay({ state, dispatch }: Props) {
                 {CONTENT_TYPE_STATS[pendingTile.content_type].label}
                 {' · scales with '}
                 {CONTENT_TYPE_STATS[pendingTile.content_type].stats.join(' + ')}
+              </div>
+            )}
+            {pendingTile.content_origin && (
+              <div style={{ marginTop: 2, fontSize: '0.74rem', color: 'var(--color-gold-dim)', letterSpacing: '0.02em' }}>
+                {ATOMIC_ORIGIN_STATS[pendingTile.content_origin].label}
+                {ATOMIC_ORIGIN_STATS[pendingTile.content_origin].stats.length === 0
+                  ? ' · starting point'
+                  : ` · scales with ${ATOMIC_ORIGIN_STATS[pendingTile.content_origin].stats.join(' + ')}`}
+              </div>
+            )}
+            {pendingTile.damage_type && (
+              <div style={{ marginTop: 2, fontSize: '0.74rem', color: 'var(--color-gold-dim)', letterSpacing: '0.02em' }}>
+                {DAMAGE_TYPE_STATS[pendingTile.damage_type].label}
+                {' · scales with '}
+                {DAMAGE_TYPE_STATS[pendingTile.damage_type].stats.join(' + ')}
+              </div>
+            )}
+            {pendingTile.status && (
+              <div style={{ marginTop: 2, fontSize: '0.74rem', color: 'var(--color-gold-dim)', letterSpacing: '0.02em' }}>
+                {STATUS_TYPE_STATS[pendingTile.status].label}
+                {' · scales with '}
+                {STATUS_TYPE_STATS[pendingTile.status].stats.join(' + ')}
               </div>
             )}
             {pendingMove && (

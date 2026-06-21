@@ -1,117 +1,69 @@
-import type { WeaponClass, WeaponRarity, TileType, WorkflowTile, WorkflowEdge, WorkflowGraph, ContentProductType } from '../../types/game'
-import { WEAPON_CLASSES } from './weaponClasses'
+import type { WeaponClass, WeaponRarity, AtomicStage, WorkflowTile, WorkflowEdge, WorkflowGraph } from '../../types/game'
+import type { PatternStep } from './weaponPatterns'
+import { WEAPON_PATTERNS } from './weaponPatterns'
+import { WEAPON_CLASSES, type WeaponClassDef } from './weaponClasses'
 
-// ── Time tables (seconds) ─────────────────────────────────────────────────
+// ── Time tables (seconds), keyed by the new 5-stage vocabulary ────────────
+// Carried over 1:1 from the old TileType table: research->Research,
+// outline->Plan, draft->Produce, edit->Refine, publish->Publish.
+// 'promote' is dropped, no replacement.
 
-const TILE_TIME_LIGHT: Record<TileType, number> = {
-  research: 300,   // 5 min
-  outline:  240,   // 4 min
-  draft:    600,   // 10 min
-  edit:     360,   // 6 min
-  publish:  180,   // 3 min
-  promote:  120,   // 2 min
-}
-
-const TILE_TIME_HEAVY: Record<TileType, number> = {
-  research: 900,   // 15 min
-  outline:  600,   // 10 min
-  draft:    1800,  // 30 min
-  edit:     900,   // 15 min
-  publish:  300,   // 5 min
-  promote:  240,   // 4 min
+const STAGE_TIME: Record<AtomicStage, { light: number; heavy: number }> = {
+  Research: { light: 300, heavy: 900 },
+  Plan:     { light: 240, heavy: 600 },
+  Produce:  { light: 600, heavy: 1800 },
+  Refine:   { light: 360, heavy: 900 },
+  Publish:  { light: 180, heavy: 300 },
 }
 
 // ── Tile name generation ──────────────────────────────────────────────────
 
-const TILE_NAMES: Record<TileType, string[]> = {
-  research: [
+const STAGE_NAMES: Record<AtomicStage, string[]> = {
+  Research: [
     'Find evidence and reference material',
     'Gather examples and data points',
     'Research your topic and sources',
     'Read and annotate your references',
     'Collect supporting material',
   ],
-  outline: [
+  Plan: [
     'Map the full structure',
     'Draft your table of contents',
     'Arrange your main points',
     'Plan the narrative arc',
     'Outline section by section',
   ],
-  draft: [
+  Produce: [
     'Write your first full draft',
     'Produce the opening section',
     'Write continuously without stopping',
     'Draft the core argument',
     'Write the body section',
   ],
-  edit: [
+  Refine: [
     'Cut the fat and tighten sentences',
     'Review and revise the draft',
     'Refine clarity and flow',
     'Polish the language',
     'Edit for concision and impact',
   ],
-  publish: [
+  Publish: [
     'Finalise and format for publishing',
     'Put it out — commit to publishing',
     'Prepare the final version',
     'Review before hitting publish',
   ],
-  promote: [
-    'Write the hook and teaser',
-    'Draft the social copy',
-    'Prepare the distribution message',
-  ],
 }
 
-function pickName(type: TileType): string {
-  const pool = TILE_NAMES[type]
+function pickName(stage: AtomicStage): string {
+  const pool = STAGE_NAMES[stage]
   return pool[Math.floor(Math.random() * pool.length)]
 }
 
-// ── Graph shape definitions ───────────────────────────────────────────────
-
-type GraphShape = 'linear' | 'branch' | 'hub' | 'dual_branch'
-
-// Map weapon size category → shape + tile count range
-interface ShapeSpec {
-  shape: GraphShape
-  minTiles: number
-  maxTiles: number
-}
-
-const SMALL_CLASSES: WeaponClass[] = [
-  'daggers', 'bows', 'torches', 'fists', 'thrusting_swords', 'crossbows',
-]
-const LARGE_CLASSES: WeaponClass[] = [
-  'greatswords', 'twinblades', 'reapers', 'great_axes', 'great_spears',
-  'curved_greatswords', 'great_hammers',
-]
-const COLOSSAL_CLASSES: WeaponClass[] = [
-  'colossal_swords', 'colossal_weapons', 'greatbows', 'ballistas',
-]
-
-function getShapeSpec(_cls: WeaponClass): ShapeSpec {
-  if (COLOSSAL_CLASSES.includes(_cls)) return { shape: 'dual_branch', minTiles: 12, maxTiles: 16 }
-  if (LARGE_CLASSES.includes(_cls))    return { shape: 'branch',      minTiles: 8,  maxTiles: 12 }
-  if (SMALL_CLASSES.includes(_cls))    return { shape: 'linear',      minTiles: 4,  maxTiles: 6  }
-  return { shape: 'branch', minTiles: 6, maxTiles: 9 }
-}
-
-// Rarity adds extra tiles
+// Rarity adds extra Produce-tile capacity (applied once, to the first
+// Produce phase encountered in a pattern).
 const RARITY_EXTRA: Record<WeaponRarity, number> = {
   common: 0, magic: 1, rare: 2, epic: 3, legendary: 4,
-}
-
-// ── Stage sequence for tile types ─────────────────────────────────────────
-
-const STAGE_SEQUENCE: TileType[] = ['research', 'outline', 'draft', 'edit', 'publish']
-
-function tileTypeForPosition(pos: number, total: number): TileType {
-  const frac = pos / Math.max(1, total - 1)
-  const idx  = Math.min(STAGE_SEQUENCE.length - 1, Math.floor(frac * STAGE_SEQUENCE.length))
-  return STAGE_SEQUENCE[idx]
 }
 
 // ── UID ───────────────────────────────────────────────────────────────────
@@ -119,101 +71,149 @@ function tileTypeForPosition(pos: number, total: number): TileType {
 let _seq = 0
 function tid(): string { return `t_${++_seq}_${Math.random().toString(36).slice(2, 6)}` }
 
-// ── Graph builders ────────────────────────────────────────────────────────
-
-function pickContentType(pool: ContentProductType[]): ContentProductType {
-  return pool[Math.floor(Math.random() * pool.length)]
+function randInt(min: number, max: number): number {
+  return min + Math.floor(Math.random() * (max - min + 1))
 }
 
-function makeTile(type: TileType, pool: ContentProductType[]): WorkflowTile {
+function makeTile(stage: AtomicStage): WorkflowTile {
+  const t = STAGE_TIME[stage]
   return {
-    id: tid(), type, name: pickName(type),
-    time_light: TILE_TIME_LIGHT[type],
-    time_heavy: TILE_TIME_HEAVY[type],
-    content_type: pickContentType(pool),
+    id: tid(), type: stage, name: pickName(stage),
+    time_light: t.light, time_heavy: t.heavy,
     is_completed: false, repeat_count: 0,
   }
 }
 
-function buildLinear(count: number, pool: ContentProductType[]): { tiles: WorkflowTile[]; edges: WorkflowEdge[] } {
-  const tiles = Array.from({ length: count }, (_, i) => makeTile(tileTypeForPosition(i, count), pool))
-  const edges: WorkflowEdge[] = tiles.slice(0, -1).map((t, i) => ({ from: t.id, to: tiles[i + 1].id }))
-  return { tiles, edges }
+// ── Pattern compiler ────────────────────────────────────────────────────────
+
+interface CompileContext {
+  cls: WeaponClassDef
+  rarity: WeaponRarity
+  tiles: WorkflowTile[]
+  edges: WorkflowEdge[]
+  frontier: string[]                       // tile ids the next step links FROM
+  lastResearchBlockTileIds: string[] | null // reset whenever a non-Research phase runs
+  produceBoostApplied: boolean             // ensures the rarity bonus only applies once
 }
 
-function buildBranch(count: number, pool: ContentProductType[]): { tiles: WorkflowTile[]; edges: WorkflowEdge[] } {
-  // Structure: start → [branch A (2-3 tiles), branch B (2-3 tiles)] → merge → end
-  const branchSize = Math.max(2, Math.floor((count - 3) / 2))
-  const startTile  = makeTile('research', pool)
-  const mergeTile  = makeTile('edit', pool)
-  const endTile    = makeTile('publish', pool)
-
-  const branchACount = branchSize
-  const branchBCount = count - 3 - branchACount
-  const branchA = Array.from({ length: Math.max(1, branchACount) }, (_, i) =>
-    makeTile(tileTypeForPosition(i + 1, count), pool))
-  const branchB = Array.from({ length: Math.max(1, branchBCount) }, (_, i) =>
-    makeTile(tileTypeForPosition(i + 1, count), pool))
-
-  const tiles = [startTile, ...branchA, ...branchB, mergeTile, endTile]
-  const edges: WorkflowEdge[] = [
-    { from: startTile.id, to: branchA[0].id },
-    { from: startTile.id, to: branchB[0].id },
-    ...branchA.slice(0, -1).map((t, i) => ({ from: t.id, to: branchA[i + 1].id })),
-    ...branchB.slice(0, -1).map((t, i) => ({ from: t.id, to: branchB[i + 1].id })),
-    { from: branchA[branchA.length - 1].id, to: mergeTile.id },
-    { from: branchB[branchB.length - 1].id, to: mergeTile.id },
-    { from: mergeTile.id, to: endTile.id },
-  ]
-  return { tiles, edges }
+export function compilePattern(
+  steps: PatternStep[],
+  cls: WeaponClassDef,
+  rarity: WeaponRarity,
+): { tiles: WorkflowTile[]; edges: WorkflowEdge[] } {
+  if (steps.length === 0 || steps[0].kind === 'branch') {
+    throw new Error(`Pattern for ${cls.id} must start with a phase() step, not branch()`)
+  }
+  const ctx: CompileContext = {
+    cls, rarity, tiles: [], edges: [], frontier: [],
+    lastResearchBlockTileIds: null, produceBoostApplied: false,
+  }
+  for (const step of steps) compileStep(step, ctx)
+  return { tiles: ctx.tiles, edges: ctx.edges }
 }
 
-function buildDualBranch(count: number, pool: ContentProductType[]): { tiles: WorkflowTile[]; edges: WorkflowEdge[] } {
-  // Two sets of branches with a central hub
-  const startTile = makeTile('research', pool)
-  const hub1      = makeTile('outline', pool)
-  const hub2      = makeTile('edit', pool)
-  const endTile   = makeTile('publish', pool)
-
-  const perBranch = Math.max(2, Math.floor((count - 4) / 4))
-  const branches  = Array.from({ length: 4 }, () =>
-    Array.from({ length: perBranch }, (_, i) => makeTile(tileTypeForPosition(i + 1, count), pool))
-  )
-
-  const allBranchTiles = branches.flat()
-  const tiles = [startTile, hub1, ...allBranchTiles, hub2, endTile]
-  const edges: WorkflowEdge[] = [
-    { from: startTile.id, to: hub1.id },
-    { from: branches[0][0].id, to: branches[0].length > 1 ? branches[0][1].id : hub2.id },
-    { from: branches[1][0].id, to: branches[1].length > 1 ? branches[1][1].id : hub2.id },
-    ...branches[0].slice(0, -1).map((t, i) => ({ from: t.id, to: branches[0][i + 1].id })),
-    ...branches[1].slice(0, -1).map((t, i) => ({ from: t.id, to: branches[1][i + 1].id })),
-    ...branches[2].slice(0, -1).map((t, i) => ({ from: t.id, to: branches[2][i + 1].id })),
-    ...branches[3].slice(0, -1).map((t, i) => ({ from: t.id, to: branches[3][i + 1].id })),
-    { from: hub1.id, to: branches[0][0].id },
-    { from: hub1.id, to: branches[1][0].id },
-    { from: hub2.id, to: branches[2][0].id },
-    { from: hub2.id, to: branches[3][0].id },
-    { from: branches[0][branches[0].length - 1].id, to: hub2.id },
-    { from: branches[1][branches[1].length - 1].id, to: hub2.id },
-    { from: branches[2][branches[2].length - 1].id, to: endTile.id },
-    { from: branches[3][branches[3].length - 1].id, to: endTile.id },
-    { from: hub2.id, to: endTile.id },
-  ]
-
-  // Deduplicate edges
-  const seen = new Set<string>()
-  const uniqueEdges = edges.filter(e => {
-    const key = `${e.from}:${e.to}`
-    if (seen.has(key)) return false
-    seen.add(key)
-    return true
-  })
-
-  return { tiles, edges: uniqueEdges }
+function compileStep(step: PatternStep, ctx: CompileContext): void {
+  switch (step.kind) {
+    case 'phase':              return compilePhase(step, ctx)
+    case 'drawFormat':         return compileDrawFormat(ctx)
+    case 'drawTransformation': return compileDrawTransformation(ctx)
+    case 'drawStyle':          return compileDrawStyle(step, ctx)
+    case 'drawEmotion':        return compileDrawEmotion(step, ctx)
+    case 'branch':             return compileBranch(step, ctx)
+  }
 }
 
-// ── Contamination placement ───────────────────────────────────────────────
+function linkFrontier(ctx: CompileContext, toId: string): void {
+  for (const f of ctx.frontier) ctx.edges.push({ from: f, to: toId })
+}
+
+function compilePhase(step: { stage: AtomicStage; min: number; max: number }, ctx: CompileContext): void {
+  let max = step.max
+  if (step.stage === 'Produce' && !ctx.produceBoostApplied) {
+    max += RARITY_EXTRA[ctx.rarity] ?? 0
+    ctx.produceBoostApplied = true
+  }
+  const count = randInt(step.min, max)
+  const newTiles = Array.from({ length: count }, () => makeTile(step.stage))
+  ctx.tiles.push(...newTiles)
+
+  linkFrontier(ctx, newTiles[0].id)
+  for (let i = 0; i < newTiles.length - 1; i++) {
+    ctx.edges.push({ from: newTiles[i].id, to: newTiles[i + 1].id })
+  }
+
+  ctx.frontier = [newTiles[newTiles.length - 1].id]
+  ctx.lastResearchBlockTileIds = step.stage === 'Research' ? newTiles.map(t => t.id) : null
+}
+
+function compileDrawFormat(ctx: CompileContext): void {
+  if (ctx.lastResearchBlockTileIds === null) {
+    throw new Error(`drawFormat() in ${ctx.cls.id}'s pattern has no preceding phase('Research', ...) block`)
+  }
+  const pool = ctx.cls.supported_products
+  const value = pool[Math.floor(Math.random() * pool.length)]
+  for (const id of ctx.lastResearchBlockTileIds) {
+    const t = ctx.tiles.find(t => t.id === id)!
+    t.content_type = value
+  }
+  const planTile = makeTile('Plan')
+  planTile.content_type = value
+  ctx.tiles.push(planTile)
+  linkFrontier(ctx, planTile.id)
+  ctx.frontier = [planTile.id]
+}
+
+function compileDrawTransformation(ctx: CompileContext): void {
+  if (ctx.lastResearchBlockTileIds === null) {
+    throw new Error(`drawTransformation() in ${ctx.cls.id}'s pattern has no preceding phase('Research', ...) block`)
+  }
+  const pool = ctx.cls.allowed_transformations
+  if (pool.length === 0) return
+  const value = pool[Math.floor(Math.random() * pool.length)]
+  for (const id of ctx.lastResearchBlockTileIds) {
+    const t = ctx.tiles.find(t => t.id === id)!
+    t.content_origin = value
+  }
+  const planTile = makeTile('Plan')
+  planTile.content_origin = value
+  ctx.tiles.push(planTile)
+  linkFrontier(ctx, planTile.id)
+  ctx.frontier = [planTile.id]
+}
+
+function compileDrawStyle(step: { probability: number }, ctx: CompileContext): void {
+  const pool = ctx.cls.base_damage_types
+  if (pool.length === 0 || Math.random() >= step.probability) return
+  const value = pool[Math.floor(Math.random() * pool.length)]
+  const planTile = makeTile('Plan')
+  planTile.damage_type = value
+  ctx.tiles.push(planTile)
+  linkFrontier(ctx, planTile.id)
+  ctx.frontier = [planTile.id]
+}
+
+function compileDrawEmotion(step: { probability: number }, ctx: CompileContext): void {
+  const pool = ctx.cls.inherent_status ? [ctx.cls.inherent_status] : []
+  if (pool.length === 0 || Math.random() >= step.probability) return
+  const planTile = makeTile('Plan')
+  planTile.status = pool[0]
+  ctx.tiles.push(planTile)
+  linkFrontier(ctx, planTile.id)
+  ctx.frontier = [planTile.id]
+}
+
+function compileBranch(step: { paths: PatternStep[][] }, ctx: CompileContext): void {
+  const startFrontier = ctx.frontier
+  const endFrontiers: string[][] = []
+  for (const path of step.paths) {
+    ctx.frontier = startFrontier
+    ctx.lastResearchBlockTileIds = null
+    for (const innerStep of path) compileStep(innerStep, ctx)
+    endFrontiers.push(ctx.frontier)
+  }
+  ctx.frontier = endFrontiers.flat()
+  ctx.lastResearchBlockTileIds = null
+}
 
 // ── Main export ───────────────────────────────────────────────────────────
 
@@ -222,29 +222,16 @@ export function generateWorkflow(
   rarity: WeaponRarity,
   isBoss = false,
 ): WorkflowGraph {
-  const spec = getShapeSpec(weaponClass)
-  const extra = RARITY_EXTRA[rarity] ?? 0
-  const targetCount = spec.minTiles + Math.floor(Math.random() * (spec.maxTiles - spec.minTiles + 1)) + extra
-  const pool = WEAPON_CLASSES[weaponClass].supported_products
+  const cls = WEAPON_CLASSES[weaponClass]
+  const pattern = WEAPON_PATTERNS[weaponClass]
+  const { tiles, edges } = compilePattern(pattern, cls, rarity)
 
-  let tiles: WorkflowTile[]
-  let edges: WorkflowEdge[]
-
-  if (spec.shape === 'dual_branch') {
-    ({ tiles, edges } = buildDualBranch(targetCount, pool))
-  } else if (spec.shape === 'branch') {
-    ({ tiles, edges } = buildBranch(targetCount, pool))
-  } else {
-    ({ tiles, edges } = buildLinear(targetCount, pool))
-  }
-
-  // Boss: make the last tile a mandatory publish gate
   if (isBoss) {
-    const lastIdx = tiles.length - 1
-    tiles[lastIdx] = {
-      ...tiles[lastIdx],
-      type: 'publish',
-      name: 'Publish — break the curse',
+    const last = tiles[tiles.length - 1]
+    if (last.type === 'Publish') {
+      last.name = 'Publish — break the curse'
+    } else {
+      console.warn(`Boss workflow for ${weaponClass} ends in ${last.type}, not Publish`)
     }
   }
 

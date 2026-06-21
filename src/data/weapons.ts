@@ -1,5 +1,8 @@
-import type { WeaponInstance, WeaponRarity, Stats, Grade, ContentProductType } from '../types/game'
+import type { WeaponInstance, WeaponRarity, Stats, Grade, ContentProductType, AtomicOrigin, DamageType, StatusType } from '../types/game'
 import { CONTENT_TYPE_STATS } from './contentTypeScaling'
+import { ATOMIC_ORIGIN_STATS } from './atomicOriginScaling'
+import { DAMAGE_TYPE_STATS } from './damageTypeScaling'
+import { STATUS_TYPE_STATS } from './statusTypeScaling'
 import { CONTENT_TYPE_STAT_BONUS } from './constants'
 
 // Runtime registry of weapon instances (populated by rollWeapon + store hydration)
@@ -24,6 +27,9 @@ export function calcTileReward(
   level: number,
   stats: Stats,
   contentType?: ContentProductType,
+  contentOrigin?: AtomicOrigin,
+  damageType?: DamageType,
+  status?: StatusType,
 ): number {
   const levelMult = LEVEL_MULT[weapon.rarity] ?? 0.03
   let statBonus = 0
@@ -33,6 +39,24 @@ export function calcTileReward(
   }
   if (contentType) {
     for (const stat of CONTENT_TYPE_STATS[contentType]?.stats ?? []) {
+      const points = Math.max(0, (stats[stat] ?? 8) - 8)
+      statBonus += points * CONTENT_TYPE_STAT_BONUS
+    }
+  }
+  if (contentOrigin) {
+    for (const stat of ATOMIC_ORIGIN_STATS[contentOrigin]?.stats ?? []) {
+      const points = Math.max(0, (stats[stat] ?? 8) - 8)
+      statBonus += points * CONTENT_TYPE_STAT_BONUS
+    }
+  }
+  if (damageType) {
+    for (const stat of DAMAGE_TYPE_STATS[damageType]?.stats ?? []) {
+      const points = Math.max(0, (stats[stat] ?? 8) - 8)
+      statBonus += points * CONTENT_TYPE_STAT_BONUS
+    }
+  }
+  if (status) {
+    for (const stat of STATUS_TYPE_STATS[status]?.stats ?? []) {
       const points = Math.max(0, (stats[stat] ?? 8) - 8)
       statBonus += points * CONTENT_TYPE_STAT_BONUS
     }

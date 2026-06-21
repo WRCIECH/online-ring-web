@@ -1,7 +1,10 @@
 import { useEffect, useRef, useMemo, useState, useCallback } from 'react'
-import type { WorkflowGraph, WorkflowTile, TileType } from '../../types/game'
+import type { WorkflowGraph, WorkflowTile, AtomicStage } from '../../types/game'
 import { getReachableTiles, REPEAT_DAMAGE_PENALTY } from '../../engine/combat'
 import { CONTENT_TYPE_STATS } from '../../data/contentTypeScaling'
+import { ATOMIC_ORIGIN_STATS } from '../../data/atomicOriginScaling'
+import { DAMAGE_TYPE_STATS } from '../../data/damageTypeScaling'
+import { STATUS_TYPE_STATS } from '../../data/statusTypeScaling'
 import s from './WorkflowCanvas.module.css'
 
 interface Props {
@@ -18,22 +21,20 @@ const V_GAP   = 40    // vertical gap between layers
 const PAD     = 28
 const MIN_W   = 180
 
-const TILE_COLOR: Record<TileType, string> = {
-  research: '#334488',
-  outline:  '#335566',
-  draft:    '#664422',
-  edit:     '#445533',
-  publish:  '#556622',
-  promote:  '#443388',
+const TILE_COLOR: Record<AtomicStage, string> = {
+  Research: '#334488',
+  Plan:     '#335566',
+  Produce:  '#664422',
+  Refine:   '#445533',
+  Publish:  '#556622',
 }
 
-const TILE_LABEL: Record<TileType, string> = {
-  research: 'Research',
-  outline:  'Outline',
-  draft:    'Draft',
-  edit:     'Edit',
-  publish:  'Publish',
-  promote:  'Promote',
+const TILE_LABEL: Record<AtomicStage, string> = {
+  Research: 'Research',
+  Plan:     'Plan',
+  Produce:  'Produce',
+  Refine:   'Refine',
+  Publish:  'Publish',
 }
 
 function fmtTime(secs: number): string {
@@ -45,6 +46,26 @@ function fmtTime(secs: number): string {
 function contentTypeHint(tile: WorkflowTile): string | null {
   if (!tile.content_type) return null
   const info = CONTENT_TYPE_STATS[tile.content_type]
+  return `${info.label} · scales with ${info.stats.join(' + ')}`
+}
+
+function originHint(tile: WorkflowTile): string | null {
+  if (!tile.content_origin) return null
+  const info = ATOMIC_ORIGIN_STATS[tile.content_origin]
+  return info.stats.length === 0
+    ? `${info.label} · starting point`
+    : `${info.label} · scales with ${info.stats.join(' + ')}`
+}
+
+function damageTypeHint(tile: WorkflowTile): string | null {
+  if (!tile.damage_type) return null
+  const info = DAMAGE_TYPE_STATS[tile.damage_type]
+  return `${info.label} · scales with ${info.stats.join(' + ')}`
+}
+
+function statusHint(tile: WorkflowTile): string | null {
+  if (!tile.status) return null
+  const info = STATUS_TYPE_STATS[tile.status]
   return `${info.label} · scales with ${info.stats.join(' + ')}`
 }
 
@@ -392,6 +413,15 @@ export default function WorkflowCanvas({ workflow, selectedTileId, onSelectTile 
           <span className={s.ttName}>{hovered.tile.name}</span>
           {contentTypeHint(hovered.tile) && (
             <span className={s.ttContentType}>{contentTypeHint(hovered.tile)}</span>
+          )}
+          {originHint(hovered.tile) && (
+            <span className={s.ttContentType}>{originHint(hovered.tile)}</span>
+          )}
+          {damageTypeHint(hovered.tile) && (
+            <span className={s.ttContentType}>{damageTypeHint(hovered.tile)}</span>
+          )}
+          {statusHint(hovered.tile) && (
+            <span className={s.ttContentType}>{statusHint(hovered.tile)}</span>
           )}
           {hovered.tile.is_completed && (
             <>
