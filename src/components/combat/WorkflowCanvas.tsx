@@ -1,16 +1,18 @@
 import { useEffect, useRef, useMemo, useState, useCallback } from 'react'
-import type { WorkflowGraph, WorkflowTile, AtomicStage } from '../../types/game'
+import type { WorkflowGraph, WorkflowTile, AtomicStage, WeaponClass } from '../../types/game'
 import { getReachableTiles, REPEAT_DAMAGE_PENALTY } from '../../engine/combat'
 import { CONTENT_TYPE_STATS } from '../../data/contentTypeScaling'
 import { ATOMIC_ORIGIN_STATS } from '../../data/atomicOriginScaling'
 import { DAMAGE_TYPE_STATS } from '../../data/damageTypeScaling'
 import { STATUS_TYPE_STATS } from '../../data/statusTypeScaling'
+import WeaponWatermark from './WeaponWatermark'
 import s from './WorkflowCanvas.module.css'
 
 interface Props {
   workflow:      WorkflowGraph
   selectedTileId: string | null
   onSelectTile:  (id: string, screenX: number, screenY: number) => void
+  weaponClass:   WeaponClass
 }
 
 // ── Layout constants ──────────────────────────────────────────────────────
@@ -27,6 +29,7 @@ const TILE_COLOR: Record<AtomicStage, string> = {
   Produce:  '#664422',
   Refine:   '#445533',
   Publish:  '#556622',
+  Promote:  '#663355',
 }
 
 const TILE_LABEL: Record<AtomicStage, string> = {
@@ -35,6 +38,7 @@ const TILE_LABEL: Record<AtomicStage, string> = {
   Produce:  'Produce',
   Refine:   'Refine',
   Publish:  'Publish',
+  Promote:  'Promote',
 }
 
 function fmtTime(secs: number): string {
@@ -254,7 +258,7 @@ interface DragState { startX: number; startY: number; viewX: number; viewY: numb
 
 // ── Component ─────────────────────────────────────────────────────────────
 
-export default function WorkflowCanvas({ workflow, selectedTileId, onSelectTile }: Props) {
+export default function WorkflowCanvas({ workflow, selectedTileId, onSelectTile, weaponClass }: Props) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const viewportRef = useRef<HTMLDivElement>(null)
   const [hovered, setHovered] = useState<{ tile: WorkflowTile; cx: number; cy: number } | null>(null)
@@ -398,6 +402,7 @@ export default function WorkflowCanvas({ workflow, selectedTileId, onSelectTile 
           transform: `translate(${view.x}px, ${view.y}px) scale(${view.scale})`,
         }}
       >
+        <WeaponWatermark weaponClass={weaponClass} width={canvasW} height={canvasH} />
         <canvas
           ref={canvasRef}
           className={s.canvas}

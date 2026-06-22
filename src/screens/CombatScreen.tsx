@@ -23,7 +23,6 @@ import s from './CombatScreen.module.css'
 const MOVE_DEFS: Array<{ move: MoveType; label: string; desc: string; colorVar: string }> = [
   { move: 'Light', label: 'Light', desc: 'Less time, base reward',   colorVar: '#88aadd' },
   { move: 'Heavy', label: 'Heavy', desc: 'More time, 1.5× reward',   colorVar: '#dd9977' },
-  { move: 'Jump',  label: 'Jump',  desc: 'Quick work, 0.8× reward',  colorVar: '#bb88ee' },
 ]
 const RADIAL_RADIUS = 86
 
@@ -48,12 +47,12 @@ export default function CombatScreen() {
 
   const enemyData = loc ? ENEMIES[loc.enemy_id] : null
 
-  // ── Derive weapon context ─────────────────────────────────────────────────
-  const equippedWeaponId = store.equipped_run_weapons[0] ?? 'unarmed'
-  const weapon   = WEAPONS[equippedWeaponId] as WeaponInstance | undefined
-  const wLevel   = store.weapon_level[equippedWeaponId] ?? 0
-  const wClass   = weapon?.weapon_class   ?? 'straight_swords'
-  const wRarity  = weapon?.rarity         ?? 'common'
+  // ── Initial weapon (seeds the very first/resumed workflow only) ──────────
+  const initialWeaponId    = store.equipped_run_weapons[0] ?? 'unarmed'
+  const initialWeapon      = WEAPONS[initialWeaponId] as WeaponInstance | undefined
+  const initialWeaponLevel = store.weapon_level[initialWeaponId] ?? 0
+  const initialWeaponClass  = initialWeapon?.weapon_class ?? 'straight_swords'
+  const initialWeaponRarity = initialWeapon?.rarity        ?? 'common'
 
   // ── Init combat state (stable across renders) ────────────────────────────
   const [state, dispatch] = useReducer(
@@ -73,10 +72,10 @@ export default function CombatScreen() {
         )
       }
       // Resume persisted workflow or generate fresh
-      const workflow = store.active_workflow ?? generateWorkflow(wClass, wRarity, enemyData.is_boss)
+      const workflow = store.active_workflow ?? generateWorkflow(initialWeaponClass, initialWeaponRarity, enemyData.is_boss)
       return initCombatState(
         workflow, enemyData, loc.enemy_id,
-        equippedWeaponId, wLevel,
+        initialWeaponId, initialWeaponLevel,
         store.current_hp,  store.maxHp(),
         store.run_estus_count,
         store.stats,
@@ -85,6 +84,15 @@ export default function CombatScreen() {
       )
     }
   )
+
+  // ── Live active weapon (can change mid-fight via SWITCH_WEAPON) ──────────
+  const weapon  = WEAPONS[state.equippedWeaponId] as WeaponInstance | undefined
+  const wClass  = weapon?.weapon_class ?? initialWeaponClass
+  const wRarity = weapon?.rarity       ?? initialWeaponRarity
+
+  const handleSwitchWeapon = useCallback((weaponId: string, weaponLevel: number) => {
+    dispatch({ type: 'SWITCH_WEAPON', weaponId, weaponLevel })
+  }, [])
 
   // ── Sound effects on phase change ─────────────────────────────────────────
   useEffect(() => {
@@ -206,7 +214,7 @@ export default function CombatScreen() {
     ? state.workflow.tiles.find(t => t.id === state.selectedTileId) ?? null
     : null
 
-  // ── Move radial menu (click a tile → circles to pick Light/Heavy/Jump) ────
+  // ── Move radial menu (click a tile → circles to pick Light/Heavy) ────────
   const isPlayerTurn = state.phase === 'PLAYER_TURN'
   const [radialPos, setRadialPos] = useState<{ x: number; y: number } | null>(null)
   const reachableTiles = useMemo(() => getReachableTiles(state.workflow), [state.workflow])
@@ -271,6 +279,7 @@ export default function CombatScreen() {
             workflow={state.workflow}
             selectedTileId={state.selectedTileId}
             onSelectTile={handleTileClick}
+            weaponClass={wClass}
           />
           {isPlayerTurn && radialPos && radialItems.length > 0 && (
             <MoveRadialMenu
@@ -321,10 +330,12 @@ export default function CombatScreen() {
       </div>
 
       <CombatBottomBar
-        weapon={weapon}
-        weaponLevel={wLevel}
+        equippedWeaponIds={store.equipped_run_weapons}
+        activeWeaponId={state.equippedWeaponId}
+        weaponLevels={store.weapon_level}
         playerEstus={state.playerEstus}
         canAct={isPlayerTurn}
+        onSwitchWeapon={handleSwitchWeapon}
         onEstus={() => dispatch({ type: 'USE_ESTUS' })}
         onAbandon={() => setShowAbandonConfirm(true)}
       />

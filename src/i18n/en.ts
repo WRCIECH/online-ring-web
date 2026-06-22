@@ -72,6 +72,7 @@ const en: TranslationBundle = {
       Produce:  { badge_label: 'Produce Stage',  label: 'Produce — write the first draft',           detail: 'Write your raw first draft — commit without stopping.',                 example: 'Setting a timer and writing continuously until the draft is done, no backspace.' },
       Refine:   { badge_label: 'Refine Stage',   label: 'Refine — connect, cut, and elevate',        detail: 'Connect and order pieces into a coherent narrative, then cut the fat and elevate the writing.', example: 'Stitching together separate sections with transitions, then reading the draft out loud and cutting every sentence that slows the pace.' },
       Publish:  { badge_label: 'Publish Stage',  label: 'Publish — release to the world',            detail: 'Format, finalise, and commit to releasing.',                            example: 'Adding the thumbnail, writing the meta description, and hitting publish.' },
+      Promote:  { badge_label: 'Promote Stage',  label: 'Promote — tell people it exists',           detail: 'Announce and cross-post your published work across platforms.',         example: 'Sharing the new piece on social media and tagging relevant communities.' },
     },
   },
 

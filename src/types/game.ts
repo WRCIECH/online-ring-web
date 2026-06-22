@@ -3,7 +3,7 @@ export type StatKey = 'VIG' | 'END' | 'MND' | 'STR' | 'DEX' | 'INT' | 'FAI' | 'A
 export type Grade = 'S' | 'A' | 'B' | 'C' | 'D' | 'E'
 export type WeaponRarity = 'common' | 'magic' | 'rare' | 'epic' | 'legendary'
 export type SublocationType = 'mob' | 'elite' | 'event' | 'boss'
-export type MoveType = 'Light' | 'Heavy' | 'Jump'
+export type MoveType = 'Light' | 'Heavy'
 
 // Kept for content pipeline stamps and badge colours
 export type DamageType =
@@ -25,7 +25,7 @@ export type WeaponClass =
   | 'greatbows' | 'crossbows' | 'ballistas' | 'torches'
 
 // ── Content creation dimensions (kept for tile generation & stamps) ────────
-export type AtomicStage = 'Research' | 'Plan' | 'Produce' | 'Refine' | 'Publish'
+export type AtomicStage = 'Research' | 'Plan' | 'Produce' | 'Refine' | 'Publish' | 'Promote'
 export type AtomicOrigin =
   | 'New' | 'Compression' | 'Expansion' | 'Recycled' | 'Remastered'
   | 'Revamped' | 'Reboot' | 'ZoomIn' | 'ZoomOut' | 'AudienceAlter' | 'Commentary'

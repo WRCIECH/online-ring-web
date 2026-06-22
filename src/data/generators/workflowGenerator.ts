@@ -3,10 +3,10 @@ import type { PatternStep } from './weaponPatterns'
 import { WEAPON_PATTERNS } from './weaponPatterns'
 import { WEAPON_CLASSES, type WeaponClassDef } from './weaponClasses'
 
-// ── Time tables (seconds), keyed by the new 5-stage vocabulary ────────────
+// ── Time tables (seconds), keyed by the 6-stage vocabulary ────────────────
 // Carried over 1:1 from the old TileType table: research->Research,
 // outline->Plan, draft->Produce, edit->Refine, publish->Publish.
-// 'promote' is dropped, no replacement.
+// Promote is a later addition — a quick "announce/cross-post" action.
 
 const STAGE_TIME: Record<AtomicStage, { light: number; heavy: number }> = {
   Research: { light: 300, heavy: 900 },
@@ -14,6 +14,7 @@ const STAGE_TIME: Record<AtomicStage, { light: number; heavy: number }> = {
   Produce:  { light: 600, heavy: 1800 },
   Refine:   { light: 360, heavy: 900 },
   Publish:  { light: 180, heavy: 300 },
+  Promote:  { light: 120, heavy: 240 },
 }
 
 // ── Tile name generation ──────────────────────────────────────────────────
@@ -52,6 +53,13 @@ const STAGE_NAMES: Record<AtomicStage, string[]> = {
     'Put it out — commit to publishing',
     'Prepare the final version',
     'Review before hitting publish',
+  ],
+  Promote: [
+    'Share it across your channels',
+    'Write the announcement post',
+    "Tell your audience it's live",
+    'Cross-post to other platforms',
+    'Pin it and spread the word',
   ],
 }
 
@@ -228,10 +236,10 @@ export function generateWorkflow(
 
   if (isBoss) {
     const last = tiles[tiles.length - 1]
-    if (last.type === 'Publish') {
-      last.name = 'Publish — break the curse'
+    if (last.type === 'Publish' || last.type === 'Promote') {
+      last.name = `${last.type} — break the curse`
     } else {
-      console.warn(`Boss workflow for ${weaponClass} ends in ${last.type}, not Publish`)
+      console.warn(`Boss workflow for ${weaponClass} ends in ${last.type}, not Publish/Promote`)
     }
   }
 

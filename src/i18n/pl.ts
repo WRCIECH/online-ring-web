@@ -72,6 +72,7 @@ const pl: TranslationBundle = {
       Produce:  { badge_label: 'Etap produkcji',  label: 'Produkcja — napisz pierwszy szkic',        detail: 'Napisz surowy pierwszy szkic — angażuj się bez zatrzymywania.',                   example: "Ustawienie timera i ciągłe pisanie do czasu ukończenia szkicu, bez backspace'a." },
       Refine:   { badge_label: 'Etap dopracowania',label: 'Dopracowanie — połącz, wytnij i podnieś poziom', detail: 'Połącz i ułóż elementy w spójną narrację, następnie wytnij tłuszcz i podnieś poziom pisania.', example: 'Łączenie osobnych sekcji przejściami, a potem głośne odczytanie szkicu i wycięcie każdego zdania, które spowalnia tempo.' },
       Publish:  { badge_label: 'Etap publikacji', label: 'Publikacja — uwolnij dla świata',          detail: 'Sformatuj, sfinalizuj i zdecyduj się na wydanie.',                                example: 'Dodanie miniatury, napisanie meta opisu i kliknięcie publikuj.' },
+      Promote:  { badge_label: 'Etap promocji',   label: 'Promocja — rozgłoś, że to istnieje',       detail: 'Zapowiedz i rozpropaguj opublikowaną pracę na różnych platformach.',              example: 'Udostępnienie nowego materiału w mediach społecznościowych i oznaczenie odpowiednich społeczności.' },
     },
   },
 

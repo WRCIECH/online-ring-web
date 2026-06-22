@@ -24,7 +24,7 @@ const SCALE: Record<PoiseWeight, number> = {
 }
 
 // All shapes in a 32×64 viewBox, centred at x=16
-function Blade({ weaponClass, blade, secondary }: { weaponClass: WeaponClass; blade: string; secondary: string }) {
+export function Blade({ weaponClass, blade, secondary }: { weaponClass: WeaponClass; blade: string; secondary: string }) {
   switch (weaponClass) {
 
     /* ── Original 9 ────────────────────────────────────────────────────── */

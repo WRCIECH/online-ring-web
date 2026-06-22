@@ -41,6 +41,28 @@
   line-height: 1;
 }
 
+/* Weapon slots */
+.weaponSlot {
+  cursor: pointer;
+  transition: border-color 0.14s, background 0.14s, box-shadow 0.14s;
+}
+
+.weaponSlot:hover:not(:disabled) {
+  border-color: var(--color-gold-dim);
+  background: rgba(230, 191, 51, 0.06);
+}
+
+.weaponSlot:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.weaponActive {
+  border-color: var(--color-gold);
+  box-shadow: var(--glow-gold);
+  cursor: default;
+}
+
 /* Estus-specific */
 .estusSlot {
   color: #3aaa80;

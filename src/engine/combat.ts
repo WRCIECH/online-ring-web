@@ -76,6 +76,7 @@ export type CombatAction =
   | { type: 'USE_ESTUS' }
   | { type: 'ABANDON' }
   | { type: 'SWITCH_WORKFLOW'; workflow: WorkflowGraph }
+  | { type: 'SWITCH_WEAPON'; weaponId: string; weaponLevel: number }
   | { type: 'ADD_LOG'; text: string; color?: string }
 
 // ── Constants ─────────────────────────────────────────────────────────────
@@ -111,14 +112,14 @@ export function getReachableTiles(graph: WorkflowGraph): Set<string> {
 
 function tileRewardBase(tile: WorkflowTile, move: MoveType): number {
   const timeMin  = move === 'Heavy' ? tile.time_heavy / 60 : tile.time_light / 60
-  const moveMult = move === 'Heavy' ? 1.5 : move === 'Jump' ? 0.8 : 1.0
+  const moveMult = move === 'Heavy' ? 1.5 : 1.0
   return Math.round(timeMin * 5 * moveMult)
 }
 
 // Damage dealt to enemy when a tile is completed
 function calcTileDamage(tile: WorkflowTile, move: MoveType, weaponLevel: number): number {
   const timeMin  = tile.time_light / 60           // base off light timer regardless of move
-  const moveMult = move === 'Heavy' ? 1.5 : move === 'Jump' ? 0.8 : 1.0
+  const moveMult = move === 'Heavy' ? 1.5 : 1.0
   const lvlMult  = 1 + weaponLevel * 0.05         // +5% per weapon level
   return Math.round(timeMin * 8 * moveMult * lvlMult)
 }
@@ -469,6 +470,17 @@ export function combatReducer(state: CombatState, action: CombatAction): CombatS
         { ...state, workflow: action.workflow, currentTileId: action.workflow.start_id,
           selectedTileId: null, pendingTile: null, pendingMove: null },
         'A new piece of work begins — the fight continues.', '#c9a93a'
+      )
+    }
+
+    case 'SWITCH_WEAPON': {
+      if (state.phase !== 'PLAYER_TURN') return state
+      if (action.weaponId === state.equippedWeaponId) return state
+      const newWeapon = WEAPONS[action.weaponId] as WeaponInstance | undefined
+      return log(
+        { ...state, equippedWeaponId: action.weaponId, weaponLevel: action.weaponLevel,
+          selectedTileId: null, pendingTile: null, pendingMove: null },
+        `You switch to ${newWeapon?.name ?? action.weaponId}.`, '#88aadd'
       )
     }
 

@@ -1,52 +1,69 @@
 import { useState } from 'react'
 import type { WeaponInstance } from '../../types/game'
+import { WEAPONS } from '../../data/weapons'
 import WeaponSprite from '../icons/WeaponSprite'
 import { useT } from '../../i18n'
 import s from './CombatBottomBar.module.css'
 
 interface Props {
-  weapon:      WeaponInstance | undefined
-  weaponLevel: number
-  playerEstus: number
-  canAct:      boolean
-  onEstus:     () => void
-  onAbandon:   () => void
+  equippedWeaponIds: string[]
+  activeWeaponId:    string
+  weaponLevels:      Record<string, number>
+  playerEstus:       number
+  canAct:            boolean
+  onSwitchWeapon:    (weaponId: string, weaponLevel: number) => void
+  onEstus:           () => void
+  onAbandon:         () => void
 }
 
-export default function CombatBottomBar({ weapon, weaponLevel, playerEstus, canAct, onEstus, onAbandon }: Props) {
+export default function CombatBottomBar({
+  equippedWeaponIds, activeWeaponId, weaponLevels, playerEstus, canAct, onSwitchWeapon, onEstus, onAbandon,
+}: Props) {
   const t = useT()
-  const [showWeaponTip, setShowWeaponTip] = useState(false)
-  const [showEstusTip,  setShowEstusTip]  = useState(false)
+  const [tipFor, setTipFor] = useState<string | null>(null)
+  const [showEstusTip, setShowEstusTip] = useState(false)
 
   return (
     <div className={s.bar}>
-      {/* Weapon slot — informational only, no mid-combat switching */}
-      <div
-        className={s.slot}
-        onMouseEnter={() => setShowWeaponTip(true)}
-        onMouseLeave={() => setShowWeaponTip(false)}
-      >
-        {weapon ? (
-          <WeaponSprite
-            weaponClass={weapon.weapon_class}
-            rarity={weapon.rarity ?? 'common'}
-            poiseWeight={weapon.poise_weight ?? 'medium'}
-            size={44}
-          />
-        ) : (
-          <span className={s.icon}>⚔</span>
-        )}
+      {/* Weapon slots — click the inactive one to switch mid-fight */}
+      {equippedWeaponIds.map(wid => {
+        const weapon  = WEAPONS[wid] as WeaponInstance | undefined
+        const level   = weaponLevels[wid] ?? 0
+        const isActive = wid === activeWeaponId
 
-        {weapon && showWeaponTip && (
-          <div className={s.tooltip}>
-            <div className={s.tipName}>{weapon.name}</div>
-            <div className={s.tipSub}>
-              {t.weapons[weapon.weapon_class]?.name ?? weapon.weapon_class.replace(/_/g, ' ')}
-              {weapon.rarity ? ` · ${weapon.rarity}` : ''} · Lv {weaponLevel}
-            </div>
-          </div>
-        )}
-      </div>
+        return (
+          <button
+            key={wid}
+            className={[s.slot, s.weaponSlot, isActive ? s.weaponActive : ''].join(' ')}
+            disabled={!canAct}
+            onClick={() => !isActive && onSwitchWeapon(wid, level)}
+            onMouseEnter={() => setTipFor(wid)}
+            onMouseLeave={() => setTipFor(null)}
+          >
+            {weapon ? (
+              <WeaponSprite
+                weaponClass={weapon.weapon_class}
+                rarity={weapon.rarity ?? 'common'}
+                poiseWeight={weapon.poise_weight ?? 'medium'}
+                size={44}
+              />
+            ) : (
+              <span className={s.icon}>⚔</span>
+            )}
+
+            {weapon && tipFor === wid && (
+              <div className={s.tooltip}>
+                <div className={s.tipName}>{weapon.name}</div>
+                <div className={s.tipSub}>
+                  {t.weapons[weapon.weapon_class]?.name ?? weapon.weapon_class.replace(/_/g, ' ')}
+                  {weapon.rarity ? ` · ${weapon.rarity}` : ''} · Lv {level}
+                </div>
+                {!isActive && <div className={s.tipHint}>Click to switch weapon</div>}
+              </div>
+            )}
+          </button>
+        )
+      })}
 
       <div className={s.divider} />
 

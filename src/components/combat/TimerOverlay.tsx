@@ -22,7 +22,6 @@ function fmtTime(secs: number): string {
 const MOVE_LABEL: Record<MoveType, string> = {
   Light: 'Light Attack',
   Heavy: 'Heavy Attack',
-  Jump:  'Jump Attack',
 }
 
 export default function TimerOverlay({ state, dispatch }: Props) {
@@ -110,7 +109,6 @@ export default function TimerOverlay({ state, dispatch }: Props) {
               <div style={{ marginTop: 6, fontSize: '0.78rem', color: 'var(--color-text-dim)', letterSpacing: '0.05em' }}>
                 {MOVE_LABEL[pendingMove]}
                 {pendingMove === 'Heavy' && <span style={{ color: '#dd9977', marginLeft: 8 }}>1.5× reward</span>}
-                {pendingMove === 'Jump'  && <span style={{ color: '#bb88ee', marginLeft: 8 }}>0.8× reward</span>}
               </div>
             )}
           </div>
