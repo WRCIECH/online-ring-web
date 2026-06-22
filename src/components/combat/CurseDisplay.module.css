@@ -1,0 +1,46 @@
+.curseList {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+}
+
+.curseCard {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid rgba(136, 85, 204, 0.4);
+  border-radius: 4px;
+  background: rgba(85, 40, 140, 0.1);
+  text-align: left;
+}
+
+.curseName {
+  font-size: 0.82rem;
+  letter-spacing: 0.04em;
+  color: #b399e0;
+  font-weight: 500;
+}
+
+.curseFlavor {
+  font-size: 0.72rem;
+  color: var(--color-text-dim);
+  font-style: italic;
+}
+
+.cursePenalty {
+  font-size: 0.74rem;
+  color: #cc8888;
+}
+
+.curseProgress {
+  font-size: 0.72rem;
+  color: var(--color-gold-dim);
+}
+
+.curseStamina {
+  font-size: 0.68rem;
+  color: var(--color-text-dim);
+}

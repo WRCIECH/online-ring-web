@@ -165,6 +165,7 @@ function initialState(): GameState {
     run_location_name: '',
     completed_locations: [],
     abandon_penalty: 0,
+    incoming_curses: [],
     active_workflow: null,
     active_content_id: null,
     content_items: [],
@@ -187,7 +188,7 @@ export interface GameStore extends GameState {
   setPendingEncounter: (loc: LocationData | null) => void
   setPendingReward:    (id: string) => void
   addDefeatedEnemy:    (id: string) => void
-  syncCombatResult:    (hp: number, estus: number, fp: number) => void
+  syncCombatResult:    (hp: number, estus: number, fp: number, stamina: number) => void
 
   // HP / resources
   takePlayerDamage:  (amount: number) => void
@@ -211,6 +212,10 @@ export interface GameStore extends GameState {
   // Abandon penalty
   setAbandonPenalty:    (v: number) => void
   clearAbandonPenalty:  () => void
+
+  // Mob curses (carry into the next fight this run only)
+  setIncomingCurses:    (ids: string[]) => void
+  clearIncomingCurses:  () => void
   saveWorkflowProgress: (workflow: WorkflowGraph) => void
   setActiveContentId:   (id: string) => void
   clearActiveWorkflow:  () => void
@@ -264,6 +269,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
       run_location_name: locationName,
       active_workflow: null,
       active_content_id: null,
+      incoming_curses: [],   // curses are a within-run consequence only, unlike abandon_penalty
     })
     get().save()
   },
@@ -288,7 +294,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
 
   setPendingEncounter: (loc) => { set({ pending_encounter: loc }); get().save() },
   setPendingReward:    (id)  => set({ pending_run_reward: id }),
-  syncCombatResult:    (hp, estus, fp) => set({ current_hp: hp, run_estus_count: estus, current_fp: fp }),
+  syncCombatResult:    (hp, estus, fp, stamina) => set({ current_hp: hp, run_estus_count: estus, current_fp: fp, current_stamina: stamina }),
   addDefeatedEnemy:    (id)  => set(s => ({ run_defeated_enemies: [...s.run_defeated_enemies, id] })),
 
   takePlayerDamage: (amount) => set(s => ({ current_hp: Math.max(0, s.current_hp - amount) })),
@@ -384,6 +390,9 @@ export const useGameStore = create<GameStore>((set, get) => ({
   setAbandonPenalty:   (v) => { set({ abandon_penalty: v }); get().save() },
   clearAbandonPenalty: ()  => { set({ abandon_penalty: 0 }); get().save() },
 
+  setIncomingCurses:   (ids) => { set({ incoming_curses: ids }); get().save() },
+  clearIncomingCurses: ()    => { set({ incoming_curses: [] }); get().save() },
+
   saveWorkflowProgress: (workflow) => { set({ active_workflow: workflow }); get().save() },
   setActiveContentId:   (id)       => { set({ active_content_id: id }); get().save() },
   clearActiveWorkflow:  ()         => { set({ active_workflow: null, active_content_id: null }); get().save() },
@@ -445,6 +454,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
     if (!data.locale)          data.locale          = 'pl'
     if (!data.total_task_time_s) data.total_task_time_s = 0
     if (data.abandon_penalty === undefined) data.abandon_penalty = 0
+    if (!data.incoming_curses) data.incoming_curses = []
     if (data.active_workflow  === undefined) data.active_workflow  = null
     if (data.active_content_id === undefined) data.active_content_id = null
     hydrateRegistries(data)

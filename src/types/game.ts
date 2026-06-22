@@ -200,6 +200,9 @@ export interface GameState {
   completed_locations: string[]
   // Workflow abandon penalty (0.0 = none, resets after workflow completion)
   abandon_penalty: number
+  // Enemy ids whose mob curse wasn't lifted before the fight ended; carries
+  // into the next encounter this run, reset to [] on a new run.
+  incoming_curses: string[]
   // Active workflow (persisted across mob fights until all tiles done or abandoned)
   active_workflow: WorkflowGraph | null
   active_content_id: string | null

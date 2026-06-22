@@ -15,6 +15,7 @@ import WorkflowCanvas from '../components/combat/WorkflowCanvas'
 import MoveRadialMenu, { type RadialMoveItem } from '../components/combat/MoveRadialMenu'
 import CombatBottomBar from '../components/combat/CombatBottomBar'
 import EnemyDisplay from '../components/combat/EnemyDisplay'
+import CurseDisplay from '../components/combat/CurseDisplay'
 import CombatMusic  from '../components/combat/CombatMusic'
 import { COMBAT_MUSIC } from '../data/combatMusic'
 import s from './CombatScreen.module.css'
@@ -63,22 +64,24 @@ export default function CombatScreen() {
         const fallbackWorkflow = generateWorkflow('straight_swords', 'common', false)
         return initCombatState(
           fallbackWorkflow,
-          ENEMIES['procrastination_mob'],
+          ENEMIES['procrastination_mob'], 'procrastination_mob',
           'unarmed', 0,
           300, 300, 3,
           { VIG: 10, END: 10, MND: 10, STR: 8, DEX: 8, INT: 8, FAI: 8, ARC: 8 },
           0,
+          [], 100, 100,
         )
       }
       // Resume persisted workflow or generate fresh
       const workflow = store.active_workflow ?? generateWorkflow(wClass, wRarity, enemyData.is_boss)
       return initCombatState(
-        workflow, enemyData,
+        workflow, enemyData, loc.enemy_id,
         equippedWeaponId, wLevel,
         store.current_hp,  store.maxHp(),
         store.run_estus_count,
         store.stats,
         store.abandon_penalty,
+        store.incoming_curses, store.maxStamina(), store.maxStamina(),
       )
     }
   )
@@ -132,9 +135,10 @@ export default function CombatScreen() {
   // ── Victory ───────────────────────────────────────────────────────────────
   const handleVictoryContinue = useCallback(() => {
     if (!loc) return
-    store.syncCombatResult(state.playerHp, state.playerEstus, store.current_fp)
+    store.syncCombatResult(state.playerHp, state.playerEstus, store.current_fp, state.playerStamina)
     store.addRunes(state.runesEarned)
     store.clearAbandonPenalty()
+    store.setIncomingCurses(state.activeCurses.filter(c => !c.lifted).map(c => c.enemyId))
     lootItems?.forEach(item => store.addWeaponInstance(item.instance))
     store.addDefeatedEnemy(loc.enemy_id)
     // Persist or clear workflow
@@ -153,7 +157,7 @@ export default function CombatScreen() {
 
   // ── Defeat ────────────────────────────────────────────────────────────────
   const handleDefeat = useCallback(() => {
-    store.syncCombatResult(state.playerHp, state.playerEstus, store.current_fp)
+    store.syncCombatResult(state.playerHp, state.playerEstus, store.current_fp, state.playerStamina)
     store.dropRunes(store.run_location_name, store.run_current_index)
     store.endRunFailure()
     navigate('/')
@@ -161,8 +165,9 @@ export default function CombatScreen() {
 
   // ── Abandon (flee) ────────────────────────────────────────────────────────
   const handleFlee = useCallback(() => {
-    store.syncCombatResult(state.playerHp, state.playerEstus, store.current_fp)
+    store.syncCombatResult(state.playerHp, state.playerEstus, store.current_fp, state.playerStamina)
     store.setAbandonPenalty(ABANDON_PENALTY)
+    store.setIncomingCurses(state.activeCurses.filter(c => !c.lifted).map(c => c.enemyId))
     store.clearActiveWorkflow()
     store.endRunFailure()
     navigate('/')
@@ -181,6 +186,19 @@ export default function CombatScreen() {
   const handleSelectContent = (id: string) => {
     setSelectedContentId(id)
     store.setActiveContentId(id)
+  }
+
+  // ── Workflow exhausted mid-fight: all tiles done, enemy still alive ──────
+  const workflowExhausted = state.phase === 'PLAYER_TURN' && state.workflow.tiles.every(t => t.is_completed)
+  const otherActiveContent = activeContent.filter(c => c.id !== selectedContentId)
+  const [dismissedForWorkflow, setDismissedForWorkflow] = useState<string | null>(null)
+
+  const handleSwitchContent = (id: string) => {
+    if (selectedContentId) store.updateContentItem(selectedContentId, { completed: true })
+    setSelectedContentId(id)
+    store.setActiveContentId(id)
+    const newWorkflow = generateWorkflow(wClass, wRarity, enemyData?.is_boss ?? false)
+    dispatch({ type: 'SWITCH_WORKFLOW', workflow: newWorkflow })
   }
 
   // ── Selected tile (derived) ───────────────────────────────────────────────
@@ -235,7 +253,7 @@ export default function CombatScreen() {
     <div className={s.root}>
       <RunHeader
         hp={state.playerHp}     maxHp={state.playerMaxHp}
-        stamina={store.current_stamina} maxStamina={store.maxStamina()}
+        stamina={state.playerStamina} maxStamina={state.playerMaxStamina}
         fp={store.current_fp}   maxFp={store.maxFp()}
         canAddContent={state.phase !== 'STEP_TIMER'}
       />
@@ -289,6 +307,12 @@ export default function CombatScreen() {
             </div>
             <span className={s.enemyDesc}>{enemyData.description}</span>
           </div>
+          <CurseDisplay
+            activeCurses={state.activeCurses}
+            playerStamina={state.playerStamina}
+            playerMaxStamina={state.playerMaxStamina}
+            lastTileCompletionAt={state.lastTileCompletionAt}
+          />
         </div>
       </div>
 
@@ -335,6 +359,45 @@ export default function CombatScreen() {
                     </button>
                   ))}
                 </div>
+              </>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* ── Workflow exhausted, enemy still alive: pick the next piece ──── */}
+      {selectedContentId !== null && workflowExhausted && dismissedForWorkflow !== state.workflow.start_id && (
+        <div className={s.endOverlay}>
+          <div className={s.endBox}>
+            <div className={s.endTitle} style={{ fontSize: '1.3rem', color: 'var(--color-gold)' }}>
+              That piece is finished — {enemyLabel} is still standing
+            </div>
+            {otherActiveContent.length === 0 ? (
+              <>
+                <div className={s.endSub}>
+                  No other active content items. You can keep repeating completed tiles, or add a new piece from the Content panel.
+                </div>
+                <button className={s.endBtn} onClick={() => setDismissedForWorkflow(state.workflow.start_id)}>
+                  Keep fighting with what you have
+                </button>
+              </>
+            ) : (
+              <>
+                <div className={s.endSub}>Pick the next piece of content to keep the fight going.</div>
+                <div className={s.contentPickList}>
+                  {otherActiveContent.map(item => (
+                    <button
+                      key={item.id}
+                      className={s.contentPickItem}
+                      onClick={() => handleSwitchContent(item.id)}
+                    >
+                      <span className={s.contentPickName}>{item.name}</span>
+                    </button>
+                  ))}
+                </div>
+                <button className={s.endBtn} onClick={() => setDismissedForWorkflow(state.workflow.start_id)}>
+                  Keep repeating tiles instead
+                </button>
               </>
             )}
           </div>

@@ -55,9 +55,6 @@ export default function RunMapScreen() {
   const [showStats,     setShowStats]     = useState(false)
   const [showAnalytics, setShowAnalytics] = useState(false)
   const [showContent,   setShowContent]   = useState(false)
-  const [graceTimerActive, setGraceTimerActive] = useState(false)
-  const [graceTimerLeft,   setGraceTimerLeft]   = useState(600)
-  const [graceTimerDone,   setGraceTimerDone]   = useState(false)
   const activeItemCount = store.content_items.filter(c => !c.completed).length
   const canEnterFight   = activeItemCount >= MIN_PIPELINE_TO_FIGHT
   const expiredRef = useRef(false)
@@ -228,41 +225,12 @@ export default function RunMapScreen() {
     navigate('/combat')
   }
 
-  function resetGraceTimer() {
-    setGraceTimerActive(false)
-    setGraceTimerLeft(600)
-    setGraceTimerDone(false)
-  }
-
-  useEffect(() => {
-    if (!graceTimerActive || graceTimerDone) return
-    let last = performance.now()
-    let rafId: number
-    const tick = (now: number) => {
-      const delta = (now - last) / 1000
-      last = now
-      setGraceTimerLeft(prev => {
-        const next = prev - delta
-        if (next <= 0) {
-          setGraceTimerDone(true)
-          setGraceTimerActive(false)
-          return 0
-        }
-        return next
-      })
-      rafId = requestAnimationFrame(tick)
-    }
-    rafId = requestAnimationFrame(tick)
-    return () => cancelAnimationFrame(rafId)
-  }, [graceTimerActive, graceTimerDone])
-
   function handleGraceRest() {
     const maxHp  = store.maxHp()
     const newHp  = Math.min(maxHp, store.current_hp + Math.floor(maxHp * GRACE_HEAL_FRACTION))
     const newEst = Math.min(GRACE_ESTUS_CAP, store.run_estus_count + GRACE_ESTUS_GAIN)
-    store.syncCombatResult(newHp, newEst, store.current_fp)
+    store.syncCombatResult(newHp, newEst, store.current_fp, store.current_stamina)
     store.advanceRun()
-    resetGraceTimer()
     setEventNode(null)
   }
 
@@ -358,48 +326,24 @@ export default function RunMapScreen() {
 
       {/* Event popup (site_of_grace / trial) */}
       {eventNode && (
-        <div className={s.eventOverlay} onClick={e => { if (e.target === e.currentTarget) { resetGraceTimer(); setEventNode(null) } }}>
+        <div className={s.eventOverlay} onClick={e => { if (e.target === e.currentTarget) setEventNode(null) }}>
           <div className={s.eventPanel}>
             {eventNode.event_type === 'site_of_grace' ? (
               <>
                 <div className={`${s.eventTitle} ${s.graceTitle}`}>{t.ui.grace_title}</div>
                 <div className={s.eventDesc}>{t.ui.grace_plan_desc}</div>
 
-                {/* Phase 1: not started */}
-                {!graceTimerActive && !graceTimerDone && (
-                  <button className={s.btnGrace} onClick={() => setGraceTimerActive(true)}>
-                    {t.ui.grace_plan_start}
-                  </button>
-                )}
-
-                {/* Phase 2: timer running */}
-                {graceTimerActive && (
-                  <div className={s.graceTimerWrap}>
-                    <div className={s.graceTimerLabel}>{t.ui.grace_plan_active} {Math.floor(graceTimerLeft / 60)}:{String(Math.floor(graceTimerLeft % 60)).padStart(2, '0')}</div>
-                    <div className={s.graceTimerBar}>
-                      <div className={s.graceTimerFill} style={{ width: `${(graceTimerLeft / 600) * 100}%` }} />
-                    </div>
-                  </div>
-                )}
-
-                {/* Phase 3: done */}
-                {graceTimerDone && (
-                  <div className={s.gracePlanDone}>{t.ui.grace_plan_done}</div>
-                )}
-
                 <div className={s.eventActions}>
-                  {graceTimerDone && (
-                    <button className={s.btnGrace} onClick={handleGraceRest}>
-                      {t.ui.grace_rest}
-                    </button>
-                  )}
+                  <button className={s.btnGrace} onClick={handleGraceRest}>
+                    {t.ui.grace_rest}
+                  </button>
                   <button className={s.btnGrace} onClick={() => setShowStats(true)}>
                     {t.ui.btn_stats}
                   </button>
                   <button className={s.btnGrace} onClick={() => setShowAnalytics(true)}>
                     {t.ui.btn_analytics}
                   </button>
-                  <button onClick={() => { resetGraceTimer(); setEventNode(null) }}>{t.ui.btn_leave}</button>
+                  <button onClick={() => setEventNode(null)}>{t.ui.btn_leave}</button>
                 </div>
               </>
             ) : (

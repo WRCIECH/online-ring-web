@@ -3,9 +3,28 @@ import type {
   Enemy, WeaponInstance, Stats,
 } from '../types/game'
 import { WEAPONS, calcTileReward } from '../data/weapons'
-import { REPEAT_PENALTY_PER_RETRY, REPEAT_PENALTY_MAX, REPEAT_DAMAGE_PENALTY, SACRIFICE_MULT } from '../data/constants'
+import {
+  REPEAT_PENALTY_PER_RETRY, REPEAT_PENALTY_MAX, REPEAT_DAMAGE_PENALTY, SACRIFICE_MULT,
+  FLOW_GAP_HOT_MINS, FLOW_GAP_WARM_MINS, FLOW_GAP_COLD_MINS,
+} from '../data/constants'
+import { MOB_CURSES, CURSE_PENALTY_CAP, type MobCurseDef } from '../data/mobCurses'
 
 export interface LogEntry { id: number; text: string; color?: string }
+
+// Per-fight progress toward lifting a mob's curse. `lifted` is permanent for
+// streak/one-shot conditions; burnout_shade's `idleGap` condition never sets
+// it — that curse is a live, recurring threat rather than a puzzle you solve
+// once, so it always carries forward if not actively "in flow" at fight end.
+export interface ActiveCurse {
+  enemyId: string
+  forwardStreak: number
+  noRepeatStreak: number
+  publishedAny: boolean
+  variedAny: boolean
+  startedFirstTile: boolean
+  heavyMoveDone: boolean
+  lifted: boolean
+}
 
 export interface CombatState {
   phase: CombatPhase
@@ -16,11 +35,16 @@ export interface CombatState {
   playerHp: number
   playerMaxHp: number
   playerEstus: number
+  playerStamina: number
+  playerMaxStamina: number
   // Weapon / stats context
   equippedWeaponId: string
   weaponLevel: number
   playerStats: Stats
   incomingPenalty: number   // from prior abandon; 0.0 = none
+  // Curses
+  activeCurses: ActiveCurse[]
+  lastTileCompletionAt: number
   // Enemy
   enemyData: Enemy
   isBoss: boolean
@@ -51,6 +75,7 @@ export type CombatAction =
   | { type: 'CANCEL_TIMER' }
   | { type: 'USE_ESTUS' }
   | { type: 'ABANDON' }
+  | { type: 'SWITCH_WORKFLOW'; workflow: WorkflowGraph }
   | { type: 'ADD_LOG'; text: string; color?: string }
 
 // ── Constants ─────────────────────────────────────────────────────────────
@@ -112,11 +137,117 @@ export function previewMove(state: CombatState, tile: WorkflowTile, move: MoveTy
   const scaledReward   = weapon
     ? calcTileReward(baseReward, weapon, state.weaponLevel, state.playerStats, tile.content_type, tile.content_origin, tile.damage_type, tile.status)
     : baseReward
-  const reward         = Math.round(scaledReward * (1 - repeatPenalty) * (1 - state.incomingPenalty))
+  const cursePenalty   = computeCursePenalty(state)
+  const reward         = Math.round(scaledReward * (1 - repeatPenalty) * (1 - state.incomingPenalty) * (1 - cursePenalty.rewardPct))
   const isRepeat       = tile.is_completed
   const rawDamage      = calcTileDamage(tile, move, state.weaponLevel)
-  const damage         = isRepeat ? Math.round(rawDamage * (1 - REPEAT_DAMAGE_PENALTY)) : rawDamage
+  const repeatDamage   = isRepeat ? Math.round(rawDamage * (1 - REPEAT_DAMAGE_PENALTY)) : rawDamage
+  const damage         = Math.round(repeatDamage * (1 - cursePenalty.damagePct))
   return { duration, reward, damage }
+}
+
+// ── Curses ────────────────────────────────────────────────────────────────
+
+function activeCurseDefs(curses: ActiveCurse[]): Array<{ curse: ActiveCurse; def: MobCurseDef }> {
+  const out: Array<{ curse: ActiveCurse; def: MobCurseDef }> = []
+  for (const curse of curses) {
+    if (curse.lifted) continue
+    const def = MOB_CURSES[curse.enemyId]
+    if (def) out.push({ curse, def })
+  }
+  return out
+}
+
+function burnoutGapFraction(lastTileCompletionAt: number): number {
+  if (!lastTileCompletionAt) return 0
+  const gapMin = (Date.now() - lastTileCompletionAt) / 60000
+  if (gapMin < FLOW_GAP_HOT_MINS)  return 0
+  if (gapMin < FLOW_GAP_WARM_MINS) return 0.33
+  if (gapMin < FLOW_GAP_COLD_MINS) return 0.66
+  return 1
+}
+
+// Live intensity (0..1) of burnout_shade's curse right now — for UI display,
+// recomputed every render rather than only on tile completion.
+export function getBurnoutPenalty(state: CombatState): number {
+  return burnoutGapFraction(state.lastTileCompletionAt)
+}
+
+// Combined curse penalty for the NEXT tile completion, based on currently
+// active (unlifted) curses and current stamina. Read-only — shared by the
+// move-picker preview and the real TIMER_RESULT application so they never
+// drift apart.
+function computeCursePenalty(state: CombatState): {
+  damagePct: number; rewardPct: number; hpCost: number; staminaSpent: number
+} {
+  let rawDamagePct = 0, rawRewardPct = 0, hpCost = 0
+  let staminaLeft = state.playerStamina
+  let staminaSpent = 0
+  for (const { def } of activeCurseDefs(state.activeCurses)) {
+    const fraction = def.condition.type === 'idleGap' ? burnoutGapFraction(state.lastTileCompletionAt) : 1
+    if (fraction <= 0) continue
+    const cost  = def.penalty.staminaCostPerTile * fraction
+    const spent = Math.min(staminaLeft, cost)
+    const cushionFrac  = cost > 0 ? spent / cost : 1
+    const uncushioned  = 1 - cushionFrac
+    rawDamagePct += def.penalty.damagePct * fraction * uncushioned
+    rawRewardPct += def.penalty.rewardPct * fraction * uncushioned
+    hpCost       += def.penalty.hpDrainPerTile * fraction * uncushioned
+    staminaLeft  -= spent
+    staminaSpent += spent
+  }
+  return {
+    damagePct:    Math.min(CURSE_PENALTY_CAP, rawDamagePct),
+    rewardPct:    Math.min(CURSE_PENALTY_CAP, rawRewardPct),
+    hpCost:       Math.round(hpCost),
+    staminaSpent: Math.round(staminaSpent),
+  }
+}
+
+// Advances each active curse's progress after a tile completion, lifting
+// any whose condition is now satisfied. burnout_shade's idleGap condition
+// never permanently lifts — see the ActiveCurse comment.
+function advanceCurses(
+  curses: ActiveCurse[], tile: WorkflowTile, move: MoveType, isRepeat: boolean, isFirstTileEver: boolean,
+): { curses: ActiveCurse[]; newlyLifted: string[] } {
+  const newlyLifted: string[] = []
+  const updated = curses.map(curse => {
+    if (curse.lifted) return curse
+    const def = MOB_CURSES[curse.enemyId]
+    if (!def) return curse
+    const next: ActiveCurse = {
+      ...curse,
+      forwardStreak:    isRepeat ? 0 : curse.forwardStreak + 1,
+      noRepeatStreak:   isRepeat ? 0 : curse.noRepeatStreak + 1,
+      publishedAny:     curse.publishedAny || tile.type === 'Publish',
+      variedAny:        curse.variedAny || !!(tile.content_type || tile.content_origin || tile.damage_type || tile.status),
+      heavyMoveDone:    curse.heavyMoveDone || move === 'Heavy',
+      startedFirstTile: curse.startedFirstTile || isFirstTileEver,
+    }
+    let lifted = false
+    switch (def.condition.type) {
+      case 'forwardStreak':  lifted = next.forwardStreak  >= (def.condition.count ?? 1); break
+      case 'noRepeatStreak': lifted = next.noRepeatStreak >= (def.condition.count ?? 1); break
+      case 'firstTile':      lifted = next.startedFirstTile; break
+      case 'publish':        lifted = next.publishedAny; break
+      case 'variety':        lifted = next.variedAny; break
+      case 'heavyMove':      lifted = next.heavyMoveDone; break
+      case 'idleGap':        lifted = false; break
+    }
+    if (lifted) newlyLifted.push(def.name)
+    return { ...next, lifted }
+  })
+  return { curses: updated, newlyLifted }
+}
+
+function buildActiveCurses(enemyId: string, incomingCurseIds: string[]): ActiveCurse[] {
+  const ids = [...new Set([...incomingCurseIds, enemyId])]
+  return ids
+    .filter(id => MOB_CURSES[id])
+    .map(enemyId => ({
+      enemyId, forwardStreak: 0, noRepeatStreak: 0, publishedAny: false,
+      variedAny: false, startedFirstTile: false, heavyMoveDone: false, lifted: false,
+    }))
 }
 
 // ── Init ──────────────────────────────────────────────────────────────────
@@ -124,6 +255,7 @@ export function previewMove(state: CombatState, tile: WorkflowTile, move: MoveTy
 export function initCombatState(
   workflow: WorkflowGraph,
   enemy: Enemy,
+  enemyId: string,
   equippedWeaponId: string,
   weaponLevel: number,
   playerHp: number,
@@ -131,15 +263,21 @@ export function initCombatState(
   playerEstus: number,
   playerStats: Stats,
   incomingPenalty: number,
+  incomingCurseIds: string[],
+  playerStamina: number,
+  playerMaxStamina: number,
 ): CombatState {
+  const activeCurses = buildActiveCurses(enemyId, incomingCurseIds)
   let state: CombatState = {
     phase: 'PLAYER_TURN',
     workflow,
     currentTileId: workflow.start_id,
     playerHp, playerMaxHp,
     playerEstus,
+    playerStamina, playerMaxStamina,
     equippedWeaponId, weaponLevel, playerStats,
     incomingPenalty,
+    activeCurses, lastTileCompletionAt: 0,
     enemyData: enemy, isBoss: enemy.is_boss,
     enemyHp: enemy.max_hp, enemyMaxHp: enemy.max_hp,
     mobsDefeated: 0,
@@ -154,6 +292,10 @@ export function initCombatState(
   state = log(state, enemy.description, '#7a7570')
   if (incomingPenalty > 0) {
     state = log(state, `⚠ Abandon penalty active: −${Math.round(incomingPenalty * 100)}% rewards.`, '#cc6622')
+  }
+  for (const curse of activeCurses) {
+    const def = MOB_CURSES[curse.enemyId]
+    if (def) state = log(state, `☠ Curse active: ${def.name} — ${def.flavor}`, '#8855cc')
   }
   return state
 }
@@ -240,24 +382,30 @@ export function combatReducer(state: CombatState, action: CombatAction): CombatS
       const scaledReward  = weapon
         ? calcTileReward(baseReward, weapon, state.weaponLevel, state.playerStats, tile.content_type, tile.content_origin, tile.damage_type, tile.status)
         : baseReward
+      const cursePenalty  = computeCursePenalty(state)
       const finalReward   = Math.round(
-        scaledReward * (1 - repeatPenalty) * (1 - state.incomingPenalty)
+        scaledReward * (1 - repeatPenalty) * (1 - state.incomingPenalty) * (1 - cursePenalty.rewardPct)
       )
 
+      const isFirstTileEver = !state.workflow.tiles.some(t => t.is_completed)
       const updatedTiles = state.workflow.tiles.map(t => {
         if (t.id !== tile.id) return t
         return { ...t, is_completed: true, repeat_count: t.repeat_count + 1 }
       })
       const newWorkflow = { ...state.workflow, tiles: updatedTiles }
 
-      const isRepeat   = tile.is_completed
-      const rawDamage  = calcTileDamage(tile, move, state.weaponLevel)
-      const damage     = isRepeat ? Math.round(rawDamage * (1 - REPEAT_DAMAGE_PENALTY)) : rawDamage
-      const newEnemyHp = Math.max(0, state.enemyHp - damage)
+      const isRepeat      = tile.is_completed
+      const rawDamage     = calcTileDamage(tile, move, state.weaponLevel)
+      const repeatDamage  = isRepeat ? Math.round(rawDamage * (1 - REPEAT_DAMAGE_PENALTY)) : rawDamage
+      const damage        = Math.round(repeatDamage * (1 - cursePenalty.damagePct))
+      const newEnemyHp    = Math.max(0, state.enemyHp - damage)
+      const newStamina    = Math.max(0, state.playerStamina - cursePenalty.staminaSpent)
+      const hpAfterCurse  = Math.max(0, state.playerHp - cursePenalty.hpCost)
 
       let s = log(
         { ...state, workflow: newWorkflow, runesEarned: state.runesEarned + finalReward,
           currentTileId: tile.id, enemyHp: newEnemyHp,
+          playerHp: hpAfterCurse, playerStamina: newStamina, lastTileCompletionAt: Date.now(),
           timerExpired: false, stepStarted: false,
           pendingTile: null, pendingMove: null, selectedTileId: null },
         `✓ ${tile.name}. ✦ +${finalReward} runes. ⚔ −${damage} HP${isRepeat ? ' (repeat)' : ''}.`,
@@ -265,6 +413,18 @@ export function combatReducer(state: CombatState, action: CombatAction): CombatS
       )
       if (repeatPenalty > 0) {
         s = log(s, `Repeat penalty: −${Math.round(repeatPenalty * 100)}% runes, −${Math.round(REPEAT_DAMAGE_PENALTY * 100)}% dmg`, '#888')
+      }
+      if (cursePenalty.hpCost > 0 || cursePenalty.staminaSpent > 0) {
+        s = log(s, `☠ Curse drain — ${cursePenalty.hpCost} HP (stamina cushioned ${cursePenalty.staminaSpent})`, '#8855cc')
+      }
+      if (hpAfterCurse <= 0) return { ...s, phase: 'DEFEAT' }
+
+      const { curses: advancedCurses, newlyLifted } = advanceCurses(
+        s.activeCurses, tile, move, isRepeat, isFirstTileEver,
+      )
+      s = { ...s, activeCurses: advancedCurses }
+      for (const liftedName of newlyLifted) {
+        s = log(s, `✦ Curse broken — ${liftedName}`, '#66ddaa')
       }
 
       // Sacrifice: finishing early at HP cost — applied before the victory
@@ -301,6 +461,15 @@ export function combatReducer(state: CombatState, action: CombatAction): CombatS
     case 'ABANDON': {
       return log({ ...state, phase: 'FLED' },
         'You abandon the workflow. Next workflow will be penalised.', '#7a7570')
+    }
+
+    case 'SWITCH_WORKFLOW': {
+      if (state.phase !== 'PLAYER_TURN') return state
+      return log(
+        { ...state, workflow: action.workflow, currentTileId: action.workflow.start_id,
+          selectedTileId: null, pendingTile: null, pendingMove: null },
+        'A new piece of work begins — the fight continues.', '#c9a93a'
+      )
     }
 
     case 'ADD_LOG':
