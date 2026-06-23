@@ -1,10 +1,8 @@
 import { useEffect, useRef, useMemo, useState, useCallback } from 'react'
 import type { WorkflowGraph, WorkflowTile, AtomicStage } from '../../types/game'
 import { getReachableTiles, REPEAT_DAMAGE_PENALTY } from '../../engine/combat'
-import { CONTENT_TYPE_STATS } from '../../data/contentTypeScaling'
-import { ATOMIC_ORIGIN_STATS } from '../../data/atomicOriginScaling'
-import { DAMAGE_TYPE_STATS } from '../../data/damageTypeScaling'
-import { STATUS_TYPE_STATS } from '../../data/statusTypeScaling'
+import { getTileBadges, computeEffectiveTags, STAGE_COLOR } from '../../data/tileBadges'
+import { useT } from '../../i18n'
 import s from './WorkflowCanvas.module.css'
 
 interface Props {
@@ -21,15 +19,6 @@ const V_GAP   = 40    // vertical gap between layers
 const PAD     = 28
 const MIN_W   = 180
 
-const TILE_COLOR: Record<AtomicStage, string> = {
-  Research: '#334488',
-  Plan:     '#335566',
-  Produce:  '#664422',
-  Refine:   '#445533',
-  Publish:  '#556622',
-  Promote:  '#663355',
-}
-
 const TILE_LABEL: Record<AtomicStage, string> = {
   Research: 'Research',
   Plan:     'Plan',
@@ -43,32 +32,6 @@ function fmtTime(secs: number): string {
   const m = Math.floor(secs / 60)
   const sc = secs % 60
   return m > 0 ? (sc > 0 ? `${m}m ${sc}s` : `${m}m`) : `${sc}s`
-}
-
-function contentTypeHint(tile: WorkflowTile): string | null {
-  if (!tile.content_type) return null
-  const info = CONTENT_TYPE_STATS[tile.content_type]
-  return `${info.label} · scales with ${info.stats.join(' + ')}`
-}
-
-function originHint(tile: WorkflowTile): string | null {
-  if (!tile.content_origin) return null
-  const info = ATOMIC_ORIGIN_STATS[tile.content_origin]
-  return info.stats.length === 0
-    ? `${info.label} · starting point`
-    : `${info.label} · scales with ${info.stats.join(' + ')}`
-}
-
-function damageTypeHint(tile: WorkflowTile): string | null {
-  if (!tile.damage_type) return null
-  const info = DAMAGE_TYPE_STATS[tile.damage_type]
-  return `${info.label} · scales with ${info.stats.join(' + ')}`
-}
-
-function statusHint(tile: WorkflowTile): string | null {
-  if (!tile.status) return null
-  const info = STATUS_TYPE_STATS[tile.status]
-  return `${info.label} · scales with ${info.stats.join(' + ')}`
 }
 
 // ── Layout ────────────────────────────────────────────────────────────────
@@ -175,7 +138,7 @@ function render(
     // Background
     ctx.beginPath()
     ctx.roundRect(p.x, p.y, TILE, TILE, TILE_RX)
-    ctx.fillStyle = done ? '#171624' : locked ? '#0f0e1c' : TILE_COLOR[tile.type] ?? '#333355'
+    ctx.fillStyle = done ? '#171624' : locked ? '#0f0e1c' : STAGE_COLOR[tile.type] ?? '#333355'
     ctx.fill()
 
     // Border
@@ -257,6 +220,7 @@ interface DragState { startX: number; startY: number; viewX: number; viewY: numb
 // ── Component ─────────────────────────────────────────────────────────────
 
 export default function WorkflowCanvas({ workflow, selectedTileId, onSelectTile }: Props) {
+  const t = useT()
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const viewportRef = useRef<HTMLDivElement>(null)
   const [hovered, setHovered] = useState<{ tile: WorkflowTile; cx: number; cy: number } | null>(null)
@@ -269,6 +233,7 @@ export default function WorkflowCanvas({ workflow, selectedTileId, onSelectTile 
     [workflow.tiles.length, workflow.edges.length],
   )
   const reachable = useMemo(() => getReachableTiles(workflow), [workflow])
+  const effectiveTags = useMemo(() => computeEffectiveTags(workflow), [workflow])
 
   // Reset pan/zoom only when a genuinely new workflow graph starts — the
   // start tile id stays stable across tile-completion updates within one fight.
@@ -411,20 +376,17 @@ export default function WorkflowCanvas({ workflow, selectedTileId, onSelectTile 
       </div>
       {hovered && (
         <div className={s.tooltip} style={{ left: hovered.cx, top: hovered.cy }}>
-          <span className={s.ttType}>{TILE_LABEL[hovered.tile.type]}</span>
-          <span className={s.ttName}>{hovered.tile.name}</span>
-          {contentTypeHint(hovered.tile) && (
-            <span className={s.ttContentType}>{contentTypeHint(hovered.tile)}</span>
-          )}
-          {originHint(hovered.tile) && (
-            <span className={s.ttContentType}>{originHint(hovered.tile)}</span>
-          )}
-          {damageTypeHint(hovered.tile) && (
-            <span className={s.ttContentType}>{damageTypeHint(hovered.tile)}</span>
-          )}
-          {statusHint(hovered.tile) && (
-            <span className={s.ttContentType}>{statusHint(hovered.tile)}</span>
-          )}
+          <div className={s.ttBadgeRow}>
+            {getTileBadges(hovered.tile, effectiveTags.get(hovered.tile.id), t).map(b => (
+              <span
+                key={b.key}
+                className={s.ttBadge}
+                style={b.color ? { borderColor: b.color, color: b.color } : undefined}
+              >
+                {b.label}
+              </span>
+            ))}
+          </div>
           {hovered.tile.is_completed && (
             <>
               <span className={s.ttDone}>✓ Completed — repeat allowed</span>

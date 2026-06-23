@@ -1,7 +1,7 @@
 import type { WeaponClass, WorkflowGraph, WorkflowTile, WorkflowEdge, AtomicTime } from '../../types/game'
 import { WEAPON_PATTERNS } from './weaponPatterns'
 import { WEAPON_CLASSES } from './weaponClasses'
-import { makeTile } from './workflowGenerator'
+import { makeTile, tid } from './workflowGenerator'
 
 const ATOMIC_TIMES: AtomicTime[] = ['Micro', 'Short', 'Medium', 'Long', 'Deep']
 
@@ -58,5 +58,49 @@ export function generateRemasterWorkflow(weaponClass: WeaponClass): WorkflowGrap
     edges,
     start_id: tiles[0].id,
     end_id: tiles[tiles.length - 1].id,
+  }
+}
+
+// Re-tags an already-played workflow in place: same tiles, same edges, same
+// stage shape — only content_type / content_origin / damage_type / status
+// get redrawn, and only on the tiles that originally carried that dimension.
+// This is what a remaster pass should use whenever the content item has a
+// snapshot of its prior workflow (ContentItem.last_workflow); it keeps the
+// full Research→Produce→Refine→Publish structure intact instead of
+// collapsing to the short Plan-only retag chain generateRemasterWorkflow()
+// produces for content that has never been played (no snapshot yet).
+export function regenerateWorkflowKeepingStructure(original: WorkflowGraph, weaponClass: WeaponClass): WorkflowGraph {
+  const cls = WEAPON_CLASSES[weaponClass]
+  const idMap = new Map<string, string>()
+
+  const tiles: WorkflowTile[] = original.tiles.map(orig => {
+    const newId = tid()
+    idMap.set(orig.id, newId)
+    const tile: WorkflowTile = {
+      id: newId,
+      type: orig.type,
+      name: orig.name,
+      time_light: orig.time_light,
+      time_heavy: orig.time_heavy,
+      is_completed: false,
+      repeat_count: 0,
+    }
+    if (orig.content_type)                                  tile.content_type   = pick(cls.supported_products)
+    if (orig.content_origin)                                 tile.content_origin = pick(cls.allowed_transformations)
+    if (orig.damage_type && cls.base_damage_types.length > 0) tile.damage_type    = pick(cls.base_damage_types)
+    if (orig.status && cls.inherent_status)                  tile.status         = cls.inherent_status
+    return tile
+  })
+
+  const edges: WorkflowEdge[] = original.edges.map(e => ({
+    from: idMap.get(e.from)!,
+    to:   idMap.get(e.to)!,
+  }))
+
+  return {
+    tiles,
+    edges,
+    start_id: idMap.get(original.start_id)!,
+    end_id:   idMap.get(original.end_id)!,
   }
 }

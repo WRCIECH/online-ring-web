@@ -169,6 +169,10 @@ export interface ContentItem {
   remaster_count?: number
   is_remastering?: boolean
   attached_weapon_id?: string
+  // Snapshot of the workflow structure last completed for this item — reused
+  // by a remaster pass to keep the same tile shape and only redraw content
+  // type / transformation / style / emotion.
+  last_workflow?: WorkflowGraph
 }
 
 // ── Game state ────────────────────────────────────────────────────────────

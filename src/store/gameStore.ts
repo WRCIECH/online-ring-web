@@ -6,7 +6,7 @@ import { registerWeapon, WEAPONS } from '../data/weapons'
 import { RUN_DURATION_SECONDS, RUN_ESTUS_MAX, ESTUS_HEAL_FRACTION, ARTICLE_EQUIP_WEIGHT, statLevelCost, weaponUpgradeCost } from '../data/constants'
 import { rollWeapon } from '../data/generators/weaponGenerator'
 import { WEAPON_CLASSES } from '../data/generators/weaponClasses'
-import { generateRemasterWorkflow } from '../data/generators/remasterGenerator'
+import { generateRemasterWorkflow, regenerateWorkflowKeepingStructure } from '../data/generators/remasterGenerator'
 import { CLASS_DEFINITIONS } from '../data/classes'
 
 function hydrateRegistries(state: GameState): void {
@@ -231,7 +231,7 @@ export interface GameStore extends GameState {
 
   // Content pipeline
   addContentItem:    (name: string) => void
-  updateContentItem: (id: string, patch: Partial<Pick<ContentItem, 'name' | 'notes' | 'completed' | 'is_remastering' | 'remaster_count'>>) => void
+  updateContentItem: (id: string, patch: Partial<Pick<ContentItem, 'name' | 'notes' | 'completed' | 'is_remastering' | 'remaster_count' | 'last_workflow'>>) => void
   removeContentItem: (id: string) => void
   startRemaster:           (contentId: string, weaponClass: WeaponClass) => void
   attachContentToWeapon:   (contentId: string, weaponInstanceId: string) => void
@@ -450,7 +450,10 @@ export const useGameStore = create<GameStore>((set, get) => ({
   },
 
   startRemaster: (contentId, weaponClass) => {
-    const workflow = generateRemasterWorkflow(weaponClass)
+    const lastWorkflow = get().content_items.find(c => c.id === contentId)?.last_workflow
+    const workflow = lastWorkflow
+      ? regenerateWorkflowKeepingStructure(lastWorkflow, weaponClass)
+      : generateRemasterWorkflow(weaponClass)
     set(s => ({
       content_items: s.content_items.map(c => c.id === contentId ? { ...c, completed: false, is_remastering: true } : c),
       active_workflow: workflow,

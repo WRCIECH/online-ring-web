@@ -1,10 +1,8 @@
-import { useEffect } from 'react'
+import { useEffect, useMemo } from 'react'
 import { previewMove, type CombatState, type CombatAction } from '../../engine/combat'
 import { SACRIFICE_MULT } from '../../data/constants'
-import { CONTENT_TYPE_STATS } from '../../data/contentTypeScaling'
-import { ATOMIC_ORIGIN_STATS } from '../../data/atomicOriginScaling'
-import { DAMAGE_TYPE_STATS } from '../../data/damageTypeScaling'
-import { STATUS_TYPE_STATS } from '../../data/statusTypeScaling'
+import { getTileBadges, computeEffectiveTags } from '../../data/tileBadges'
+import { useT } from '../../i18n'
 import type { MoveType } from '../../types/game'
 import s from './TimerOverlay.module.css'
 
@@ -26,7 +24,9 @@ const MOVE_LABEL: Record<MoveType, string> = {
 }
 
 export default function TimerOverlay({ state, dispatch, contentName }: Props) {
-  const { pendingTile, pendingMove, stepTimer, stepTotal, stepStarted, timerExpired } = state
+  const { pendingTile, pendingMove, stepTimer, stepTotal, stepStarted, timerExpired, workflow } = state
+  const effectiveTags = useMemo(() => computeEffectiveTags(workflow), [workflow])
+  const t = useT()
 
   // Browser tab countdown
   useEffect(() => {
@@ -78,41 +78,21 @@ export default function TimerOverlay({ state, dispatch, contentName }: Props) {
 
         {pendingTile && (
           <div className={s.taskName}>
-            <span className={s.articlePhaseChip}>{pendingTile.type}</span>
-            {' '}{pendingTile.name}
-            {pendingTile.content_type && (
-              <div style={{ marginTop: 4, fontSize: '0.74rem', color: 'var(--color-gold-dim)', letterSpacing: '0.02em' }}>
-                {CONTENT_TYPE_STATS[pendingTile.content_type].label}
-                {' · scales with '}
-                {CONTENT_TYPE_STATS[pendingTile.content_type].stats.join(' + ')}
-              </div>
-            )}
-            {pendingTile.content_origin && (
-              <div style={{ marginTop: 2, fontSize: '0.74rem', color: 'var(--color-gold-dim)', letterSpacing: '0.02em' }}>
-                {ATOMIC_ORIGIN_STATS[pendingTile.content_origin].label}
-                {ATOMIC_ORIGIN_STATS[pendingTile.content_origin].stats.length === 0
-                  ? ' · starting point'
-                  : ` · scales with ${ATOMIC_ORIGIN_STATS[pendingTile.content_origin].stats.join(' + ')}`}
-              </div>
-            )}
-            {pendingTile.damage_type && (
-              <div style={{ marginTop: 2, fontSize: '0.74rem', color: 'var(--color-gold-dim)', letterSpacing: '0.02em' }}>
-                {DAMAGE_TYPE_STATS[pendingTile.damage_type].label}
-                {' · scales with '}
-                {DAMAGE_TYPE_STATS[pendingTile.damage_type].stats.join(' + ')}
-              </div>
-            )}
-            {pendingTile.status && (
-              <div style={{ marginTop: 2, fontSize: '0.74rem', color: 'var(--color-gold-dim)', letterSpacing: '0.02em' }}>
-                {STATUS_TYPE_STATS[pendingTile.status].label}
-                {' · scales with '}
-                {STATUS_TYPE_STATS[pendingTile.status].stats.join(' + ')}
-              </div>
-            )}
+            <div className={s.badgeRow}>
+              {getTileBadges(pendingTile, effectiveTags.get(pendingTile.id), t).map(b => (
+                <span
+                  key={b.key}
+                  className={s.badge}
+                  title={b.detail}
+                  style={b.color ? { borderColor: b.color, color: b.color } : undefined}
+                >
+                  {b.label}
+                </span>
+              ))}
+            </div>
             {pendingMove && (
               <div style={{ marginTop: 6, fontSize: '0.78rem', color: 'var(--color-text-dim)', letterSpacing: '0.05em' }}>
                 {MOVE_LABEL[pendingMove]}
-                {pendingMove === 'Heavy' && <span style={{ color: '#dd9977', marginLeft: 8 }}>1.5× reward</span>}
               </div>
             )}
           </div>

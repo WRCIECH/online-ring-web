@@ -183,8 +183,8 @@ export default function CombatScreen() {
       if (store.active_content_id) {
         const remastered = store.content_items.find(c => c.id === store.active_content_id)?.is_remastering
         store.updateContentItem(store.active_content_id, remastered
-          ? { completed: true, is_remastering: false, remaster_count: (store.content_items.find(c => c.id === store.active_content_id)?.remaster_count ?? 0) + 1 }
-          : { completed: true })
+          ? { completed: true, is_remastering: false, remaster_count: (store.content_items.find(c => c.id === store.active_content_id)?.remaster_count ?? 0) + 1, last_workflow: state.workflow }
+          : { completed: true, last_workflow: state.workflow })
       }
       store.clearActiveWorkflow()
     } else {
