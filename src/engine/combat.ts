@@ -7,7 +7,7 @@ import { WEAPON_CLASSES } from '../data/generators/weaponClasses'
 import {
   REPEAT_PENALTY_PER_RETRY, REPEAT_PENALTY_MAX, REPEAT_DAMAGE_PENALTY, SACRIFICE_MULT,
   FLOW_GAP_HOT_MINS, FLOW_GAP_WARM_MINS, FLOW_GAP_COLD_MINS,
-  BASE_STAMINA_COST_LIGHT, BASE_STAMINA_COST_HEAVY,
+  BASE_STAMINA_COST_LIGHT, BASE_STAMINA_COST_HEAVY, HEAVY_TIME_BONUS,
 } from '../data/constants'
 import { MOB_CURSES, CURSE_PENALTY_CAP, type MobCurseDef } from '../data/mobCurses'
 
@@ -117,9 +117,12 @@ export function getReachableTiles(graph: WorkflowGraph): Set<string> {
 
 
 // Base (time-driven) damage before any weapon/stat/bonus scaling is applied.
+// Heavy uses the tile's actual time_heavy, so damage scales with the real time
+// ratio between Light and Heavy (not a flat multiple) — plus a bonus on top
+// for choosing to invest that extra time.
 function tileDamageBase(tile: WorkflowTile, move: MoveType): number {
-  const timeMin  = tile.time_light / 60           // base off light timer regardless of move
-  const moveMult = move === 'Heavy' ? 1.5 : 1.0
+  const timeMin = (move === 'Heavy' ? tile.time_heavy : tile.time_light) / 60
+  const moveMult = move === 'Heavy' ? HEAVY_TIME_BONUS : 1.0
   return timeMin * 8 * moveMult
 }
 
@@ -135,7 +138,7 @@ function calcTileDamage(
     : Math.round(base)
 }
 
-// Per-weapon Heavy bonus — stacks with the flat 1.5x above.
+// Per-weapon Heavy bonus — stacks with the time-ratio scaling above.
 function heavyBonusMultFor(weapon: WeaponInstance | undefined, move: MoveType): number {
   if (move !== 'Heavy' || !weapon) return 1.0
   return WEAPON_CLASSES[weapon.weapon_class]?.heavy_bonus_mult ?? 1.0

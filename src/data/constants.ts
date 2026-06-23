@@ -62,6 +62,14 @@ export const FLOW_MULT_DEAD  = 0.0
 export const BASE_STAMINA_COST_LIGHT = 4
 export const BASE_STAMINA_COST_HEAVY = 8
 
+// ── Combat — Heavy attack damage ─────────────────────────────────────────────
+// Heavy damage scales with the tile's actual time_heavy (not a flat multiple of
+// time_light) — a stage taking 3x as long as its Light version deals ~3x the
+// damage, on top of this bonus for the extra time invested.
+
+/** Damage bonus on top of the time-ratio scaling for choosing Heavy. */
+export const HEAVY_TIME_BONUS = 1.15
+
 // ── Combat — weapon overheat ─────────────────────────────────────────────────
 
 /** Damage penalty per use over the weapon's heat threshold (as a fraction). */
