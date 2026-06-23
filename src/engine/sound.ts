@@ -1,7 +1,7 @@
 export type SoundName =
   | 'HIT' | 'BLOCK' | 'ROLL' | 'PARRY' | 'STAGGER'
   | 'VICTORY' | 'DEFEAT' | 'BUTTON_CLICK' | 'LEVEL_UP'
-  | 'SITE_OF_GRACE' | 'RUNE_GAIN' | 'LOOT_DROP' | 'TIMER_DONE'
+  | 'RUNE_GAIN' | 'LOOT_DROP' | 'TIMER_DONE'
 
 let ctx: AudioContext | null = null
 let masterGain: GainNode | null = null
@@ -69,7 +69,6 @@ export function initSound(): void {
   buffers['DEFEAT']       = arpeggio(audioCtx, [400, 320, 240, 160],       0.18, 0.45)
   buffers['BUTTON_CLICK'] = tone(audioCtx, 900,  0.035, 0.30)
   buffers['LEVEL_UP']     = arpeggio(audioCtx, [523, 659, 784, 988, 1047], 0.09, 0.50)
-  buffers['SITE_OF_GRACE']= tone(audioCtx, 528,  0.80, 0.40)
   buffers['RUNE_GAIN']    = arpeggio(audioCtx, [880, 1109, 1318],          0.07, 0.40)
   buffers['LOOT_DROP']    = arpeggio(audioCtx, [660, 831, 1047],           0.11, 0.45)
   buffers['TIMER_DONE']   = arpeggio(audioCtx, [784, 784, 784],            0.12, 0.55)

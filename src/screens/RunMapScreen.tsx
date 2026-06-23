@@ -4,11 +4,9 @@ import { useGameStore, selectRunRemainingSeconds } from '../store/gameStore'
 import { ENEMIES } from '../data/enemies'
 import type { LocationData } from '../types/game'
 import RunHeader from '../components/layout/RunHeader'
-import CharacterOverlay  from '../components/overlays/CharacterOverlay'
-import AnalyticsOverlay from '../components/overlays/AnalyticsOverlay'
 import ContentOverlay   from '../components/overlays/ContentOverlay'
 import { useT } from '../i18n'
-import { MIN_PIPELINE_TO_FIGHT, GRACE_HEAL_FRACTION, GRACE_ESTUS_GAIN, GRACE_ESTUS_CAP } from '../data/constants'
+import { MIN_PIPELINE_TO_FIGHT } from '../data/constants'
 import s from './RunMapScreen.module.css'
 
 // ── Map geometry (mirrors Godot constants) ────────────────────────────────
@@ -52,8 +50,6 @@ export default function RunMapScreen() {
   const [popupIdx, setPopupIdx]     = useState(-1)
   const [popupPos, setPopupPos]     = useState({ x: 0, y: 0 })
   const [eventNode, setEventNode]   = useState<LocationData | null>(null)
-  const [showStats,     setShowStats]     = useState(false)
-  const [showAnalytics, setShowAnalytics] = useState(false)
   const [showContent,   setShowContent]   = useState(false)
   const activeItemCount = store.content_items.filter(c => !c.completed).length
   const canEnterFight   = activeItemCount >= MIN_PIPELINE_TO_FIGHT
@@ -225,15 +221,6 @@ export default function RunMapScreen() {
     navigate('/combat')
   }
 
-  function handleGraceRest() {
-    const maxHp  = store.maxHp()
-    const newHp  = Math.min(maxHp, store.current_hp + Math.floor(maxHp * GRACE_HEAL_FRACTION))
-    const newEst = Math.min(GRACE_ESTUS_CAP, store.run_estus_count + GRACE_ESTUS_GAIN)
-    store.syncCombatResult(newHp, newEst, store.current_fp, store.current_stamina)
-    store.advanceRun()
-    setEventNode(null)
-  }
-
   function handleEnterTrial() {
     if (!eventNode) return
     if (!canEnterFight) { setShowContent(true); return }
@@ -275,8 +262,7 @@ export default function RunMapScreen() {
           <div className={s.tooltipEnemy}>
             {hoverIdx < current
               ? (hoverLoc.boss_name ?? (t.enemies[hoverLoc.enemy_id]?.name ?? hoverEnemy.name))
-              : hoverLoc.sublocation_type === 'event'
-                ? (hoverLoc.event_type === 'site_of_grace' ? t.ui.event_site_of_grace : t.ui.event_trial_gate)
+              : hoverLoc.sublocation_type === 'event' ? t.ui.event_trial_gate
                 : hoverLoc.sublocation_type === 'elite' ? t.ui.enemy_elite_label
                 : hoverLoc.sublocation_type === 'boss'  ? t.ui.enemy_boss_label
                 : '???'}
@@ -324,59 +310,34 @@ export default function RunMapScreen() {
         </>
       )}
 
-      {/* Event popup (site_of_grace / trial) */}
+      {/* Event popup (trial) */}
       {eventNode && (
         <div className={s.eventOverlay} onClick={e => { if (e.target === e.currentTarget) setEventNode(null) }}>
           <div className={s.eventPanel}>
-            {eventNode.event_type === 'site_of_grace' ? (
-              <>
-                <div className={`${s.eventTitle} ${s.graceTitle}`}>{t.ui.grace_title}</div>
-                <div className={s.eventDesc}>{t.ui.grace_plan_desc}</div>
-
-                <div className={s.eventActions}>
-                  <button className={s.btnGrace} onClick={handleGraceRest}>
-                    {t.ui.grace_rest}
-                  </button>
-                  <button className={s.btnGrace} onClick={() => setShowStats(true)}>
-                    {t.ui.btn_stats}
-                  </button>
-                  <button className={s.btnGrace} onClick={() => setShowAnalytics(true)}>
-                    {t.ui.btn_analytics}
-                  </button>
-                  <button onClick={() => setEventNode(null)}>{t.ui.btn_leave}</button>
-                </div>
-              </>
-            ) : (
-              <>
-                <div className={`${s.eventTitle} ${s.trialTitle}`}>{t.ui.trial_title}</div>
-                <div className={s.eventDesc}>{t.ui.trial_desc}</div>
-                {!canEnterFight && (
-                  <div className={s.pipelineGate}>
-                    {t.ui.pipeline_gate_need} {MIN_PIPELINE_TO_FIGHT} {t.ui.pipeline_gate_to_fight}
-                    <span className={s.pipelineCount}>({activeItemCount} / {MIN_PIPELINE_TO_FIGHT})</span>
-                  </div>
-                )}
-                <div className={s.eventActions}>
-                  {canEnterFight ? (
-                    <button className={s.btnTrial} onClick={handleEnterTrial}>
-                      {t.ui.accept_trial}
-                    </button>
-                  ) : (
-                    <button className={s.btnTrial} onClick={() => setShowContent(true)}>
-                      {t.ui.open_pipeline}
-                    </button>
-                  )}
-                  <button onClick={() => setEventNode(null)}>{t.ui.btn_refuse}</button>
-                </div>
-              </>
+            <div className={`${s.eventTitle} ${s.trialTitle}`}>{t.ui.trial_title}</div>
+            <div className={s.eventDesc}>{t.ui.trial_desc}</div>
+            {!canEnterFight && (
+              <div className={s.pipelineGate}>
+                {t.ui.pipeline_gate_need} {MIN_PIPELINE_TO_FIGHT} {t.ui.pipeline_gate_to_fight}
+                <span className={s.pipelineCount}>({activeItemCount} / {MIN_PIPELINE_TO_FIGHT})</span>
+              </div>
             )}
+            <div className={s.eventActions}>
+              {canEnterFight ? (
+                <button className={s.btnTrial} onClick={handleEnterTrial}>
+                  {t.ui.accept_trial}
+                </button>
+              ) : (
+                <button className={s.btnTrial} onClick={() => setShowContent(true)}>
+                  {t.ui.open_pipeline}
+                </button>
+              )}
+              <button onClick={() => setEventNode(null)}>{t.ui.btn_refuse}</button>
+            </div>
           </div>
         </div>
       )}
 
-
-      {showStats     && <CharacterOverlay  onClose={() => setShowStats(false)} />}
-      {showAnalytics && <AnalyticsOverlay onClose={() => setShowAnalytics(false)} />}
       {showContent   && <ContentOverlay   onClose={() => setShowContent(false)} canAdd={true} />}
 
       {/* Run expired banner */}

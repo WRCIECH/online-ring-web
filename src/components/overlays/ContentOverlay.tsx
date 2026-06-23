@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react'
-import { useGameStore, selectEquipLoad, selectWeaponSlotLoad } from '../../store/gameStore'
+import { useGameStore, selectEquipLoad } from '../../store/gameStore'
 import { WEAPONS } from '../../data/weapons'
 import type { ContentItem, WeaponInstance } from '../../types/game'
 import { useT } from '../../i18n'
@@ -14,11 +14,6 @@ export default function ContentOverlay({ onClose, canAdd = true }: Props) {
   const store = useGameStore()
   const t     = useT()
   const load  = selectEquipLoad(store as Parameters<typeof selectEquipLoad>[0])
-
-  const equippedWeaponId = store.equipped_run_weapons[0]
-  const slotLoad = equippedWeaponId
-    ? selectWeaponSlotLoad(store as Parameters<typeof selectWeaponSlotLoad>[0], equippedWeaponId)
-    : null
 
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null)
   const [editingNameId,   setEditingNameId]   = useState<string | null>(null)
@@ -162,23 +157,6 @@ export default function ContentOverlay({ onClose, canAdd = true }: Props) {
             <div className={s.overloadWarning}>{t.ui.overload_warning}</div>
           )}
         </div>
-
-        {slotLoad && (
-          <div className={s.loadSection}>
-            <div className={s.loadLabel}>
-              <span>{t.ui.weapon_slot_label}</span>
-              <span className={slotLoad.used > slotLoad.capacity ? s.loadOver : s.loadVal}>
-                {slotLoad.used} / {slotLoad.capacity}
-              </span>
-            </div>
-            <div className={s.loadTrack}>
-              <div
-                className={[s.loadFill, slotLoad.used > slotLoad.capacity ? s.loadFillOver : ''].join(' ')}
-                style={{ width: `${slotLoad.capacity > 0 ? Math.min(100, (slotLoad.used / slotLoad.capacity) * 100) : 0}%` }}
-              />
-            </div>
-          </div>
-        )}
 
         <hr className={s.sep} />
 

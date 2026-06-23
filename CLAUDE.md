@@ -54,6 +54,8 @@ Drop rolls happen **once** when phase reaches `VICTORY` (inside a `useEffect` in
 
 **Boss-rush bonus**: a damage multiplier keyed to the gap since `GameState.last_boss_kill_at`, using the `FLOW_GAP_HOT/WARM/COLD_MINS` thresholds and `FLOW_MULT_HOT/WARM/COLD/DEAD` tiers in `constants.ts` (1.5× under 15 min since your last boss kill, down to 0× after 4 hours), scaled per weapon class by `WeaponClassDef.boss_rush_coeff`. Computed once at fight-init in `CombatScreen.tsx`, only for boss encounters.
 
+**Runes only come from defeating an enemy** — `CombatState.runesEarned` is set once, to `Enemy.rune_reward`, at the `VICTORY` transition (no location-difficulty scaling). Completing a tile never grants runes directly; instead every per-attack bonus/penalty that used to scale the (now-removed) per-tile reward — weapon rarity/affixes/stat-scaling (`calcWeaponScaledDamage` in `weapons.ts`, formerly `calcTileReward`), the per-weapon Heavy bonus, the consistency streak, the per-weapon content-slot bonus, the scaling repeat penalty, the abandon penalty, and each mob curse's penalty — was folded into the **damage** formula instead (`calcTileDamage`/`previewMove`/`TIMER_RESULT` in `combat.ts`). Mob curses now only have a single `damagePct` (the old separate `rewardPct` was identical to `damagePct` for every curse, so it was dropped rather than doubling the penalty).
+
 ### Player stats and leveling
 Stats: `VIG END MND STR DEX INT FAI ARC`. Max HP = `VIG × 10`, max stamina = `END × 5`, max FP = `MND × 3`.
 

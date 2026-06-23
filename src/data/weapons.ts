@@ -21,7 +21,10 @@ const GRADE_MULT: Record<Grade, number> = {
   S: 0.030, A: 0.022, B: 0.015, C: 0.010, D: 0.006, E: 0.003,
 }
 
-export function calcTileReward(
+// Weapon-driven damage multiplier: rarity, affixes, weapon scaling stats, and
+// content-type/origin/damage-type/status stat bonuses, applied on top of a
+// tile's base (time-driven) damage.
+export function calcWeaponScaledDamage(
   baseValue: number,
   weapon: WeaponInstance,
   level: number,

@@ -260,7 +260,6 @@ const pl: TranslationBundle = {
     choose_dungeon_next:  'Wybierz kolejne wyzwanie',
     locations_progress:   'lokacji ukończono',
     btn_stats_levelup:    'Postać',
-    map_site_of_grace:    '⬥ Miejsce łaski',
     map_trial_gate:       '⚔ Brama próby',
     map_elite:            '⚔ Elite',
     map_boss:             '★ Boss',
@@ -391,7 +390,7 @@ const pl: TranslationBundle = {
     stat_FAI: 'Wiara',
     stat_ARC: 'Tajemnica',
     lv_prefix:             'Pz ',
-    leveling_locked_notice: 'Levelowanie dostępne przy Miejscu Łaski lub między biegami.',
+    leveling_locked_notice: 'Levelowanie dostępne między biegami.',
     player_stats_section:  'Statystyki gracza',
     cost_each_suffix:      '✦ każdy',
     upgrade_weapons_title: 'Ulepszaj broń',
@@ -404,7 +403,6 @@ const pl: TranslationBundle = {
     confirm_to_upgrade:    'aby ulepszyć',
 
     // RunMapScreen
-    event_site_of_grace:  '⬥ Miejsce Łaski',
     event_trial_gate:     '⚔ Brama Próby',
     enemy_elite_label:    '⚔ Elite',
     enemy_boss_label:     '★ Boss',
@@ -415,12 +413,7 @@ const pl: TranslationBundle = {
     pipeline_gate_to_fight: 'aktywnych artykułów do walki',
     enter_location:       'Wejdź do lokacji',
     open_pipeline:        '📋 Otwórz Content',
-    grace_title:          '⬥ Miejsce Łaski',
-    grace_desc:           'Spokojna polana emanuje ciepłem. Odpocząć tutaj, aby odzyskać siły.',
-    grace_plan_desc:      'Chwila na zastanowienie się nad kolejnymi krokami strategicznymi — co opublikować dalej, co przetworzyć, co odpuścić.',
-    grace_rest:           'Odpoczynek (+60% HP, +1 Estus)',
     stats_level_up:       'Statystyki i awans',
-    btn_leave:            'Odejdź',
     trial_title:          '⚔ Brama Próby',
     trial_desc:           'Widmowa brama miga wyzwaniem. Pokonaj to, co w niej czeka, dla gwarantowanego rzadkiego łupu.',
     accept_trial:         'Zaakceptuj próbę',
@@ -429,7 +422,6 @@ const pl: TranslationBundle = {
     run_expired_desc:     'Minęło 48 godzin. Powrót…',
 
     enter_fight:          'Wejdź',
-    rest_grace:           'Odpoczynek',
     enter_trial:          'Wejdź do próby',
 
     // CombatScreen — radial menu

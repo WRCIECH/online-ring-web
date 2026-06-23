@@ -28,6 +28,13 @@
   text-align: center;
 }
 
+.contentName {
+  font-size: 0.8rem;
+  letter-spacing: 0.04em;
+  text-align: center;
+  color: var(--color-gold-dim);
+}
+
 .contextStrip {
   display: flex;
   flex-wrap: wrap;

@@ -164,7 +164,6 @@
   text-transform: uppercase;
 }
 
-.graceTitle { color: #2ecc88; }
 .trialTitle { color: var(--color-gold); }
 
 .eventDesc {
@@ -178,16 +177,6 @@
   flex-direction: column;
   gap: 10px;
 }
-
-.btnGrace {
-  padding: 12px;
-  font-size: 0.88rem;
-  letter-spacing: 0.1em;
-  background: rgba(46,204,136,0.08);
-  border-color: #1e6e50;
-  color: #2ecc88;
-}
-.btnGrace:hover { background: rgba(46,204,136,0.16); }
 
 .btnTrial {
   padding: 12px;

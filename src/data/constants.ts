@@ -7,7 +7,7 @@
 /** Default run length in seconds (48 h). */
 export const RUN_DURATION_SECONDS = 172800
 
-/** Maximum estus flasks at run start and after a Site of Grace rest. */
+/** Maximum estus flasks at run start. */
 export const RUN_ESTUS_MAX = 3
 
 /** Minimum active pipeline items required to enter combat. */
@@ -28,15 +28,6 @@ export const LEARNING_ITEM_WEIGHT = 1.0
 
 /** Fraction of max HP restored by using an estus flask. */
 export const ESTUS_HEAL_FRACTION = 0.40
-
-/** Fraction of max HP restored by resting at a Site of Grace. */
-export const GRACE_HEAL_FRACTION = 0.60
-
-/** Estus flasks recovered by resting at a Site of Grace. */
-export const GRACE_ESTUS_GAIN = 1
-
-/** Maximum estus flasks a player can have (cap applied on grace rest). */
-export const GRACE_ESTUS_CAP = 3
 
 // ── Combat — stamina ─────────────────────────────────────────────────────────
 
@@ -148,14 +139,14 @@ export function weaponUpgradeCost(currentLevel: number): number {
 
 // ── Workflow mechanics ────────────────────────────────────────────────────
 
-/** Flat reward penalty fraction applied when abandoning a workflow (next run). */
+/** Flat damage penalty fraction applied when abandoning a workflow (next run). */
 export const ABANDON_PENALTY = 0.25
 
-/** Reward penalty fraction per repeat attempt on a completed tile. */
+/** Scaling damage penalty fraction per repeat attempt on a completed tile (stacks with REPEAT_DAMAGE_PENALTY). */
 export const REPEAT_PENALTY_PER_RETRY = 0.15
 
-/** Maximum cumulative repeat penalty (cap). */
+/** Maximum cumulative scaling repeat penalty (cap). */
 export const REPEAT_PENALTY_MAX = 0.60
 
-/** Damage penalty when repeating an already-completed tile. */
+/** Flat damage penalty when repeating an already-completed tile. */
 export const REPEAT_DAMAGE_PENALTY = 0.20

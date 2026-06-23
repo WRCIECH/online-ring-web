@@ -56,7 +56,7 @@ export default function CombatScreen() {
   const initialWeaponClass  = initialWeapon?.weapon_class ?? 'straight_swords'
   const initialWeaponRarity = initialWeapon?.rarity        ?? 'common'
 
-  // ── Per-weapon reward bonus from filled content slots (1.0, 1.1, 1.2...) ─
+  // ── Per-weapon damage bonus from filled content slots (1.0, 1.1, 1.2...) ─
   const slotBonusMult: Record<string, number> = {}
   for (const wid of store.equipped_run_weapons) {
     const load = selectWeaponSlotLoad(store as Parameters<typeof selectWeaponSlotLoad>[0], wid)
@@ -227,6 +227,10 @@ export default function CombatScreen() {
   const handleSelectContent = (id: string) => {
     setSelectedContentId(id)
     store.setActiveContentId(id)
+    const item = store.content_items.find(c => c.id === id)
+    if (item && !item.attached_weapon_id) {
+      store.attachContentToWeapon(id, state.equippedWeaponId)
+    }
   }
 
   // ── Workflow exhausted mid-fight: all tiles done, enemy still alive ──────
@@ -238,6 +242,15 @@ export default function CombatScreen() {
     if (selectedContentId) store.updateContentItem(selectedContentId, { completed: true })
     setSelectedContentId(id)
     store.setActiveContentId(id)
+    const item = store.content_items.find(c => c.id === id)
+    if (item && !item.attached_weapon_id) {
+      store.attachContentToWeapon(id, state.equippedWeaponId)
+    }
+    const newWorkflow = generateWorkflow(wClass, wRarity, enemyData?.is_boss ?? false)
+    dispatch({ type: 'SWITCH_WORKFLOW', workflow: newWorkflow, isRemaster: false })
+  }
+
+  const handleContinueContent = () => {
     const newWorkflow = generateWorkflow(wClass, wRarity, enemyData?.is_boss ?? false)
     dispatch({ type: 'SWITCH_WORKFLOW', workflow: newWorkflow, isRemaster: false })
   }
@@ -272,7 +285,6 @@ export default function CombatScreen() {
         label: def.label,
         sublabel: `${fmtMoveTime(preview.duration)} · ${def.desc}`,
         metaParts: [
-          { text: `✦ ${preview.reward}`, color: '#c9a93a' },
           { text: `⚔ ${preview.damage}`, color: '#cc6644' },
           ...(selectedTile.is_completed
             ? [{ text: `repeat −${Math.round(REPEAT_DAMAGE_PENALTY * 100)}% dmg`, color: '#888' }]
@@ -416,41 +428,37 @@ export default function CombatScreen() {
             <div className={s.endTitle} style={{ fontSize: '1.3rem', color: 'var(--color-gold)' }}>
               That piece is finished — {enemyLabel} is still standing
             </div>
-            {otherActiveContent.length === 0 ? (
-              <>
-                <div className={s.endSub}>
-                  No other active content items. You can keep repeating completed tiles, or add a new piece from the Content panel.
-                </div>
-                <button className={s.endBtn} onClick={() => setDismissedForWorkflow(state.workflow.start_id)}>
-                  Keep fighting with what you have
-                </button>
-              </>
-            ) : (
-              <>
-                <div className={s.endSub}>Pick the next piece of content to keep the fight going.</div>
-                <div className={s.contentPickList}>
-                  {otherActiveContent.map(item => (
-                    <button
-                      key={item.id}
-                      className={s.contentPickItem}
-                      onClick={() => handleSwitchContent(item.id)}
-                    >
-                      <span className={s.contentPickName}>{item.name}</span>
-                    </button>
-                  ))}
-                </div>
-                <button className={s.endBtn} onClick={() => setDismissedForWorkflow(state.workflow.start_id)}>
-                  Keep repeating tiles instead
-                </button>
-              </>
+            <div className={s.endSub}>
+              {otherActiveContent.length === 0
+                ? 'Move this piece into its next phase, keep repeating tiles, or add a new piece from the Content panel.'
+                : 'Move this piece into its next phase, switch to another active piece, or keep repeating tiles.'}
+            </div>
+            <button className={s.endBtn} onClick={handleContinueContent}>
+              Continue "{selectedContent?.name}" — next phase
+            </button>
+            {otherActiveContent.length > 0 && (
+              <div className={s.contentPickList}>
+                {otherActiveContent.map(item => (
+                  <button
+                    key={item.id}
+                    className={s.contentPickItem}
+                    onClick={() => handleSwitchContent(item.id)}
+                  >
+                    <span className={s.contentPickName}>{item.name}</span>
+                  </button>
+                ))}
+              </div>
             )}
+            <button className={s.endBtn} onClick={() => setDismissedForWorkflow(state.workflow.start_id)}>
+              Keep repeating tiles instead
+            </button>
           </div>
         </div>
       )}
 
       {/* ── Timer overlay ──────────────────────────────────────────────── */}
       {state.phase === 'STEP_TIMER' && (
-        <TimerOverlay state={state} dispatch={dispatch} />
+        <TimerOverlay state={state} dispatch={dispatch} contentName={selectedContent?.name} />
       )}
 
       {/* ── Victory overlay ────────────────────────────────────────────── */}

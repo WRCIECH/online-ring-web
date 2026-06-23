@@ -9,8 +9,9 @@ import type { MoveType } from '../../types/game'
 import s from './TimerOverlay.module.css'
 
 interface Props {
-  state:    CombatState
-  dispatch: React.Dispatch<CombatAction>
+  state:        CombatState
+  dispatch:     React.Dispatch<CombatAction>
+  contentName?: string
 }
 
 function fmtTime(secs: number): string {
@@ -24,7 +25,7 @@ const MOVE_LABEL: Record<MoveType, string> = {
   Heavy: 'Heavy Attack',
 }
 
-export default function TimerOverlay({ state, dispatch }: Props) {
+export default function TimerOverlay({ state, dispatch, contentName }: Props) {
   const { pendingTile, pendingMove, stepTimer, stepTotal, stepStarted, timerExpired } = state
 
   // Browser tab countdown
@@ -69,6 +70,9 @@ export default function TimerOverlay({ state, dispatch }: Props) {
   return (
     <div className={s.overlay}>
       <div className={s.panel}>
+        {contentName && (
+          <div className={s.contentName}>{contentName}</div>
+        )}
         <div className={s.header} style={{ color: headerColor }}>{header}</div>
         <hr />
 

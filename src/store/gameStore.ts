@@ -127,9 +127,12 @@ function generateLocationSequence(numSublocations = 20): LocationData[] {
     let type: SublocationType = 'mob'
     if (roll < eventChance) type = 'event'
     else if (roll < eventChance + eliteChance) type = 'elite'
-    const event_type = type === 'event'
-      ? (Math.random() < 0.6 ? 'site_of_grace' : 'trial')
-      : undefined
+    // Sites of Grace are gone — what would've rolled one is now a plain mob fight.
+    let event_type: 'trial' | undefined
+    if (type === 'event') {
+      if (Math.random() < 0.6) type = 'mob'
+      else event_type = 'trial'
+    }
     const finalMult = type === 'elite' ? baseMult * 1.3 : baseMult
     return {
       enemy_id: enc.enemy_id,
@@ -428,7 +431,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
   addContentItem: (name) => {
     const id   = 'c_' + Math.random().toString(36).slice(2, 9)
     set(s => {
-      const item: ContentItem = { id, name, attached_weapon_id: s.equipped_run_weapons[0] }
+      const item: ContentItem = { id, name }
       return { content_items: [...s.content_items, item] }
     })
     get().save()

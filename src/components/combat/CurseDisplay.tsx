@@ -52,7 +52,7 @@ export default function CurseDisplay({ activeCurses, playerStamina, playerMaxSta
             <div className={s.curseName}>☠ {def.name}</div>
             <div className={s.curseFlavor}>{def.flavor}</div>
             <div className={s.cursePenalty}>
-              −{Math.round(def.penalty.damagePct * intensity * 100)}% dmg/runes
+              −{Math.round(def.penalty.damagePct * intensity * 100)}% dmg
               {' · −'}{Math.round(def.penalty.hpDrainPerTile * intensity)} HP/tile
             </div>
             <div className={s.curseProgress}>{renderProgress(curse, def, lastTileCompletionAt)}</div>

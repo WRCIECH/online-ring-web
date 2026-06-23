@@ -260,7 +260,6 @@ const en: TranslationBundle = {
     choose_dungeon_next:  'Choose your next challenge',
     locations_progress:   'locations finished',
     btn_stats_levelup:    'Character',
-    map_site_of_grace:    '⬥ Site of Grace',
     map_trial_gate:       '⚔ Trial Gate',
     map_elite:            '⚔ Elite',
     map_boss:             '★ Boss',
@@ -397,7 +396,7 @@ const en: TranslationBundle = {
     stat_FAI: 'Faith',
     stat_ARC: 'Arcane',
     lv_prefix:             'Lv ',
-    leveling_locked_notice: 'Leveling available at Site of Grace or between runs.',
+    leveling_locked_notice: 'Leveling available between runs.',
     player_stats_section:  'Player Stats',
     cost_each_suffix:      '✦ each',
     upgrade_weapons_title: 'Upgrade Weapons',
@@ -410,7 +409,6 @@ const en: TranslationBundle = {
     confirm_to_upgrade:    'to upgrade',
 
     // RunMapScreen
-    event_site_of_grace:  '⬥ Site of Grace',
     event_trial_gate:     '⚔ Trial Gate',
     enemy_elite_label:    '⚔ Elite',
     enemy_boss_label:     '★ Boss',
@@ -421,12 +419,7 @@ const en: TranslationBundle = {
     pipeline_gate_to_fight: 'active articles to fight',
     enter_location:       'Enter Location',
     open_pipeline:        '📋 Open Pipeline',
-    grace_title:          '⬥ Site of Grace',
-    grace_desc:           'A calm clearing emanates warmth. Rest here to recover your strength.',
-    grace_plan_desc:      'Take a moment to think about your next strategic steps — what to publish next, what to recycle, what to leave behind.',
-    grace_rest:           'Rest (+60% HP, +1 Estus)',
     stats_level_up:       'Stats & Level Up',
-    btn_leave:            'Leave',
     trial_title:          '⚔ Trial Gate',
     trial_desc:           'A spectral gate flickers with challenge. Defeat what lies within for a guaranteed rare drop.',
     accept_trial:         'Accept Trial',
@@ -435,7 +428,6 @@ const en: TranslationBundle = {
     run_expired_desc:     'The 48 hours are up. Returning…',
 
     enter_fight:          'Enter',
-    rest_grace:           'Rest',
     enter_trial:          'Enter Trial',
 
     // CombatScreen — radial menu
