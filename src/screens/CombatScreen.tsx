@@ -1,13 +1,15 @@
 import { useReducer, useEffect, useCallback, useState, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { combatReducer, initCombatState, getReachableTiles, previewMove, REPEAT_DAMAGE_PENALTY, ABANDON_PENALTY } from '../engine/combat'
-import { useGameStore } from '../store/gameStore'
+import { useGameStore, selectWeaponSlotLoad } from '../store/gameStore'
 import { ENEMIES } from '../data/enemies'
 import { WEAPONS } from '../data/weapons'
 import { playSound } from '../engine/sound'
 import type { WeaponInstance, WeaponRarity, MoveType } from '../types/game'
 import { rollWeapon } from '../data/generators/weaponGenerator'
 import { generateWorkflow } from '../data/generators/workflowGenerator'
+import { WEAPON_CLASSES } from '../data/generators/weaponClasses'
+import { FLOW_GAP_HOT_MINS, FLOW_GAP_WARM_MINS, FLOW_GAP_COLD_MINS, FLOW_MULT_HOT, FLOW_MULT_WARM, FLOW_MULT_COLD, FLOW_MULT_DEAD } from '../data/constants'
 import RunHeader    from '../components/layout/RunHeader'
 import TimerOverlay from '../components/combat/TimerOverlay'
 import CombatLog    from '../components/combat/CombatLog'
@@ -54,6 +56,17 @@ export default function CombatScreen() {
   const initialWeaponClass  = initialWeapon?.weapon_class ?? 'straight_swords'
   const initialWeaponRarity = initialWeapon?.rarity        ?? 'common'
 
+  // ── Per-weapon reward bonus from filled content slots (1.0, 1.1, 1.2...) ─
+  const slotBonusMult: Record<string, number> = {}
+  for (const wid of store.equipped_run_weapons) {
+    const load = selectWeaponSlotLoad(store as Parameters<typeof selectWeaponSlotLoad>[0], wid)
+    slotBonusMult[wid] = 1.0 + 0.1 * Math.max(0, Math.min(load.used, load.capacity) - 1)
+  }
+
+  // ── Remaster pass — true if the content being worked on is mid-remaster ──
+  const isRemasterPass = !!store.active_content_id
+    && !!store.content_items.find(c => c.id === store.active_content_id)?.is_remastering
+
   // ── Init combat state (stable across renders) ────────────────────────────
   const [state, dispatch] = useReducer(
     combatReducer,
@@ -73,6 +86,19 @@ export default function CombatScreen() {
       }
       // Resume persisted workflow or generate fresh
       const workflow = store.active_workflow ?? generateWorkflow(initialWeaponClass, initialWeaponRarity, enemyData.is_boss)
+
+      // Boss-rush damage bonus — gap since your last boss kill, weapon-modified
+      let bossRushMult = 1.0
+      if (enemyData.is_boss && store.last_boss_kill_at) {
+        const gapMin = (Date.now() - store.last_boss_kill_at) / 60000
+        const flowMult = gapMin < FLOW_GAP_HOT_MINS  ? FLOW_MULT_HOT
+          : gapMin < FLOW_GAP_WARM_MINS ? FLOW_MULT_WARM
+          : gapMin < FLOW_GAP_COLD_MINS ? FLOW_MULT_COLD
+          : FLOW_MULT_DEAD
+        const coeff = WEAPON_CLASSES[initialWeaponClass]?.boss_rush_coeff ?? 1.0
+        bossRushMult = 1 + (flowMult - 1) * coeff
+      }
+
       return initCombatState(
         workflow, enemyData, loc.enemy_id,
         initialWeaponId, initialWeaponLevel,
@@ -81,6 +107,7 @@ export default function CombatScreen() {
         store.stats,
         store.abandon_penalty,
         store.incoming_curses, store.maxStamina(), store.maxStamina(),
+        slotBonusMult, isRemasterPass, bossRushMult,
       )
     }
   )
@@ -149,10 +176,16 @@ export default function CombatScreen() {
     store.setIncomingCurses(state.activeCurses.filter(c => !c.lifted).map(c => c.enemyId))
     lootItems?.forEach(item => store.addWeaponInstance(item.instance))
     store.addDefeatedEnemy(loc.enemy_id)
+    if (enemyData?.is_boss) store.recordBossKill()
     // Persist or clear workflow
     const allDone = state.workflow.tiles.every(t => t.is_completed)
     if (allDone) {
-      if (store.active_content_id) store.updateContentItem(store.active_content_id, { completed: true })
+      if (store.active_content_id) {
+        const remastered = store.content_items.find(c => c.id === store.active_content_id)?.is_remastering
+        store.updateContentItem(store.active_content_id, remastered
+          ? { completed: true, is_remastering: false, remaster_count: (store.content_items.find(c => c.id === store.active_content_id)?.remaster_count ?? 0) + 1 }
+          : { completed: true })
+      }
       store.clearActiveWorkflow()
     } else {
       store.saveWorkflowProgress(state.workflow)
@@ -161,7 +194,7 @@ export default function CombatScreen() {
     store.advanceRun()
     if (isLast) { store.endRunVictory(); navigate('/run-complete') }
     else        { store.setPendingEncounter(null); navigate('/map') }
-  }, [loc, store, navigate, state, lootItems])
+  }, [loc, store, navigate, state, lootItems, enemyData])
 
   // ── Defeat ────────────────────────────────────────────────────────────────
   const handleDefeat = useCallback(() => {
@@ -206,7 +239,7 @@ export default function CombatScreen() {
     setSelectedContentId(id)
     store.setActiveContentId(id)
     const newWorkflow = generateWorkflow(wClass, wRarity, enemyData?.is_boss ?? false)
-    dispatch({ type: 'SWITCH_WORKFLOW', workflow: newWorkflow })
+    dispatch({ type: 'SWITCH_WORKFLOW', workflow: newWorkflow, isRemaster: false })
   }
 
   // ── Selected tile (derived) ───────────────────────────────────────────────

@@ -1,0 +1,180 @@
+/* ── Equipment Overlay ────────────────────────────────────────────────── */
+
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.72);
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.panel {
+  background: var(--color-bg-panel);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: 24px 30px;
+  width: 660px;
+  max-width: 96vw;
+  max-height: 88vh;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.title {
+  font-size: 0.75rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--color-text-dim);
+}
+
+.btnClose {
+  font-size: 0.8rem;
+  padding: 4px 14px;
+  border-radius: var(--radius);
+}
+
+.sep {
+  border: none;
+  border-top: 1px solid var(--color-sep);
+  margin: 0;
+}
+
+/* ── Weapon list ──────────────────────────────────────────────────────── */
+
+.weaponList {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.empty {
+  font-size: 0.82rem;
+  color: var(--color-text-dim);
+  text-align: center;
+  padding: 12px 0;
+}
+
+.weaponCard {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  background: rgba(255,255,255,0.02);
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.weaponHeader {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.weaponName {
+  flex: 1;
+  font-size: 0.92rem;
+  color: var(--color-text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
+}
+
+.rarityBadge {
+  font-size: 0.68rem;
+  letter-spacing: 0.06em;
+  font-weight: 600;
+}
+
+.level {
+  font-size: 0.75rem;
+  color: var(--color-text-dim);
+}
+
+.equippedChip {
+  font-size: 0.85rem;
+  color: var(--color-gold-dim);
+}
+
+.slotCount {
+  font-size: 0.75rem;
+  letter-spacing: 0.04em;
+  padding: 2px 8px;
+  border-radius: 4px;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.12);
+  color: var(--color-text);
+}
+
+.slotOver { color: #e85555; border-color: #5a1515; }
+
+/* ── Slot rows ────────────────────────────────────────────────────────── */
+
+.slotList {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.slotRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 8px;
+  border: 1px solid var(--color-sep);
+  border-radius: 4px;
+  background: rgba(255,255,255,0.015);
+}
+
+.slotItemName {
+  flex: 1;
+  font-size: 0.85rem;
+  color: var(--color-text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
+}
+
+.slotEmptyLabel {
+  font-size: 0.75rem;
+  color: var(--color-text-dim);
+  font-style: italic;
+}
+
+.slotSelect {
+  flex: 1;
+  font-size: 0.8rem;
+  padding: 3px 6px;
+  border-radius: 4px;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.12);
+  color: var(--color-text-dim);
+  cursor: pointer;
+  min-width: 0;
+}
+
+.btnDetach {
+  font-size: 0.7rem;
+  padding: 3px 9px;
+  border-radius: 3px;
+  background: transparent;
+  border: 1px solid var(--color-sep);
+  color: var(--color-text-dim);
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: color 0.1s, border-color 0.1s;
+}
+
+.btnDetach:hover { color: #e85555; border-color: #5a1515; }

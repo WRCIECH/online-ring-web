@@ -4,6 +4,7 @@ import CharacterOverlay  from '../overlays/CharacterOverlay'
 import ContentOverlay    from '../overlays/ContentOverlay'
 import LocationsOverlay  from '../overlays/LocationsOverlay'
 import AnalyticsOverlay  from '../overlays/AnalyticsOverlay'
+import EquipOverlay      from '../overlays/EquipOverlay'
 import { useT } from '../../i18n'
 import s from './RunHeader.module.css'
 
@@ -48,6 +49,7 @@ export default function RunHeader({ hp, maxHp, stamina, maxStamina, fp, maxFp, c
   const [showContent,   setShowContent]   = useState(false)
   const [showLocations, setShowLocations] = useState(false)
   const [showAnalytics, setShowAnalytics] = useState(false)
+  const [showEquip,     setShowEquip]     = useState(false)
 
   useEffect(() => {
     const id = setInterval(() => {
@@ -88,6 +90,7 @@ export default function RunHeader({ hp, maxHp, stamina, maxStamina, fp, maxFp, c
         <div className={s.actions}>
           <button className={s.btn} onClick={() => setShowStats(true)}>{t.ui.btn_stats}</button>
           <button className={s.btn} onClick={() => setShowContent(true)}>{t.ui.btn_pipeline}</button>
+          <button className={s.btn} onClick={() => setShowEquip(true)}>{t.ui.btn_equipment}</button>
           <button className={s.btn} onClick={() => setShowAnalytics(true)}>{t.ui.btn_analytics}</button>
         </div>
       </header>
@@ -96,6 +99,7 @@ export default function RunHeader({ hp, maxHp, stamina, maxStamina, fp, maxFp, c
       {showContent   && <ContentOverlay   onClose={() => setShowContent(false)} canAdd={canAddContent} />}
       {showLocations && <LocationsOverlay onClose={() => setShowLocations(false)} />}
       {showAnalytics && <AnalyticsOverlay onClose={() => setShowAnalytics(false)} />}
+      {showEquip     && <EquipOverlay     onClose={() => setShowEquip(false)} />}
     </>
   )
 }

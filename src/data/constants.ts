@@ -64,6 +64,13 @@ export const FLOW_MULT_COLD  = 0.5
 /** Damage multiplier when gap exceeds FLOW_GAP_COLD_MINS (fully cold). */
 export const FLOW_MULT_DEAD  = 0.0
 
+// ── Combat — baseline stamina cost per attack ────────────────────────────────
+// Scaled per weapon class by WeaponClassDef.stamina_mod. Drains the same pool
+// curse-cushioning uses.
+
+export const BASE_STAMINA_COST_LIGHT = 4
+export const BASE_STAMINA_COST_HEAVY = 8
+
 // ── Combat — weapon overheat ─────────────────────────────────────────────────
 
 /** Damage penalty per use over the weapon's heat threshold (as a fraction). */

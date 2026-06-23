@@ -29,6 +29,7 @@ export type AtomicStage = 'Research' | 'Plan' | 'Produce' | 'Refine' | 'Publish'
 export type AtomicOrigin =
   | 'New' | 'Compression' | 'Expansion' | 'Recycled' | 'Remastered'
   | 'Revamped' | 'Reboot' | 'ZoomIn' | 'ZoomOut' | 'AudienceAlter' | 'Commentary'
+  | 'Similar' | 'Opposite'
 export type AtomicTime = 'Micro' | 'Short' | 'Medium' | 'Long' | 'Deep'
 
 import type { ContentProductType } from '../data/contentProducts'
@@ -52,6 +53,7 @@ export interface WorkflowTile {
   content_origin?: AtomicOrigin
   damage_type?: DamageType
   status?: StatusType
+  time_budget?: AtomicTime
   is_completed: boolean
   repeat_count: number
 }
@@ -164,6 +166,9 @@ export interface ContentItem {
   name: string
   notes?: string
   completed?: boolean
+  remaster_count?: number
+  is_remastering?: boolean
+  attached_weapon_id?: string
 }
 
 // ── Game state ────────────────────────────────────────────────────────────
@@ -206,6 +211,8 @@ export interface GameState {
   // Active workflow (persisted across mob fights until all tiles done or abandoned)
   active_workflow: WorkflowGraph | null
   active_content_id: string | null
+  // Epoch ms of the last boss kill, for the boss-rush damage bonus
+  last_boss_kill_at: number | null
   // Content pipeline
   content_items: ContentItem[]
   // Analytics

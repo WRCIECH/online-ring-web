@@ -1,10 +1,12 @@
 import { create } from 'zustand'
-import type { GameState, LocationData, Stats, WeaponInstance, SublocationType, ContentItem, Locale, WorkflowGraph } from '../types/game'
+import type { GameState, LocationData, Stats, WeaponInstance, SublocationType, ContentItem, Locale, WorkflowGraph, WeaponClass } from '../types/game'
 import { ENEMIES } from '../data/enemies'
 import { saveGame, loadGame } from '../engine/save'
-import { registerWeapon } from '../data/weapons'
+import { registerWeapon, WEAPONS } from '../data/weapons'
 import { RUN_DURATION_SECONDS, RUN_ESTUS_MAX, ESTUS_HEAL_FRACTION, ARTICLE_EQUIP_WEIGHT, statLevelCost, weaponUpgradeCost } from '../data/constants'
 import { rollWeapon } from '../data/generators/weaponGenerator'
+import { WEAPON_CLASSES } from '../data/generators/weaponClasses'
+import { generateRemasterWorkflow } from '../data/generators/remasterGenerator'
 import { CLASS_DEFINITIONS } from '../data/classes'
 
 function hydrateRegistries(state: GameState): void {
@@ -168,6 +170,7 @@ function initialState(): GameState {
     incoming_curses: [],
     active_workflow: null,
     active_content_id: null,
+    last_boss_kill_at: null,
     content_items: [],
 
     total_task_time_s: 0,
@@ -225,8 +228,12 @@ export interface GameStore extends GameState {
 
   // Content pipeline
   addContentItem:    (name: string) => void
-  updateContentItem: (id: string, patch: Partial<Pick<ContentItem, 'name' | 'notes' | 'completed'>>) => void
+  updateContentItem: (id: string, patch: Partial<Pick<ContentItem, 'name' | 'notes' | 'completed' | 'is_remastering' | 'remaster_count'>>) => void
   removeContentItem: (id: string) => void
+  startRemaster:           (contentId: string, weaponClass: WeaponClass) => void
+  attachContentToWeapon:   (contentId: string, weaponInstanceId: string) => void
+  detachContentFromWeapon: (contentId: string) => void
+  recordBossKill: () => void
 
   // Learning items
 
@@ -420,8 +427,10 @@ export const useGameStore = create<GameStore>((set, get) => ({
 
   addContentItem: (name) => {
     const id   = 'c_' + Math.random().toString(36).slice(2, 9)
-    const item: ContentItem = { id, name }
-    set(s => ({ content_items: [...s.content_items, item] }))
+    set(s => {
+      const item: ContentItem = { id, name, attached_weapon_id: s.equipped_run_weapons[0] }
+      return { content_items: [...s.content_items, item] }
+    })
     get().save()
   },
 
@@ -437,8 +446,37 @@ export const useGameStore = create<GameStore>((set, get) => ({
     get().save()
   },
 
+  startRemaster: (contentId, weaponClass) => {
+    const workflow = generateRemasterWorkflow(weaponClass)
+    set(s => ({
+      content_items: s.content_items.map(c => c.id === contentId ? { ...c, completed: false, is_remastering: true } : c),
+      active_workflow: workflow,
+      active_content_id: contentId,
+    }))
+    get().save()
+  },
+
+  attachContentToWeapon: (contentId, weaponInstanceId) => {
+    set(s => ({
+      content_items: s.content_items.map(c => c.id === contentId ? { ...c, attached_weapon_id: weaponInstanceId } : c),
+    }))
+    get().save()
+  },
+
+  detachContentFromWeapon: (contentId) => {
+    set(s => ({
+      content_items: s.content_items.map(c => c.id === contentId ? { ...c, attached_weapon_id: undefined } : c),
+    }))
+    get().save()
+  },
+
   addTaskTime: (seconds) => {
     set(s => ({ total_task_time_s: (s.total_task_time_s ?? 0) + seconds }))
+    get().save()
+  },
+
+  recordBossKill: () => {
+    set({ last_boss_kill_at: Date.now() })
     get().save()
   },
 
@@ -457,6 +495,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
     if (!data.incoming_curses) data.incoming_curses = []
     if (data.active_workflow  === undefined) data.active_workflow  = null
     if (data.active_content_id === undefined) data.active_content_id = null
+    if (data.last_boss_kill_at === undefined) data.last_boss_kill_at = null
     hydrateRegistries(data)
     set({ ...data })
     return true
@@ -487,6 +526,13 @@ export const selectEnemyData = (s: GameStore) => {
   const loc = selectCurrentLocation(s)
   if (!loc) return null
   return ENEMIES[loc.enemy_id] ?? null
+}
+
+export const selectWeaponSlotLoad = (s: GameStore, weaponInstanceId: string) => {
+  const used = s.content_items.filter(c => !c.completed && c.attached_weapon_id === weaponInstanceId).length
+  const weapon = WEAPONS[weaponInstanceId] as WeaponInstance | undefined
+  const capacity = weapon ? WEAPON_CLASSES[weapon.weapon_class].content_slots : 0
+  return { used, capacity }
 }
 
 export const selectEquipLoad = (s: GameStore) => {

@@ -77,13 +77,13 @@ const RARITY_EXTRA: Record<WeaponRarity, number> = {
 // ── UID ───────────────────────────────────────────────────────────────────
 
 let _seq = 0
-function tid(): string { return `t_${++_seq}_${Math.random().toString(36).slice(2, 6)}` }
+export function tid(): string { return `t_${++_seq}_${Math.random().toString(36).slice(2, 6)}` }
 
 function randInt(min: number, max: number): number {
   return min + Math.floor(Math.random() * (max - min + 1))
 }
 
-function makeTile(stage: AtomicStage): WorkflowTile {
+export function makeTile(stage: AtomicStage): WorkflowTile {
   const t = STAGE_TIME[stage]
   return {
     id: tid(), type: stage, name: pickName(stage),

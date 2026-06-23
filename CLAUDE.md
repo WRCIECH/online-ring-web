@@ -43,19 +43,16 @@ Key selectors exported from the store:
 
 Key store actions:
 - `spendRunesOnStat(stat)` — levels a player stat; cost is `statLevelCost(total_levels_spent)` (exponential)
-- `applyWeaponHeat(heat)` — converts combat heat accumulation to cooldown runs
-- `syncCombatResult(hp, estus, fp)` / `flushWeaponXp()` — called on combat end to write results back
+- `syncCombatResult(hp, estus, fp, stamina)` — called on combat end to write results back
 
 ### Combat engine (`src/engine/combat.ts`)
-Pure reducer (`combatReducer`) + `initCombatState`. Combat state lives entirely in a local `useReducer` inside `CombatScreen` — it is **not** in the Zustand store. Only the final result (HP, estus, FP, weapon heat) is synced back on victory/defeat.
+Pure reducer (`combatReducer`) + `initCombatState`. Combat state lives entirely in a local `useReducer` inside `CombatScreen` — it is **not** in the Zustand store. Only the final result (HP, estus, FP, stamina) is synced back on victory/defeat.
 
-Combat phases: `PLAYER_ATTACK → STEP_TIMER → ENEMY_ATTACK → ENEMY_STAGGERED → VICTORY | DEFEAT`
+Combat phases: `PLAYER_TURN → STEP_TIMER → PLAYER_TURN ... → VICTORY | DEFEAT | FLED`
 
 Drop rolls happen **once** when phase reaches `VICTORY` (inside a `useEffect` in `CombatScreen`), stored in local `lootItems` state, and applied to the store only when the player clicks Continue.
 
-**Flow-state multiplier** (`gapMultiplier` in combat.ts): damage scales by time since last moveset completion — 1.5× under 15 min, 1.0× at 15–60 min, 0.5× at 60–240 min, 0× after 4 hours.
-
-**Enemy roll movesets**: `ENEMY_ROLL_CONFIG` maps each enemy type to a weapon class + rarity. At init, `rollMoveset()` generates a multi-step dodge challenge; steps chain across successive rolls in the same combat.
+**Boss-rush bonus**: a damage multiplier keyed to the gap since `GameState.last_boss_kill_at`, using the `FLOW_GAP_HOT/WARM/COLD_MINS` thresholds and `FLOW_MULT_HOT/WARM/COLD/DEAD` tiers in `constants.ts` (1.5× under 15 min since your last boss kill, down to 0× after 4 hours), scaled per weapon class by `WeaponClassDef.boss_rush_coeff`. Computed once at fight-init in `CombatScreen.tsx`, only for boss encounters.
 
 ### Player stats and leveling
 Stats: `VIG END MND STR DEX INT FAI ARC`. Max HP = `VIG × 10`, max stamina = `END × 5`, max FP = `MND × 3`.
@@ -67,14 +64,8 @@ Leveling costs runes; cost increases with `total_levels_spent`. Six starting cla
 ### Weapon generation (`src/data/generators/`)
 Weapons are procedurally generated at runtime — no static weapon list for loot drops.
 
-- `rollWeapon(weaponClass?, minRarity?)` → `WeaponInstance` with rarity, affixes, heat_threshold, poise_weight, skill_slots, and two constant movesets (Light + Heavy variant)
-- `rollMoveset(weaponClass, rarity, variant?)` → `GeneratedMoveset` registered into `MOVES` at runtime
-- `rollBlockMoveset(weaponClass)` → defense block moveset (registered into `MOVES`)
-- Movesets are built from atomic steps via `atomicMove.ts`: 9 archetypes (long_form, micro, commentary, research, compression, remix, storytelling, hot_take, async, editing) mapped to writing task prompts
-- 26 weapon classes in `weaponClasses.ts` — each has `heat_threshold`, `base_damage_mult`, `poise_weight`, `preferred_archetypes`, stat scaling
-
-### Weapon heat and cooldown
-Each weapon has a `heat_threshold`. Heat accumulates during combat (`weaponHeatAccumulated` in CombatState). On combat end, `applyWeaponHeat` converts it to `weapon_cooldown[id]` (runs remaining). A weapon on cooldown cannot be selected for the next run — see `WeaponSelectScreen` which filters it from the default selection.
+- `rollWeapon(weaponClass?, minRarity?)` → `WeaponInstance` with rarity, affixes, poise_weight, base_damage_mult
+- 27 weapon classes in `weaponClasses.ts` — each has `base_damage_mult`, `poise_weight`, `content_slots`, `heavy_bonus_mult`, `boss_rush_coeff`, `time_mod`, `stamina_mod`, stat scaling, plus the per-class draw pools used by `weaponPatterns.ts` (`supported_products`, `base_damage_types`, `inherent_status`, `allowed_transformations`)
 
 ### Data layer (`src/data/`)
 Static records — no API calls, no async:

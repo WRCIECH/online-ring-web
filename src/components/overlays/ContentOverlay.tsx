@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'react'
-import { useGameStore, selectEquipLoad } from '../../store/gameStore'
-import type { ContentItem } from '../../types/game'
+import { useGameStore, selectEquipLoad, selectWeaponSlotLoad } from '../../store/gameStore'
+import { WEAPONS } from '../../data/weapons'
+import type { ContentItem, WeaponInstance } from '../../types/game'
 import { useT } from '../../i18n'
 import s from './ContentOverlay.module.css'
 
@@ -13,6 +14,11 @@ export default function ContentOverlay({ onClose, canAdd = true }: Props) {
   const store = useGameStore()
   const t     = useT()
   const load  = selectEquipLoad(store as Parameters<typeof selectEquipLoad>[0])
+
+  const equippedWeaponId = store.equipped_run_weapons[0]
+  const slotLoad = equippedWeaponId
+    ? selectWeaponSlotLoad(store as Parameters<typeof selectWeaponSlotLoad>[0], equippedWeaponId)
+    : null
 
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null)
   const [editingNameId,   setEditingNameId]   = useState<string | null>(null)
@@ -57,6 +63,14 @@ export default function ContentOverlay({ onClose, canAdd = true }: Props) {
     }
   }
 
+  function handleRemaster(item: ContentItem) {
+    if (!item.attached_weapon_id) return
+    const weapon = WEAPONS[item.attached_weapon_id] as WeaponInstance | undefined
+    if (!weapon) return
+    store.startRemaster(item.id, weapon.weapon_class)
+    onClose()
+  }
+
   function renderItem(item: ContentItem) {
     const isEditName   = editingNameId === item.id
     const isConfirmDel = confirmDeleteId === item.id
@@ -64,6 +78,12 @@ export default function ContentOverlay({ onClose, canAdd = true }: Props) {
     return (
       <div key={item.id} className={[s.item, item.completed ? s.itemPublished : ''].join(' ')}>
         <div className={s.itemRow}>
+          <span className={s.phaseChip} title={t.ui.weapon_slot_label}>
+            {item.attached_weapon_id
+              ? (WEAPONS[item.attached_weapon_id] as WeaponInstance | undefined)?.name ?? item.attached_weapon_id
+              : t.ui.weapon_unattached}
+          </span>
+
           {isEditName ? (
             <input
               ref={nameInputRef}
@@ -87,8 +107,21 @@ export default function ContentOverlay({ onClose, canAdd = true }: Props) {
           )}
 
           {item.completed && <span className={s.phaseChip}>{t.ui.content_item_completed}</span>}
+          {!!item.remaster_count && (
+            <span className={s.phaseChip}>{t.ui.remastered_count}{item.remaster_count}</span>
+          )}
 
           <div className={s.itemActions}>
+            {item.completed && (
+              <button
+                className={s.btnToggle}
+                onClick={() => handleRemaster(item)}
+                disabled={!item.attached_weapon_id}
+                title={item.attached_weapon_id ? undefined : t.ui.weapon_unattached}
+              >
+                {t.ui.btn_remaster}
+              </button>
+            )}
             {isConfirmDel ? (
               <>
                 <button className={s.btnConfirmDel} onClick={() => handleDelete(item)}>Delete?</button>
@@ -129,6 +162,23 @@ export default function ContentOverlay({ onClose, canAdd = true }: Props) {
             <div className={s.overloadWarning}>{t.ui.overload_warning}</div>
           )}
         </div>
+
+        {slotLoad && (
+          <div className={s.loadSection}>
+            <div className={s.loadLabel}>
+              <span>{t.ui.weapon_slot_label}</span>
+              <span className={slotLoad.used > slotLoad.capacity ? s.loadOver : s.loadVal}>
+                {slotLoad.used} / {slotLoad.capacity}
+              </span>
+            </div>
+            <div className={s.loadTrack}>
+              <div
+                className={[s.loadFill, slotLoad.used > slotLoad.capacity ? s.loadFillOver : ''].join(' ')}
+                style={{ width: `${slotLoad.capacity > 0 ? Math.min(100, (slotLoad.used / slotLoad.capacity) * 100) : 0}%` }}
+              />
+            </div>
+          </div>
+        )}
 
         <hr className={s.sep} />
 

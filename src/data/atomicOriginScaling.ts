@@ -15,4 +15,6 @@ export const ATOMIC_ORIGIN_STATS: Record<AtomicOrigin, { label: string; stats: S
   ZoomOut:       { label: 'Zoom Out',       stats: ['INT'] },
   AudienceAlter: { label: 'Audience Shift', stats: ['FAI'] },
   Commentary:    { label: 'Commentary',     stats: ['ARC'] },
+  Similar:       { label: 'Similar',        stats: ['DEX'] },
+  Opposite:      { label: 'Opposite',       stats: ['ARC'] },
 }
