@@ -308,6 +308,11 @@ const en: TranslationBundle = {
     equip_slot_empty:       'Empty slot',
     equip_slot_assign:      '+ Assign content…',
     equip_equipped_badge:   'Equipped this run',
+    equip_show_content:     'Show content',
+    equip_hide_content:     'Hide content',
+    stat_dmg_per_level:     'dmg/lvl',
+    stat_base_damage:       'base dmg',
+    stat_stamina_cost:      'stamina cost',
     tab_content:            'Content',
     tab_learning:           'Learning',
     learning_title:         'Learning tasks',
@@ -363,6 +368,12 @@ const en: TranslationBundle = {
     mult_streak:        'Consistency streak',
     mult_remaster:      'Remaster bonus',
     mult_finisher:      'Finishing blow',
+
+    // Weapon structure preview (EquipOverlay)
+    draw_format:         'Format',
+    draw_transformation: 'Transformation',
+    draw_style:          'Style',
+    draw_emotion:        'Emotion',
 
     // RunHeader
     run_prefix:   'Run #',

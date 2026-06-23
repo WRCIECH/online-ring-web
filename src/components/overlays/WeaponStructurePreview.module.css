@@ -1,0 +1,78 @@
+.scroller {
+  overflow-x: auto;
+  padding: 4px 0 8px;
+}
+
+.flow {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  min-width: max-content;
+}
+
+.arrow {
+  color: var(--color-text-dim);
+  opacity: 0.5;
+  flex-shrink: 0;
+  font-size: 0.85rem;
+}
+
+.phaseChip {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 6px 10px;
+  border: 1px solid;
+  border-radius: 8px;
+  background: rgba(255,255,255,0.03);
+  flex-shrink: 0;
+  min-width: 64px;
+}
+
+.phaseStage {
+  font-size: 0.62rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.phaseCount {
+  font-size: 0.78rem;
+  color: var(--color-text);
+  white-space: nowrap;
+}
+
+.phaseTime {
+  font-size: 0.62rem;
+  color: var(--color-text-dim);
+  white-space: nowrap;
+}
+
+.drawChip {
+  flex-shrink: 0;
+  padding: 4px 9px;
+  border: 1px dashed rgba(255,255,255,0.2);
+  border-radius: 999px;
+  font-size: 0.65rem;
+  color: var(--color-gold-dim);
+  white-space: nowrap;
+}
+
+.branchBox {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 8px;
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 10px;
+  background: rgba(255,255,255,0.02);
+  flex-shrink: 0;
+}
+
+.branchLane {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}

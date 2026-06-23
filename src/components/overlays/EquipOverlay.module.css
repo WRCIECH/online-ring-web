@@ -119,6 +119,70 @@
 
 .slotOver { color: #e85555; border-color: #5a1515; }
 
+/* ── Description / stats / affixes ───────────────────────────────────── */
+
+.weaponDesc {
+  font-size: 0.8rem;
+  color: var(--color-text-dim);
+  line-height: 1.4;
+}
+
+.statsRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.statChip, .scalingChip {
+  font-size: 0.7rem;
+  color: var(--color-text-dim);
+  background: rgba(255,255,255,0.04);
+  border: 1px solid var(--color-sep);
+  border-radius: 3px;
+  padding: 2px 7px;
+}
+
+.scalingChip {
+  color: var(--color-gold-dim);
+}
+
+.affixList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+
+.affix {
+  font-size: 0.7rem;
+  color: var(--color-text-dim);
+  background: rgba(255,255,255,0.04);
+  border: 1px solid var(--color-sep);
+  border-radius: 3px;
+  padding: 1px 6px;
+}
+
+/* ── Content toggle ───────────────────────────────────────────────────── */
+
+.contentToggleRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.btnToggleContent {
+  font-size: 0.72rem;
+  padding: 3px 10px;
+  border-radius: 4px;
+  background: transparent;
+  border: 1px solid var(--color-sep);
+  color: var(--color-text-dim);
+  cursor: pointer;
+  transition: color 0.1s, border-color 0.1s;
+}
+
+.btnToggleContent:hover { color: var(--color-text); border-color: var(--color-border); }
+
 /* ── Slot rows ────────────────────────────────────────────────────────── */
 
 .slotList {

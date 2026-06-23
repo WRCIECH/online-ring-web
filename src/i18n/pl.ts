@@ -308,6 +308,11 @@ const pl: TranslationBundle = {
     equip_slot_empty:       'Wolny slot',
     equip_slot_assign:      '+ Przypisz treść…',
     equip_equipped_badge:   'Wyposażone w tym biegu',
+    equip_show_content:     'Pokaż treści',
+    equip_hide_content:     'Ukryj treści',
+    stat_dmg_per_level:     'dmg/poziom',
+    stat_base_damage:       'bazowy dmg',
+    stat_stamina_cost:      'koszt staminy',
     tab_content:            'Treści',
     published_label:        'Opublikowano',
     click_to_rename:        'Kliknij, aby zmienić nazwę',
@@ -357,6 +362,12 @@ const pl: TranslationBundle = {
     mult_streak:        'Seria konsekwencji',
     mult_remaster:      'Bonus za przeróbkę',
     mult_finisher:      'Cios finiszujący',
+
+    // Podgląd struktury broni (EquipOverlay)
+    draw_format:         'Format',
+    draw_transformation: 'Transformacja',
+    draw_style:          'Styl',
+    draw_emotion:        'Emocja',
 
     // RunHeader
     run_prefix:   'Run #',

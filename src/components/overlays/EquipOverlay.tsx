@@ -1,7 +1,11 @@
+import { useState } from 'react'
 import { useGameStore, selectWeaponSlotLoad } from '../../store/gameStore'
-import { WEAPONS } from '../../data/weapons'
+import { WEAPONS, LEVEL_MULT } from '../../data/weapons'
+import { WEAPON_CLASSES } from '../../data/generators/weaponClasses'
 import type { WeaponInstance, WeaponRarity } from '../../types/game'
 import { useT, localizeWeaponName } from '../../i18n'
+import WeaponSprite from '../icons/WeaponSprite'
+import WeaponStructurePreview from './WeaponStructurePreview'
 import s from './EquipOverlay.module.css'
 
 interface Props {
@@ -15,6 +19,7 @@ const RARITY_COLOURS: Record<WeaponRarity, string> = {
 export default function EquipOverlay({ onClose }: Props) {
   const store = useGameStore()
   const t     = useT()
+  const [expandedContent, setExpandedContent] = useState<Record<string, boolean>>({})
 
   function handleAssign(weaponInstanceId: string, contentId: string) {
     if (!contentId) return
@@ -24,56 +29,94 @@ export default function EquipOverlay({ onClose }: Props) {
   function renderWeapon(wid: string) {
     const weapon = WEAPONS[wid] as WeaponInstance | undefined
     if (!weapon) return null
+    const classDef = WEAPON_CLASSES[weapon.weapon_class]
     const level    = store.weapon_level[wid] ?? 0
     const slotLoad = selectWeaponSlotLoad(store as Parameters<typeof selectWeaponSlotLoad>[0], wid)
     const attached = store.content_items.filter(c => !c.completed && c.attached_weapon_id === wid)
     const assignable = store.content_items.filter(c => !c.completed && c.attached_weapon_id !== wid)
     const isEquipped = store.equipped_run_weapons.includes(wid)
+    const isExpanded  = !!expandedContent[wid]
 
     return (
       <div key={wid} className={s.weaponCard}>
         <div className={s.weaponHeader}>
+          <WeaponSprite
+            weaponClass={weapon.weapon_class}
+            rarity={weapon.rarity}
+            poiseWeight={weapon.poise_weight ?? 'medium'}
+            size={48}
+          />
           <span className={s.weaponName}>{localizeWeaponName(weapon, t)}</span>
           <span className={s.rarityBadge} style={{ color: RARITY_COLOURS[weapon.rarity] }}>
             {weapon.rarity.toUpperCase()}
           </span>
           <span className={s.level}>+{level}</span>
           {isEquipped && <span className={s.equippedChip} title={t.ui.equip_equipped_badge}>⚔</span>}
+        </div>
+
+        <div className={s.weaponDesc}>{t.weapons[weapon.weapon_class]?.description ?? classDef.description}</div>
+
+        <WeaponStructurePreview weaponClass={weapon.weapon_class} />
+
+        <div className={s.statsRow}>
+          <span className={s.statChip}>+{((LEVEL_MULT[weapon.rarity] ?? 0.03) * 100).toFixed(0)}% {t.ui.stat_dmg_per_level}</span>
+          <span className={s.statChip}>×{classDef.base_damage_mult} {t.ui.stat_base_damage}</span>
+          <span className={s.statChip}>×{classDef.stamina_mod} {t.ui.stat_stamina_cost}</span>
+          {Object.entries(weapon.scaling).map(([stat, grade]) => (
+            <span key={stat} className={s.scalingChip}>{stat} {grade}</span>
+          ))}
+        </div>
+
+        {weapon.affixes.length > 0 && (
+          <div className={s.affixList}>
+            {weapon.affixes.map(a => <span key={a.id} className={s.affix}>{a.label}</span>)}
+          </div>
+        )}
+
+        <div className={s.contentToggleRow}>
           <span className={[s.slotCount, slotLoad.used > slotLoad.capacity ? s.slotOver : ''].join(' ')}>
             {slotLoad.used} / {slotLoad.capacity}
           </span>
+          <button
+            className={s.btnToggleContent}
+            onClick={() => setExpandedContent(e => ({ ...e, [wid]: !e[wid] }))}
+          >
+            {isExpanded ? t.ui.equip_hide_content : t.ui.equip_show_content} {isExpanded ? '▲' : '▼'}
+          </button>
         </div>
 
-        <div className={s.slotList}>
-          {Array.from({ length: slotLoad.capacity }).map((_, i) => {
-            const item = attached[i]
-            if (item) {
+        {isExpanded && (
+          <div className={s.slotList}>
+            {Array.from({ length: slotLoad.capacity }).map((_, i) => {
+              const item = attached[i]
+              if (item) {
+                return (
+                  <div key={i} className={s.slotRow}>
+                    <span className={s.slotItemName}>{item.name || t.ui.untitled}</span>
+                    <button className={s.btnDetach} onClick={() => store.detachContentFromWeapon(item.id)}>
+                      {t.ui.btn_detach}
+                    </button>
+                  </div>
+                )
+              }
               return (
                 <div key={i} className={s.slotRow}>
-                  <span className={s.slotItemName}>{item.name || t.ui.untitled}</span>
-                  <button className={s.btnDetach} onClick={() => store.detachContentFromWeapon(item.id)}>
-                    {t.ui.btn_detach}
-                  </button>
+                  <select
+                    className={s.slotSelect}
+                    value=""
+                    onChange={e => handleAssign(wid, e.target.value)}
+                  >
+                    <option value="">{t.ui.equip_slot_assign}</option>
+                    {assignable.map(c => (
+                      <option key={c.id} value={c.id}>{c.name || t.ui.untitled}</option>
+                    ))}
+                  </select>
+                  <span className={s.slotEmptyLabel}>{t.ui.equip_slot_empty}</span>
                 </div>
               )
-            }
-            return (
-              <div key={i} className={s.slotRow}>
-                <select
-                  className={s.slotSelect}
-                  value=""
-                  onChange={e => handleAssign(wid, e.target.value)}
-                >
-                  <option value="">{t.ui.equip_slot_assign}</option>
-                  {assignable.map(c => (
-                    <option key={c.id} value={c.id}>{c.name || t.ui.untitled}</option>
-                  ))}
-                </select>
-                <span className={s.slotEmptyLabel}>{t.ui.equip_slot_empty}</span>
-              </div>
-            )
-          })}
-        </div>
+            })}
+          </div>
+        )}
       </div>
     )
   }

@@ -33,22 +33,22 @@ export function generateRemasterWorkflow(weaponClass: WeaponClass): WorkflowGrap
     tiles.push(tile)
   }
 
-  const transformTile = makeTile('Plan')
+  const transformTile = makeTile('Plan', cls.time_mod)
   transformTile.content_origin = pick(cls.allowed_transformations)
   push(transformTile)
 
-  const lengthTile = makeTile('Plan')
+  const lengthTile = makeTile('Plan', cls.time_mod)
   lengthTile.time_budget = pick(ATOMIC_TIMES)
   push(lengthTile)
 
   for (let i = 0; i < styleCount; i++) {
-    const t = makeTile('Plan')
+    const t = makeTile('Plan', cls.time_mod)
     if (cls.base_damage_types.length > 0) t.damage_type = pick(cls.base_damage_types)
     push(t)
   }
 
   for (let i = 0; i < emotionCount; i++) {
-    const t = makeTile('Plan')
+    const t = makeTile('Plan', cls.time_mod)
     if (cls.inherent_status) t.status = cls.inherent_status
     push(t)
   }

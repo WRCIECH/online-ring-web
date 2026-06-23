@@ -8,7 +8,7 @@ import { WEAPON_CLASSES, type WeaponClassDef } from './weaponClasses'
 // outline->Plan, draft->Produce, edit->Refine, publish->Publish.
 // Promote is a later addition — a quick "announce/cross-post" action.
 
-const STAGE_TIME: Record<AtomicStage, { light: number; heavy: number }> = {
+export const STAGE_TIME: Record<AtomicStage, { light: number; heavy: number }> = {
   Research: { light: 300, heavy: 900 },
   Plan:     { light: 240, heavy: 600 },
   Produce:  { light: 600, heavy: 1800 },
@@ -83,11 +83,11 @@ function randInt(min: number, max: number): number {
   return min + Math.floor(Math.random() * (max - min + 1))
 }
 
-export function makeTile(stage: AtomicStage): WorkflowTile {
+export function makeTile(stage: AtomicStage, timeMod = 1.0): WorkflowTile {
   const t = STAGE_TIME[stage]
   return {
     id: tid(), type: stage, name: pickName(stage),
-    time_light: t.light, time_heavy: t.heavy,
+    time_light: Math.round(t.light * timeMod), time_heavy: Math.round(t.heavy * timeMod),
     is_completed: false, repeat_count: 0,
   }
 }
@@ -142,7 +142,7 @@ function compilePhase(step: { stage: AtomicStage; min: number; max: number }, ct
     ctx.produceBoostApplied = true
   }
   const count = randInt(step.min, max)
-  const newTiles = Array.from({ length: count }, () => makeTile(step.stage))
+  const newTiles = Array.from({ length: count }, () => makeTile(step.stage, ctx.cls.time_mod))
   ctx.tiles.push(...newTiles)
 
   linkFrontier(ctx, newTiles[0].id)
@@ -164,7 +164,7 @@ function compileDrawFormat(ctx: CompileContext): void {
     const t = ctx.tiles.find(t => t.id === id)!
     t.content_type = value
   }
-  const planTile = makeTile('Plan')
+  const planTile = makeTile('Plan', ctx.cls.time_mod)
   planTile.content_type = value
   ctx.tiles.push(planTile)
   linkFrontier(ctx, planTile.id)
@@ -182,7 +182,7 @@ function compileDrawTransformation(ctx: CompileContext): void {
     const t = ctx.tiles.find(t => t.id === id)!
     t.content_origin = value
   }
-  const planTile = makeTile('Plan')
+  const planTile = makeTile('Plan', ctx.cls.time_mod)
   planTile.content_origin = value
   ctx.tiles.push(planTile)
   linkFrontier(ctx, planTile.id)
@@ -193,7 +193,7 @@ function compileDrawStyle(step: { probability: number }, ctx: CompileContext): v
   const pool = ctx.cls.base_damage_types
   if (pool.length === 0 || Math.random() >= step.probability) return
   const value = pool[Math.floor(Math.random() * pool.length)]
-  const planTile = makeTile('Plan')
+  const planTile = makeTile('Plan', ctx.cls.time_mod)
   planTile.damage_type = value
   ctx.tiles.push(planTile)
   linkFrontier(ctx, planTile.id)
@@ -203,7 +203,7 @@ function compileDrawStyle(step: { probability: number }, ctx: CompileContext): v
 function compileDrawEmotion(step: { probability: number }, ctx: CompileContext): void {
   const pool = ctx.cls.inherent_status ? [ctx.cls.inherent_status] : []
   if (pool.length === 0 || Math.random() >= step.probability) return
-  const planTile = makeTile('Plan')
+  const planTile = makeTile('Plan', ctx.cls.time_mod)
   planTile.status = pool[0]
   ctx.tiles.push(planTile)
   linkFrontier(ctx, planTile.id)
