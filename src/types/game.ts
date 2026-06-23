@@ -215,8 +215,6 @@ export interface GameState {
   // Active workflow (persisted across mob fights until all tiles done or abandoned)
   active_workflow: WorkflowGraph | null
   active_content_id: string | null
-  // Epoch ms of the last boss kill, for the boss-rush damage bonus
-  last_boss_kill_at: number | null
   // Content pipeline
   content_items: ContentItem[]
   // Analytics

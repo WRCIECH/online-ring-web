@@ -8,8 +8,6 @@ import { playSound } from '../engine/sound'
 import type { WeaponInstance, WeaponRarity, MoveType } from '../types/game'
 import { rollWeapon } from '../data/generators/weaponGenerator'
 import { generateWorkflow } from '../data/generators/workflowGenerator'
-import { WEAPON_CLASSES } from '../data/generators/weaponClasses'
-import { FLOW_GAP_HOT_MINS, FLOW_GAP_WARM_MINS, FLOW_GAP_COLD_MINS, FLOW_MULT_HOT, FLOW_MULT_WARM, FLOW_MULT_COLD, FLOW_MULT_DEAD } from '../data/constants'
 import RunHeader    from '../components/layout/RunHeader'
 import TimerOverlay from '../components/combat/TimerOverlay'
 import CombatLog    from '../components/combat/CombatLog'
@@ -87,18 +85,6 @@ export default function CombatScreen() {
       // Resume persisted workflow or generate fresh
       const workflow = store.active_workflow ?? generateWorkflow(initialWeaponClass, initialWeaponRarity, enemyData.is_boss)
 
-      // Boss-rush damage bonus — gap since your last boss kill, weapon-modified
-      let bossRushMult = 1.0
-      if (enemyData.is_boss && store.last_boss_kill_at) {
-        const gapMin = (Date.now() - store.last_boss_kill_at) / 60000
-        const flowMult = gapMin < FLOW_GAP_HOT_MINS  ? FLOW_MULT_HOT
-          : gapMin < FLOW_GAP_WARM_MINS ? FLOW_MULT_WARM
-          : gapMin < FLOW_GAP_COLD_MINS ? FLOW_MULT_COLD
-          : FLOW_MULT_DEAD
-        const coeff = WEAPON_CLASSES[initialWeaponClass]?.boss_rush_coeff ?? 1.0
-        bossRushMult = 1 + (flowMult - 1) * coeff
-      }
-
       return initCombatState(
         workflow, enemyData, loc.enemy_id,
         initialWeaponId, initialWeaponLevel,
@@ -107,7 +93,7 @@ export default function CombatScreen() {
         store.stats,
         store.abandon_penalty,
         store.incoming_curses, store.maxStamina(), store.maxStamina(),
-        slotBonusMult, isRemasterPass, bossRushMult,
+        slotBonusMult, isRemasterPass,
       )
     }
   )
@@ -176,7 +162,6 @@ export default function CombatScreen() {
     store.setIncomingCurses(state.activeCurses.filter(c => !c.lifted).map(c => c.enemyId))
     lootItems?.forEach(item => store.addWeaponInstance(item.instance))
     store.addDefeatedEnemy(loc.enemy_id)
-    if (enemyData?.is_boss) store.recordBossKill()
     // Persist or clear workflow
     const allDone = state.workflow.tiles.every(t => t.is_completed)
     if (allDone) {

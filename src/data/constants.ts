@@ -37,23 +37,16 @@ export const STA_BLOCK = 15
 /** Stamina restored on a successful defense (roll/parry/block). */
 export const STA_DEFENSE_GAIN = 25
 
-// ── Combat — flow-state gap multiplier ───────────────────────────────────────
+// ── Combat — idle gap thresholds ─────────────────────────────────────────────
+// Used by the burnout_shade curse (CurseDisplay/combat.ts) to scale its
+// penalty by how long it's been since your last tile completion.
 
-/** Minutes of idle gap below which the player gets the flow-state bonus. */
+/** Minutes of idle gap below which there's no burnout penalty. */
 export const FLOW_GAP_HOT_MINS   = 15
-/** Minutes of idle gap below which damage is at baseline (no bonus/malus). */
+/** Minutes of idle gap below which the burnout penalty is at 1/3 intensity. */
 export const FLOW_GAP_WARM_MINS  = 60
-/** Minutes of idle gap below which damage is halved. */
+/** Minutes of idle gap below which the burnout penalty is at 2/3 intensity. */
 export const FLOW_GAP_COLD_MINS  = 240
-
-/** Damage multiplier when gap < FLOW_GAP_HOT_MINS (flow state). */
-export const FLOW_MULT_HOT   = 1.5
-/** Damage multiplier when gap is between hot and warm thresholds. */
-export const FLOW_MULT_WARM  = 1.0
-/** Damage multiplier when gap is between warm and cold thresholds. */
-export const FLOW_MULT_COLD  = 0.5
-/** Damage multiplier when gap exceeds FLOW_GAP_COLD_MINS (fully cold). */
-export const FLOW_MULT_DEAD  = 0.0
 
 // ── Combat — baseline stamina cost per attack ────────────────────────────────
 // Scaled per weapon class by WeaponClassDef.stamina_mod. Drains the same pool
@@ -70,14 +63,6 @@ export const BASE_STAMINA_COST_HEAVY = 8
 /** Damage bonus on top of the time-ratio scaling for choosing Heavy. */
 export const HEAVY_TIME_BONUS = 1.15
 
-// ── Combat — weapon overheat ─────────────────────────────────────────────────
-
-/** Damage penalty per use over the weapon's heat threshold (as a fraction). */
-export const OVERHEAT_PENALTY_PER_USE = 0.025
-
-/** Maximum overheat damage penalty (as a fraction; 0.75 = −75%). */
-export const OVERHEAT_PENALTY_MAX = 0.75
-
 // ── Combat — stagger ─────────────────────────────────────────────────────────
 
 /** Duration of the stagger pause between phases in ms. */
@@ -87,13 +72,6 @@ export const STAGGER_PAUSE_MS = 1500
 
 /** Status buildup added per hit. */
 export const STATUS_BUILDUP_PER_HIT = 35
-
-// ── Damage type multipliers ───────────────────────────────────────────────────
-
-/** Damage multiplier when hitting a weakness. */
-export const DMG_WEAKNESS_MULT   = 1.3
-/** Damage multiplier when hitting a resistance. */
-export const DMG_RESISTANCE_MULT = 0.7
 
 // ── Sacrifice (skip task early at HP cost) ────────────────────────────────────
 
@@ -105,30 +83,11 @@ export const SACRIFICE_MULT = 2.0
 /** Bonus per stat point above 8, for each stat a tile's content type lists. Flat grade-B equivalent. */
 export const CONTENT_TYPE_STAT_BONUS = 0.015
 
-// ── Momentum damage bonus ─────────────────────────────────────────────────────
-
-/** How long the post-victory momentum bonus lasts (ms). */
-export const MOMENTUM_DURATION_MS = 30 * 60 * 1000
-
-/** Starting bonus multiplier above 1.0 (0.30 = +30%). */
-export const MOMENTUM_MAX_BONUS = 0.30
-
 /** Seconds after combat start before an idle player is kicked back to the map. */
 export const IDLE_KICK_MS = 2 * 60 * 1000
 
 /** Seconds the player has to publish content after defeating a boss. */
 export const BOSS_PUBLISH_TIME_S = 600
-
-/**
- * Returns the current damage multiplier from the momentum bonus.
- * Decays linearly from 1.30 → 1.00 over MOMENTUM_DURATION_MS.
- */
-export function momentumMult(lastVictoryTime: number): number {
-  if (!lastVictoryTime) return 1
-  const elapsed = Date.now() - lastVictoryTime
-  if (elapsed >= MOMENTUM_DURATION_MS) return 1
-  return 1 + MOMENTUM_MAX_BONUS * (1 - elapsed / MOMENTUM_DURATION_MS)
-}
 
 // ── Leveling ─────────────────────────────────────────────────────────────────
 

@@ -173,7 +173,6 @@ function initialState(): GameState {
     incoming_curses: [],
     active_workflow: null,
     active_content_id: null,
-    last_boss_kill_at: null,
     content_items: [],
 
     total_task_time_s: 0,
@@ -236,7 +235,6 @@ export interface GameStore extends GameState {
   startRemaster:           (contentId: string, weaponClass: WeaponClass) => void
   attachContentToWeapon:   (contentId: string, weaponInstanceId: string) => void
   detachContentFromWeapon: (contentId: string) => void
-  recordBossKill: () => void
 
   // Learning items
 
@@ -481,11 +479,6 @@ export const useGameStore = create<GameStore>((set, get) => ({
     get().save()
   },
 
-  recordBossKill: () => {
-    set({ last_boss_kill_at: Date.now() })
-    get().save()
-  },
-
   setLocale: (locale) => { set({ locale }); get().save() },
 
   save: () => saveGame(get()),
@@ -501,7 +494,6 @@ export const useGameStore = create<GameStore>((set, get) => ({
     if (!data.incoming_curses) data.incoming_curses = []
     if (data.active_workflow  === undefined) data.active_workflow  = null
     if (data.active_content_id === undefined) data.active_content_id = null
-    if (data.last_boss_kill_at === undefined) data.last_boss_kill_at = null
     hydrateRegistries(data)
     set({ ...data })
     return true

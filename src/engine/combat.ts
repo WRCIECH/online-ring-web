@@ -47,7 +47,6 @@ export interface CombatState {
   slotBonusMult: Record<string, number>   // per-weapon-id damage multiplier from filled content slots
   consistencyStreak: number   // consecutive completions without switching weapon/content; resets on either
   isRemasterPass: boolean     // true while working a remaster-originated workflow
-  bossRushMult: number        // damage multiplier from gap since last boss kill; 1.0 outside boss fights
   // Curses
   activeCurses: ActiveCurse[]
   lastTileCompletionAt: number
@@ -138,12 +137,6 @@ function calcTileDamage(
     : Math.round(base)
 }
 
-// Per-weapon Heavy bonus — stacks with the time-ratio scaling above.
-function heavyBonusMultFor(weapon: WeaponInstance | undefined, move: MoveType): number {
-  if (move !== 'Heavy' || !weapon) return 1.0
-  return WEAPON_CLASSES[weapon.weapon_class]?.heavy_bonus_mult ?? 1.0
-}
-
 // +5% per consecutive completion without switching weapon/content, capped at +50%.
 function consistencyMultFor(streak: number): number {
   return 1.0 + Math.min(0.5, 0.05 * streak)
@@ -160,7 +153,6 @@ export function previewMove(state: CombatState, tile: WorkflowTile, move: MoveTy
   const repeatPenalty   = Math.min(REPEAT_PENALTY_MAX, tile.repeat_count * REPEAT_PENALTY_PER_RETRY)
   const cursePenalty    = computeCursePenalty(state)
   const slotMult        = state.slotBonusMult[state.equippedWeaponId] ?? 1.0
-  const heavyBonusMult   = heavyBonusMultFor(weapon, move)
   const consistencyMult  = consistencyMultFor(state.consistencyStreak)
   const remasterMult     = state.isRemasterPass ? 1.2 : 1.0
   const isRepeat       = tile.is_completed
@@ -170,7 +162,7 @@ export function previewMove(state: CombatState, tile: WorkflowTile, move: MoveTy
   const finisherMult   = wouldFinishAll ? 3.0 : 1.0
   const damage         = Math.round(
     repeatDamage * (1 - repeatPenalty) * (1 - state.incomingPenalty) * (1 - cursePenalty.damagePct)
-      * slotMult * heavyBonusMult * consistencyMult * remasterMult * state.bossRushMult * finisherMult
+      * slotMult * consistencyMult * remasterMult * finisherMult
   )
   return { duration, damage }
 }
@@ -295,7 +287,6 @@ export function initCombatState(
   playerMaxStamina: number,
   slotBonusMult: Record<string, number> = {},
   isRemasterPass = false,
-  bossRushMult = 1.0,
 ): CombatState {
   const activeCurses = buildActiveCurses(enemyId, incomingCurseIds)
   let state: CombatState = {
@@ -308,7 +299,7 @@ export function initCombatState(
     equippedWeaponId, weaponLevel, playerStats,
     incomingPenalty,
     slotBonusMult,
-    consistencyStreak: 0, isRemasterPass, bossRushMult,
+    consistencyStreak: 0, isRemasterPass,
     activeCurses, lastTileCompletionAt: 0,
     enemyData: enemy, isBoss: enemy.is_boss,
     enemyHp: enemy.max_hp, enemyMaxHp: enemy.max_hp,
@@ -412,7 +403,6 @@ export function combatReducer(state: CombatState, action: CombatAction): CombatS
       const repeatPenalty   = Math.min(REPEAT_PENALTY_MAX, tile.repeat_count * REPEAT_PENALTY_PER_RETRY)
       const cursePenalty    = computeCursePenalty(state)
       const slotMult        = state.slotBonusMult[state.equippedWeaponId] ?? 1.0
-      const heavyBonusMult  = heavyBonusMultFor(weapon, move)
       const consistencyMult = consistencyMultFor(state.consistencyStreak)
       const remasterMult    = state.isRemasterPass ? 1.2 : 1.0
 
@@ -430,7 +420,7 @@ export function combatReducer(state: CombatState, action: CombatAction): CombatS
       const repeatDamage  = isRepeat ? Math.round(rawDamage * (1 - REPEAT_DAMAGE_PENALTY)) : rawDamage
       const damage        = Math.round(
         repeatDamage * (1 - repeatPenalty) * (1 - state.incomingPenalty) * (1 - cursePenalty.damagePct)
-          * slotMult * heavyBonusMult * consistencyMult * remasterMult * state.bossRushMult * finisherMult
+          * slotMult * consistencyMult * remasterMult * finisherMult
       )
       const newEnemyHp    = Math.max(0, state.enemyHp - damage)
       const staminaCost   = (move === 'Heavy' ? BASE_STAMINA_COST_HEAVY : BASE_STAMINA_COST_LIGHT)
