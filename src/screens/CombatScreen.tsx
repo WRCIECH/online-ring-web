@@ -324,7 +324,6 @@ export default function CombatScreen() {
             workflow={state.workflow}
             selectedTileId={state.selectedTileId}
             onSelectTile={handleTileClick}
-            weaponClass={wClass}
           />
           {isPlayerTurn && radialPos && radialItems.length > 0 && (
             <MoveRadialMenu
