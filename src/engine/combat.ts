@@ -44,7 +44,6 @@ export interface CombatState {
   weaponLevel: number
   playerStats: Stats
   incomingPenalty: number   // from prior abandon; 0.0 = none
-  slotBonusMult: Record<string, number>   // per-weapon-id damage multiplier from filled content slots
   consistencyStreak: number   // consecutive completions without switching weapon/content; resets on either
   isRemasterPass: boolean     // true while working a remaster-originated workflow
   // Curses
@@ -142,17 +141,31 @@ function consistencyMultFor(streak: number): number {
   return 1.0 + Math.min(0.5, 0.05 * streak)
 }
 
+// One named factor in the damage chain — `active` is true whenever it's
+// actually pulling the number away from 1.0 right now, so the UI can grey out
+// whichever bonuses/penalties aren't currently contributing.
+export interface DamageMultiplier {
+  key:    string
+  value:  number    // multiplicative factor; <1 is a penalty, >1 is a bonus
+  active: boolean
+}
+
+export function formatMultiplierPct(value: number): string {
+  const pct = Math.round((value - 1) * 100)
+  return pct >= 0 ? `+${pct}%` : `−${Math.abs(pct)}%`
+}
+
 // Preview of a move's outcome — mirrors the CHOOSE_MOVE/TIMER_RESULT success math exactly,
 // so the move-picker tooltip never drifts from the actual damage dealt.
 export function previewMove(state: CombatState, tile: WorkflowTile, move: MoveType): {
   duration: number
   damage:   number
+  multipliers: DamageMultiplier[]
 } {
   const duration       = move === 'Heavy' ? tile.time_heavy : tile.time_light
   const weapon         = WEAPONS[state.equippedWeaponId] as WeaponInstance | undefined
   const repeatPenalty   = Math.min(REPEAT_PENALTY_MAX, tile.repeat_count * REPEAT_PENALTY_PER_RETRY)
   const cursePenalty    = computeCursePenalty(state)
-  const slotMult        = state.slotBonusMult[state.equippedWeaponId] ?? 1.0
   const consistencyMult  = consistencyMultFor(state.consistencyStreak)
   const remasterMult     = state.isRemasterPass ? 1.2 : 1.0
   const isRepeat       = tile.is_completed
@@ -162,9 +175,23 @@ export function previewMove(state: CombatState, tile: WorkflowTile, move: MoveTy
   const finisherMult   = wouldFinishAll ? 3.0 : 1.0
   const damage         = Math.round(
     repeatDamage * (1 - repeatPenalty) * (1 - state.incomingPenalty) * (1 - cursePenalty.damagePct)
-      * slotMult * consistencyMult * remasterMult * finisherMult
+      * consistencyMult * remasterMult * finisherMult
   )
-  return { duration, damage }
+  // `value` is the nominal magnitude for fixed bonuses/penalties (shown
+  // greyed-out even when inactive, so the player can see what they're
+  // missing out on) and the live current magnitude for state-scaled ones
+  // (which naturally read as "no effect" when inactive).
+  const multipliers: DamageMultiplier[] = [
+    { key: 'heavyBonus',     value: HEAVY_TIME_BONUS,          active: move === 'Heavy' },
+    { key: 'repeatFlat',     value: 1 - REPEAT_DAMAGE_PENALTY, active: isRepeat },
+    { key: 'repeatScaling',  value: 1 - repeatPenalty,         active: repeatPenalty > 0 },
+    { key: 'abandon',        value: 1 - state.incomingPenalty, active: state.incomingPenalty > 0 },
+    { key: 'curse',          value: 1 - cursePenalty.damagePct, active: cursePenalty.damagePct > 0 },
+    { key: 'streak',         value: consistencyMult,           active: state.consistencyStreak > 0 },
+    { key: 'remaster',       value: 1.2,                        active: state.isRemasterPass },
+    { key: 'finisher',       value: 3.0,                        active: wouldFinishAll },
+  ]
+  return { duration, damage, multipliers }
 }
 
 // ── Curses ────────────────────────────────────────────────────────────────
@@ -285,7 +312,6 @@ export function initCombatState(
   incomingCurseIds: string[],
   playerStamina: number,
   playerMaxStamina: number,
-  slotBonusMult: Record<string, number> = {},
   isRemasterPass = false,
 ): CombatState {
   const activeCurses = buildActiveCurses(enemyId, incomingCurseIds)
@@ -298,7 +324,6 @@ export function initCombatState(
     playerStamina, playerMaxStamina,
     equippedWeaponId, weaponLevel, playerStats,
     incomingPenalty,
-    slotBonusMult,
     consistencyStreak: 0, isRemasterPass,
     activeCurses, lastTileCompletionAt: 0,
     enemyData: enemy, isBoss: enemy.is_boss,
@@ -402,7 +427,6 @@ export function combatReducer(state: CombatState, action: CombatAction): CombatS
       const weapon        = WEAPONS[state.equippedWeaponId] as WeaponInstance | undefined
       const repeatPenalty   = Math.min(REPEAT_PENALTY_MAX, tile.repeat_count * REPEAT_PENALTY_PER_RETRY)
       const cursePenalty    = computeCursePenalty(state)
-      const slotMult        = state.slotBonusMult[state.equippedWeaponId] ?? 1.0
       const consistencyMult = consistencyMultFor(state.consistencyStreak)
       const remasterMult    = state.isRemasterPass ? 1.2 : 1.0
 
@@ -420,7 +444,7 @@ export function combatReducer(state: CombatState, action: CombatAction): CombatS
       const repeatDamage  = isRepeat ? Math.round(rawDamage * (1 - REPEAT_DAMAGE_PENALTY)) : rawDamage
       const damage        = Math.round(
         repeatDamage * (1 - repeatPenalty) * (1 - state.incomingPenalty) * (1 - cursePenalty.damagePct)
-          * slotMult * consistencyMult * remasterMult * finisherMult
+          * consistencyMult * remasterMult * finisherMult
       )
       const newEnemyHp    = Math.max(0, state.enemyHp - damage)
       const staminaCost   = (move === 'Heavy' ? BASE_STAMINA_COST_HEAVY : BASE_STAMINA_COST_LIGHT)

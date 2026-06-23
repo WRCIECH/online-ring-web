@@ -314,6 +314,15 @@
   cursor: default;
 }
 
+.badgeActive {
+  color: var(--color-gold-dim);
+  border-color: var(--color-gold-dim);
+}
+
+.badgeInactive {
+  opacity: 0.4;
+}
+
 /* Transparent full-screen backdrop — closes dropdown on outside click */
 .articleBackdrop {
   position: fixed;

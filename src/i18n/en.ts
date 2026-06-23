@@ -354,6 +354,16 @@ const en: TranslationBundle = {
     counter_dmg_label:       'counter-dmg, full STA',
     penalty_title:           'Total damage penalty from mismatches',
 
+    // Damage multiplier breakdown (MoveRadialMenu / TimerOverlay)
+    mult_heavyBonus:    'Heavy bonus',
+    mult_repeatFlat:    'Repeat',
+    mult_repeatScaling: 'Repeat (scaling)',
+    mult_abandon:       'Abandon penalty',
+    mult_curse:         'Curse',
+    mult_streak:        'Consistency streak',
+    mult_remaster:      'Remaster bonus',
+    mult_finisher:      'Finishing blow',
+
     // RunHeader
     run_prefix:   'Run #',
     btn_equip:    '⚙ Equip',

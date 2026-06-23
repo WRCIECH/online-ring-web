@@ -1,7 +1,7 @@
 import { useReducer, useEffect, useCallback, useState, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { combatReducer, initCombatState, getReachableTiles, previewMove, REPEAT_DAMAGE_PENALTY, ABANDON_PENALTY } from '../engine/combat'
-import { useGameStore, selectWeaponSlotLoad } from '../store/gameStore'
+import { combatReducer, initCombatState, getReachableTiles, previewMove, formatMultiplierPct, ABANDON_PENALTY } from '../engine/combat'
+import { useGameStore } from '../store/gameStore'
 import { ENEMIES } from '../data/enemies'
 import { WEAPONS } from '../data/weapons'
 import { playSound } from '../engine/sound'
@@ -18,11 +18,12 @@ import EnemyDisplay from '../components/combat/EnemyDisplay'
 import CurseDisplay from '../components/combat/CurseDisplay'
 import CombatMusic  from '../components/combat/CombatMusic'
 import { COMBAT_MUSIC } from '../data/combatMusic'
+import { useT } from '../i18n'
 import s from './CombatScreen.module.css'
 
 const MOVE_DEFS: Array<{ move: MoveType; label: string; desc: string; colorVar: string }> = [
-  { move: 'Light', label: 'Light', desc: 'Less time, base reward',   colorVar: '#88aadd' },
-  { move: 'Heavy', label: 'Heavy', desc: 'More time, 1.5× reward',   colorVar: '#dd9977' },
+  { move: 'Light', label: 'Light', desc: 'Less time',                  colorVar: '#88aadd' },
+  { move: 'Heavy', label: 'Heavy', desc: 'More time, bonus for it',    colorVar: '#dd9977' },
 ]
 const RADIAL_RADIUS = 86
 
@@ -41,6 +42,7 @@ const RARITY_COLOURS: Record<WeaponRarity, string> = {
 export default function CombatScreen() {
   const navigate = useNavigate()
   const store    = useGameStore()
+  const t        = useT()
   const loc      = store.pending_encounter
 
   useEffect(() => { if (!loc) navigate('/map') }, [loc, navigate])
@@ -53,13 +55,6 @@ export default function CombatScreen() {
   const initialWeaponLevel = store.weapon_level[initialWeaponId] ?? 0
   const initialWeaponClass  = initialWeapon?.weapon_class ?? 'straight_swords'
   const initialWeaponRarity = initialWeapon?.rarity        ?? 'common'
-
-  // ── Per-weapon damage bonus from filled content slots (1.0, 1.1, 1.2...) ─
-  const slotBonusMult: Record<string, number> = {}
-  for (const wid of store.equipped_run_weapons) {
-    const load = selectWeaponSlotLoad(store as Parameters<typeof selectWeaponSlotLoad>[0], wid)
-    slotBonusMult[wid] = 1.0 + 0.1 * Math.max(0, Math.min(load.used, load.capacity) - 1)
-  }
 
   // ── Remaster pass — true if the content being worked on is mid-remaster ──
   const isRemasterPass = !!store.active_content_id
@@ -93,7 +88,7 @@ export default function CombatScreen() {
         store.stats,
         store.abandon_penalty,
         store.incoming_curses, store.maxStamina(), store.maxStamina(),
-        slotBonusMult, isRemasterPass,
+        isRemasterPass,
       )
     }
   )
@@ -271,9 +266,10 @@ export default function CombatScreen() {
         sublabel: `${fmtMoveTime(preview.duration)} · ${def.desc}`,
         metaParts: [
           { text: `⚔ ${preview.damage}`, color: '#cc6644' },
-          ...(selectedTile.is_completed
-            ? [{ text: `repeat −${Math.round(REPEAT_DAMAGE_PENALTY * 100)}% dmg`, color: '#888' }]
-            : []),
+          ...preview.multipliers.map(m => ({
+            text:  `${t.ui[`mult_${m.key}`] ?? m.key} ${formatMultiplierPct(m.value)}`,
+            color: m.active ? undefined : '#555',
+          })),
         ],
         colorVar: def.colorVar,
         tx: Math.cos(angle) * RADIAL_RADIUS,
@@ -281,7 +277,7 @@ export default function CombatScreen() {
         onSelect: () => dispatch({ type: 'CHOOSE_MOVE', move: def.move }),
       }
     })
-  }, [radialPos, selectedTile, state])
+  }, [radialPos, selectedTile, state, t])
 
   if (!loc || !enemyData) return null
 

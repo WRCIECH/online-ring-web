@@ -1,5 +1,5 @@
 import { useEffect, useMemo } from 'react'
-import { previewMove, type CombatState, type CombatAction } from '../../engine/combat'
+import { previewMove, formatMultiplierPct, type CombatState, type CombatAction } from '../../engine/combat'
 import { SACRIFICE_MULT } from '../../data/constants'
 import { getTileBadges, computeEffectiveTags } from '../../data/tileBadges'
 import { useT } from '../../i18n'
@@ -93,6 +93,18 @@ export default function TimerOverlay({ state, dispatch, contentName }: Props) {
             {pendingMove && (
               <div style={{ marginTop: 6, fontSize: '0.78rem', color: 'var(--color-text-dim)', letterSpacing: '0.05em' }}>
                 {MOVE_LABEL[pendingMove]}
+              </div>
+            )}
+            {pendingTile && pendingMove && (
+              <div className={s.badgeRow} style={{ marginTop: 6 }}>
+                {previewMove(state, pendingTile, pendingMove).multipliers.map(m => (
+                  <span
+                    key={m.key}
+                    className={[s.badge, m.active ? s.badgeActive : s.badgeInactive].join(' ')}
+                  >
+                    {t.ui[`mult_${m.key}`] ?? m.key} {formatMultiplierPct(m.value)}
+                  </span>
+                ))}
               </div>
             )}
           </div>
