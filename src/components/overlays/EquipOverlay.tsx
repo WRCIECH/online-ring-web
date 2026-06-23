@@ -56,7 +56,7 @@ export default function EquipOverlay({ onClose }: Props) {
 
         <div className={s.weaponDesc}>{t.weapons[weapon.weapon_class]?.description ?? classDef.description}</div>
 
-        <WeaponStructurePreview weaponClass={weapon.weapon_class} />
+        <WeaponStructurePreview weapon={weapon} />
 
         <div className={s.statsRow}>
           <span className={s.statChip}>+{((LEVEL_MULT[weapon.rarity] ?? 0.03) * 100).toFixed(0)}% {t.ui.stat_dmg_per_level}</span>

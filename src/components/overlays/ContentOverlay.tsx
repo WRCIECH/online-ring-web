@@ -62,7 +62,7 @@ export default function ContentOverlay({ onClose, canAdd = true }: Props) {
     if (!item.attached_weapon_id) return
     const weapon = WEAPONS[item.attached_weapon_id] as WeaponInstance | undefined
     if (!weapon) return
-    store.startRemaster(item.id, weapon.weapon_class)
+    store.startRemaster(item.id, weapon.instance_id)
     onClose()
   }
 

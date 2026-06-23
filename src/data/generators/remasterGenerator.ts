@@ -1,9 +1,8 @@
-import type { WeaponClass, WorkflowGraph, WorkflowTile, WorkflowEdge, AtomicTime } from '../../types/game'
+import type { WeaponClass, WorkflowGraph, WorkflowTile, WorkflowEdge, RolledPatternDraws } from '../../types/game'
 import { WEAPON_PATTERNS } from './weaponPatterns'
 import { WEAPON_CLASSES } from './weaponClasses'
 import { makeTile, tid } from './workflowGenerator'
-
-const ATOMIC_TIMES: AtomicTime[] = ['Micro', 'Short', 'Medium', 'Long', 'Deep']
+import { ATOMIC_TIMES, countSlotsByKind } from './patternSlots'
 
 function pick<T>(arr: readonly T[]): T {
   return arr[Math.floor(Math.random() * arr.length)]
@@ -19,11 +18,19 @@ function pick<T>(arr: readonly T[]): T {
 // pattern draws Style twice (e.g. the spear group) get two Style retags.
 // Every tile is a standalone 'Plan' tile, forced (no probability roll —
 // remastering is a deliberate choice), chained linearly with no branching.
-export function generateRemasterWorkflow(weaponClass: WeaponClass): WorkflowGraph {
+// When `rolledDraws` is present (i.e. this weapon instance was created
+// after the fixed-per-instance-draws feature shipped), Style/Emotion
+// values come from its pre-rolled `stateIndex` state instead of a fresh
+// roll; Length comes from its single fixed value. Falls back to fresh
+// `pick()` rolls when absent (legacy weapon instances).
+export function generateRemasterWorkflow(
+  weaponClass: WeaponClass,
+  rolledDraws?: RolledPatternDraws,
+  stateIndex = 0,
+): WorkflowGraph {
   const cls = WEAPON_CLASSES[weaponClass]
-  const original = WEAPON_PATTERNS[weaponClass]
-  const styleCount = original.filter(s => s.kind === 'drawStyle').length
-  const emotionCount = original.filter(s => s.kind === 'drawEmotion').length
+  const pattern = WEAPON_PATTERNS[weaponClass]
+  const counts = countSlotsByKind(pattern)
 
   const tiles: WorkflowTile[] = []
   const edges: WorkflowEdge[] = []
@@ -34,22 +41,32 @@ export function generateRemasterWorkflow(weaponClass: WeaponClass): WorkflowGrap
   }
 
   const transformTile = makeTile('Plan', cls.time_mod)
-  transformTile.content_origin = pick(cls.allowed_transformations)
+  transformTile.content_origin = rolledDraws
+    ? (rolledDraws.transformation[0]?.[stateIndex] ?? undefined)
+    : pick(cls.allowed_transformations)
   push(transformTile)
 
   const lengthTile = makeTile('Plan', cls.time_mod)
-  lengthTile.time_budget = pick(ATOMIC_TIMES)
+  lengthTile.time_budget = rolledDraws ? rolledDraws.length : pick(ATOMIC_TIMES)
   push(lengthTile)
 
-  for (let i = 0; i < styleCount; i++) {
+  for (let i = 0; i < counts.style; i++) {
     const t = makeTile('Plan', cls.time_mod)
-    if (cls.base_damage_types.length > 0) t.damage_type = pick(cls.base_damage_types)
+    if (rolledDraws) {
+      t.damage_type = rolledDraws.style[i]?.[stateIndex] ?? undefined
+    } else if (cls.base_damage_types.length > 0) {
+      t.damage_type = pick(cls.base_damage_types)
+    }
     push(t)
   }
 
-  for (let i = 0; i < emotionCount; i++) {
+  for (let i = 0; i < counts.emotion; i++) {
     const t = makeTile('Plan', cls.time_mod)
-    if (cls.inherent_status) t.status = cls.inherent_status
+    if (rolledDraws) {
+      t.status = rolledDraws.emotion[i]?.[stateIndex] ?? undefined
+    } else if (cls.inherent_status) {
+      t.status = cls.inherent_status
+    }
     push(t)
   }
 
@@ -69,9 +86,23 @@ export function generateRemasterWorkflow(weaponClass: WeaponClass): WorkflowGrap
 // full Research→Produce→Refine→Publish structure intact instead of
 // collapsing to the short Plan-only retag chain generateRemasterWorkflow()
 // produces for content that has never been played (no snapshot yet).
-export function regenerateWorkflowKeepingStructure(original: WorkflowGraph, weaponClass: WeaponClass): WorkflowGraph {
+// When `rolledDraws` is present, content_type is reassigned the weapon's
+// single fixed Format value (shared across every tile that carries it,
+// since one drawFormat() roll tags multiple tiles); content_origin/
+// damage_type/status are reassigned from `rolledDraws`' per-occurrence
+// state sequence at `stateIndex`, consumed in tile storage order (which
+// matches pattern-traversal order 1:1 for these three, each occurrence
+// tagging exactly one tile). Falls back to fresh `pick()` rolls per tile
+// when absent (legacy weapon instances).
+export function regenerateWorkflowKeepingStructure(
+  original: WorkflowGraph,
+  weaponClass: WeaponClass,
+  rolledDraws?: RolledPatternDraws,
+  stateIndex = 0,
+): WorkflowGraph {
   const cls = WEAPON_CLASSES[weaponClass]
   const idMap = new Map<string, string>()
+  const counters = { transformation: 0, style: 0, emotion: 0 }
 
   const tiles: WorkflowTile[] = original.tiles.map(orig => {
     const newId = tid()
@@ -85,10 +116,28 @@ export function regenerateWorkflowKeepingStructure(original: WorkflowGraph, weap
       is_completed: false,
       repeat_count: 0,
     }
-    if (orig.content_type)                                  tile.content_type   = pick(cls.supported_products)
-    if (orig.content_origin)                                 tile.content_origin = pick(cls.allowed_transformations)
-    if (orig.damage_type && cls.base_damage_types.length > 0) tile.damage_type    = pick(cls.base_damage_types)
-    if (orig.status && cls.inherent_status)                  tile.status         = cls.inherent_status
+    if (orig.content_type) {
+      tile.content_type = rolledDraws ? rolledDraws.format : pick(cls.supported_products)
+    }
+    if (orig.content_origin) {
+      tile.content_origin = rolledDraws
+        ? (rolledDraws.transformation[counters.transformation++]?.[stateIndex] ?? undefined)
+        : pick(cls.allowed_transformations)
+    }
+    if (orig.damage_type) {
+      if (rolledDraws) {
+        tile.damage_type = rolledDraws.style[counters.style++]?.[stateIndex] ?? undefined
+      } else if (cls.base_damage_types.length > 0) {
+        tile.damage_type = pick(cls.base_damage_types)
+      }
+    }
+    if (orig.status) {
+      if (rolledDraws) {
+        tile.status = rolledDraws.emotion[counters.emotion++]?.[stateIndex] ?? undefined
+      } else if (cls.inherent_status) {
+        tile.status = cls.inherent_status
+      }
+    }
     return tile
   })
 

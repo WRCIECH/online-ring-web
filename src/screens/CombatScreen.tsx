@@ -78,7 +78,7 @@ export default function CombatScreen() {
         )
       }
       // Resume persisted workflow or generate fresh
-      const workflow = store.active_workflow ?? generateWorkflow(initialWeaponClass, initialWeaponRarity, enemyData.is_boss)
+      const workflow = store.active_workflow ?? generateWorkflow(initialWeaponClass, initialWeaponRarity, enemyData.is_boss, initialWeapon?.rolled_draws)
 
       return initCombatState(
         workflow, enemyData, loc.enemy_id,
@@ -226,12 +226,12 @@ export default function CombatScreen() {
     if (item && !item.attached_weapon_id) {
       store.attachContentToWeapon(id, state.equippedWeaponId)
     }
-    const newWorkflow = generateWorkflow(wClass, wRarity, enemyData?.is_boss ?? false)
+    const newWorkflow = generateWorkflow(wClass, wRarity, enemyData?.is_boss ?? false, weapon?.rolled_draws)
     dispatch({ type: 'SWITCH_WORKFLOW', workflow: newWorkflow, isRemaster: false })
   }
 
   const handleContinueContent = () => {
-    const newWorkflow = generateWorkflow(wClass, wRarity, enemyData?.is_boss ?? false)
+    const newWorkflow = generateWorkflow(wClass, wRarity, enemyData?.is_boss ?? false, weapon?.rolled_draws)
     dispatch({ type: 'SWITCH_WORKFLOW', workflow: newWorkflow, isRemaster: false })
   }
 

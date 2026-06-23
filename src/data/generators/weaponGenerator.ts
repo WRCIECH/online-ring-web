@@ -1,5 +1,6 @@
 import type { WeaponClass, WeaponRarity, WeaponInstance, Affix } from '../../types/game'
 import { WEAPON_CLASSES, ALL_WEAPON_CLASSES } from './weaponClasses'
+import { rollPatternDraws } from './patternSlots'
 import { registerWeapon } from '../weapons'
 
 function uid(): string {
@@ -81,6 +82,7 @@ export function rollWeapon(
     description:      classDef.description,
     stat_req:         {},
     scaling:          { ...classDef.scaling },
+    rolled_draws:     rollPatternDraws(cls),
   }
 
   registerWeapon(weapon)

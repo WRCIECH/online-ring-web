@@ -86,6 +86,21 @@ export interface Weapon {
   scaling: Partial<Record<StatKey, Grade>>
 }
 
+// All draws a weapon instance's pattern can make (Format/Transformation/
+// Style/Emotion/Length), rolled once at weapon-creation time and never
+// re-rolled per fight. Transformation/Style/Emotion each hold a fixed
+// sequence of states per occurrence — state 0 ("primary") is used for
+// normal content, states 1..N for the 1st..Nth remaster of attached
+// content (see WeaponClassDef.remaster_steps). Format and Length have no
+// remaster-state sequence — a single fixed value used everywhere.
+export interface RolledPatternDraws {
+  format: ContentProductType
+  transformation: (AtomicOrigin | null)[][]   // [occurrenceIndex][stateIndex]
+  style:          (DamageType   | null)[][]   // [occurrenceIndex][stateIndex]
+  emotion:        (StatusType   | null)[][]   // [occurrenceIndex][stateIndex]
+  length: AtomicTime
+}
+
 export interface WeaponInstance extends Weapon {
   instance_id: string
   weapon_class: WeaponClass
@@ -94,6 +109,9 @@ export interface WeaponInstance extends Weapon {
   base_damage_mult: number
   // kept for WeaponSprite rendering
   poise_weight?: 'light' | 'medium' | 'heavy' | 'colossal'
+  // absent on legacy saves predating this feature — consumers fall back
+  // to the old per-call random roll whenever this is undefined
+  rolled_draws?: RolledPatternDraws
 }
 
 // ── Enemy (simplified — no attack movesets) ───────────────────────────────

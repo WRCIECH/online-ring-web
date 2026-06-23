@@ -1,7 +1,8 @@
-import type { WeaponClass, WeaponRarity, AtomicStage, WorkflowTile, WorkflowEdge, WorkflowGraph } from '../../types/game'
+import type { WeaponClass, WeaponRarity, AtomicStage, WorkflowTile, WorkflowEdge, WorkflowGraph, RolledPatternDraws } from '../../types/game'
 import type { PatternStep } from './weaponPatterns'
 import { WEAPON_PATTERNS } from './weaponPatterns'
 import { WEAPON_CLASSES, type WeaponClassDef } from './weaponClasses'
+import type { SlotKind } from './patternSlots'
 
 // ── Time tables (seconds), keyed by the 6-stage vocabulary ────────────────
 // Carried over 1:1 from the old TileType table: research->Research,
@@ -102,12 +103,15 @@ interface CompileContext {
   frontier: string[]                       // tile ids the next step links FROM
   lastResearchBlockTileIds: string[] | null // reset whenever a non-Research phase runs
   produceBoostApplied: boolean             // ensures the rarity bonus only applies once
+  rolledDraws?: RolledPatternDraws         // fixed per-instance draws — absent for legacy weapons
+  slotCounters: Record<SlotKind, number>   // running per-kind occurrence index while consuming rolledDraws
 }
 
 export function compilePattern(
   steps: PatternStep[],
   cls: WeaponClassDef,
   rarity: WeaponRarity,
+  rolledDraws?: RolledPatternDraws,
 ): { tiles: WorkflowTile[]; edges: WorkflowEdge[] } {
   if (steps.length === 0 || steps[0].kind === 'branch') {
     throw new Error(`Pattern for ${cls.id} must start with a phase() step, not branch()`)
@@ -115,6 +119,7 @@ export function compilePattern(
   const ctx: CompileContext = {
     cls, rarity, tiles: [], edges: [], frontier: [],
     lastResearchBlockTileIds: null, produceBoostApplied: false,
+    rolledDraws, slotCounters: { transformation: 0, style: 0, emotion: 0 },
   }
   for (const step of steps) compileStep(step, ctx)
   return { tiles: ctx.tiles, edges: ctx.edges }
@@ -159,7 +164,7 @@ function compileDrawFormat(ctx: CompileContext): void {
     throw new Error(`drawFormat() in ${ctx.cls.id}'s pattern has no preceding phase('Research', ...) block`)
   }
   const pool = ctx.cls.supported_products
-  const value = pool[Math.floor(Math.random() * pool.length)]
+  const value = ctx.rolledDraws ? ctx.rolledDraws.format : pool[Math.floor(Math.random() * pool.length)]
   for (const id of ctx.lastResearchBlockTileIds) {
     const t = ctx.tiles.find(t => t.id === id)!
     t.content_type = value
@@ -175,9 +180,13 @@ function compileDrawTransformation(ctx: CompileContext): void {
   if (ctx.lastResearchBlockTileIds === null) {
     throw new Error(`drawTransformation() in ${ctx.cls.id}'s pattern has no preceding phase('Research', ...) block`)
   }
-  const pool = ctx.cls.allowed_transformations
-  if (pool.length === 0) return
-  const value = pool[Math.floor(Math.random() * pool.length)]
+  let value: ReturnType<typeof resolveTransformation>
+  if (ctx.rolledDraws) {
+    value = ctx.rolledDraws.transformation[ctx.slotCounters.transformation++]?.[0] ?? null
+  } else {
+    value = resolveTransformation(ctx.cls)
+  }
+  if (value === null) return
   for (const id of ctx.lastResearchBlockTileIds) {
     const t = ctx.tiles.find(t => t.id === id)!
     t.content_origin = value
@@ -189,10 +198,19 @@ function compileDrawTransformation(ctx: CompileContext): void {
   ctx.frontier = [planTile.id]
 }
 
+function resolveTransformation(cls: WeaponClassDef) {
+  const pool = cls.allowed_transformations
+  return pool.length === 0 ? null : pool[Math.floor(Math.random() * pool.length)]
+}
+
 function compileDrawStyle(step: { probability: number }, ctx: CompileContext): void {
-  const pool = ctx.cls.base_damage_types
-  if (pool.length === 0 || Math.random() >= step.probability) return
-  const value = pool[Math.floor(Math.random() * pool.length)]
+  let value: ReturnType<typeof resolveStyle>
+  if (ctx.rolledDraws) {
+    value = ctx.rolledDraws.style[ctx.slotCounters.style++]?.[0] ?? null
+  } else {
+    value = resolveStyle(ctx.cls, step.probability)
+  }
+  if (value === null) return
   const planTile = makeTile('Plan', ctx.cls.time_mod)
   planTile.damage_type = value
   ctx.tiles.push(planTile)
@@ -200,14 +218,28 @@ function compileDrawStyle(step: { probability: number }, ctx: CompileContext): v
   ctx.frontier = [planTile.id]
 }
 
+function resolveStyle(cls: WeaponClassDef, probability: number) {
+  const pool = cls.base_damage_types
+  return (pool.length === 0 || Math.random() >= probability) ? null : pool[Math.floor(Math.random() * pool.length)]
+}
+
 function compileDrawEmotion(step: { probability: number }, ctx: CompileContext): void {
-  const pool = ctx.cls.inherent_status ? [ctx.cls.inherent_status] : []
-  if (pool.length === 0 || Math.random() >= step.probability) return
+  let value: ReturnType<typeof resolveEmotion>
+  if (ctx.rolledDraws) {
+    value = ctx.rolledDraws.emotion[ctx.slotCounters.emotion++]?.[0] ?? null
+  } else {
+    value = resolveEmotion(ctx.cls, step.probability)
+  }
+  if (value === null) return
   const planTile = makeTile('Plan', ctx.cls.time_mod)
-  planTile.status = pool[0]
+  planTile.status = value
   ctx.tiles.push(planTile)
   linkFrontier(ctx, planTile.id)
   ctx.frontier = [planTile.id]
+}
+
+function resolveEmotion(cls: WeaponClassDef, probability: number) {
+  return (!cls.inherent_status || Math.random() >= probability) ? null : cls.inherent_status
 }
 
 function compileBranch(step: { paths: PatternStep[][] }, ctx: CompileContext): void {
@@ -229,10 +261,11 @@ export function generateWorkflow(
   weaponClass: WeaponClass,
   rarity: WeaponRarity,
   isBoss = false,
+  rolledDraws?: RolledPatternDraws,
 ): WorkflowGraph {
   const cls = WEAPON_CLASSES[weaponClass]
   const pattern = WEAPON_PATTERNS[weaponClass]
-  const { tiles, edges } = compilePattern(pattern, cls, rarity)
+  const { tiles, edges } = compilePattern(pattern, cls, rarity, rolledDraws)
 
   if (isBoss) {
     const last = tiles[tiles.length - 1]

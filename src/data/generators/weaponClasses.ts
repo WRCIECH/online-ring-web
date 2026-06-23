@@ -23,6 +23,9 @@ export interface WeaponClassDef {
   // Per-weapon cap on simultaneously-attached ContentItems (on top of the
   // global END-stat cap in gameStore.ts's selectEquipLoad).
   content_slots: number
+  // Number of pre-rolled remaster states beyond the primary roll (see
+  // RolledPatternDraws in types/game.ts) — defaults by poise_weight.
+  remaster_steps: number
 }
 
 export const WEAPON_CLASSES: Record<WeaponClass, WeaponClassDef> = {
@@ -36,6 +39,7 @@ export const WEAPON_CLASSES: Record<WeaponClass, WeaponClassDef> = {
     inherent_status: 'bleed',
     allowed_transformations: ['Compression', 'Recycled', 'Similar', 'Opposite'],
     content_slots: 3,
+    remaster_steps: 3,
   },
   straight_swords: {
     id: 'straight_swords', name: 'Straight Sword', description: 'Standard articles and blog posts.',
@@ -46,6 +50,7 @@ export const WEAPON_CLASSES: Record<WeaponClass, WeaponClassDef> = {
     time_mod: 1.0, stamina_mod: 1.0,
     allowed_transformations: ['Expansion', 'AudienceAlter', 'Remastered', 'Similar', 'Opposite'],
     content_slots: 4,
+    remaster_steps: 5,
   },
   greatswords: {
     id: 'greatswords', name: 'Greatsword', description: 'Long-form essays and deep dives.',
@@ -56,6 +61,7 @@ export const WEAPON_CLASSES: Record<WeaponClass, WeaponClassDef> = {
     time_mod: 1.15, stamina_mod: 1.2,
     allowed_transformations: ['Expansion', 'ZoomIn', 'ZoomOut', 'Similar', 'Opposite'],
     content_slots: 5,
+    remaster_steps: 5,
   },
   katanas: {
     id: 'katanas', name: 'Katana', description: 'Polished craft pieces — quality over quantity.',
@@ -67,6 +73,7 @@ export const WEAPON_CLASSES: Record<WeaponClass, WeaponClassDef> = {
     inherent_status: 'bleed',
     allowed_transformations: ['Remastered', 'Revamped', 'Similar', 'Opposite'],
     content_slots: 4,
+    remaster_steps: 5,
   },
   hammers: {
     id: 'hammers', name: 'Hammer', description: 'Hot takes and opinion pieces.',
@@ -78,6 +85,7 @@ export const WEAPON_CLASSES: Record<WeaponClass, WeaponClassDef> = {
     inherent_status: 'frenzy_flame',
     allowed_transformations: ['Commentary', 'AudienceAlter', 'Similar', 'Opposite'],
     content_slots: 5,
+    remaster_steps: 5,
   },
   spears: {
     id: 'spears', name: 'Spear', description: 'Research-driven content.',
@@ -88,6 +96,7 @@ export const WEAPON_CLASSES: Record<WeaponClass, WeaponClassDef> = {
     time_mod: 1.0, stamina_mod: 0.9,
     allowed_transformations: ['ZoomIn', 'ZoomOut', 'Expansion', 'Similar', 'Opposite'],
     content_slots: 4,
+    remaster_steps: 5,
   },
   axes: {
     id: 'axes', name: 'Axe', description: 'Editing and compression of existing content.',
@@ -98,6 +107,7 @@ export const WEAPON_CLASSES: Record<WeaponClass, WeaponClassDef> = {
     time_mod: 0.9, stamina_mod: 1.0,
     allowed_transformations: ['Compression', 'Recycled', 'Reboot', 'Similar', 'Opposite'],
     content_slots: 4,
+    remaster_steps: 5,
   },
   bows: {
     id: 'bows', name: 'Bow', description: 'Async content — newsletters, scheduled posts.',
@@ -108,6 +118,7 @@ export const WEAPON_CLASSES: Record<WeaponClass, WeaponClassDef> = {
     time_mod: 0.75, stamina_mod: 0.85,
     allowed_transformations: ['Recycled', 'Remastered', 'Similar', 'Opposite'],
     content_slots: 3,
+    remaster_steps: 3,
   },
   fists: {
     id: 'fists', name: 'Fists', description: 'Raw BTS content and vlogs.',
@@ -119,6 +130,7 @@ export const WEAPON_CLASSES: Record<WeaponClass, WeaponClassDef> = {
     inherent_status: 'devotion',
     allowed_transformations: ['Recycled', 'Commentary', 'Similar', 'Opposite'],
     content_slots: 3,
+    remaster_steps: 3,
   },
   colossal_swords: {
     id: 'colossal_swords', name: 'Colossal Sword', description: 'Books, courses, and long-form products.',
@@ -130,6 +142,7 @@ export const WEAPON_CLASSES: Record<WeaponClass, WeaponClassDef> = {
     inherent_status: 'madness',
     allowed_transformations: ['Expansion', 'Remastered', 'Reboot', 'Similar', 'Opposite'],
     content_slots: 6,
+    remaster_steps: 5,
   },
   thrusting_swords: {
     id: 'thrusting_swords', name: 'Thrusting Sword', description: 'Comments and reply content.',
@@ -141,6 +154,7 @@ export const WEAPON_CLASSES: Record<WeaponClass, WeaponClassDef> = {
     inherent_status: 'sleep',
     allowed_transformations: ['Commentary', 'AudienceAlter', 'Similar', 'Opposite'],
     content_slots: 3,
+    remaster_steps: 3,
   },
   heavy_thrusting: {
     id: 'heavy_thrusting', name: 'Heavy Thrusting Sword', description: 'In-depth analysis and commentary.',
@@ -152,6 +166,7 @@ export const WEAPON_CLASSES: Record<WeaponClass, WeaponClassDef> = {
     inherent_status: 'glintstone',
     allowed_transformations: ['Commentary', 'ZoomIn', 'ZoomOut', 'Similar', 'Opposite'],
     content_slots: 4,
+    remaster_steps: 5,
   },
   curved_swords: {
     id: 'curved_swords', name: 'Curved Sword', description: 'Storytelling and narrative content.',
@@ -163,6 +178,7 @@ export const WEAPON_CLASSES: Record<WeaponClass, WeaponClassDef> = {
     inherent_status: 'yearning',
     allowed_transformations: ['Remastered', 'AudienceAlter', 'Expansion', 'Similar', 'Opposite'],
     content_slots: 4,
+    remaster_steps: 5,
   },
   curved_greatswords: {
     id: 'curved_greatswords', name: 'Curved Greatsword', description: 'Epic series and narrative sagas.',
@@ -174,6 +190,7 @@ export const WEAPON_CLASSES: Record<WeaponClass, WeaponClassDef> = {
     inherent_status: 'madness',
     allowed_transformations: ['Expansion', 'Remastered', 'Similar', 'Opposite'],
     content_slots: 5,
+    remaster_steps: 5,
   },
   twinblades: {
     id: 'twinblades', name: 'Twinblade', description: 'Multi-platform cross-posting.',
@@ -185,6 +202,7 @@ export const WEAPON_CLASSES: Record<WeaponClass, WeaponClassDef> = {
     inherent_status: 'scarlet_rot',
     allowed_transformations: ['Recycled', 'AudienceAlter', 'Compression', 'Similar', 'Opposite'],
     content_slots: 4,
+    remaster_steps: 5,
   },
   great_hammers: {
     id: 'great_hammers', name: 'Great Hammer', description: 'Manifestos and major opinion pieces.',
@@ -196,6 +214,7 @@ export const WEAPON_CLASSES: Record<WeaponClass, WeaponClassDef> = {
     inherent_status: 'death_blight',
     allowed_transformations: ['Commentary', 'Expansion', 'Similar', 'Opposite'],
     content_slots: 5,
+    remaster_steps: 5,
   },
   great_axes: {
     id: 'great_axes', name: 'Great Axe', description: 'Recaps, roundups, and year-in-review content.',
@@ -206,6 +225,7 @@ export const WEAPON_CLASSES: Record<WeaponClass, WeaponClassDef> = {
     time_mod: 1.25, stamina_mod: 1.35,
     allowed_transformations: ['Compression', 'Recycled', 'Reboot', 'Similar', 'Opposite'],
     content_slots: 5,
+    remaster_steps: 5,
   },
   flails: {
     id: 'flails', name: 'Flail', description: 'Spontaneous and improv content.',
@@ -217,6 +237,7 @@ export const WEAPON_CLASSES: Record<WeaponClass, WeaponClassDef> = {
     inherent_status: 'bleed',
     allowed_transformations: ['Commentary', 'ZoomIn', 'Similar', 'Opposite'],
     content_slots: 4,
+    remaster_steps: 5,
   },
   colossal_weapons: {
     id: 'colossal_weapons', name: 'Colossal Weapon', description: 'Mega-projects — documentaries, full series.',
@@ -228,6 +249,7 @@ export const WEAPON_CLASSES: Record<WeaponClass, WeaponClassDef> = {
     inherent_status: 'madness',
     allowed_transformations: ['Expansion', 'Reboot', 'Remastered', 'Similar', 'Opposite'],
     content_slots: 6,
+    remaster_steps: 5,
   },
   great_spears: {
     id: 'great_spears', name: 'Great Spear', description: 'Investigative content.',
@@ -238,6 +260,7 @@ export const WEAPON_CLASSES: Record<WeaponClass, WeaponClassDef> = {
     time_mod: 1.1, stamina_mod: 1.2,
     allowed_transformations: ['ZoomIn', 'ZoomOut', 'Expansion', 'Similar', 'Opposite'],
     content_slots: 5,
+    remaster_steps: 5,
   },
   halberds: {
     id: 'halberds', name: 'Halberd', description: 'Hybrid research and opinion.',
@@ -248,6 +271,7 @@ export const WEAPON_CLASSES: Record<WeaponClass, WeaponClassDef> = {
     time_mod: 1.0, stamina_mod: 1.1,
     allowed_transformations: ['Commentary', 'ZoomIn', 'Expansion', 'Similar', 'Opposite'],
     content_slots: 4,
+    remaster_steps: 5,
   },
   reapers: {
     id: 'reapers', name: 'Reaper', description: 'Commentary, takedowns, and critiques.',
@@ -259,6 +283,7 @@ export const WEAPON_CLASSES: Record<WeaponClass, WeaponClassDef> = {
     inherent_status: 'dread',
     allowed_transformations: ['Commentary', 'AudienceAlter', 'Similar', 'Opposite'],
     content_slots: 5,
+    remaster_steps: 5,
   },
   whips: {
     id: 'whips', name: 'Whip', description: 'Series and content cycles.',
@@ -270,6 +295,7 @@ export const WEAPON_CLASSES: Record<WeaponClass, WeaponClassDef> = {
     inherent_status: 'murmur',
     allowed_transformations: ['Recycled', 'Remastered', 'Reboot', 'Similar', 'Opposite'],
     content_slots: 4,
+    remaster_steps: 5,
   },
   greatbows: {
     id: 'greatbows', name: 'Greatbow', description: 'Long-tail evergreen content.',
@@ -281,6 +307,7 @@ export const WEAPON_CLASSES: Record<WeaponClass, WeaponClassDef> = {
     inherent_status: 'yearning',
     allowed_transformations: ['Remastered', 'Reboot', 'Recycled', 'Similar', 'Opposite'],
     content_slots: 6,
+    remaster_steps: 5,
   },
   crossbows: {
     id: 'crossbows', name: 'Crossbow', description: 'Email blasts and push notifications.',
@@ -291,6 +318,7 @@ export const WEAPON_CLASSES: Record<WeaponClass, WeaponClassDef> = {
     time_mod: 0.5, stamina_mod: 0,
     allowed_transformations: ['Recycled', 'AudienceAlter', 'Similar', 'Opposite'],
     content_slots: 4,
+    remaster_steps: 5,
   },
   ballistas: {
     id: 'ballistas', name: 'Ballista', description: 'Major product launches.',
@@ -302,6 +330,7 @@ export const WEAPON_CLASSES: Record<WeaponClass, WeaponClassDef> = {
     inherent_status: 'death_blight',
     allowed_transformations: ['Reboot', 'Expansion', 'Similar', 'Opposite'],
     content_slots: 6,
+    remaster_steps: 5,
   },
   torches: {
     id: 'torches', name: 'Torch', description: 'Lifestyle and lo-fi vlog content.',
@@ -313,6 +342,7 @@ export const WEAPON_CLASSES: Record<WeaponClass, WeaponClassDef> = {
     inherent_status: 'grace',
     allowed_transformations: ['Recycled', 'Commentary', 'Similar', 'Opposite'],
     content_slots: 3,
+    remaster_steps: 3,
   },
 }
 

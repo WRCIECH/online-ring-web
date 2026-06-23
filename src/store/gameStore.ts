@@ -1,5 +1,5 @@
 import { create } from 'zustand'
-import type { GameState, LocationData, Stats, WeaponInstance, SublocationType, ContentItem, Locale, WorkflowGraph, WeaponClass } from '../types/game'
+import type { GameState, LocationData, Stats, WeaponInstance, SublocationType, ContentItem, Locale, WorkflowGraph } from '../types/game'
 import { ENEMIES } from '../data/enemies'
 import { saveGame, loadGame } from '../engine/save'
 import { registerWeapon, WEAPONS } from '../data/weapons'
@@ -232,7 +232,7 @@ export interface GameStore extends GameState {
   addContentItem:    (name: string) => void
   updateContentItem: (id: string, patch: Partial<Pick<ContentItem, 'name' | 'notes' | 'completed' | 'is_remastering' | 'remaster_count' | 'last_workflow'>>) => void
   removeContentItem: (id: string) => void
-  startRemaster:           (contentId: string, weaponClass: WeaponClass) => void
+  startRemaster:           (contentId: string, weaponInstanceId: string) => void
   attachContentToWeapon:   (contentId: string, weaponInstanceId: string) => void
   detachContentFromWeapon: (contentId: string) => void
 
@@ -447,11 +447,15 @@ export const useGameStore = create<GameStore>((set, get) => ({
     get().save()
   },
 
-  startRemaster: (contentId, weaponClass) => {
-    const lastWorkflow = get().content_items.find(c => c.id === contentId)?.last_workflow
-    const workflow = lastWorkflow
-      ? regenerateWorkflowKeepingStructure(lastWorkflow, weaponClass)
-      : generateRemasterWorkflow(weaponClass)
+  startRemaster: (contentId, weaponInstanceId) => {
+    const weapon = WEAPONS[weaponInstanceId] as WeaponInstance | undefined
+    if (!weapon) return
+    const weaponClass = weapon.weapon_class
+    const item = get().content_items.find(c => c.id === contentId)
+    const stateIndex = Math.min((item?.remaster_count ?? 0) + 1, WEAPON_CLASSES[weaponClass].remaster_steps)
+    const workflow = item?.last_workflow
+      ? regenerateWorkflowKeepingStructure(item.last_workflow, weaponClass, weapon.rolled_draws, stateIndex)
+      : generateRemasterWorkflow(weaponClass, weapon.rolled_draws, stateIndex)
     set(s => ({
       content_items: s.content_items.map(c => c.id === contentId ? { ...c, completed: false, is_remastering: true } : c),
       active_workflow: workflow,
