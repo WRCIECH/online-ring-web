@@ -266,9 +266,8 @@ export default function CombatScreen() {
         sublabel: `${fmtMoveTime(preview.duration)} · ${def.desc}`,
         metaParts: [
           { text: `⚔ ${preview.damage}`, color: '#cc6644' },
-          ...preview.multipliers.map(m => ({
-            text:  `${t.ui[`mult_${m.key}`] ?? m.key} ${formatMultiplierPct(m.value)}`,
-            color: m.active ? undefined : '#555',
+          ...preview.multipliers.filter(m => m.active).map(m => ({
+            text: `${t.ui[`mult_${m.key}`] ?? m.key} ${formatMultiplierPct(m.value)}`,
           })),
         ],
         colorVar: def.colorVar,
