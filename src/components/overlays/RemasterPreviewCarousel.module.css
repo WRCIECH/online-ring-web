@@ -1,0 +1,95 @@
+.carousel {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 8px 10px;
+  border: 1px solid var(--color-sep);
+  border-radius: var(--radius);
+  background: rgba(255,255,255,0.015);
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.title {
+  flex: 1;
+  font-size: 0.72rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--color-text-dim);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.counter {
+  font-size: 0.72rem;
+  color: var(--color-text-dim);
+  flex-shrink: 0;
+}
+
+.navBtn {
+  font-size: 0.95rem;
+  line-height: 1;
+  padding: 1px 8px;
+  border-radius: 3px;
+  background: transparent;
+  border: 1px solid var(--color-sep);
+  color: var(--color-text);
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.navBtn:disabled {
+  opacity: 0.3;
+  cursor: default;
+}
+
+.chipRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+
+.chip {
+  font-size: 0.7rem;
+  color: var(--color-text-dim);
+  background: rgba(255,255,255,0.04);
+  border: 1px solid var(--color-sep);
+  border-radius: 3px;
+  padding: 2px 7px;
+}
+
+.chipChanged {
+  color: var(--color-gold-dim);
+  border-color: var(--color-gold-dim);
+}
+
+.chipNone {
+  opacity: 0.4;
+}
+
+.dots {
+  display: flex;
+  justify-content: center;
+  gap: 5px;
+  padding-top: 2px;
+}
+
+.dot {
+  width: 6px;
+  height: 6px;
+  padding: 0;
+  border-radius: 50%;
+  border: 1px solid var(--color-text-dim);
+  background: transparent;
+  cursor: pointer;
+}
+
+.dotActive {
+  background: var(--color-gold-dim);
+  border-color: var(--color-gold-dim);
+}

@@ -1,6 +1,6 @@
 import { Fragment, useMemo } from 'react'
 import type { WeaponInstance } from '../../types/game'
-import { describeWeaponPattern, type PatternNode, type DrawNode } from '../../data/weaponStructure'
+import { describeWeaponPattern, DRAW_LABEL_KEY, VALUE_BUCKET, type PatternNode } from '../../data/weaponStructure'
 import { STAGE_COLOR } from '../../data/tileBadges'
 import { useT, type TranslationBundle } from '../../i18n'
 import s from './WeaponStructurePreview.module.css'
@@ -11,22 +11,6 @@ interface Props {
 
 function fmtMin(secs: number): string {
   return `${Math.round(secs / 60)}m`
-}
-
-const DRAW_LABEL_KEY: Record<DrawNode['label'], string> = {
-  format: 'draw_format',
-  transformation: 'draw_transformation',
-  style: 'draw_style',
-  emotion: 'draw_emotion',
-}
-
-// Buckets that resolve a draw node's concrete value to its localized
-// badge_label — keyed the same way DrawNode['label'] is.
-const VALUE_BUCKET: Record<DrawNode['label'], keyof TranslationBundle['content']> = {
-  format: 'product',
-  transformation: 'origin',
-  style: 'dmg_type',
-  emotion: 'status',
 }
 
 function renderNode(node: PatternNode, key: string, t: TranslationBundle) {
@@ -44,13 +28,11 @@ function renderNode(node: PatternNode, key: string, t: TranslationBundle) {
   }
 
   if (node.kind === 'draw') {
-    const pctLabel = node.probability < 1 ? ` ${Math.round(node.probability * 100)}%` : ''
     const bucket = t.content[VALUE_BUCKET[node.label]] as Record<string, { badge_label: string }>
-    const resolvedLabel = node.value !== null ? bucket[node.value]?.badge_label : undefined
-    const isInactive = node.value === null
+    const resolvedLabel = bucket[node.value]?.badge_label
     return (
-      <div key={key} className={[s.drawChip, isInactive ? s.drawChipInactive : ''].join(' ')}>
-        + {t.ui[DRAW_LABEL_KEY[node.label]] ?? node.label}{pctLabel}
+      <div key={key} className={s.drawChip}>
+        + {t.ui[DRAW_LABEL_KEY[node.label]] ?? node.label}
         {resolvedLabel ? ` — ${resolvedLabel}` : ''}
       </div>
     )

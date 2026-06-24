@@ -60,9 +60,6 @@
   white-space: nowrap;
 }
 
-.drawChipInactive {
-  opacity: 0.4;
-}
 
 .branchBox {
   display: flex;

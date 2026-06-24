@@ -1,9 +1,10 @@
 import type { AtomicStage, WeaponInstance, ContentProductType, AtomicOrigin, DamageType, StatusType } from '../types/game'
+import type { TranslationBundle } from '../i18n'
 import type { PatternStep } from './generators/weaponPatterns'
 import { WEAPON_PATTERNS } from './generators/weaponPatterns'
 import { WEAPON_CLASSES, type WeaponClassDef } from './generators/weaponClasses'
 import { STAGE_TIME } from './generators/workflowGenerator'
-import type { SlotKind } from './generators/patternSlots'
+import { listPatternSlots, type SlotKind } from './generators/patternSlots'
 
 export interface PhaseNode {
   kind: 'phase'
@@ -17,11 +18,13 @@ export interface PhaseNode {
 export interface DrawNode {
   kind: 'draw'
   label: 'format' | 'transformation' | 'style' | 'emotion'
-  probability: number
-  // resolved "primary" (state 0) value for this weapon instance — null if
-  // this slot never triggers for this instance, or the instance predates
-  // the fixed-per-instance-draws feature (no rolled_draws to resolve from)
-  value: ContentProductType | AtomicOrigin | DamageType | StatusType | null
+  // resolved "primary" (state 0) value for this weapon instance. A slot
+  // that never triggers for this instance (or predates the fixed-per-
+  // instance-draws feature, with no rolled_draws to resolve from) is
+  // omitted entirely by describeWeaponPattern rather than appearing here
+  // as null — there's nothing to show for a dimension this instance
+  // simply doesn't have.
+  value: ContentProductType | AtomicOrigin | DamageType | StatusType
 }
 
 export interface BranchNode {
@@ -30,6 +33,24 @@ export interface BranchNode {
 }
 
 export type PatternNode = PhaseNode | DrawNode | BranchNode
+
+// Shared lookup tables resolving a draw/slot kind to its t.ui label key
+// and its t.content.* i18n bucket — used by both the structure preview
+// (DrawNode['label'], which includes 'format') and the remaster-state
+// carousel (SlotKind, which doesn't — format never varies by state).
+export const DRAW_LABEL_KEY: Record<DrawNode['label'], string> = {
+  format: 'draw_format',
+  transformation: 'draw_transformation',
+  style: 'draw_style',
+  emotion: 'draw_emotion',
+}
+
+export const VALUE_BUCKET: Record<DrawNode['label'], keyof TranslationBundle['content']> = {
+  format: 'product',
+  transformation: 'origin',
+  style: 'dmg_type',
+  emotion: 'status',
+}
 
 // Turns a weapon instance's class pattern (WEAPON_PATTERNS) into a
 // renderable description of its workflow *shape*, with each draw step
@@ -62,25 +83,27 @@ function describeStep(
         heavySec: Math.round(t.heavy * cls.time_mod),
       }
     }
-    case 'drawFormat':
-      return { kind: 'draw', label: 'format', probability: 1, value: weapon.rolled_draws?.format ?? null }
+    case 'drawFormat': {
+      const value = weapon.rolled_draws?.format ?? null
+      return value === null ? null : { kind: 'draw', label: 'format', value }
+    }
     case 'drawTransformation': {
       if (cls.allowed_transformations.length === 0) return null
       const occ = counters.transformation++
       const value = weapon.rolled_draws?.transformation[occ]?.[0] ?? null
-      return { kind: 'draw', label: 'transformation', probability: 1, value }
+      return value === null ? null : { kind: 'draw', label: 'transformation', value }
     }
     case 'drawStyle': {
       if (cls.base_damage_types.length === 0) return null
       const occ = counters.style++
       const value = weapon.rolled_draws?.style[occ]?.[0] ?? null
-      return { kind: 'draw', label: 'style', probability: step.probability, value }
+      return value === null ? null : { kind: 'draw', label: 'style', value }
     }
     case 'drawEmotion': {
       if (!cls.inherent_status) return null
       const occ = counters.emotion++
       const value = weapon.rolled_draws?.emotion[occ]?.[0] ?? null
-      return { kind: 'draw', label: 'emotion', probability: step.probability, value }
+      return value === null ? null : { kind: 'draw', label: 'emotion', value }
     }
     case 'branch':
       return {
@@ -90,4 +113,46 @@ function describeStep(
         ),
       }
   }
+}
+
+export interface RemasterSlotView {
+  kind: SlotKind
+  occurrenceIndex: number
+  value: AtomicOrigin | DamageType | StatusType | null   // null = absent at this state
+  changed: boolean   // differs from this slot's value at the previous state (always false at state 0)
+}
+
+// Describes every pre-rolled remaster state (0 = primary, 1..N = the
+// weapon's pre-rolled remaster targets) for a weapon instance, one row
+// per state, one entry per transformation/style/emotion occurrence in
+// that class's pattern. Returns [] when there's nothing to preview: no
+// rolled_draws (legacy weapon instance) or zero such occurrences at all.
+// Unlike describeWeaponPattern, slots with a null value are NOT omitted
+// here — the carousel compares across states, so a stable slot list per
+// page (with explicit "absent" entries) is more legible than one whose
+// shape shifts page to page.
+export function describeRemasterStates(weapon: WeaponInstance): RemasterSlotView[][] {
+  if (!weapon.rolled_draws) return []
+  const cls = WEAPON_CLASSES[weapon.weapon_class]
+  const steps = WEAPON_PATTERNS[weapon.weapon_class]
+  const slots = listPatternSlots(steps)
+  if (slots.length === 0) return []
+
+  const N = cls.remaster_steps
+  const rolled = weapon.rolled_draws
+  const states: RemasterSlotView[][] = []
+  for (let stateIndex = 0; stateIndex <= N; stateIndex++) {
+    const row = slots.map(slot => {
+      const value = rolled[slot.kind][slot.occurrenceIndex]?.[stateIndex] ?? null
+      const prevValue = stateIndex === 0 ? value : (rolled[slot.kind][slot.occurrenceIndex]?.[stateIndex - 1] ?? null)
+      return {
+        kind: slot.kind,
+        occurrenceIndex: slot.occurrenceIndex,
+        value,
+        changed: stateIndex > 0 && value !== prevValue,
+      }
+    })
+    states.push(row)
+  }
+  return states
 }
