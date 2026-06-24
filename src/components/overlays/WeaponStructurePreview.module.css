@@ -1,79 +1,53 @@
-.scroller {
-  overflow-x: auto;
+.wrap {
+  position: relative;
+  display: flex;
+  justify-content: center;
   padding: 4px 0 8px;
 }
 
-.flow {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  min-width: max-content;
+.svg {
+  display: block;
+  width: 100%;
+  max-width: 320px;
+  max-height: 240px;
 }
 
-.arrow {
-  color: var(--color-text-dim);
-  opacity: 0.5;
-  flex-shrink: 0;
-  font-size: 0.85rem;
+.edge {
+  stroke: rgba(255,255,255,0.18);
+  stroke-width: 1;
 }
 
-.phaseChip {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 2px;
-  padding: 6px 10px;
-  border: 1px solid;
-  border-radius: 8px;
-  background: rgba(255,255,255,0.03);
-  flex-shrink: 0;
-  min-width: 64px;
+.markerPhase {
+  stroke: rgba(0,0,0,0.4);
+  stroke-width: 1;
+  cursor: pointer;
 }
 
-.phaseStage {
-  font-size: 0.62rem;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  font-weight: 600;
-  white-space: nowrap;
+.markerDraw {
+  fill: var(--color-gold-dim);
+  stroke: rgba(0,0,0,0.3);
+  stroke-width: 1;
+  cursor: pointer;
 }
 
-.phaseCount {
-  font-size: 0.78rem;
-  color: var(--color-text);
-  white-space: nowrap;
-}
-
-.phaseTime {
-  font-size: 0.62rem;
-  color: var(--color-text-dim);
-  white-space: nowrap;
-}
-
-.drawChip {
-  flex-shrink: 0;
-  padding: 4px 9px;
-  border: 1px dashed rgba(255,255,255,0.2);
-  border-radius: 999px;
-  font-size: 0.65rem;
-  color: var(--color-gold-dim);
-  white-space: nowrap;
-}
-
-
-.branchBox {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  padding: 8px;
+.tooltip {
+  position: fixed;
+  z-index: 50;
+  background: rgba(15,12,28,0.95);
   border: 1px solid rgba(255,255,255,0.12);
-  border-radius: 10px;
-  background: rgba(255,255,255,0.02);
-  flex-shrink: 0;
+  border-radius: 8px;
+  padding: 6px 10px;
+  font-size: 0.72rem;
+  pointer-events: none;
+  white-space: nowrap;
 }
 
-.branchLane {
-  display: flex;
-  align-items: center;
-  gap: 4px;
+.tooltipTitle {
+  color: var(--color-text);
+  font-weight: 600;
+}
+
+.tooltipSub {
+  color: var(--color-text-dim);
+  margin-top: 2px;
 }

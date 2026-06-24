@@ -14,8 +14,6 @@ import CombatLog    from '../components/combat/CombatLog'
 import WorkflowCanvas from '../components/combat/WorkflowCanvas'
 import MoveRadialMenu, { type RadialMoveItem } from '../components/combat/MoveRadialMenu'
 import CombatBottomBar from '../components/combat/CombatBottomBar'
-import EnemyDisplay from '../components/combat/EnemyDisplay'
-import CurseDisplay from '../components/combat/CurseDisplay'
 import CombatMusic  from '../components/combat/CombatMusic'
 import { COMBAT_MUSIC } from '../data/combatMusic'
 import { useT } from '../i18n'
@@ -304,6 +302,19 @@ export default function CombatScreen() {
             workflow={state.workflow}
             selectedTileId={state.selectedTileId}
             onSelectTile={handleTileClick}
+            enemy={{
+              enemyId: loc.enemy_id,
+              name: enemyLabel,
+              description: enemyData.description,
+              hp: state.phase === 'VICTORY' || state.phase === 'DEFEAT' || state.phase === 'FLED' ? 0 : state.enemyHp,
+              maxHp: state.enemyMaxHp,
+              isBoss: state.isBoss,
+              sublocationtype: loc.sublocation_type,
+              activeCurses: state.activeCurses,
+              playerStamina: state.playerStamina,
+              playerMaxStamina: state.playerMaxStamina,
+              lastTileCompletionAt: state.lastTileCompletionAt,
+            }}
           />
           {isPlayerTurn && radialPos && radialItems.length > 0 && (
             <MoveRadialMenu
@@ -313,39 +324,6 @@ export default function CombatScreen() {
               onClose={() => setRadialPos(null)}
             />
           )}
-        </div>
-
-        <div className={s.enemyPanel}>
-          <div className={s.enemySprite}>
-            <EnemyDisplay
-              enemyId={loc.enemy_id}
-              hp={state.phase === 'VICTORY' || state.phase === 'DEFEAT' || state.phase === 'FLED' ? 0 : state.enemyHp}
-              maxHp={state.enemyMaxHp}
-              sublocationtype={loc.sublocation_type}
-            />
-          </div>
-          <div className={s.enemyInfo}>
-            <div className={s.enemyNameRow}>
-              <span className={s.enemyName}>{enemyLabel}</span>
-              {state.isBoss && <span className={s.bossBadge}>Boss</span>}
-            </div>
-            <div className={s.enemyHpRow}>
-              <div className={s.enemyHpTrack}>
-                <div
-                  className={s.enemyHpFill}
-                  style={{ width: `${Math.max(0, state.enemyHp / state.enemyMaxHp * 100)}%` }}
-                />
-              </div>
-              <span className={s.enemyHpText}>{state.enemyHp} / {state.enemyMaxHp}</span>
-            </div>
-            <span className={s.enemyDesc}>{enemyData.description}</span>
-          </div>
-          <CurseDisplay
-            activeCurses={state.activeCurses}
-            playerStamina={state.playerStamina}
-            playerMaxStamina={state.playerMaxStamina}
-            lastTileCompletionAt={state.lastTileCompletionAt}
-          />
         </div>
       </div>
 

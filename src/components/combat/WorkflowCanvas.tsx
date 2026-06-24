@@ -1,23 +1,48 @@
 import { useEffect, useRef, useMemo, useState, useCallback } from 'react'
-import type { WorkflowGraph, WorkflowTile, AtomicStage } from '../../types/game'
-import { getReachableTiles, REPEAT_DAMAGE_PENALTY } from '../../engine/combat'
+import type { WorkflowGraph, WorkflowTile, AtomicStage, SublocationType } from '../../types/game'
+import { getReachableTiles, REPEAT_DAMAGE_PENALTY, type ActiveCurse } from '../../engine/combat'
 import { getTileBadges, computeEffectiveTags, STAGE_COLOR } from '../../data/tileBadges'
+import { spiralLayout } from '../../engine/spiralLayout'
+import EnemyCenterpiece from './EnemyCenterpiece'
 import { useT } from '../../i18n'
 import s from './WorkflowCanvas.module.css'
+
+export interface EnemyOverlayProps {
+  enemyId: string
+  name: string
+  description: string
+  hp: number
+  maxHp: number
+  isBoss: boolean
+  sublocationtype?: SublocationType
+  activeCurses: ActiveCurse[]
+  playerStamina: number
+  playerMaxStamina: number
+  lastTileCompletionAt: number
+}
 
 interface Props {
   workflow:      WorkflowGraph
   selectedTileId: string | null
   onSelectTile:  (id: string, screenX: number, screenY: number) => void
+  enemy?:        EnemyOverlayProps
 }
 
 // ── Layout constants ──────────────────────────────────────────────────────
 const TILE    = 52
 const TILE_RX = 10
-const H_GAP   = 28    // horizontal gap between tiles in same layer
-const V_GAP   = 40    // vertical gap between layers
+const H_GAP   = 28    // gap between tiles sharing a spiral step (branch lanes)
 const PAD     = 28
 const MIN_W   = 180
+
+// Spiral step constants — DR must clear TILE + H_GAP so consecutive coils
+// don't overlap; DTHETA chosen so the coil opens up steadily. R0 is pushed
+// out past MOB_FOOTPRINT_R so the first ring of tiles clears the enemy
+// centerpiece sitting at the spiral's origin.
+const SPIRAL_R0     = 140
+const SPIRAL_DR     = 80
+const SPIRAL_DTHETA = 1.3
+const MOB_FOOTPRINT_R = 95
 
 const TILE_LABEL: Record<AtomicStage, string> = {
   Research: 'Research',
@@ -42,6 +67,7 @@ function layoutGraph(graph: WorkflowGraph): {
   positions: Map<string, Pos>
   canvasW: number
   canvasH: number
+  center: Pos
 } {
   const layer = new Map<string, number>()
   const queue = [graph.start_id]
@@ -68,24 +94,39 @@ function layoutGraph(graph: WorkflowGraph): {
     byLayer.set(l, arr)
   }
 
-  const numLayers   = Math.max(...byLayer.keys()) + 1
-  const maxPerLayer = Math.max(...Array.from(byLayer.values()).map(a => a.length))
-  const canvasW     = Math.max(MIN_W, PAD * 2 + maxPerLayer * TILE + (maxPerLayer - 1) * H_GAP)
-  const canvasH     = PAD * 2 + numLayers * TILE + (numLayers - 1) * V_GAP
+  const numLayers = Math.max(...byLayer.keys()) + 1
+  const layersArr: string[][] = []
+  for (let l = 0; l < numLayers; l++) layersArr.push(byLayer.get(l) ?? [])
+
+  const centers = spiralLayout(layersArr, {
+    cx: 0, cy: 0,
+    r0: SPIRAL_R0, dr: SPIRAL_DR, dtheta: SPIRAL_DTHETA,
+    laneGap: TILE + H_GAP,
+  })
+
+  let minX = -MOB_FOOTPRINT_R, minY = -MOB_FOOTPRINT_R
+  let maxX = MOB_FOOTPRINT_R,  maxY = MOB_FOOTPRINT_R
+  for (const c of centers.values()) {
+    minX = Math.min(minX, c.x - TILE / 2)
+    minY = Math.min(minY, c.y - TILE / 2)
+    maxX = Math.max(maxX, c.x + TILE / 2)
+    maxY = Math.max(maxY, c.y + TILE / 2)
+  }
+
+  const canvasW = Math.max(MIN_W, maxX - minX + PAD * 2)
+  const canvasH = maxY - minY + PAD * 2
 
   const positions = new Map<string, Pos>()
-  for (const [l, ids] of byLayer) {
-    const rowW   = ids.length * TILE + (ids.length - 1) * H_GAP
-    const startX = (canvasW - rowW) / 2
-    ids.forEach((id, i) => {
-      positions.set(id, {
-        x: startX + i * (TILE + H_GAP),
-        y: PAD + l * (TILE + V_GAP),
-      })
+  for (const [id, c] of centers) {
+    positions.set(id, {
+      x: c.x - TILE / 2 - minX + PAD,
+      y: c.y - TILE / 2 - minY + PAD,
     })
   }
 
-  return { positions, canvasW, canvasH }
+  const center: Pos = { x: -minX + PAD, y: -minY + PAD }
+
+  return { positions, canvasW, canvasH, center }
 }
 
 // ── Renderer ──────────────────────────────────────────────────────────────
@@ -111,16 +152,21 @@ function render(
     const toTile   = graph.tiles.find(t => t.id === e.to)
     const isActive = !!fromTile?.is_completed && !toTile?.is_completed
 
-    const x1 = from.x + TILE / 2,  y1 = from.y + TILE
-    const x2 = to.x   + TILE / 2,  y2 = to.y
-    const mY  = (y1 + y2) / 2
+    const x1 = from.x + TILE / 2,  y1 = from.y + TILE / 2
+    const x2 = to.x   + TILE / 2,  y2 = to.y   + TILE / 2
+    const dx = x2 - x1, dy = y2 - y1
+    const dist = Math.hypot(dx, dy) || 1
+    const nx = -dy / dist, ny = dx / dist   // unit perpendicular
+    const bow = Math.min(20, dist * 0.15)
+    const cx1 = (x1 + x2) / 2 + nx * bow
+    const cy1 = (y1 + y2) / 2 + ny * bow
 
     ctx.beginPath()
-    ctx.strokeStyle = isActive ? 'rgba(200,180,100,0.65)' : 'rgba(55,48,95,0.4)'
-    ctx.lineWidth   = isActive ? 2 : 1
-    ctx.setLineDash(isActive ? [] : [5, 4])
+    ctx.strokeStyle = isActive ? 'rgba(200,180,100,0.75)' : 'rgba(120,112,170,0.55)'
+    ctx.lineWidth   = isActive ? 2.5 : 1.5
+    ctx.setLineDash(isActive ? [] : [6, 3])
     ctx.moveTo(x1, y1)
-    ctx.bezierCurveTo(x1, mY, x2, mY, x2, y2)
+    ctx.quadraticCurveTo(cx1, cy1, x2, y2)
     ctx.stroke()
     ctx.setLineDash([])
   }
@@ -219,7 +265,7 @@ interface DragState { startX: number; startY: number; viewX: number; viewY: numb
 
 // ── Component ─────────────────────────────────────────────────────────────
 
-export default function WorkflowCanvas({ workflow, selectedTileId, onSelectTile }: Props) {
+export default function WorkflowCanvas({ workflow, selectedTileId, onSelectTile, enemy }: Props) {
   const t = useT()
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const viewportRef = useRef<HTMLDivElement>(null)
@@ -228,7 +274,7 @@ export default function WorkflowCanvas({ workflow, selectedTileId, onSelectTile 
   const [isPanning, setIsPanning] = useState(false)
   const dragRef = useRef<DragState | null>(null)
 
-  const { positions, canvasW, canvasH } = useMemo(
+  const { positions, canvasW, canvasH, center } = useMemo(
     () => layoutGraph(workflow),
     [workflow.tiles.length, workflow.edges.length],
   )
@@ -373,6 +419,22 @@ export default function WorkflowCanvas({ workflow, selectedTileId, onSelectTile 
           onMouseMove={handleMouseMove}
           onMouseLeave={() => setHovered(null)}
         />
+        {enemy && (
+          <EnemyCenterpiece
+            x={center.x} y={center.y}
+            enemyId={enemy.enemyId}
+            name={enemy.name}
+            description={enemy.description}
+            hp={enemy.hp}
+            maxHp={enemy.maxHp}
+            isBoss={enemy.isBoss}
+            sublocationtype={enemy.sublocationtype}
+            activeCurses={enemy.activeCurses}
+            playerStamina={enemy.playerStamina}
+            playerMaxStamina={enemy.playerMaxStamina}
+            lastTileCompletionAt={enemy.lastTileCompletionAt}
+          />
+        )}
       </div>
       {hovered && (
         <div className={s.tooltip} style={{ left: hovered.cx, top: hovered.cy }}>
