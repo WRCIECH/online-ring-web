@@ -21,9 +21,6 @@ export const MAX_RUN_WEAPONS = 2
 /** Equip load contributed by each active (non-published) content item. */
 export const ARTICLE_EQUIP_WEIGHT = 1.0
 
-/** Equip load contributed by each active (non-completed) learning item. */
-export const LEARNING_ITEM_WEIGHT = 1.0
-
 // ── Healing ──────────────────────────────────────────────────────────────────
 
 /** Fraction of max HP restored by using an estus flask. */

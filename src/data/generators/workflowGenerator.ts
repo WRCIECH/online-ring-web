@@ -1,8 +1,12 @@
-import type { WeaponClass, WeaponRarity, AtomicStage, WorkflowTile, WorkflowEdge, WorkflowGraph, RolledPatternDraws } from '../../types/game'
+import type {
+  WeaponClass, WeaponRarity, AtomicStage, WorkflowTile, WorkflowEdge, WorkflowGraph, RolledPatternDraws,
+  ContentProductType, AtomicOrigin, DamageType, StatusType,
+} from '../../types/game'
 import type { PatternStep } from './weaponPatterns'
-import { WEAPON_PATTERNS } from './weaponPatterns'
+import { WEAPON_PATTERNS, drawKindOf } from './weaponPatterns'
 import { WEAPON_CLASSES, type WeaponClassDef } from './weaponClasses'
 import type { SlotKind } from './patternSlots'
+import { pickWeighted } from './patternSlots'
 
 // ── Time tables (seconds), keyed by the 6-stage vocabulary ────────────────
 // Carried over 1:1 from the old TileType table: research->Research,
@@ -133,6 +137,7 @@ function compileStep(step: PatternStep, ctx: CompileContext): void {
     case 'drawStyle':          return compileDrawStyle(step, ctx)
     case 'drawEmotion':        return compileDrawEmotion(step, ctx)
     case 'branch':             return compileBranch(step, ctx)
+    case 'eitherOr':           return compileEitherOr(step, ctx)
   }
 }
 
@@ -159,29 +164,43 @@ function compilePhase(step: { stage: AtomicStage; min: number; max: number }, ct
   ctx.lastResearchBlockTileIds = step.stage === 'Research' ? newTiles.map(t => t.id) : null
 }
 
-function compileDrawFormat(ctx: CompileContext): void {
-  if (ctx.lastResearchBlockTileIds === null) {
-    throw new Error(`drawFormat() in ${ctx.cls.id}'s pattern has no preceding phase('Research', ...) block`)
-  }
-  const pool = ctx.cls.supported_products
-  const value = ctx.rolledDraws
-    ? (ctx.rolledDraws.format[ctx.slotCounters.format++]?.[0] ?? pool[Math.floor(Math.random() * pool.length)])
-    : pool[Math.floor(Math.random() * pool.length)]
-  for (const id of ctx.lastResearchBlockTileIds) {
-    const t = ctx.tiles.find(t => t.id === id)!
-    t.content_type = value
+type DrawValue = ContentProductType | AtomicOrigin | DamageType | StatusType
+
+// Shared tail for every draw kind: format/transformation also retag the
+// preceding Research block (and require one to exist — a structural
+// pattern requirement, independent of whether a value was actually
+// rolled); all 4 kinds append one Plan tile carrying the value.
+function applyDrawResult(ctx: CompileContext, kind: SlotKind, value: DrawValue): void {
+  if (kind === 'format' || kind === 'transformation') {
+    if (ctx.lastResearchBlockTileIds === null) {
+      const fnName = kind === 'format' ? 'drawFormat' : 'drawTransformation'
+      throw new Error(`${fnName}() in ${ctx.cls.id}'s pattern has no preceding phase('Research', ...) block`)
+    }
+    for (const id of ctx.lastResearchBlockTileIds) {
+      const t = ctx.tiles.find(t => t.id === id)!
+      if (kind === 'format') t.content_type = value as ContentProductType
+      else t.content_origin = value as AtomicOrigin
+    }
   }
   const planTile = makeTile('Plan', ctx.cls.time_mod)
-  planTile.content_type = value
+  if (kind === 'format') planTile.content_type = value as ContentProductType
+  else if (kind === 'transformation') planTile.content_origin = value as AtomicOrigin
+  else if (kind === 'style') planTile.damage_type = value as DamageType
+  else planTile.status = value as StatusType
   ctx.tiles.push(planTile)
   linkFrontier(ctx, planTile.id)
   ctx.frontier = [planTile.id]
 }
 
+function compileDrawFormat(ctx: CompileContext): void {
+  const pool = ctx.cls.supported_products
+  const value = ctx.rolledDraws
+    ? (ctx.rolledDraws.format[ctx.slotCounters.format++]?.[0] ?? pool[Math.floor(Math.random() * pool.length)])
+    : pool[Math.floor(Math.random() * pool.length)]
+  applyDrawResult(ctx, 'format', value)
+}
+
 function compileDrawTransformation(ctx: CompileContext): void {
-  if (ctx.lastResearchBlockTileIds === null) {
-    throw new Error(`drawTransformation() in ${ctx.cls.id}'s pattern has no preceding phase('Research', ...) block`)
-  }
   let value: ReturnType<typeof resolveTransformation>
   if (ctx.rolledDraws) {
     value = ctx.rolledDraws.transformation[ctx.slotCounters.transformation++]?.[0] ?? null
@@ -189,15 +208,7 @@ function compileDrawTransformation(ctx: CompileContext): void {
     value = resolveTransformation(ctx.cls)
   }
   if (value === null) return
-  for (const id of ctx.lastResearchBlockTileIds) {
-    const t = ctx.tiles.find(t => t.id === id)!
-    t.content_origin = value
-  }
-  const planTile = makeTile('Plan', ctx.cls.time_mod)
-  planTile.content_origin = value
-  ctx.tiles.push(planTile)
-  linkFrontier(ctx, planTile.id)
-  ctx.frontier = [planTile.id]
+  applyDrawResult(ctx, 'transformation', value)
 }
 
 function resolveTransformation(cls: WeaponClassDef) {
@@ -213,11 +224,7 @@ function compileDrawStyle(step: { probability: number }, ctx: CompileContext): v
     value = resolveStyle(ctx.cls, step.probability)
   }
   if (value === null) return
-  const planTile = makeTile('Plan', ctx.cls.time_mod)
-  planTile.damage_type = value
-  ctx.tiles.push(planTile)
-  linkFrontier(ctx, planTile.id)
-  ctx.frontier = [planTile.id]
+  applyDrawResult(ctx, 'style', value)
 }
 
 function resolveStyle(cls: WeaponClassDef, probability: number) {
@@ -233,16 +240,48 @@ function compileDrawEmotion(step: { probability: number }, ctx: CompileContext):
     value = resolveEmotion(ctx.cls, step.probability)
   }
   if (value === null) return
-  const planTile = makeTile('Plan', ctx.cls.time_mod)
-  planTile.status = value
-  ctx.tiles.push(planTile)
-  linkFrontier(ctx, planTile.id)
-  ctx.frontier = [planTile.id]
+  applyDrawResult(ctx, 'emotion', value)
 }
 
 function resolveEmotion(cls: WeaponClassDef, probability: number) {
   const pool = cls.inherent_status
   return (pool.length === 0 || Math.random() >= probability) ? null : pool[Math.floor(Math.random() * pool.length)]
+}
+
+// A pre-rolled instance's rolled_draws already enforces "exactly one
+// option non-null" (see patternSlots.ts's resolveGroupState) — every
+// option's counter still needs incrementing to stay in lockstep with how
+// patternSlots.ts indexed them, even the losing ones. Legacy weapons (no
+// rolled_draws) instead do a live weighted pick and only ever resolve the
+// winner.
+function compileEitherOr(step: { options: { step: PatternStep; weight: number }[] }, ctx: CompileContext): void {
+  if (ctx.rolledDraws) {
+    let resolvedKind: SlotKind | null = null
+    let resolvedValue: DrawValue | null = null
+    for (const opt of step.options) {
+      const kind = drawKindOf(opt.step)!
+      const occ = ctx.slotCounters[kind]++
+      const value = ctx.rolledDraws[kind][occ]?.[0] ?? null
+      if (value !== null) { resolvedKind = kind; resolvedValue = value }
+    }
+    if (resolvedKind !== null && resolvedValue !== null) applyDrawResult(ctx, resolvedKind, resolvedValue)
+    return
+  }
+  const winnerIdx = pickWeighted(step.options.map(o => o.weight))
+  const winner = step.options[winnerIdx]
+  const kind = drawKindOf(winner.step)!
+  const value = legacyResolveKind(ctx.cls, kind)
+  if (value !== null) applyDrawResult(ctx, kind, value)
+}
+
+function legacyResolveKind(cls: WeaponClassDef, kind: SlotKind): DrawValue | null {
+  if (kind === 'format') {
+    const pool = cls.supported_products
+    return pool[Math.floor(Math.random() * pool.length)]
+  }
+  if (kind === 'transformation') return resolveTransformation(cls)
+  if (kind === 'style') return resolveStyle(cls, 1)
+  return resolveEmotion(cls, 1)
 }
 
 function compileBranch(step: { paths: PatternStep[][] }, ctx: CompileContext): void {

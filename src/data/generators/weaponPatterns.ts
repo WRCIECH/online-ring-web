@@ -24,6 +24,19 @@ export type PatternStep =
   | { kind: 'drawStyle'; probability: number }
   | { kind: 'drawEmotion'; probability: number }
   | { kind: 'branch'; paths: PatternStep[][] }
+  | { kind: 'eitherOr'; options: { step: PatternStep; weight: number }[] }
+
+export type DrawKind = 'format' | 'transformation' | 'style' | 'emotion'
+
+export function drawKindOf(step: PatternStep): DrawKind | null {
+  switch (step.kind) {
+    case 'drawFormat': return 'format'
+    case 'drawTransformation': return 'transformation'
+    case 'drawStyle': return 'style'
+    case 'drawEmotion': return 'emotion'
+    default: return null
+  }
+}
 
 export function phase(stage: AtomicStage, min = 1, max = min): PatternStep {
   if (min < 1) throw new Error(`phase('${stage}'): min must be >= 1, got ${min}`)
@@ -39,6 +52,36 @@ export function branch(...paths: PatternStep[][]): PatternStep {
   return { kind: 'branch', paths }
 }
 
+// A weighted choice among draw steps where exactly one always resolves to a
+// real value and the rest are forced null for that occurrence (re-decided
+// independently every time this group gets a remaster round-robin turn —
+// see patternSlots.ts's "exclusive" groups). Replaces the awkward
+// "two independent probability-gated draws" shape (e.g. daggers' old
+// drawStyle(0.5), drawEmotion(0.5), which could yield neither or both)
+// with a single always-exactly-one choice. Weight is always given
+// explicitly via the tuple form — never read from a draw step's own
+// `probability`, which would silently mean two different things in two
+// contexts.
+export type EitherOrOption = PatternStep | [PatternStep, number]
+
+export function eitherOr(...options: EitherOrOption[]): PatternStep {
+  if (options.length < 2) throw new Error('eitherOr() requires at least 2 options')
+  const normalized = options.map(o => Array.isArray(o) ? { step: o[0], weight: o[1] } : { step: o, weight: 1 })
+
+  const kindsSeen = new Set<DrawKind>()
+  for (const { step, weight } of normalized) {
+    const kind = drawKindOf(step)
+    if (kind === null) throw new Error(`eitherOr(): every option must be drawFormat/drawTransformation/drawStyle/drawEmotion, got '${step.kind}'`)
+    if (kindsSeen.has(kind)) throw new Error(`eitherOr(): duplicate draw kind '${kind}' among options`)
+    kindsSeen.add(kind)
+    if (weight <= 0) throw new Error(`eitherOr(): weight must be > 0, got ${weight} for '${kind}'`)
+    if ((step.kind === 'drawStyle' || step.kind === 'drawEmotion') && step.probability !== 1) {
+      throw new Error(`eitherOr(): '${kind}' option must use probability 1 (weight is given separately), got ${step.probability}`)
+    }
+  }
+  return { kind: 'eitherOr', options: normalized }
+}
+
 // ── Per-weapon-class patterns ───────────────────────────────────────────
 //
 // drawTransformation() always follows drawFormat() — both are unconditional
@@ -52,14 +95,13 @@ export function branch(...paths: PatternStep[][]): PatternStep {
 export const WEAPON_PATTERNS: Record<WeaponClass, PatternStep[]> = {
   // ── concretely specified ─────────────────────────────────────────────
   daggers: [
-    phase('Research'), drawFormat(), drawTransformation(), drawStyle(0.5), drawEmotion(0.5),
+    phase('Research'), drawFormat(), drawTransformation(), eitherOr(drawStyle(), drawEmotion()),
     phase('Produce', 1), phase('Refine'), phase('Publish'),
   ],
   fists: [
-    phase('Research'), drawFormat(), drawTransformation(), drawStyle(0.25), drawEmotion(0.25),
+    phase('Research'), drawFormat(), drawTransformation(), eitherOr(drawStyle(), drawEmotion()),
     phase('Produce', 1), phase('Refine'),
-    branch([phase('Publish')], [phase('Publish')]),
-    phase('Publish'),
+    branch([phase('Publish')], [phase('Publish')], [phase('Publish')]),
   ],
   straight_swords: [
     phase('Research', 2), drawFormat(), drawTransformation(), drawStyle(1),
@@ -125,12 +167,12 @@ export const WEAPON_PATTERNS: Record<WeaponClass, PatternStep[]> = {
     drawStyle(0.4), phase('Publish'), phase('Promote'),
   ],
   thrusting_swords: [   // light tier — no Promote
-    phase('Research'), drawFormat(), drawTransformation(), drawStyle(0.3), drawEmotion(0.4),
+    phase('Research'), drawFormat(), drawTransformation(), eitherOr([drawStyle(), 3], [drawEmotion(), 4]),
     phase('Produce', 1), phase('Refine'), phase('Publish'),
     drawEmotion(0.4), phase('Publish'),
   ],
   heavy_thrusting: [   // "heavy" variant of thrusting_swords -> 3-chain
-    phase('Research'), drawFormat(), drawTransformation(), drawStyle(0.5), drawEmotion(0.5),
+    phase('Research'), drawFormat(), drawTransformation(), eitherOr(drawStyle(), drawEmotion()),
     branch([phase('Produce', 2)], [phase('Produce', 2)], [phase('Produce', 2)]),
     phase('Refine'), phase('Publish'),
     drawEmotion(0.5), phase('Publish'), phase('Promote'),
@@ -183,7 +225,7 @@ export const WEAPON_PATTERNS: Record<WeaponClass, PatternStep[]> = {
 
   // ── fully original — zero hints given ───────────────────────────────────
   colossal_weapons: [   // biggest pattern in the game, matches its 2.4 dmg_mult
-    phase('Research', 4), drawFormat(), drawTransformation(), drawStyle(0.5), drawEmotion(0.6),
+    phase('Research', 4), drawFormat(), drawTransformation(), eitherOr([drawStyle(), 5], [drawEmotion(), 6]),
     branch(
       [phase('Produce', 3), phase('Refine')],
       [phase('Produce', 3), phase('Refine')],
@@ -210,19 +252,17 @@ export const WEAPON_PATTERNS: Record<WeaponClass, PatternStep[]> = {
 // value for that kind, never null) and a future edit can't accidentally
 // mix kinds across paths or skip one. Validated eagerly at module load,
 // same as phase()/branch() throwing on invalid construction above.
-type DrawKind = 'format' | 'transformation' | 'style' | 'emotion'
-
-function drawKindOf(step: PatternStep): DrawKind | null {
-  switch (step.kind) {
-    case 'drawFormat': return 'format'
-    case 'drawTransformation': return 'transformation'
-    case 'drawStyle': return 'style'
-    case 'drawEmotion': return 'emotion'
-    default: return null
-  }
-}
-
+//
+// eitherOr() isn't supported inside a branch path yet — drawKindOf()
+// returns null for it (it's not itself a single draw), so without this
+// explicit check it would silently be treated as "not a draw" rather
+// than rejected.
 function validateBranch(cls: WeaponClass, step: { paths: PatternStep[][] }): void {
+  for (const path of step.paths) {
+    if (path.some(s => s.kind === 'eitherOr')) {
+      throw new Error(`${cls}: eitherOr() inside a branch() path isn't supported yet`)
+    }
+  }
   const perPath = step.paths.map(path => path.filter(s => drawKindOf(s) !== null))
   const kindsUsed = new Set(perPath.flatMap(draws => draws.map(d => drawKindOf(d)!)))
   if (kindsUsed.size === 0) return   // existing draw-free branches (axes, twinblades, ...) stay valid

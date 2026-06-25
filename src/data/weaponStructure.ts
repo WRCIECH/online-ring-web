@@ -1,7 +1,7 @@
 import type { AtomicStage, WeaponInstance, ContentProductType, AtomicOrigin, DamageType, StatusType, Affix } from '../types/game'
 import type { TranslationBundle } from '../i18n'
 import type { PatternStep } from './generators/weaponPatterns'
-import { WEAPON_PATTERNS } from './generators/weaponPatterns'
+import { WEAPON_PATTERNS, drawKindOf } from './generators/weaponPatterns'
 import { WEAPON_CLASSES, type WeaponClassDef } from './generators/weaponClasses'
 import { STAGE_TIME } from './generators/workflowGenerator'
 import { listPatternSlots, type SlotKind } from './generators/patternSlots'
@@ -110,6 +110,20 @@ function describeStep(
           path.map(s => describeStep(s, cls, weapon, counters)).filter((n): n is PatternNode => n !== null)
         ),
       }
+    case 'eitherOr': {
+      // Every option's counter is incremented regardless of which one
+      // actually won (same lockstep indexing rule as the compiler and
+      // patternSlots.ts) — only the non-null option (exactly one, or
+      // none on a legacy instance with no rolled_draws) becomes the node.
+      let result: PatternNode | null = null
+      for (const opt of step.options) {
+        const kind = drawKindOf(opt.step)!
+        const occ = counters[kind]++
+        const value = weapon.rolled_draws?.[kind][occ]?.[0] ?? null
+        if (value !== null) result = { kind: 'draw', label: kind, value }
+      }
+      return result
+    }
   }
 }
 
