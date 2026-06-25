@@ -61,6 +61,7 @@
   border: 1px solid var(--color-sep);
   border-radius: 3px;
   padding: 2px 7px;
+  cursor: default;
 }
 
 .chipChanged {
@@ -92,4 +93,37 @@
 .dotActive {
   background: var(--color-gold-dim);
   border-color: var(--color-gold-dim);
+}
+
+.tooltip {
+  position: fixed;
+  z-index: 50;
+  width: 240px;
+  background: rgba(15,12,28,0.97);
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 8px;
+  padding: 8px 10px;
+  pointer-events: none;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.55);
+}
+
+.tooltipTitle {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--color-text);
+  margin-bottom: 4px;
+}
+
+.tooltipDetail {
+  font-size: 0.72rem;
+  color: var(--color-text-dim);
+  line-height: 1.4;
+}
+
+.tooltipExample {
+  font-size: 0.68rem;
+  color: var(--color-text-dim);
+  font-style: italic;
+  margin-top: 5px;
+  opacity: 0.8;
 }
