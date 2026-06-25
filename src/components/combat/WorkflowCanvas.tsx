@@ -1,4 +1,4 @@
-import { useEffect, useRef, useMemo, useState, useCallback } from 'react'
+import { useEffect, useLayoutEffect, useRef, useMemo, useState, useCallback } from 'react'
 import type { WorkflowGraph, WorkflowTile, AtomicStage, SublocationType } from '../../types/game'
 import { getReachableTiles, REPEAT_DAMAGE_PENALTY, type ActiveCurse } from '../../engine/combat'
 import { getTileBadges, computeEffectiveTags, STAGE_COLOR } from '../../data/tileBadges'
@@ -281,13 +281,24 @@ export default function WorkflowCanvas({ workflow, selectedTileId, onSelectTile,
   const reachable = useMemo(() => getReachableTiles(workflow), [workflow])
   const effectiveTags = useMemo(() => computeEffectiveTags(workflow), [workflow])
 
-  // Reset pan/zoom only when a genuinely new workflow graph starts — the
-  // start tile id stays stable across tile-completion updates within one fight.
-  const [resetForId, setResetForId] = useState(workflow.start_id)
-  if (workflow.start_id !== resetForId) {
-    setResetForId(workflow.start_id)
-    setView({ scale: 1, x: 0, y: 0 })
-  }
+  // Reset pan/zoom to a fit-the-whole-spiral view only when a genuinely new
+  // workflow graph starts — the start tile id stays stable across
+  // tile-completion updates within one fight. useLayoutEffect (not
+  // useEffect) so the fitted view applies before paint, avoiding a one-frame
+  // flash at the previous zoom/pan.
+  useLayoutEffect(() => {
+    const vp = viewportRef.current
+    if (!vp) return
+    const rect = vp.getBoundingClientRect()
+    if (rect.width === 0 || rect.height === 0) return
+    const fitScale = Math.min(rect.width / canvasW, rect.height / canvasH, 1)
+    const scale = Math.min(MAX_SCALE, Math.max(MIN_SCALE, fitScale))
+    setView({
+      scale,
+      x: (rect.width - canvasW * scale) / 2,
+      y: (rect.height - canvasH * scale) / 2,
+    })
+  }, [workflow.start_id, canvasW, canvasH])
 
   useEffect(() => {
     const canvas = canvasRef.current
