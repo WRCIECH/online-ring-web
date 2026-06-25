@@ -1,4 +1,4 @@
-import type { AtomicStage, WeaponClass } from '../../types/game'
+import type { AtomicStage, WeaponClass, ContentProductType, AtomicOrigin, DamageType, StatusType } from '../../types/game'
 
 // ── DSL ──────────────────────────────────────────────────────────────────
 //
@@ -25,6 +25,7 @@ export type PatternStep =
   | { kind: 'drawEmotion'; probability: number }
   | { kind: 'branch'; paths: PatternStep[][] }
   | { kind: 'eitherOr'; options: { step: PatternStep; weight: number }[] }
+  | { kind: 'fixedDraw'; slotKind: DrawKind; value: ContentProductType | AtomicOrigin | DamageType | StatusType }
 
 export type DrawKind = 'format' | 'transformation' | 'style' | 'emotion'
 
@@ -47,6 +48,13 @@ export function drawFormat(): PatternStep { return { kind: 'drawFormat' } }
 export function drawTransformation(): PatternStep { return { kind: 'drawTransformation' } }
 export function drawStyle(probability = 1): PatternStep { return { kind: 'drawStyle', probability } }
 export function drawEmotion(probability = 1): PatternStep { return { kind: 'drawEmotion', probability } }
+
+// Fixed draws: pin a single value permanently — never changed by remaster.
+export function format(value: ContentProductType): PatternStep         { return { kind: 'fixedDraw', slotKind: 'format',         value } }
+export function transformation(value: AtomicOrigin): PatternStep       { return { kind: 'fixedDraw', slotKind: 'transformation', value } }
+export function style(value: DamageType): PatternStep                  { return { kind: 'fixedDraw', slotKind: 'style',          value } }
+export function emotion(value: StatusType): PatternStep                { return { kind: 'fixedDraw', slotKind: 'emotion',        value } }
+
 export function branch(...paths: PatternStep[][]): PatternStep {
   if (paths.length < 2) throw new Error('branch() requires at least 2 paths')
   return { kind: 'branch', paths }
@@ -98,26 +106,34 @@ export const WEAPON_PATTERNS: Record<WeaponClass, PatternStep[]> = {
     phase('Research'), drawFormat(), drawTransformation(), eitherOr(drawStyle(), drawEmotion()),
     phase('Produce', 1), phase('Refine'), phase('Publish'),
   ],
-  fists: [
-    phase('Research'), drawFormat(), drawTransformation(), eitherOr(drawStyle(), drawEmotion()),
-    phase('Produce', 1), phase('Refine'),
-    branch([phase('Publish')], [phase('Publish')], [phase('Publish')]),
-  ],
   straight_swords: [
-    phase('Research', 2), drawFormat(), drawTransformation(), drawStyle(1),
+    phase('Research', 2), drawFormat(), drawTransformation(), eitherOr(drawStyle(), drawEmotion()),
     phase('Produce', 3), phase('Refine', 2), phase('Publish'), phase('Promote'),
   ],
   greatswords: [
-    phase('Research', 3), drawFormat(), drawTransformation(), drawStyle(1),
+    phase('Research', 3), drawFormat(), drawTransformation(), eitherOr(drawStyle(), drawEmotion()),
     phase('Produce', 5), phase('Refine', 3), phase('Publish'), phase('Promote'),
   ],
   colossal_swords: [
-    phase('Research', 4), drawFormat(), drawTransformation(), drawStyle(1),
+    phase('Research', 4), drawFormat(), drawTransformation(), eitherOr(drawStyle(), drawEmotion()),
     phase('Produce', 8), phase('Refine', 3), phase('Publish'), phase('Promote'),
   ],
+  fists: [
+    phase('Research'), drawFormat(), phase('Produce', 1), 
+    branch([drawTransformation(), eitherOr(drawStyle(), drawEmotion()), phase('Produce', 1), phase('Publish')]),
+    branch([drawTransformation(), eitherOr(drawStyle(), drawEmotion()), phase('Produce', 1), phase('Publish')]),
+    branch([drawTransformation(), eitherOr(drawStyle(), drawEmotion()), phase('Produce', 1), phase('Publish')]),
+  ],
+  flails: [
+    phase('Research'), drawFormat(), drawTransformation(), drawEmotion(1),
+    phase('Produce', 2), phase('Refine'), phase('Publish'), phase('Promote', 3, 5),
+  ],
+
   curved_swords: [
     phase('Research', 2), drawFormat(), drawTransformation(), drawEmotion(1),
-    phase('Produce', 3), phase('Refine', 2), phase('Publish'), phase('Promote'),
+    phase('Produce', 3), phase('Refine', 2), phase('Publish'),
+    transformation('Compression'), phase('Produce', 2), phase('Refine', 1), phase('Publish'),
+    transformation('Compression'), phase('Produce', 1), phase('Refine', 1), phase('Publish'),
   ],
   curved_greatswords: [
     phase('Research', 3), drawFormat(), drawTransformation(), drawEmotion(1),
@@ -215,12 +231,6 @@ export const WEAPON_PATTERNS: Record<WeaponClass, PatternStep[]> = {
     phase('Research'), drawFormat(), drawTransformation(), drawEmotion(0.5),
     branch([phase('Produce', 1)], [phase('Produce', 1)], [phase('Produce', 1)], [phase('Produce', 1)]),
     phase('Refine'), phase('Publish'), phase('Promote'),
-  ],
-  flails: [
-    phase('Research'), drawFormat(), drawTransformation(), drawEmotion(0.4),
-    phase('Produce', 2), phase('Refine'),
-    branch([phase('Publish'), phase('Promote')], [phase('Publish'), phase('Promote')]),
-    phase('Publish'), phase('Promote'),
   ],
 
   // ── fully original — zero hints given ───────────────────────────────────

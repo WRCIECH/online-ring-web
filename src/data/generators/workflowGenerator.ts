@@ -136,6 +136,7 @@ function compileStep(step: PatternStep, ctx: CompileContext): void {
     case 'drawTransformation': return compileDrawTransformation(ctx)
     case 'drawStyle':          return compileDrawStyle(step, ctx)
     case 'drawEmotion':        return compileDrawEmotion(step, ctx)
+    case 'fixedDraw':          return compileFixedDraw(step, ctx)
     case 'branch':             return compileBranch(step, ctx)
     case 'eitherOr':           return compileEitherOr(step, ctx)
   }
@@ -230,6 +231,35 @@ function compileDrawStyle(step: { probability: number }, ctx: CompileContext): v
 function resolveStyle(cls: WeaponClassDef, probability: number) {
   const pool = cls.base_damage_types
   return (pool.length === 0 || Math.random() >= probability) ? null : pool[Math.floor(Math.random() * pool.length)]
+}
+
+function compileFixedDraw(step: { slotKind: SlotKind; value: DrawValue }, ctx: CompileContext): void {
+  const kind = step.slotKind
+  let value: DrawValue
+  if (ctx.rolledDraws) {
+    value = (ctx.rolledDraws[kind][ctx.slotCounters[kind]++]?.[0] as DrawValue) ?? step.value
+  } else {
+    value = step.value
+  }
+
+  // Tag preceding Research tiles only if a Research block is in scope —
+  // fixed draws can legally appear after non-Research phases.
+  if ((kind === 'format' || kind === 'transformation') && ctx.lastResearchBlockTileIds !== null) {
+    for (const id of ctx.lastResearchBlockTileIds) {
+      const t = ctx.tiles.find(t => t.id === id)!
+      if (kind === 'format') t.content_type = value as ContentProductType
+      else                   t.content_origin = value as AtomicOrigin
+    }
+  }
+
+  const planTile = makeTile('Plan', ctx.cls.time_mod)
+  if      (kind === 'format')         planTile.content_type  = value as ContentProductType
+  else if (kind === 'transformation') planTile.content_origin = value as AtomicOrigin
+  else if (kind === 'style')          planTile.damage_type   = value as DamageType
+  else                                planTile.status        = value as StatusType
+  ctx.tiles.push(planTile)
+  linkFrontier(ctx, planTile.id)
+  ctx.frontier = [planTile.id]
 }
 
 function compileDrawEmotion(step: { probability: number }, ctx: CompileContext): void {

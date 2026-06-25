@@ -11,7 +11,12 @@ import { WEAPON_CLASSES, type WeaponClassDef } from './weaponClasses'
 // both the weapon-creation roller below and the UI structure preview.
 
 export type SlotKind = 'format' | 'transformation' | 'style' | 'emotion'
-export interface SlotRef { kind: SlotKind; occurrenceIndex: number; probability: number }
+export interface SlotRef {
+  kind: SlotKind
+  occurrenceIndex: number
+  probability: number
+  fixedValue?: ContentProductType | AtomicOrigin | DamageType | StatusType
+}
 
 function slotForDraw(step: PatternStep, counters: Record<SlotKind, number>): SlotRef | null {
   switch (step.kind) {
@@ -19,6 +24,7 @@ function slotForDraw(step: PatternStep, counters: Record<SlotKind, number>): Slo
     case 'drawTransformation': return { kind: 'transformation', occurrenceIndex: counters.transformation++, probability: 1 }
     case 'drawStyle':          return { kind: 'style', occurrenceIndex: counters.style++, probability: step.probability }
     case 'drawEmotion':        return { kind: 'emotion', occurrenceIndex: counters.emotion++, probability: step.probability }
+    case 'fixedDraw':          return { kind: step.slotKind, occurrenceIndex: counters[step.slotKind]++, probability: 1, fixedValue: step.value }
     default: return null
   }
 }
@@ -40,7 +46,7 @@ function slotForDraw(step: PatternStep, counters: Record<SlotKind, number>): Slo
 // listPatternSlots()'s flat order is exactly groups.flatMap(g => g.slots)
 // — branches/eitherOrs don't reorder anything relative to the old
 // purely-recursive walk.
-export interface SlotGroup { slots: SlotRef[]; weights?: number[] }
+export interface SlotGroup { slots: SlotRef[]; weights?: number[]; fixed?: boolean }
 
 export function listSlotGroups(steps: PatternStep[]): SlotGroup[] {
   const groups: SlotGroup[] = []
@@ -63,6 +69,9 @@ export function listSlotGroups(steps: PatternStep[]): SlotGroup[] {
         if (slot) { exSlots.push(slot); weights.push(opt.weight) }
       }
       groups.push({ slots: exSlots, weights })
+    } else if (step.kind === 'fixedDraw') {
+      const slot = slotForDraw(step, counters)
+      if (slot) groups.push({ slots: [slot], fixed: true })
     } else {
       const slot = slotForDraw(step, counters)
       if (slot) groups.push({ slots: [slot] })
@@ -239,11 +248,15 @@ export function rollPatternDraws(weaponClass: WeaponClass): RolledPatternDraws {
   // always-on pool (e.g. straight_swords' lone drawStyle(1) against
   // base_damage_types: ['standard']) would otherwise "take a turn" that's
   // guaranteed to do nothing.
-  const changeableGroupIdxs = groups.map((_, i) => i).filter(i => groupCanChange(cls, groups[i]))
+  const changeableGroupIdxs = groups.map((_, i) => i).filter(i => !groups[i].fixed && groupCanChange(cls, groups[i]))
 
   // states[stateIndex][slotIndex] = value at that state for that slot.
   const states: SlotValue[][] = [
-    groups.flatMap(group => resolveGroupState(cls, group, null)),
+    groups.flatMap(group =>
+      group.fixed
+        ? group.slots.map(slot => slot.fixedValue ?? null)
+        : resolveGroupState(cls, group, null)
+    ),
   ]
   for (let i = 1; i <= N; i++) {
     const next = states[i - 1].slice()
