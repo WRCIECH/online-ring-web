@@ -239,7 +239,8 @@ function compileDrawEmotion(step: { probability: number }, ctx: CompileContext):
 }
 
 function resolveEmotion(cls: WeaponClassDef, probability: number) {
-  return (!cls.inherent_status || Math.random() >= probability) ? null : cls.inherent_status
+  const pool = cls.inherent_status
+  return (pool.length === 0 || Math.random() >= probability) ? null : pool[Math.floor(Math.random() * pool.length)]
 }
 
 function compileBranch(step: { paths: PatternStep[][] }, ctx: CompileContext): void {

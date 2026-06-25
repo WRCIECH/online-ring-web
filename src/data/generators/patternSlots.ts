@@ -65,7 +65,8 @@ function rollSlotValue(cls: WeaponClassDef, slot: SlotRef): SlotValue {
     return (pool.length === 0 || Math.random() >= slot.probability) ? null : pick(pool)
   }
   // emotion
-  return (!cls.inherent_status || Math.random() >= slot.probability) ? null : cls.inherent_status
+  const pool = cls.inherent_status
+  return (pool.length === 0 || Math.random() >= slot.probability) ? null : pick(pool)
 }
 
 // Rolls a weapon instance's full fixed draw sequence once, at creation

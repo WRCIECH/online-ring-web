@@ -68,7 +68,9 @@ export default function WeaponSelectScreen() {
           const rarity          = (weapon as WeaponInstance).rarity
           const affixes         = (weapon as WeaponInstance).affixes ?? []
           const weaponClass     = (weapon as WeaponInstance).weapon_class
-          const inherentStatus  = weaponClass ? WEAPON_CLASSES[weaponClass]?.inherent_status : undefined
+          const inherentStatuses = weaponClass
+            ? [...new Set(WEAPON_CLASSES[weaponClass]?.inherent_status ?? [])]
+            : []
 
           return (
             <button
@@ -92,9 +94,9 @@ export default function WeaponSelectScreen() {
                     {rarity.toUpperCase()}
                   </span>
                 )}
-                {inherentStatus && (
-                  <span className={s.statusBadge}>{inherentStatus.replace(/_/g, ' ')}</span>
-                )}
+                {inherentStatuses.map(status => (
+                  <span key={status} className={s.statusBadge}>{status.replace(/_/g, ' ')}</span>
+                ))}
               </div>
               <div className={s.weaponDesc}>{weapon.description}</div>
 

@@ -100,7 +100,7 @@ function describeStep(
       return value === null ? null : { kind: 'draw', label: 'style', value }
     }
     case 'drawEmotion': {
-      if (!cls.inherent_status) return null
+      if (cls.inherent_status.length === 0) return null
       const occ = counters.emotion++
       const value = weapon.rolled_draws?.emotion[occ]?.[0] ?? null
       return value === null ? null : { kind: 'draw', label: 'emotion', value }

@@ -64,8 +64,8 @@ export function generateRemasterWorkflow(
     const t = makeTile('Plan', cls.time_mod)
     if (rolledDraws) {
       t.status = rolledDraws.emotion[i]?.[stateIndex] ?? undefined
-    } else if (cls.inherent_status) {
-      t.status = cls.inherent_status
+    } else if (cls.inherent_status.length > 0) {
+      t.status = pick(cls.inherent_status)
     }
     push(t)
   }
@@ -134,8 +134,8 @@ export function regenerateWorkflowKeepingStructure(
     if (orig.status) {
       if (rolledDraws) {
         tile.status = rolledDraws.emotion[counters.emotion++]?.[stateIndex] ?? undefined
-      } else if (cls.inherent_status) {
-        tile.status = cls.inherent_status
+      } else if (cls.inherent_status.length > 0) {
+        tile.status = pick(cls.inherent_status)
       }
     }
     return tile
