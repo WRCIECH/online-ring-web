@@ -26,15 +26,8 @@ export const ARTICLE_EQUIP_WEIGHT = 1.0
 /** Fraction of max HP restored by using an estus flask. */
 export const ESTUS_HEAL_FRACTION = 0.40
 
-// ── Combat — idle gap thresholds ─────────────────────────────────────────────
-// Used by the burnout_shade curse (CurseDisplay/combat.ts) to scale its
-// penalty by how long it's been since your last tile completion.
-
-/** Minutes of idle gap below which there's no burnout penalty. */
 export const FLOW_GAP_HOT_MINS   = 15
-/** Minutes of idle gap below which the burnout penalty is at 1/3 intensity. */
 export const FLOW_GAP_WARM_MINS  = 60
-/** Minutes of idle gap below which the burnout penalty is at 2/3 intensity. */
 export const FLOW_GAP_COLD_MINS  = 240
 
 // ── Combat — baseline stamina cost per attack ────────────────────────────────

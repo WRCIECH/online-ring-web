@@ -362,7 +362,7 @@ const pl: TranslationBundle = {
     mult_repeatFlat:    'Powtórka',
     mult_repeatScaling: 'Powtórka (skalująca)',
     mult_abandon:       'Kara za rezygnację',
-    mult_curse:         'Klątwa',
+    mult_affinity:      'Powinowactwo',
     mult_streak:        'Seria konsekwencji',
     mult_remaster:      'Bonus za przeróbkę',
     mult_finisher:      'Cios finiszujący',

@@ -117,6 +117,22 @@ export interface WeaponInstance extends Weapon {
   rolled_draws?: RolledPatternDraws
 }
 
+// ── Enemy affinity system ─────────────────────────────────────────────────
+export interface MobAffinityConditions {
+  products?: ContentProductType[]
+  origins?: AtomicOrigin[]
+  damage_types?: DamageType[]
+  statuses?: StatusType[]
+  stages?: AtomicStage[]
+}
+
+export interface MobAffinities {
+  love?: MobAffinityConditions    // ×2.0
+  like?: MobAffinityConditions    // ×1.5
+  dislike?: MobAffinityConditions // ×0.7
+  hate?: MobAffinityConditions    // ×0.5
+}
+
 // ── Enemy (simplified — no attack movesets) ───────────────────────────────
 export interface EnemyDrop {
   id: string
@@ -133,10 +149,9 @@ export interface Enemy {
   is_remembrance?: boolean
   unlocks_area?: string
   drops: EnemyDrop[]
-  status_multipliers?: Partial<Record<StatusType, number>>
-  weaknesses?: DamageType[]
-  resistances?: DamageType[]
   moveset?: string[]
+  affinities?: MobAffinities
+  boss_name?: string
 }
 
 // ── Combat phases ─────────────────────────────────────────────────────────
@@ -208,9 +223,6 @@ export interface GameState {
   completed_locations: string[]
   // Workflow abandon penalty (0.0 = none, resets after workflow completion)
   abandon_penalty: number
-  // Enemy ids whose mob curse wasn't lifted before the fight ended; carries
-  // into the next encounter this run, reset to [] on a new run.
-  incoming_curses: string[]
   // Active workflow (persisted across mob fights until all tiles done or abandoned)
   active_workflow: WorkflowGraph | null
   active_content_id: string | null

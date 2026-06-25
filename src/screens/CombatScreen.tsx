@@ -72,11 +72,12 @@ export default function CombatScreen() {
           300, 300, 3,
           { VIG: 10, END: 10, MND: 10, STR: 8, DEX: 8, INT: 8, FAI: 8, ARC: 8 },
           0,
-          [], 100, 100,
+          100, 100,
         )
       }
       // Resume persisted workflow or generate fresh
-      const workflow = store.active_workflow ?? generateWorkflow(initialWeaponClass, initialWeaponRarity, enemyData.is_boss, initialWeapon?.rolled_draws)
+      const spawnAsBoss = loc.sublocation_type === 'boss'
+      const workflow = store.active_workflow ?? generateWorkflow(initialWeaponClass, initialWeaponRarity, spawnAsBoss, initialWeapon?.rolled_draws)
 
       return initCombatState(
         workflow, enemyData, loc.enemy_id,
@@ -85,8 +86,9 @@ export default function CombatScreen() {
         store.run_estus_count,
         store.stats,
         store.abandon_penalty,
-        store.incoming_curses, store.maxStamina(), store.maxStamina(),
+        store.maxStamina(), store.maxStamina(),
         isRemasterPass,
+        spawnAsBoss,
       )
     }
   )
@@ -152,7 +154,6 @@ export default function CombatScreen() {
     store.syncCombatResult(state.playerHp, state.playerEstus, store.current_fp, state.playerStamina)
     store.addRunes(state.runesEarned)
     store.clearAbandonPenalty()
-    store.setIncomingCurses(state.activeCurses.filter(c => !c.lifted).map(c => c.enemyId))
     lootItems?.forEach(item => store.addWeaponInstance(item.instance))
     store.addDefeatedEnemy(loc.enemy_id)
     // Persist or clear workflow
@@ -186,7 +187,6 @@ export default function CombatScreen() {
   const handleFlee = useCallback(() => {
     store.syncCombatResult(state.playerHp, state.playerEstus, store.current_fp, state.playerStamina)
     store.setAbandonPenalty(ABANDON_PENALTY)
-    store.setIncomingCurses(state.activeCurses.filter(c => !c.lifted).map(c => c.enemyId))
     store.clearActiveWorkflow()
     store.endRunFailure()
     navigate('/')
@@ -224,12 +224,12 @@ export default function CombatScreen() {
     if (item && !item.attached_weapon_id) {
       store.attachContentToWeapon(id, state.equippedWeaponId)
     }
-    const newWorkflow = generateWorkflow(wClass, wRarity, enemyData?.is_boss ?? false, weapon?.rolled_draws)
+    const newWorkflow = generateWorkflow(wClass, wRarity, loc?.sublocation_type === 'boss', weapon?.rolled_draws)
     dispatch({ type: 'SWITCH_WORKFLOW', workflow: newWorkflow, isRemaster: false })
   }
 
   const handleContinueContent = () => {
-    const newWorkflow = generateWorkflow(wClass, wRarity, enemyData?.is_boss ?? false, weapon?.rolled_draws)
+    const newWorkflow = generateWorkflow(wClass, wRarity, loc?.sublocation_type === 'boss', weapon?.rolled_draws)
     dispatch({ type: 'SWITCH_WORKFLOW', workflow: newWorkflow, isRemaster: false })
   }
 
@@ -310,10 +310,6 @@ export default function CombatScreen() {
               maxHp: state.enemyMaxHp,
               isBoss: state.isBoss,
               sublocationtype: loc.sublocation_type,
-              activeCurses: state.activeCurses,
-              playerStamina: state.playerStamina,
-              playerMaxStamina: state.playerMaxStamina,
-              lastTileCompletionAt: state.lastTileCompletionAt,
             }}
           />
           {isPlayerTurn && radialPos && radialItems.length > 0 && (

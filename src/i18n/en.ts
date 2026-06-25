@@ -368,7 +368,7 @@ const en: TranslationBundle = {
     mult_repeatFlat:    'Repeat',
     mult_repeatScaling: 'Repeat (scaling)',
     mult_abandon:       'Abandon penalty',
-    mult_curse:         'Curse',
+    mult_affinity:      'Affinity',
     mult_streak:        'Consistency streak',
     mult_remaster:      'Remaster bonus',
     mult_finisher:      'Finishing blow',

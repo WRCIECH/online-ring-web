@@ -1,6 +1,6 @@
 import { useEffect, useLayoutEffect, useRef, useMemo, useState, useCallback } from 'react'
 import type { WorkflowGraph, WorkflowTile, AtomicStage, SublocationType } from '../../types/game'
-import { getReachableTiles, REPEAT_DAMAGE_PENALTY, type ActiveCurse } from '../../engine/combat'
+import { getReachableTiles, REPEAT_DAMAGE_PENALTY } from '../../engine/combat'
 import { getTileBadges, computeEffectiveTags, STAGE_COLOR } from '../../data/tileBadges'
 import { spiralLayout } from '../../engine/spiralLayout'
 import EnemyCenterpiece from './EnemyCenterpiece'
@@ -15,10 +15,6 @@ export interface EnemyOverlayProps {
   maxHp: number
   isBoss: boolean
   sublocationtype?: SublocationType
-  activeCurses: ActiveCurse[]
-  playerStamina: number
-  playerMaxStamina: number
-  lastTileCompletionAt: number
 }
 
 interface Props {
@@ -440,10 +436,6 @@ export default function WorkflowCanvas({ workflow, selectedTileId, onSelectTile,
             maxHp={enemy.maxHp}
             isBoss={enemy.isBoss}
             sublocationtype={enemy.sublocationtype}
-            activeCurses={enemy.activeCurses}
-            playerStamina={enemy.playerStamina}
-            playerMaxStamina={enemy.playerMaxStamina}
-            lastTileCompletionAt={enemy.lastTileCompletionAt}
           />
         )}
       </div>

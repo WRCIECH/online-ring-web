@@ -111,13 +111,14 @@ function generateLocationSequence(numSublocations = 20): LocationData[] {
     const baseMult = TIER_MULTS[enc.tier] ?? 1.0
     const isLast   = i === ordered.length - 1
     if (isLast) {
+      const bossEnemy = ENEMIES[enc.enemy_id]
       return {
         enemy_id: enc.enemy_id,
         name: LOCATION_NAMES[i] ?? `Location ${i + 1}`,
         mult: baseMult,
         tier: enc.tier,
         sublocation_type: 'boss' as SublocationType,
-        boss_name: ENEMIES[enc.enemy_id]?.name ?? enc.enemy_id,
+        boss_name: bossEnemy?.boss_name ?? bossEnemy?.name ?? enc.enemy_id,
       }
     }
     const position = i / ordered.length
@@ -170,7 +171,6 @@ function initialState(): GameState {
     run_location_name: '',
     completed_locations: [],
     abandon_penalty: 0,
-    incoming_curses: [],
     active_workflow: null,
     active_content_id: null,
     content_items: [],
@@ -218,9 +218,6 @@ export interface GameStore extends GameState {
   setAbandonPenalty:    (v: number) => void
   clearAbandonPenalty:  () => void
 
-  // Mob curses (carry into the next fight this run only)
-  setIncomingCurses:    (ids: string[]) => void
-  clearIncomingCurses:  () => void
   saveWorkflowProgress: (workflow: WorkflowGraph) => void
   setActiveContentId:   (id: string) => void
   clearActiveWorkflow:  () => void
@@ -277,7 +274,6 @@ export const useGameStore = create<GameStore>((set, get) => ({
       run_location_name: locationName,
       active_workflow: null,
       active_content_id: null,
-      incoming_curses: [],   // curses are a within-run consequence only, unlike abandon_penalty
     })
     get().save()
   },
@@ -398,9 +394,6 @@ export const useGameStore = create<GameStore>((set, get) => ({
   setAbandonPenalty:   (v) => { set({ abandon_penalty: v }); get().save() },
   clearAbandonPenalty: ()  => { set({ abandon_penalty: 0 }); get().save() },
 
-  setIncomingCurses:   (ids) => { set({ incoming_curses: ids }); get().save() },
-  clearIncomingCurses: ()    => { set({ incoming_curses: [] }); get().save() },
-
   saveWorkflowProgress: (workflow) => { set({ active_workflow: workflow }); get().save() },
   setActiveContentId:   (id)       => { set({ active_content_id: id }); get().save() },
   clearActiveWorkflow:  ()         => { set({ active_workflow: null, active_content_id: null }); get().save() },
@@ -495,7 +488,6 @@ export const useGameStore = create<GameStore>((set, get) => ({
     if (!data.locale)          data.locale          = 'pl'
     if (!data.total_task_time_s) data.total_task_time_s = 0
     if (data.abandon_penalty === undefined) data.abandon_penalty = 0
-    if (!data.incoming_curses) data.incoming_curses = []
     if (data.active_workflow  === undefined) data.active_workflow  = null
     if (data.active_content_id === undefined) data.active_content_id = null
     hydrateRegistries(data)
