@@ -29,14 +29,6 @@ export const LEARNING_ITEM_WEIGHT = 1.0
 /** Fraction of max HP restored by using an estus flask. */
 export const ESTUS_HEAL_FRACTION = 0.40
 
-// ── Combat — stamina ─────────────────────────────────────────────────────────
-
-/** Stamina cost to perform a block. */
-export const STA_BLOCK = 15
-
-/** Stamina restored on a successful defense (roll/parry/block). */
-export const STA_DEFENSE_GAIN = 25
-
 // ── Combat — idle gap thresholds ─────────────────────────────────────────────
 // Used by the burnout_shade curse (CurseDisplay/combat.ts) to scale its
 // penalty by how long it's been since your last tile completion.

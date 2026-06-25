@@ -142,24 +142,6 @@ export interface Enemy {
 // ── Combat phases ─────────────────────────────────────────────────────────
 export type CombatPhase = 'PLAYER_TURN' | 'STEP_TIMER' | 'VICTORY' | 'DEFEAT' | 'FLED'
 
-// ── Step (kept for TimerOverlay & tile display) ───────────────────────────
-export interface StepBadge {
-  label: string
-  detail: string
-  color?: string
-  tr_key?: string
-  tr_detail_key?: string
-}
-
-export interface Step {
-  name: string
-  time: number
-  base_damage: number
-  damage_type?: DamageType
-  stage?: AtomicStage
-  badges?: StepBadge[]
-}
-
 // ── Location ──────────────────────────────────────────────────────────────
 export interface LocationData {
   enemy_id: string
