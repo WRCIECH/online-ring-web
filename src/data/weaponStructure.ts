@@ -54,10 +54,11 @@ export const VALUE_BUCKET: Record<DrawNode['label'], keyof TranslationBundle['co
 // Turns a weapon instance's class pattern (WEAPON_PATTERNS) into a
 // renderable description of its workflow *shape*, with each draw step
 // resolved to that instance's actual fixed "primary" value (see
-// RolledPatternDraws in types/game.ts) when available. Mirrors
-// workflowGenerator.ts's compileStep skip conditions so a step that could
-// never actually occur for this class (e.g. drawStyle on a class with no
-// base_damage_types) is omitted here too.
+// RolledPatternDraws in types/game.ts) when available. A draw node is
+// omitted only when its resolved value is null (e.g. a probability-gated
+// drawStyle/drawEmotion that didn't trigger) — an empty class-level pool
+// no longer disables a draw, it just means any value of that kind is
+// equally likely (see rollSlotValue in patternSlots.ts).
 export function describeWeaponPattern(weapon: WeaponInstance): PatternNode[] {
   const cls = WEAPON_CLASSES[weapon.weapon_class]
   const steps = WEAPON_PATTERNS[weapon.weapon_class]
@@ -88,19 +89,16 @@ function describeStep(
       return value === null ? null : { kind: 'draw', label: 'format', value }
     }
     case 'drawTransformation': {
-      if (cls.allowed_transformations.length === 0) return null
       const occ = counters.transformation++
       const value = weapon.rolled_draws?.transformation[occ]?.[0] ?? null
       return value === null ? null : { kind: 'draw', label: 'transformation', value }
     }
     case 'drawStyle': {
-      if (cls.base_damage_types.length === 0) return null
       const occ = counters.style++
       const value = weapon.rolled_draws?.style[occ]?.[0] ?? null
       return value === null ? null : { kind: 'draw', label: 'style', value }
     }
     case 'drawEmotion': {
-      if (cls.inherent_status.length === 0) return null
       const occ = counters.emotion++
       const value = weapon.rolled_draws?.emotion[occ]?.[0] ?? null
       return value === null ? null : { kind: 'draw', label: 'emotion', value }

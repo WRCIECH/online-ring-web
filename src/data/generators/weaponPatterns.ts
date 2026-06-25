@@ -41,12 +41,13 @@ export function branch(...paths: PatternStep[][]): PatternStep {
 
 // ── Per-weapon-class patterns ───────────────────────────────────────────
 //
-// drawTransformation() always follows drawFormat() — every class defines
-// a non-empty allowed_transformations pool, so this gives every weapon a
-// permanent, always-present Transformation draw alongside its Format
-// draw. Promote is appended after the final Publish for every class
-// except poise_weight 'light' ones (quick content doesn't get a separate
-// promo step) — see comments per group.
+// drawTransformation() always follows drawFormat() — both are unconditional
+// (no probability, and an empty allowed_transformations/supported_products
+// pool is a wildcard rather than a disable, see weaponClasses.ts), so this
+// gives every weapon a permanent, always-present Transformation draw
+// alongside its Format draw. Promote is appended after the final Publish
+// for every class except poise_weight 'light' ones (quick content doesn't
+// get a separate promo step) — see comments per group.
 
 export const WEAPON_PATTERNS: Record<WeaponClass, PatternStep[]> = {
   // ── concretely specified ─────────────────────────────────────────────
@@ -141,7 +142,7 @@ export const WEAPON_PATTERNS: Record<WeaponClass, PatternStep[]> = {
     drawStyle(0.5), phase('Publish'), phase('Promote'),
   ],
   halberds: [   // standalone heavy pole weapon, grouped with this set -> 3-chain
-    phase('Research', 2), drawFormat(), drawTransformation(),
+    phase('Research', 2), drawTransformation(), drawFormat(),
     branch(
       [drawStyle(1.0), phase('Produce', 2), phase('Refine'), phase('Publish'), phase('Promote')],
       [drawStyle(1.0), phase('Produce', 2), phase('Refine'), phase('Publish'), phase('Promote')],

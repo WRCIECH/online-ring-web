@@ -13,8 +13,9 @@ export interface WeaponClassDef {
   // allowed_transformations: each is sampled uniformly by pick() (see
   // patternSlots.ts), so an entry's *probability* is its share of the pool's
   // length — repeating a value gives it proportionally more weight. An empty
-  // pool disables the corresponding draw step entirely for this class
-  // (mirrors how an empty allowed_transformations disables drawTransformation).
+  // pool means *no restriction* — rollSlotValue falls back to a wildcard of
+  // every possible value for that kind, each equally likely — rather than
+  // disabling the draw.
   supported_products: ContentProductType[]
   scaling: Partial<Record<StatKey, Grade>>
   base_damage_types: DamageType[]

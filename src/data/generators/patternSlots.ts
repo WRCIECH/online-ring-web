@@ -66,6 +66,31 @@ export function countSlotsByKind(steps: PatternStep[]): Record<SlotKind, number>
 
 export const ATOMIC_TIMES: AtomicTime[] = ['Micro', 'Short', 'Medium', 'Long', 'Deep']
 
+// Wildcard fallbacks used when a class's pool for a kind is empty — see
+// rollSlotValue. Exhaustive literal lists (no runtime reflection over a
+// TS union exists); keep in sync with the corresponding type in
+// types/game.ts / contentProducts.ts if a value is ever added or removed.
+const ALL_CONTENT_PRODUCTS: ContentProductType[] = [
+  'Plaintext', 'StructuredText', 'IllustratedText', 'SingleGraphic', 'Carousel', 'Infographic',
+  'RawAudio', 'ProducedAudio', 'ARollVideo', 'SlideshowVideo', 'Screencast', 'CinematicVideo',
+  'MotionGraphics', 'LiveStream', 'MultimediaPage', 'BranchingNarrative', 'AssetPack',
+  'CurationFeed', 'CommunitySpace', 'InteractiveApp', '_blank',
+]
+// Excludes 'New' — that value is reserved for the state-0 "fresh,
+// unremixed" sentinel (always forced separately in rollPatternDraws) and
+// shouldn't turn up as a wildcard remix target at states 1+.
+const ALL_TRANSFORMATIONS_EXCEPT_NEW: AtomicOrigin[] = [
+  'Compression', 'Expansion', 'Recycled', 'Remastered', 'Revamped', 'Reboot',
+  'ZoomIn', 'ZoomOut', 'AudienceAlter', 'Commentary', 'Similar', 'Opposite',
+]
+const ALL_DAMAGE_TYPES: DamageType[] = [
+  'standard', 'strike', 'slash', 'pierce', 'lightning', 'fire', 'magic', 'holy', 'occult', 'grafting', 'poison',
+]
+const ALL_STATUS_TYPES: StatusType[] = [
+  'bleed', 'scarlet_rot', 'frostbite', 'madness', 'sleep', 'death_blight', 'glintstone',
+  'frenzy_flame', 'devotion', 'yearning', 'dread', 'murmur', 'grace',
+]
+
 function pick<T>(arr: readonly T[]): T {
   return arr[Math.floor(Math.random() * arr.length)]
 }
@@ -83,24 +108,27 @@ function pickExcluding<T extends SlotValue>(pool: readonly T[], exclude: SlotVal
 }
 
 // `exclude` is only passed on remaster rerolls (states 1..N) — the initial
-// state-0 roll has no previous value to avoid repeating.
+// state-0 roll has no previous value to avoid repeating. An empty
+// class-level pool for any of the 4 kinds means "no restriction" — any
+// value from the full universe for that kind is equally likely — rather
+// than disabling the draw.
 function rollSlotValue(cls: WeaponClassDef, slot: SlotRef, exclude?: SlotValue): SlotValue {
   if (slot.kind === 'format') {
-    return exclude !== undefined ? pickExcluding(cls.supported_products, exclude) : pick(cls.supported_products)
+    const pool = cls.supported_products.length > 0 ? cls.supported_products : ALL_CONTENT_PRODUCTS
+    return exclude !== undefined ? pickExcluding(pool, exclude) : pick(pool)
   }
   if (slot.kind === 'transformation') {
-    const pool = cls.allowed_transformations
-    if (pool.length === 0) return null
+    const pool = cls.allowed_transformations.length > 0 ? cls.allowed_transformations : ALL_TRANSFORMATIONS_EXCEPT_NEW
     return exclude !== undefined ? pickExcluding(pool, exclude) : pick(pool)
   }
   if (slot.kind === 'style') {
-    const pool = cls.base_damage_types
-    if (pool.length === 0 || Math.random() >= slot.probability) return null
+    if (Math.random() >= slot.probability) return null
+    const pool = cls.base_damage_types.length > 0 ? cls.base_damage_types : ALL_DAMAGE_TYPES
     return exclude !== undefined ? pickExcluding(pool, exclude) : pick(pool)
   }
   // emotion
-  const pool = cls.inherent_status
-  if (pool.length === 0 || Math.random() >= slot.probability) return null
+  if (Math.random() >= slot.probability) return null
+  const pool = cls.inherent_status.length > 0 ? cls.inherent_status : ALL_STATUS_TYPES
   return exclude !== undefined ? pickExcluding(pool, exclude) : pick(pool)
 }
 
