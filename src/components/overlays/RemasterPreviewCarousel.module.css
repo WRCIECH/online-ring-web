@@ -48,9 +48,15 @@
   cursor: default;
 }
 
+.formatRow {
+  font-size: 0.7rem;
+  color: var(--color-text-dim);
+  opacity: 0.75;
+}
+
 .chipRow {
   display: flex;
-  flex-wrap: wrap;
+  flex-direction: column;
   gap: 5px;
 }
 

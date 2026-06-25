@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useGameStore, selectWeaponSlotLoad } from '../../store/gameStore'
 import { WEAPONS, LEVEL_MULT } from '../../data/weapons'
 import { WEAPON_CLASSES } from '../../data/generators/weaponClasses'
+import { mergeAffixesForDisplay } from '../../data/weaponStructure'
 import type { WeaponInstance, WeaponRarity } from '../../types/game'
 import { useT, localizeWeaponName } from '../../i18n'
 import WeaponSprite from '../icons/WeaponSprite'
@@ -21,6 +22,7 @@ export default function EquipOverlay({ onClose }: Props) {
   const store = useGameStore()
   const t     = useT()
   const [expandedContent, setExpandedContent] = useState<Record<string, boolean>>({})
+  const [selectedWeaponId, setSelectedWeaponId] = useState<string | null>(null)
 
   function handleAssign(weaponInstanceId: string, contentId: string) {
     if (!contentId) return
@@ -72,7 +74,7 @@ export default function EquipOverlay({ onClose }: Props) {
 
         {weapon.affixes.length > 0 && (
           <div className={s.affixList}>
-            {weapon.affixes.map(a => <span key={a.id} className={s.affix}>{a.label}</span>)}
+            {mergeAffixesForDisplay(weapon.affixes).map(a => <span key={a.id} className={s.affix}>{a.label}</span>)}
           </div>
         )}
 
@@ -130,6 +132,31 @@ export default function EquipOverlay({ onClose }: Props) {
     return aEq - bEq
   })
 
+  const effectiveSelectedId = selectedWeaponId ?? weaponsToShow[0] ?? null
+
+  function renderIcon(wid: string) {
+    const weapon = WEAPONS[wid] as WeaponInstance | undefined
+    if (!weapon) return null
+    const isEquipped = store.equipped_run_weapons.includes(wid)
+    const isActive   = wid === effectiveSelectedId
+    return (
+      <button
+        key={wid}
+        className={[s.iconBtn, isActive ? s.iconBtnActive : ''].join(' ')}
+        onClick={() => setSelectedWeaponId(wid)}
+      >
+        <WeaponSprite
+          weaponClass={weapon.weapon_class}
+          rarity={weapon.rarity}
+          poiseWeight={weapon.poise_weight ?? 'medium'}
+          size={34}
+        />
+        {isEquipped && <span className={s.iconEquippedDot} title={t.ui.equip_equipped_badge}>⚔</span>}
+        <span className={s.iconTooltip}>{localizeWeaponName(weapon, t)}</span>
+      </button>
+    )
+  }
+
   return (
     <div className={s.overlay} onMouseDown={e => { if (e.target === e.currentTarget) onClose() }}>
       <div className={s.panel}>
@@ -141,11 +168,18 @@ export default function EquipOverlay({ onClose }: Props) {
 
         <hr className={s.sep} />
 
-        <div className={s.weaponList}>
-          {weaponsToShow.length === 0
-            ? <div className={s.empty}>{t.ui.equip_no_weapons}</div>
-            : weaponsToShow.map(renderWeapon)}
-        </div>
+        {weaponsToShow.length === 0 ? (
+          <div className={s.empty}>{t.ui.equip_no_weapons}</div>
+        ) : (
+          <>
+            <div className={s.iconStrip}>
+              {weaponsToShow.map(renderIcon)}
+            </div>
+            <div className={s.weaponList}>
+              {effectiveSelectedId && renderWeapon(effectiveSelectedId)}
+            </div>
+          </>
+        )}
 
       </div>
     </div>

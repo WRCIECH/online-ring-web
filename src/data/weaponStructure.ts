@@ -1,4 +1,4 @@
-import type { AtomicStage, WeaponInstance, ContentProductType, AtomicOrigin, DamageType, StatusType } from '../types/game'
+import type { AtomicStage, WeaponInstance, ContentProductType, AtomicOrigin, DamageType, StatusType, Affix } from '../types/game'
 import type { TranslationBundle } from '../i18n'
 import type { PatternStep } from './generators/weaponPatterns'
 import { WEAPON_PATTERNS } from './generators/weaponPatterns'
@@ -155,4 +155,44 @@ export function describeRemasterStates(weapon: WeaponInstance): RemasterSlotView
     states.push(row)
   }
   return states
+}
+
+type AffixCategory = 'damage' | 'stamina' | 'fp'
+
+function affixCategory(a: Affix): AffixCategory | null {
+  if (a.damage_mult !== undefined) return 'damage'
+  if (a.stamina_mult !== undefined) return 'stamina'
+  if (a.fp_mult !== undefined) return 'fp'
+  return null
+}
+
+// `rollAffixes` can independently pick more than one affix that boosts the
+// same stat (e.g. two separate "+X% damage" rolls) — they do both apply
+// (composed multiplicatively, see calcWeaponScaledDamage), but shown as two
+// separate unexplained chips it reads as a bug. Collapse same-category
+// affixes into one chip with the combined multiplier.
+export function mergeAffixesForDisplay(affixes: Affix[]): { id: string; label: string }[] {
+  const byCategory: Record<AffixCategory, Affix[]> = { damage: [], stamina: [], fp: [] }
+  const passthrough: Affix[] = []
+  for (const a of affixes) {
+    const cat = affixCategory(a)
+    if (cat) byCategory[cat].push(a)
+    else passthrough.push(a)
+  }
+
+  const out: { id: string; label: string }[] = passthrough.map(a => ({ id: a.id, label: a.label }))
+
+  if (byCategory.damage.length > 0) {
+    const mult = byCategory.damage.reduce((m, a) => m * (a.damage_mult ?? 1), 1)
+    out.push({ id: byCategory.damage.map(a => a.id).join('+'), label: `+${Math.round((mult - 1) * 100)}% damage` })
+  }
+  if (byCategory.stamina.length > 0) {
+    const mult = byCategory.stamina.reduce((m, a) => m * (a.stamina_mult ?? 1), 1)
+    out.push({ id: byCategory.stamina.map(a => a.id).join('+'), label: `-${Math.round((1 - mult) * 100)}% stamina cost` })
+  }
+  if (byCategory.fp.length > 0) {
+    const mult = byCategory.fp.reduce((m, a) => m * (a.fp_mult ?? 1), 1)
+    out.push({ id: byCategory.fp.map(a => a.id).join('+'), label: `-${Math.round((1 - mult) * 100)}% mana cost` })
+  }
+  return out
 }

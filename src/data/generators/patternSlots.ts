@@ -78,8 +78,14 @@ export function rollPatternDraws(weaponClass: WeaponClass): RolledPatternDraws {
   const slots = listPatternSlots(steps)
   const N = cls.remaster_steps
 
-  // states[stateIndex][slotIndex] = value at that state for that slot
-  const states: SlotValue[][] = [slots.map(slot => rollSlotValue(cls, slot))]
+  // states[stateIndex][slotIndex] = value at that state for that slot.
+  // State 0 is content that hasn't been remixed yet, so Transformation is
+  // always 'New' there — the allowed_transformations pool (Similar,
+  // Opposite, Remastered, ...) only makes sense once a remaster actually
+  // happens, starting at state 1.
+  const states: SlotValue[][] = [
+    slots.map(slot => slot.kind === 'transformation' ? 'New' : rollSlotValue(cls, slot)),
+  ]
   for (let i = 1; i <= N; i++) {
     const next = states[i - 1].slice()
     if (slots.length > 0) {

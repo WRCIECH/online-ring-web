@@ -50,6 +50,69 @@
   margin: 0;
 }
 
+/* ── Icon strip ───────────────────────────────────────────────────────── */
+
+.iconStrip {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding-bottom: 4px;
+}
+
+.iconBtn {
+  position: relative;
+  width: 44px;
+  height: 52px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--color-sep);
+  border-radius: var(--radius);
+  background: rgba(255,255,255,0.02);
+  cursor: pointer;
+  transition: border-color 0.1s, background 0.1s;
+}
+
+.iconBtn:hover { border-color: var(--color-border); background: rgba(255,255,255,0.05); }
+
+.iconBtnActive {
+  border-color: var(--color-gold-dim);
+  background: rgba(255,200,80,0.06);
+}
+
+.iconEquippedDot {
+  position: absolute;
+  top: 2px;
+  right: 3px;
+  font-size: 0.6rem;
+  color: var(--color-gold-dim);
+  line-height: 1;
+}
+
+.iconTooltip {
+  position: absolute;
+  bottom: calc(100% + 6px);
+  left: 50%;
+  transform: translateX(-50%);
+  white-space: nowrap;
+  font-size: 0.7rem;
+  color: var(--color-text);
+  background: var(--color-bg-panel);
+  border: 1px solid var(--color-border);
+  border-radius: 4px;
+  padding: 3px 8px;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.1s;
+  z-index: 5;
+}
+
+.iconBtn:hover .iconTooltip,
+.iconBtn:focus-visible .iconTooltip {
+  opacity: 1;
+}
+
 /* ── Weapon list ──────────────────────────────────────────────────────── */
 
 .weaponList {
