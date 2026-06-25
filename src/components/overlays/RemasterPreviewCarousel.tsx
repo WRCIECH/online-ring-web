@@ -35,8 +35,8 @@ export default function RemasterPreviewCarousel({ weapon }: Props) {
   return (
     <div className={s.carousel}>
       <div className={s.header}>
-        <button className={s.navBtn} disabled={page === 0} onClick={() => setPage(p => p - 1)}>‹</button>
         <span className={s.title}>{t.ui.remaster_preview_title} — {pageLabel}</span>
+        <button className={s.navBtn} disabled={page === 0} onClick={() => setPage(p => p - 1)}>‹</button>
         <span className={s.counter}>{page + 1} / {states.length}</span>
         <button className={s.navBtn} disabled={page === states.length - 1} onClick={() => setPage(p => p + 1)}>›</button>
       </div>
