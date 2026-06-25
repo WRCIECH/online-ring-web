@@ -29,8 +29,6 @@ export default function RemasterPreviewCarousel({ weapon }: Props) {
   if (states.length <= 1) return null
 
   const pageLabel = page === 0 ? t.ui.remaster_preview_current : `${t.ui.remaster_preview_step} ${page+1}`
-  const formatBucket = t.content[VALUE_BUCKET.format] as Record<string, { badge_label: string }>
-  const formatLabel = weapon.rolled_draws ? formatBucket[weapon.rolled_draws.format]?.badge_label : undefined
 
   return (
     <div className={s.carousel}>
@@ -40,8 +38,6 @@ export default function RemasterPreviewCarousel({ weapon }: Props) {
         <span className={s.counter}>{page + 1} / {states.length}</span>
         <button className={s.navBtn} disabled={page === states.length - 1} onClick={() => setPage(p => p + 1)}>›</button>
       </div>
-
-      {formatLabel && <div className={s.formatRow}>{formatLabel}</div>}
 
       <div className={s.chipRow}>
         {states[page].map((slot, i) => renderSlot(slot, `${slot.kind}-${slot.occurrenceIndex}-${i}`, t))}

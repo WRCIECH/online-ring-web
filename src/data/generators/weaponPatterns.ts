@@ -141,10 +141,12 @@ export const WEAPON_PATTERNS: Record<WeaponClass, PatternStep[]> = {
     drawStyle(0.5), phase('Publish'), phase('Promote'),
   ],
   halberds: [   // standalone heavy pole weapon, grouped with this set -> 3-chain
-    phase('Research', 2), drawFormat(), drawTransformation(), drawStyle(0.5),
-    branch([phase('Produce', 2)], [phase('Produce', 2)], [phase('Produce', 2)]),
-    phase('Refine'), phase('Publish'),
-    drawStyle(0.5), phase('Publish'), phase('Promote'),
+    phase('Research', 2), drawFormat(), drawTransformation(),
+    branch(
+      [drawStyle(1.0), phase('Produce', 2), phase('Refine'), phase('Publish'), phase('Promote')],
+      [drawStyle(1.0), phase('Produce', 2), phase('Refine'), phase('Publish'), phase('Promote')],
+      [drawStyle(1.0), phase('Produce', 2), phase('Refine'), phase('Publish'), phase('Promote')],
+    ),
   ],
 
   // ── very long research/plan, big finish dmg (ranged group) ─────────────
@@ -194,4 +196,50 @@ export const WEAPON_PATTERNS: Record<WeaponClass, PatternStep[]> = {
     drawStyle(0.3),
     phase('Produce', 1), phase('Refine'), phase('Publish'), phase('Promote'),
   ],
+}
+
+// ── Branch-draw validation ──────────────────────────────────────────────
+//
+// A branch may draw inside its paths (e.g. halberds: 3 parallel pieces of
+// content, each with its own Style) instead of sharing every draw before
+// the branch (the axes/twinblades/etc. shape, where the branch only
+// multiplies Produce/Refine). When it does, exactly one draw-kind may vary
+// per branch, drawn in every path exactly once, always at probability 1 —
+// so the N parallel pieces of content stay symmetric (every one gets a
+// value for that kind, never null) and a future edit can't accidentally
+// mix kinds across paths or skip one. Validated eagerly at module load,
+// same as phase()/branch() throwing on invalid construction above.
+type DrawKind = 'format' | 'transformation' | 'style' | 'emotion'
+
+function drawKindOf(step: PatternStep): DrawKind | null {
+  switch (step.kind) {
+    case 'drawFormat': return 'format'
+    case 'drawTransformation': return 'transformation'
+    case 'drawStyle': return 'style'
+    case 'drawEmotion': return 'emotion'
+    default: return null
+  }
+}
+
+function validateBranch(cls: WeaponClass, step: { paths: PatternStep[][] }): void {
+  const perPath = step.paths.map(path => path.filter(s => drawKindOf(s) !== null))
+  const kindsUsed = new Set(perPath.flatMap(draws => draws.map(d => drawKindOf(d)!)))
+  if (kindsUsed.size === 0) return   // existing draw-free branches (axes, twinblades, ...) stay valid
+  if (kindsUsed.size > 1) {
+    throw new Error(`${cls}: branch mixes draw kinds across paths (${[...kindsUsed].join(', ')}) — exactly one kind may vary per branch`)
+  }
+  const [onlyKind] = kindsUsed
+  for (const draws of perPath) {
+    if (draws.length !== 1) {
+      throw new Error(`${cls}: every path in this branch must draw exactly one ${onlyKind} (found ${draws.length} in one path)`)
+    }
+    const draw = draws[0]
+    if ((draw.kind === 'drawStyle' || draw.kind === 'drawEmotion') && draw.probability !== 1) {
+      throw new Error(`${cls}: branch-nested ${draw.kind} must use probability 1, got ${draw.probability}`)
+    }
+  }
+}
+
+for (const [cls, steps] of Object.entries(WEAPON_PATTERNS)) {
+  for (const step of steps) if (step.kind === 'branch') validateBranch(cls as WeaponClass, step)
 }

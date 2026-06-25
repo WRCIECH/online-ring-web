@@ -9,20 +9,21 @@ function pick<T>(arr: readonly T[]): T {
 }
 
 // A remaster pass re-tags an already-completed ContentItem along the
-// Transformation/Length/Style/Emotion axes without redoing the underlying
-// Research/Produce/Refine/Publish work. Shape is derived from the weapon's
-// own original pattern: one Transformation + one Length retag always
-// (neither axis appears in any original pattern today), plus one Style
-// retag per drawStyle() occurrence and one Emotion retag per drawEmotion()
-// occurrence in that weapon's WEAPON_PATTERNS entry — classes whose
-// pattern draws Style twice (e.g. the spear group) get two Style retags.
-// Every tile is a standalone 'Plan' tile, forced (no probability roll —
-// remastering is a deliberate choice), chained linearly with no branching.
-// When `rolledDraws` is present (i.e. this weapon instance was created
-// after the fixed-per-instance-draws feature shipped), Style/Emotion
-// values come from its pre-rolled `stateIndex` state instead of a fresh
-// roll; Length comes from its single fixed value. Falls back to fresh
-// `pick()` rolls when absent (legacy weapon instances).
+// Format/Transformation/Length/Style/Emotion axes without redoing the
+// underlying Research/Produce/Refine/Publish work. Shape is derived from
+// the weapon's own original pattern: one Format + one Transformation + one
+// Length retag always (none of those three axes appear in any original
+// pattern today), plus one Style retag per drawStyle() occurrence and one
+// Emotion retag per drawEmotion() occurrence in that weapon's
+// WEAPON_PATTERNS entry — classes whose pattern draws Style twice (e.g.
+// the spear group) get two Style retags. Every tile is a standalone 'Plan'
+// tile, forced (no probability roll — remastering is a deliberate choice),
+// chained linearly with no branching. When `rolledDraws` is present (i.e.
+// this weapon instance was created after the fixed-per-instance-draws
+// feature shipped), Format/Style/Emotion values come from their pre-rolled
+// `stateIndex` state instead of a fresh roll; Length comes from its single
+// fixed value. Falls back to fresh `pick()` rolls when absent (legacy
+// weapon instances).
 export function generateRemasterWorkflow(
   weaponClass: WeaponClass,
   rolledDraws?: RolledPatternDraws,
@@ -38,6 +39,14 @@ export function generateRemasterWorkflow(
   function push(tile: WorkflowTile): void {
     if (tiles.length > 0) edges.push({ from: tiles[tiles.length - 1].id, to: tile.id })
     tiles.push(tile)
+  }
+
+  for (let i = 0; i < counts.format; i++) {
+    const t = makeTile('Plan', cls.time_mod)
+    t.content_type = rolledDraws
+      ? (rolledDraws.format[i]?.[stateIndex] ?? undefined)
+      : pick(cls.supported_products)
+    push(t)
   }
 
   const transformTile = makeTile('Plan', cls.time_mod)
@@ -86,14 +95,12 @@ export function generateRemasterWorkflow(
 // full Research→Produce→Refine→Publish structure intact instead of
 // collapsing to the short Plan-only retag chain generateRemasterWorkflow()
 // produces for content that has never been played (no snapshot yet).
-// When `rolledDraws` is present, content_type is reassigned the weapon's
-// single fixed Format value (shared across every tile that carries it,
-// since one drawFormat() roll tags multiple tiles); content_origin/
-// damage_type/status are reassigned from `rolledDraws`' per-occurrence
-// state sequence at `stateIndex`, consumed in tile storage order (which
-// matches pattern-traversal order 1:1 for these three, each occurrence
-// tagging exactly one tile). Falls back to fresh `pick()` rolls per tile
-// when absent (legacy weapon instances).
+// When `rolledDraws` is present, content_type/content_origin/damage_type/
+// status are all reassigned from `rolledDraws`' per-occurrence state
+// sequence at `stateIndex`, consumed in tile storage order (which matches
+// pattern-traversal order 1:1 for these four, each occurrence tagging
+// exactly one tile). Falls back to fresh `pick()` rolls per tile when
+// absent (legacy weapon instances).
 export function regenerateWorkflowKeepingStructure(
   original: WorkflowGraph,
   weaponClass: WeaponClass,
@@ -102,7 +109,7 @@ export function regenerateWorkflowKeepingStructure(
 ): WorkflowGraph {
   const cls = WEAPON_CLASSES[weaponClass]
   const idMap = new Map<string, string>()
-  const counters = { transformation: 0, style: 0, emotion: 0 }
+  const counters = { format: 0, transformation: 0, style: 0, emotion: 0 }
 
   const tiles: WorkflowTile[] = original.tiles.map(orig => {
     const newId = tid()
@@ -117,7 +124,9 @@ export function regenerateWorkflowKeepingStructure(
       repeat_count: 0,
     }
     if (orig.content_type) {
-      tile.content_type = rolledDraws ? rolledDraws.format : pick(cls.supported_products)
+      tile.content_type = rolledDraws
+        ? (rolledDraws.format[counters.format++]?.[stateIndex] ?? undefined)
+        : pick(cls.supported_products)
     }
     if (orig.content_origin) {
       tile.content_origin = rolledDraws

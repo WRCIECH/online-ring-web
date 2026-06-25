@@ -88,13 +88,16 @@ export interface Weapon {
 
 // All draws a weapon instance's pattern can make (Format/Transformation/
 // Style/Emotion/Length), rolled once at weapon-creation time and never
-// re-rolled per fight. Transformation/Style/Emotion each hold a fixed
-// sequence of states per occurrence — state 0 ("primary") is used for
-// normal content, states 1..N for the 1st..Nth remaster of attached
-// content (see WeaponClassDef.remaster_steps). Format and Length have no
-// remaster-state sequence — a single fixed value used everywhere.
+// re-rolled per fight. Format/Transformation/Style/Emotion each hold a
+// fixed sequence of states per occurrence — state 0 ("primary") is used
+// for normal content, states 1..N for the 1st..Nth remaster of attached
+// content (see WeaponClassDef.remaster_steps). Length has no remaster-state
+// sequence — a single fixed value used everywhere. When a draw occurs once
+// per path inside the same branch() (e.g. halberds' 3 parallel Style
+// draws), its occurrences are redrawn together as one group on the
+// round-robin's turn rather than independently — see patternSlots.ts.
 export interface RolledPatternDraws {
-  format: ContentProductType
+  format:         (ContentProductType | null)[][]   // [occurrenceIndex][stateIndex]
   transformation: (AtomicOrigin | null)[][]   // [occurrenceIndex][stateIndex]
   style:          (DamageType   | null)[][]   // [occurrenceIndex][stateIndex]
   emotion:        (StatusType   | null)[][]   // [occurrenceIndex][stateIndex]

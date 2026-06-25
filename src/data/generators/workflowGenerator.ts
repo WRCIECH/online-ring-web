@@ -119,7 +119,7 @@ export function compilePattern(
   const ctx: CompileContext = {
     cls, rarity, tiles: [], edges: [], frontier: [],
     lastResearchBlockTileIds: null, produceBoostApplied: false,
-    rolledDraws, slotCounters: { transformation: 0, style: 0, emotion: 0 },
+    rolledDraws, slotCounters: { format: 0, transformation: 0, style: 0, emotion: 0 },
   }
   for (const step of steps) compileStep(step, ctx)
   return { tiles: ctx.tiles, edges: ctx.edges }
@@ -164,7 +164,9 @@ function compileDrawFormat(ctx: CompileContext): void {
     throw new Error(`drawFormat() in ${ctx.cls.id}'s pattern has no preceding phase('Research', ...) block`)
   }
   const pool = ctx.cls.supported_products
-  const value = ctx.rolledDraws ? ctx.rolledDraws.format : pool[Math.floor(Math.random() * pool.length)]
+  const value = ctx.rolledDraws
+    ? (ctx.rolledDraws.format[ctx.slotCounters.format++]?.[0] ?? pool[Math.floor(Math.random() * pool.length)])
+    : pool[Math.floor(Math.random() * pool.length)]
   for (const id of ctx.lastResearchBlockTileIds) {
     const t = ctx.tiles.find(t => t.id === id)!
     t.content_type = value

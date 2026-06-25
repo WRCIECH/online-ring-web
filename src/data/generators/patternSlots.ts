@@ -1,4 +1,4 @@
-import type { WeaponClass, AtomicTime, AtomicOrigin, DamageType, StatusType, RolledPatternDraws } from '../../types/game'
+import type { WeaponClass, AtomicTime, AtomicOrigin, DamageType, StatusType, ContentProductType, RolledPatternDraws } from '../../types/game'
 import type { PatternStep } from './weaponPatterns'
 import { WEAPON_PATTERNS } from './weaponPatterns'
 import { WEAPON_CLASSES, type WeaponClassDef } from './weaponClasses'
@@ -10,39 +10,56 @@ import { WEAPON_CLASSES, type WeaponClassDef } from './weaponClasses'
 // draw-step ordering, not tiles/edges/frontier, so it's safe to reuse from
 // both the weapon-creation roller below and the UI structure preview.
 
-export type SlotKind = 'transformation' | 'style' | 'emotion'
+export type SlotKind = 'format' | 'transformation' | 'style' | 'emotion'
 export interface SlotRef { kind: SlotKind; occurrenceIndex: number; probability: number }
 
-export function listPatternSlots(steps: PatternStep[]): SlotRef[] {
-  const out: SlotRef[] = []
-  const counters: Record<SlotKind, number> = { transformation: 0, style: 0, emotion: 0 }
-  function walk(list: PatternStep[]): void {
-    for (const step of list) {
-      switch (step.kind) {
-        case 'drawTransformation':
-          out.push({ kind: 'transformation', occurrenceIndex: counters.transformation++, probability: 1 })
-          break
-        case 'drawStyle':
-          out.push({ kind: 'style', occurrenceIndex: counters.style++, probability: step.probability })
-          break
-        case 'drawEmotion':
-          out.push({ kind: 'emotion', occurrenceIndex: counters.emotion++, probability: step.probability })
-          break
-        case 'branch':
-          for (const path of step.paths) walk(path)
-          break
-        case 'phase':
-        case 'drawFormat':
-          break
+function slotForDraw(step: PatternStep, counters: Record<SlotKind, number>): SlotRef | null {
+  switch (step.kind) {
+    case 'drawFormat':         return { kind: 'format', occurrenceIndex: counters.format++, probability: 1 }
+    case 'drawTransformation': return { kind: 'transformation', occurrenceIndex: counters.transformation++, probability: 1 }
+    case 'drawStyle':          return { kind: 'style', occurrenceIndex: counters.style++, probability: step.probability }
+    case 'drawEmotion':        return { kind: 'emotion', occurrenceIndex: counters.emotion++, probability: step.probability }
+    default: return null
+  }
+}
+
+// Groups slots for the remaster round-robin: a top-level draw is its own
+// group (redrawn independently, e.g. spears' two sequential drawStyle()
+// calls), while every draw inside one branch()'s paths (e.g. halberds' 3
+// parallel drawStyle() calls — one per path, validated by weaponPatterns.ts
+// to be the same kind in every path) forms a single group, redrawn together
+// on that group's round-robin turn so the parallel pieces of content stay
+// in lockstep about *when* they change, even though each still gets its
+// own independent roll and can land on a different value than its siblings.
+// listPatternSlots()'s flat order is exactly groups.flat() — branches don't
+// reorder anything relative to the old purely-recursive walk.
+export function listSlotGroups(steps: PatternStep[]): SlotRef[][] {
+  const groups: SlotRef[][] = []
+  const counters: Record<SlotKind, number> = { format: 0, transformation: 0, style: 0, emotion: 0 }
+  for (const step of steps) {
+    if (step.kind === 'branch') {
+      const branchGroup: SlotRef[] = []
+      for (const path of step.paths) {
+        for (const innerStep of path) {
+          const slot = slotForDraw(innerStep, counters)
+          if (slot) branchGroup.push(slot)
+        }
       }
+      if (branchGroup.length > 0) groups.push(branchGroup)
+    } else {
+      const slot = slotForDraw(step, counters)
+      if (slot) groups.push([slot])
     }
   }
-  walk(steps)
-  return out
+  return groups
+}
+
+export function listPatternSlots(steps: PatternStep[]): SlotRef[] {
+  return listSlotGroups(steps).flat()
 }
 
 export function countSlotsByKind(steps: PatternStep[]): Record<SlotKind, number> {
-  const counts: Record<SlotKind, number> = { transformation: 0, style: 0, emotion: 0 }
+  const counts: Record<SlotKind, number> = { format: 0, transformation: 0, style: 0, emotion: 0 }
   for (const slot of listPatternSlots(steps)) counts[slot.kind]++
   return counts
 }
@@ -53,31 +70,60 @@ function pick<T>(arr: readonly T[]): T {
   return arr[Math.floor(Math.random() * arr.length)]
 }
 
-type SlotValue = AtomicOrigin | DamageType | StatusType | null
+type SlotValue = ContentProductType | AtomicOrigin | DamageType | StatusType | null
 
-function rollSlotValue(cls: WeaponClassDef, slot: SlotRef): SlotValue {
+// Picks from `pool`, excluding `exclude` when an alternative actually
+// exists — used on remaster rerolls so a "redraw" can't silently land back
+// on the exact same value it's replacing (which, for a small/skewed pool
+// like halberds' 2:1 pierce/slash, would otherwise read as "nothing
+// changed" purely by chance).
+function pickExcluding<T extends SlotValue>(pool: readonly T[], exclude: SlotValue): T {
+  const filtered = pool.filter(v => v !== exclude)
+  return pick(filtered.length > 0 ? filtered : pool)
+}
+
+// `exclude` is only passed on remaster rerolls (states 1..N) — the initial
+// state-0 roll has no previous value to avoid repeating.
+function rollSlotValue(cls: WeaponClassDef, slot: SlotRef, exclude?: SlotValue): SlotValue {
+  if (slot.kind === 'format') {
+    return exclude !== undefined ? pickExcluding(cls.supported_products, exclude) : pick(cls.supported_products)
+  }
   if (slot.kind === 'transformation') {
     const pool = cls.allowed_transformations
-    return pool.length === 0 ? null : pick(pool)
+    if (pool.length === 0) return null
+    return exclude !== undefined ? pickExcluding(pool, exclude) : pick(pool)
   }
   if (slot.kind === 'style') {
     const pool = cls.base_damage_types
-    return (pool.length === 0 || Math.random() >= slot.probability) ? null : pick(pool)
+    if (pool.length === 0 || Math.random() >= slot.probability) return null
+    return exclude !== undefined ? pickExcluding(pool, exclude) : pick(pool)
   }
   // emotion
   const pool = cls.inherent_status
-  return (pool.length === 0 || Math.random() >= slot.probability) ? null : pick(pool)
+  if (pool.length === 0 || Math.random() >= slot.probability) return null
+  return exclude !== undefined ? pickExcluding(pool, exclude) : pick(pool)
 }
 
 // Rolls a weapon instance's full fixed draw sequence once, at creation
 // time. State 0 is "primary" (normal content); states 1..N are pre-rolled
 // remaster targets, each differing from the previous state by exactly one
-// slot (round-robin across all transformation/style/emotion occurrences).
+// *group* (round-robin across listSlotGroups()) — a group is one slot for
+// a top-level draw, or every draw inside one branch()'s paths together
+// (see listSlotGroups), so branch-parallel siblings always redraw in the
+// same step, each independently, rather than waiting their own separate
+// turns.
 export function rollPatternDraws(weaponClass: WeaponClass): RolledPatternDraws {
   const cls = WEAPON_CLASSES[weaponClass]
   const steps = WEAPON_PATTERNS[weaponClass]
-  const slots = listPatternSlots(steps)
+  const groups = listSlotGroups(steps)
+  const slots = groups.flat()
   const N = cls.remaster_steps
+
+  const groupFlatIndices: number[][] = []
+  let flatIdx = 0
+  for (const group of groups) {
+    groupFlatIndices.push(group.map(() => flatIdx++))
+  }
 
   // states[stateIndex][slotIndex] = value at that state for that slot.
   // State 0 is content that hasn't been remixed yet, so Transformation is
@@ -89,26 +135,28 @@ export function rollPatternDraws(weaponClass: WeaponClass): RolledPatternDraws {
   ]
   for (let i = 1; i <= N; i++) {
     const next = states[i - 1].slice()
-    if (slots.length > 0) {
-      const changeIdx = (i - 1) % slots.length
-      next[changeIdx] = rollSlotValue(cls, slots[changeIdx])
+    if (groups.length > 0) {
+      const groupIdx = (i - 1) % groups.length
+      for (const idx of groupFlatIndices[groupIdx]) next[idx] = rollSlotValue(cls, slots[idx], states[i - 1][idx])
     }
     states.push(next)
   }
 
+  const format: (ContentProductType | null)[][] = []
   const transformation: (AtomicOrigin | null)[][] = []
   const style: (DamageType | null)[][] = []
   const emotion: (StatusType | null)[][] = []
 
   slots.forEach((slot, slotIdx) => {
     const sequence = states.map(state => state[slotIdx])
+    if (slot.kind === 'format')         format.push(sequence as (ContentProductType | null)[])
     if (slot.kind === 'transformation') transformation.push(sequence as (AtomicOrigin | null)[])
     if (slot.kind === 'style')          style.push(sequence as (DamageType | null)[])
     if (slot.kind === 'emotion')        emotion.push(sequence as (StatusType | null)[])
   })
 
   return {
-    format: pick(cls.supported_products),
+    format,
     transformation,
     style,
     emotion,

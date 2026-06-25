@@ -36,8 +36,7 @@ export type PatternNode = PhaseNode | DrawNode | BranchNode
 
 // Shared lookup tables resolving a draw/slot kind to its t.ui label key
 // and its t.content.* i18n bucket — used by both the structure preview
-// (DrawNode['label'], which includes 'format') and the remaster-state
-// carousel (SlotKind, which doesn't — format never varies by state).
+// (DrawNode['label']) and the remaster-state carousel (SlotKind).
 export const DRAW_LABEL_KEY: Record<DrawNode['label'], string> = {
   format: 'draw_format',
   transformation: 'draw_transformation',
@@ -62,7 +61,7 @@ export const VALUE_BUCKET: Record<DrawNode['label'], keyof TranslationBundle['co
 export function describeWeaponPattern(weapon: WeaponInstance): PatternNode[] {
   const cls = WEAPON_CLASSES[weapon.weapon_class]
   const steps = WEAPON_PATTERNS[weapon.weapon_class]
-  const counters: Record<SlotKind, number> = { transformation: 0, style: 0, emotion: 0 }
+  const counters: Record<SlotKind, number> = { format: 0, transformation: 0, style: 0, emotion: 0 }
   return steps
     .map(step => describeStep(step, cls, weapon, counters))
     .filter((n): n is PatternNode => n !== null)
@@ -84,7 +83,8 @@ function describeStep(
       }
     }
     case 'drawFormat': {
-      const value = weapon.rolled_draws?.format ?? null
+      const occ = counters.format++
+      const value = weapon.rolled_draws?.format[occ]?.[0] ?? null
       return value === null ? null : { kind: 'draw', label: 'format', value }
     }
     case 'drawTransformation': {
@@ -118,14 +118,14 @@ function describeStep(
 export interface RemasterSlotView {
   kind: SlotKind
   occurrenceIndex: number
-  value: AtomicOrigin | DamageType | StatusType | null   // null = absent at this state
+  value: ContentProductType | AtomicOrigin | DamageType | StatusType | null   // null = absent at this state
   changed: boolean   // differs from this slot's value at the previous state (always false at state 0)
 }
 
 // Describes every pre-rolled remaster state (0 = primary, 1..N = the
 // weapon's pre-rolled remaster targets) for a weapon instance, one row
-// per state, one entry per transformation/style/emotion occurrence in
-// that class's pattern. Returns [] when there's nothing to preview: no
+// per state, one entry per format/transformation/style/emotion occurrence
+// in that class's pattern. Returns [] when there's nothing to preview: no
 // rolled_draws (legacy weapon instance) or zero such occurrences at all.
 // Unlike describeWeaponPattern, slots with a null value are NOT omitted
 // here — the carousel compares across states, so a stable slot list per
