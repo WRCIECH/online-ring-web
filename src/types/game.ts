@@ -133,9 +133,6 @@ export interface Enemy {
   is_remembrance?: boolean
   unlocks_area?: string
   drops: EnemyDrop[]
-  // Legacy fields kept for display compat; not used in combat logic
-  initiative?: number
-  max_poise?: number
   status_multipliers?: Partial<Record<StatusType, number>>
   weaknesses?: DamageType[]
   resistances?: DamageType[]
@@ -158,7 +155,6 @@ export interface Step {
   name: string
   time: number
   base_damage: number
-  poise_damage: number
   damage_type?: DamageType
   stage?: AtomicStage
   badges?: StepBadge[]
