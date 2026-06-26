@@ -36,7 +36,7 @@ export default function EquipOverlay({ onClose }: Props) {
     const level    = store.weapon_level[wid] ?? 0
     const slotLoad = selectWeaponSlotLoad(store as Parameters<typeof selectWeaponSlotLoad>[0], wid)
     const attached = store.content_items.filter(c => !c.completed && c.attached_weapon_id === wid)
-    const assignable = store.content_items.filter(c => !c.completed && c.attached_weapon_id !== wid)
+    const assignable = store.content_items.filter(c => !c.completed && !c.attached_weapon_id)
     const isExpanded  = !!expandedContent[wid]
 
     return (
