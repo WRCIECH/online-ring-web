@@ -136,68 +136,75 @@ export const WEAPON_PATTERNS: Record<WeaponClass, PatternStep[]> = {
     transformation('Compression'), phase('Produce', 1), phase('Refine', 1), phase('Publish'),
   ],
   curved_greatswords: [
-    phase('Research', 3), drawFormat(), drawTransformation(), drawEmotion(1),
-    phase('Produce', 5), phase('Refine', 3), phase('Publish'), phase('Promote'),
+    phase('Research', 2), drawFormat(), drawTransformation(), drawEmotion(1),
+    phase('Produce', 3), phase('Refine', 2), phase('Publish'),
+    transformation('Expansion'), phase('Produce', 3), phase('Refine', 2), phase('Publish'),
+    transformation('Expansion'), phase('Produce', 2), phase('Refine', 1), phase('Publish'),
   ],
-
-  // ── specific/distinct emotions, storytelling-flavored — E always rolls ──
   katanas: [
-    phase('Research', 2), drawFormat(), drawTransformation(), drawStyle(0.5), drawEmotion(1),
-    phase('Produce', 2), phase('Refine'), phase('Publish'), phase('Promote'),
+    phase('Research', 2), drawFormat(), drawTransformation(), style('slash'),
+    phase('Produce', 3), phase('Refine', 2), phase('Publish'),
+    style('slash'), phase('Produce', 3), phase('Refine', 2), phase('Publish'),
   ],
   reapers: [
-    phase('Research', 3), drawFormat(), drawTransformation(), drawStyle(0.6), drawEmotion(1),
-    phase('Produce', 4), phase('Refine', 2), phase('Publish'), phase('Promote'),
+    phase('Research', 2), drawFormat(), drawTransformation(), style('pierce'),
+    phase('Produce', 3), phase('Refine', 2), phase('Publish'),
+    style('pierce'), phase('Produce', 3), phase('Refine', 2), phase('Publish'),
   ],
-  torches: [   // light tier — no Promote
-    phase('Research'), drawFormat(), drawTransformation(), drawEmotion(1),
+  torches: [   
+    phase('Research'), drawFormat(), drawTransformation(), drawEmotion(),
     phase('Produce', 2), phase('Refine'), phase('Publish'),
   ],
-
-  // ── energizing emotion/style, long produce ──────────────────────────────
-  hammers: [
-    phase('Research'), drawFormat(), drawTransformation(), drawStyle(1), drawEmotion(0.6),
-    phase('Produce', 4), phase('Refine'), phase('Publish'), phase('Promote'),
-  ],
-  great_hammers: [
-    phase('Research', 2), drawFormat(), drawTransformation(), drawStyle(1), drawEmotion(0.6),
-    phase('Produce', 6), phase('Refine', 2), phase('Publish'), phase('Promote'),
-  ],
-
-  // ── double build — 2 parallel Produce+Refine chains ─────────────────────
-  axes: [
-    phase('Research'), drawFormat(), drawTransformation(), drawStyle(0.5),
-    branch([phase('Produce', 2), phase('Refine')], [phase('Produce', 2), phase('Refine')]),
-    phase('Publish'), phase('Promote'),
-  ],
-  great_axes: [
-    phase('Research', 2), drawFormat(), drawTransformation(), drawStyle(0.6),
-    branch([phase('Produce', 3), phase('Refine')], [phase('Produce', 3), phase('Refine')]),
-    phase('Publish'), phase('Promote'),
-  ],
-
-  // ── publish, draw, publish again; great/heavy = 3-chain Produce ────────
   spears: [
-    phase('Research'), drawFormat(), drawTransformation(), drawStyle(0.4),
-    phase('Produce', 2), phase('Refine'), phase('Publish'),
-    drawStyle(0.4), phase('Publish'), phase('Promote'),
-  ],
-  thrusting_swords: [   // light tier — no Promote
-    phase('Research'), drawFormat(), drawTransformation(), eitherOr([drawStyle(), 3], [drawEmotion(), 4]),
-    phase('Produce', 1), phase('Refine'), phase('Publish'),
-    drawEmotion(0.4), phase('Publish'),
-  ],
-  heavy_thrusting: [   // "heavy" variant of thrusting_swords -> 3-chain
-    phase('Research'), drawFormat(), drawTransformation(), eitherOr(drawStyle(), drawEmotion()),
-    branch([phase('Produce', 2)], [phase('Produce', 2)], [phase('Produce', 2)]),
-    phase('Refine'), phase('Publish'),
-    drawEmotion(0.5), phase('Publish'), phase('Promote'),
+    phase('Research', 2), drawFormat(), drawTransformation(), drawEmotion(),
+    phase('Produce', 3), phase('Refine', 2), phase('Publish'),
+    transformation('Similar'), phase('Produce', 3), phase('Refine', 2), phase('Publish'),
+    transformation('Similar'), phase('Produce', 2), phase('Refine', 1), phase('Publish'),
   ],
   great_spears: [   // "great" variant of spears -> 3-chain
-    phase('Research', 2), drawFormat(), drawTransformation(), drawStyle(0.5),
-    branch([phase('Produce', 2)], [phase('Produce', 2)], [phase('Produce', 2)]),
-    phase('Refine'), phase('Publish'),
-    drawStyle(0.5), phase('Publish'), phase('Promote'),
+    phase('Research', 2), drawFormat(), drawTransformation(), drawEmotion(),
+    phase('Produce', 3), phase('Refine', 2), phase('Publish'),
+    transformation('ZoomIn'), phase('Produce', 3), phase('Refine', 2), phase('Publish'),
+    transformation('ZoomOut'), phase('Produce', 2), phase('Refine', 1), phase('Publish'),
+  ],
+  crossbows: [
+    phase('Research', 2), drawFormat(), drawTransformation(), drawEmotion(),
+    phase('Produce', 3), phase('Refine', 2), phase('Publish'),
+    transformation('Opposite'), phase('Produce', 3), phase('Refine', 2), phase('Publish'),
+  ],
+  axes: [
+    phase('Research', 3), drawFormat(), phase('Produce', 1), 
+    branch([drawTransformation(), phase('Research', 2), eitherOr(drawStyle(), drawEmotion()), phase('Produce', 5), phase('Refine', 2), phase('Publish')]),
+    branch([drawTransformation(), phase('Research', 2), eitherOr(drawStyle(), drawEmotion()), phase('Produce', 5), phase('Refine', 2), phase('Publish')]),
+  ],
+  great_axes: [
+    phase('Research', 6), drawFormat(), phase('Produce', 2), 
+    branch([drawTransformation(), phase('Research', 4), eitherOr(drawStyle(), drawEmotion()), phase('Produce', 8), phase('Refine', 3), phase('Publish')]),
+    branch([drawTransformation(), phase('Research', 4), eitherOr(drawStyle(), drawEmotion()), phase('Produce', 8), phase('Refine', 3), phase('Publish')]),
+  ],
+  twinblades: [
+    phase('Research', 6), drawFormat(), phase('Produce', 2), 
+    branch([drawTransformation(), phase('Research', 4), eitherOr(drawStyle(), drawEmotion()), phase('Produce', 8), phase('Refine', 3), phase('Publish')]),
+    branch([drawTransformation(), phase('Research', 4), eitherOr(drawStyle(), drawEmotion()), phase('Produce', 8), phase('Refine', 3), phase('Publish')]),
+    branch([drawTransformation(), phase('Research', 4), eitherOr(drawStyle(), drawEmotion()), phase('Produce', 8), phase('Refine', 3), phase('Publish')]),
+  ],
+  hammers: [
+    phase('Research', 2, 4), drawFormat(), drawTransformation(), drawStyle(), drawEmotion(),
+    phase('Produce', 3, 6), phase('Refine', 2, 4), phase('Publish'), phase('Promote'),
+  ],
+  great_hammers: [
+    phase('Research', 4, 8), drawFormat(), drawTransformation(), drawStyle(), drawEmotion(),
+    phase('Produce', 6, 10), phase('Refine', 3, 6), phase('Publish'), phase('Promote'),
+  ],
+  thrusting_swords: [ 
+    phase('Research'), drawFormat(), drawTransformation(), drawStyle(0.5), drawEmotion(),
+    phase('Produce', 3), phase('Refine', 2), phase('Publish'),
+    drawEmotion(), phase('Produce', 3), phase('Refine', 2), phase('Publish'),
+  ],
+  heavy_thrusting: [
+    phase('Research', 2), drawFormat(), drawTransformation(), drawStyle(0.75), drawEmotion(),
+    phase('Produce', 4), phase('Refine', 2), phase('Publish'),
+    drawEmotion(), phase('Produce', 4), phase('Refine', 2), phase('Publish'),
   ],
   halberds: [   // standalone heavy pole weapon, grouped with this set -> 3-chain
     phase('Research', 2), drawTransformation(), drawFormat(),
@@ -207,47 +214,25 @@ export const WEAPON_PATTERNS: Record<WeaponClass, PatternStep[]> = {
       [drawStyle(1.0), phase('Produce', 2), phase('Refine'), phase('Publish'), phase('Promote')],
     ),
   ],
-
-  // ── very long research/plan, big finish dmg (ranged group) ─────────────
-  bows: [   // light tier — no Promote
-    phase('Research', 3), drawFormat(), drawTransformation(), drawStyle(0.3),
+  bows: [   
+    phase('Research', 2), drawFormat(), drawTransformation(), drawEmotion(),
     phase('Produce', 3), phase('Refine'), phase('Publish'),
   ],
-  crossbows: [
-    phase('Research', 3), drawFormat(), drawTransformation(), drawStyle(0.3),
-    phase('Produce', 3), phase('Refine'), phase('Publish'), phase('Promote'),
-  ],
   greatbows: [
-    phase('Research', 4), drawFormat(), drawTransformation(), drawEmotion(0.5),
-    phase('Produce', 5), phase('Refine', 2), phase('Publish'), phase('Promote'),
+    phase('Research', 4), drawFormat(), drawTransformation(), eitherOr(drawEmotion(), drawStyle()),
+    phase('Produce', 8), phase('Refine', 2), phase('Publish'), phase('Promote'),
   ],
   ballistas: [
-    phase('Research', 4), drawFormat(), drawTransformation(), drawEmotion(0.5),
-    phase('Produce', 6), phase('Refine', 2), phase('Publish'), phase('Promote'),
+    phase('Research', 10), drawFormat(), drawTransformation(), eitherOr(drawEmotion(), drawStyle()),
+    phase('Produce', 5), phase('Refine', 2), phase('Publish'), phase('Promote'),
   ],
-
-  // ── quadruple build / lots of publish-promote ───────────────────────────
-  twinblades: [
-    phase('Research'), drawFormat(), drawTransformation(), drawEmotion(0.5),
-    branch([phase('Produce', 1)], [phase('Produce', 1)], [phase('Produce', 1)], [phase('Produce', 1)]),
-    phase('Refine'), phase('Publish'), phase('Promote'),
+  colossal_weapons: [   
+    phase('Research', 4), drawFormat(), drawTransformation(), eitherOr(drawStyle(), drawEmotion()),
+    phase('Produce', 12, 16), phase('Refine', 3), phase('Publish'), phase('Promote'),
   ],
-
-  // ── fully original — zero hints given ───────────────────────────────────
-  colossal_weapons: [   // biggest pattern in the game, matches its 2.4 dmg_mult
-    phase('Research', 4), drawFormat(), drawTransformation(), eitherOr([drawStyle(), 5], [drawEmotion(), 6]),
-    branch(
-      [phase('Produce', 3), phase('Refine')],
-      [phase('Produce', 3), phase('Refine')],
-      [phase('Produce', 3), phase('Refine')],
-    ),
-    phase('Publish'), phase('Promote'), phase('Publish'), phase('Promote'),
-  ],
-  whips: [   // "series and content cycles" -> two small produce/publish/promote cycles
-    phase('Research'), drawFormat(), drawTransformation(), drawEmotion(0.4),
-    phase('Produce', 1), phase('Refine'), phase('Publish'), phase('Promote'),
-    drawStyle(0.3),
-    phase('Produce', 1), phase('Refine'), phase('Publish'), phase('Promote'),
+  whips: [   
+    phase('Research', 4), drawFormat(), drawTransformation(), eitherOr(drawStyle(), drawEmotion()),
+    phase('Produce', 8), phase('Refine', 3), phase('Publish'), phase('Promote'),
   ],
 }
 
