@@ -4,7 +4,7 @@
 
 export const COMBAT_MUSIC: Partial<Record<string, string>> = {
 
-  // ── T1 — background dread / dark lofi ──────────────────────────────────────
+  // ── T1 — background Fear / dark lofi ──────────────────────────────────────
   procrastination_mob: 'ajuY4ervxIg',
   burnout_shade:       'IyOAoj_Qzjc',
   notification_swarm:  '1FyPE0u2muE',

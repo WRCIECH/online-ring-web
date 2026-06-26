@@ -63,8 +63,8 @@ export function generateRemasterWorkflow(
     const t = makeTile('Plan', cls.time_mod)
     if (rolledDraws) {
       t.style_type = rolledDraws.style[i]?.[stateIndex] ?? undefined
-    } else if (cls.base_damage_types.length > 0) {
-      t.style_type = pick(cls.base_damage_types)
+    } else if (cls.styles.length > 0) {
+      t.style_type = pick(cls.styles)
     }
     push(t)
   }
@@ -73,8 +73,8 @@ export function generateRemasterWorkflow(
     const t = makeTile('Plan', cls.time_mod)
     if (rolledDraws) {
       t.status = rolledDraws.emotion[i]?.[stateIndex] ?? undefined
-    } else if (cls.inherent_status.length > 0) {
-      t.status = pick(cls.inherent_status)
+    } else if (cls.emotions.length > 0) {
+      t.status = pick(cls.emotions)
     }
     push(t)
   }
@@ -136,15 +136,15 @@ export function regenerateWorkflowKeepingStructure(
     if (orig.style_type) {
       if (rolledDraws) {
         tile.style_type = rolledDraws.style[counters.style++]?.[stateIndex] ?? undefined
-      } else if (cls.base_damage_types.length > 0) {
-        tile.style_type = pick(cls.base_damage_types)
+      } else if (cls.styles.length > 0) {
+        tile.style_type = pick(cls.styles)
       }
     }
     if (orig.status) {
       if (rolledDraws) {
         tile.status = rolledDraws.emotion[counters.emotion++]?.[stateIndex] ?? undefined
-      } else if (cls.inherent_status.length > 0) {
-        tile.status = pick(cls.inherent_status)
+      } else if (cls.emotions.length > 0) {
+        tile.status = pick(cls.emotions)
       }
     }
     return tile

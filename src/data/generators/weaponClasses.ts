@@ -1,4 +1,4 @@
-import type { WeaponClass, StatKey, Grade, StyleType, StatusType, AtomicOrigin } from '../../types/game'
+import type { WeaponClass, StatKey, Grade, StyleType, EmotionType, AtomicOrigin } from '../../types/game'
 
 type PoiseWeight = 'light' | 'medium' | 'heavy' | 'colossal'
 import type { ContentProductType } from '../contentProducts'
@@ -9,7 +9,7 @@ export interface WeaponClassDef {
   description: string
   poise_weight: PoiseWeight
   base_damage_mult: number
-  // Draw pools for supported_products / base_damage_types / inherent_status /
+  // Draw pools for supported_products / styles / emotions /
   // allowed_transformations: each is sampled uniformly by pick() (see
   // patternSlots.ts), so an entry's *probability* is its share of the pool's
   // length — repeating a value gives it proportionally more weight. An empty
@@ -18,9 +18,9 @@ export interface WeaponClassDef {
   // disabling the draw.
   supported_products: ContentProductType[]
   scaling: Partial<Record<StatKey, Grade>>
-  base_damage_types: StyleType[]
+  styles: StyleType[]
   time_mod: number
-  inherent_status: StatusType[]
+  emotions: EmotionType[]
   allowed_transformations: AtomicOrigin[]
   // Per-weapon cap on simultaneously-attached ContentItems (on top of the
   // global END-stat cap in gameStore.ts's selectEquipLoad).
@@ -41,8 +41,8 @@ export const WEAPON_CLASSES: Record<WeaponClass, WeaponClassDef> = {
     time_mod: 1.0,
 
     supported_products: ['Plaintext', 'SingleGraphic', 'RawAudio', 'ARollVideo'],
-    base_damage_types: [],
-    inherent_status: [],
+    styles: [],
+    emotions: [],
     allowed_transformations: [],
   },
   straight_swords: {
@@ -55,8 +55,8 @@ export const WEAPON_CLASSES: Record<WeaponClass, WeaponClassDef> = {
 
     supported_products: ['Plaintext', 'StructuredText', "IllustratedText", "SingleGraphic", 'Carousel', 'RawAudio', 'ARollVideo', 'SlideshowVideo', 'Screencast'],
 
-    base_damage_types: [],
-    inherent_status: [],
+    styles: [],
+    emotions: [],
     allowed_transformations: [],
   },
   greatswords: {
@@ -68,8 +68,8 @@ export const WEAPON_CLASSES: Record<WeaponClass, WeaponClassDef> = {
     time_mod: 1.0,
 
     supported_products: ['Plaintext', 'StructuredText', "IllustratedText", "SingleGraphic", 'Carousel', 'RawAudio', 'ARollVideo', 'SlideshowVideo', 'Screencast', 'CinematicVideo', 'MotionGraphics', 'ProducedAudio'],
-    base_damage_types: [],
-    inherent_status: [],
+    styles: [],
+    emotions: [],
     allowed_transformations: [],
   },
   katanas: {
@@ -81,8 +81,8 @@ export const WEAPON_CLASSES: Record<WeaponClass, WeaponClassDef> = {
     time_mod: 1.0,
 
     supported_products: ['Plaintext', 'IllustratedText', 'Carousel', 'RawAudio', 'ProducedAudio', 'ARollVideo', 'SlideshowVideo', 'CinematicVideo', 'MotionGraphics', 'LiveStream', 'BranchingNarrative', '_blank'],
-    base_damage_types: [],
-    inherent_status: [],
+    styles: [],
+    emotions: [],
     allowed_transformations: [],
   },
   hammers: {
@@ -94,8 +94,8 @@ export const WEAPON_CLASSES: Record<WeaponClass, WeaponClassDef> = {
     time_mod: 1.0,
 
     supported_products: ['Plaintext', 'StructuredText', 'IllustratedText', 'Carousel', 'RawAudio', 'ProducedAudio', 'ARollVideo', 'SlideshowVideo', 'CinematicVideo', 'MotionGraphics', 'LiveStream'],
-    base_damage_types: ['Shock', 'Narration', 'Segmentation', 'Fast', 'Passion', 'Cliffhanger'],
-    inherent_status: ['bleed', 'glintstone', 'frenzy_flame', 'scarlet_rot', 'frostbite', 'madness', 'death_blight', 'dread', 'murmur'],
+    styles: ['Shock', 'Narration', 'Segmentation', 'Fast', 'Passion', 'Cliffhanger'],
+    emotions: ['Viral', 'Wow', 'Humor', 'Polarization', 'Envy', 'Controversion', 'Drama', 'Fear', 'Rumor'],
     allowed_transformations: [],
   },
   spears: {
@@ -107,8 +107,8 @@ export const WEAPON_CLASSES: Record<WeaponClass, WeaponClassDef> = {
     time_mod: 1.0,
 
     supported_products: [],
-    base_damage_types: [],
-    inherent_status: [],
+    styles: [],
+    emotions: [],
     allowed_transformations: ['Compression', 'Expansion', 'ZoomIn', 'ZoomOut', 'AudienceAlter', 'Commentary', 'Opposite'],
   },
   axes: {
@@ -120,8 +120,8 @@ export const WEAPON_CLASSES: Record<WeaponClass, WeaponClassDef> = {
     time_mod: 1.0,
 
     supported_products: [],
-    base_damage_types: [],
-    inherent_status: [],
+    styles: [],
+    emotions: [],
     allowed_transformations: [],
   },
   bows: {
@@ -133,8 +133,8 @@ export const WEAPON_CLASSES: Record<WeaponClass, WeaponClassDef> = {
     time_mod: 1.0,
 
     supported_products: ['Plaintext', 'SingleGraphic', 'Carousel', 'RawAudio', 'ARollVideo', 'LiveStream', 'CurationFeed', 'CommunitySpace'],
-    base_damage_types: [],
-    inherent_status: ['sleep', 'devotion', 'murmur', 'death_blight'],
+    styles: [],
+    emotions: ['Comfort', 'Parasocial', 'Rumor', 'Drama'],
     allowed_transformations: [],
   },
   fists: {
@@ -146,8 +146,8 @@ export const WEAPON_CLASSES: Record<WeaponClass, WeaponClassDef> = {
     time_mod: 1.0,
 
     supported_products: ['Plaintext', 'SingleGraphic', 'RawAudio', 'ARollVideo'],
-    base_damage_types: [],
-    inherent_status: [],
+    styles: [],
+    emotions: [],
     allowed_transformations: [],
   },
   colossal_swords: {
@@ -159,8 +159,8 @@ export const WEAPON_CLASSES: Record<WeaponClass, WeaponClassDef> = {
     time_mod: 1.0,
 
     supported_products: ['Plaintext', 'StructuredText', "IllustratedText", "SingleGraphic", 'Carousel', 'RawAudio', 'ARollVideo', 'SlideshowVideo', 'Screencast', 'CinematicVideo', 'MotionGraphics', 'ProducedAudio'],
-    base_damage_types: [],
-    inherent_status: [],
+    styles: [],
+    emotions: [],
     allowed_transformations: [],
   },
   thrusting_swords: {
@@ -172,8 +172,8 @@ export const WEAPON_CLASSES: Record<WeaponClass, WeaponClassDef> = {
     time_mod: 1.0,
 
     supported_products: ['Plaintext', 'StructuredText', 'IllustratedText', 'SingleGraphic', 'Carousel', 'RawAudio', 'ProducedAudio', 'ARollVideo', 'SlideshowVideo', 'CinematicVideo', 'MotionGraphics', 'LiveStream', 'MultimediaPage', 'BranchingNarrative', 'CommunitySpace'],
-    base_damage_types: [],
-    inherent_status: [],
+    styles: [],
+    emotions: [],
     allowed_transformations: [],
   },
   heavy_thrusting: {
@@ -185,8 +185,8 @@ export const WEAPON_CLASSES: Record<WeaponClass, WeaponClassDef> = {
     time_mod: 1.0,
 
     supported_products: ['Plaintext', 'StructuredText', 'IllustratedText', 'SingleGraphic', 'Carousel', 'RawAudio', 'ProducedAudio', 'ARollVideo', 'SlideshowVideo', 'CinematicVideo', 'MotionGraphics', 'LiveStream', 'MultimediaPage', 'BranchingNarrative', 'CommunitySpace'],
-    base_damage_types: [],
-    inherent_status: [],
+    styles: [],
+    emotions: [],
     allowed_transformations: [],
   },
   curved_swords: {
@@ -198,8 +198,8 @@ export const WEAPON_CLASSES: Record<WeaponClass, WeaponClassDef> = {
     time_mod: 1.0,
 
     supported_products: [],
-    base_damage_types: [],
-    inherent_status: [],
+    styles: [],
+    emotions: [],
     allowed_transformations: ['Expansion', 'ZoomIn', 'ZoomOut', 'AudienceAlter', 'Commentary', 'Similar', 'Opposite'],
   },
   curved_greatswords: {
@@ -211,8 +211,8 @@ export const WEAPON_CLASSES: Record<WeaponClass, WeaponClassDef> = {
     time_mod: 1.0,
 
     supported_products: [],
-    base_damage_types: [],
-    inherent_status: [],
+    styles: [],
+    emotions: [],
     allowed_transformations: ['Compression', 'ZoomIn', 'ZoomOut', 'AudienceAlter', 'Commentary', 'Similar', 'Opposite'],
   },
   twinblades: {
@@ -224,8 +224,8 @@ export const WEAPON_CLASSES: Record<WeaponClass, WeaponClassDef> = {
     time_mod: 1.0,
 
     supported_products: [],
-    base_damage_types: [],
-    inherent_status: [],
+    styles: [],
+    emotions: [],
     allowed_transformations: [],
   },
   great_hammers: {
@@ -237,8 +237,8 @@ export const WEAPON_CLASSES: Record<WeaponClass, WeaponClassDef> = {
     time_mod: 1.0,
 
     supported_products: ['Plaintext', 'StructuredText', 'IllustratedText', 'Carousel', 'RawAudio', 'ProducedAudio', 'ARollVideo', 'SlideshowVideo', 'CinematicVideo', 'MotionGraphics', 'LiveStream'],
-    base_damage_types: ['Shock', 'Narration', 'Segmentation', 'Fast', 'Passion', 'Cliffhanger'],
-    inherent_status: ['bleed', 'glintstone', 'frenzy_flame', 'scarlet_rot', 'frostbite', 'madness', 'death_blight', 'dread', 'murmur'],
+    styles: ['Shock', 'Narration', 'Segmentation', 'Fast', 'Passion', 'Cliffhanger'],
+    emotions: ['Viral', 'Wow', 'Humor', 'Polarization', 'Envy', 'Controversion', 'Drama', 'Fear', 'Rumor'],
     allowed_transformations: [],
   },
   great_axes: {
@@ -250,8 +250,8 @@ export const WEAPON_CLASSES: Record<WeaponClass, WeaponClassDef> = {
     time_mod: 1.0,
 
     supported_products: [],
-    base_damage_types: [],
-    inherent_status: [],
+    styles: [],
+    emotions: [],
     allowed_transformations: [],
   },
   flails: {
@@ -263,8 +263,8 @@ export const WEAPON_CLASSES: Record<WeaponClass, WeaponClassDef> = {
     time_mod: 1.0,
 
     supported_products: ['StructuredText', 'IllustratedText', 'Infographic', 'ProducedAudio', 'ARollVideo', 'SlideshowVideo', 'Screencast', 'CinematicVideo', 'MotionGraphics', 'LiveStream', 'MultimediaPage', 'BranchingNarrative', 'AssetPack', 'CurationFeed', 'InteractiveApp', '_blank'],
-    base_damage_types: [],
-    inherent_status: [],
+    styles: [],
+    emotions: [],
     allowed_transformations: [],
   },
   colossal_weapons: {
@@ -276,8 +276,8 @@ export const WEAPON_CLASSES: Record<WeaponClass, WeaponClassDef> = {
     time_mod: 1.0,
 
     supported_products: ['StructuredText', 'IllustratedText', 'Infographic', 'ProducedAudio', 'CinematicVideo', 'SlideshowVideo', 'MotionGraphics', 'MultimediaPage', 'BranchingNarrative', 'AssetPack', 'InteractiveApp', '_blank'],
-    base_damage_types: [],
-    inherent_status: [],
+    styles: [],
+    emotions: [],
     allowed_transformations: [],
   },
   great_spears: {
@@ -289,8 +289,8 @@ export const WEAPON_CLASSES: Record<WeaponClass, WeaponClassDef> = {
     time_mod: 1.0,
 
     supported_products: [],
-    base_damage_types: [],
-    inherent_status: [],
+    styles: [],
+    emotions: [],
     allowed_transformations: ['Compression', 'Expansion', 'AudienceAlter', 'Commentary', 'Similar', 'Opposite'],
   },
   halberds: {
@@ -302,8 +302,8 @@ export const WEAPON_CLASSES: Record<WeaponClass, WeaponClassDef> = {
     time_mod: 1.0,
 
     supported_products: ['StructuredText', 'IllustratedText', 'Infographic', 'SlideshowVideo', 'Screencast', 'MultimediaPage', 'AssetPack', 'CurationFeed', 'InteractiveApp', '_blank'],
-    base_damage_types: ['Minimalism', 'Segmentation', 'Intellectual', 'Intellectual', 'Intellectual', 'ProblemSolving', 'ProblemSolving'],
-    inherent_status: ['glintstone', 'grace', 'madness'],
+    styles: ['Minimalism', 'Segmentation', 'Intellectual', 'Intellectual', 'Intellectual', 'ProblemSolving', 'ProblemSolving'],
+    emotions: ['Wow', 'Hope', 'Controversion'],
     allowed_transformations: [],
   },
   reapers: {
@@ -315,8 +315,8 @@ export const WEAPON_CLASSES: Record<WeaponClass, WeaponClassDef> = {
     time_mod: 1.0,
 
     supported_products: ['StructuredText', 'IllustratedText', 'Carousel', 'RawAudio', 'SlideshowVideo', 'CurationFeed', 'ARollVideo'],
-    base_damage_types: [],
-    inherent_status: [],
+    styles: [],
+    emotions: [],
     allowed_transformations: [],
   },
   whips: {
@@ -328,8 +328,8 @@ export const WEAPON_CLASSES: Record<WeaponClass, WeaponClassDef> = {
     time_mod: 1.0,
 
     supported_products: ['ARollVideo', 'CinematicVideo', 'SlideshowVideo', 'MotionGraphics', 'LiveStream'],
-    base_damage_types: [],
-    inherent_status: [],
+    styles: [],
+    emotions: [],
     allowed_transformations: [],
   },
   greatbows: {
@@ -341,8 +341,8 @@ export const WEAPON_CLASSES: Record<WeaponClass, WeaponClassDef> = {
     time_mod: 1.0,
 
     supported_products: ['Carousel', 'BranchingNarrative', 'InteractiveApp', 'LiveStream', 'MultimediaPage', 'CommunitySpace', '_blank'],
-    base_damage_types: [],
-    inherent_status: [],
+    styles: [],
+    emotions: [],
     allowed_transformations: [],
   },
   crossbows: {
@@ -354,8 +354,8 @@ export const WEAPON_CLASSES: Record<WeaponClass, WeaponClassDef> = {
     time_mod: 1.0,
 
     supported_products: [],
-    base_damage_types: [],
-    inherent_status: [],
+    styles: [],
+    emotions: [],
     allowed_transformations: ['Compression', 'Expansion', 'ZoomIn', 'ZoomOut', 'AudienceAlter', 'Commentary', 'Similar'],
   },
   ballistas: {
@@ -367,8 +367,8 @@ export const WEAPON_CLASSES: Record<WeaponClass, WeaponClassDef> = {
     time_mod: 1.0,
 
     supported_products: ['StructuredText', 'IllustratedText', 'Infographic', 'ProducedAudio', 'SlideshowVideo', 'CinematicVideo', 'MotionGraphics', 'MultimediaPage', 'BranchingNarrative', 'AssetPack', 'CurationFeed', 'InteractiveApp', '_blank'],
-    base_damage_types: [],
-    inherent_status: [],
+    styles: [],
+    emotions: [],
     allowed_transformations: [],
   },
   torches: {
@@ -380,8 +380,8 @@ export const WEAPON_CLASSES: Record<WeaponClass, WeaponClassDef> = {
     time_mod: 1.0,
 
     supported_products: ['Plaintext', 'SingleGraphic', 'Carousel', 'RawAudio', 'ARollVideo', 'CinematicVideo', 'LiveStream', 'CommunitySpace'],
-    base_damage_types: ['Shock', 'Narration', 'Fast', 'Passion', 'Cliffhanger'],
-    inherent_status: ['bleed', 'glintstone', 'frenzy_flame', 'yearning', 'scarlet_rot', 'frostbite', 'madness', 'death_blight'],
+    styles: ['Shock', 'Narration', 'Fast', 'Passion', 'Cliffhanger'],
+    emotions: ['Viral', 'Wow', 'Humor', 'Fomo', 'Polarization', 'Envy', 'Controversion', 'Drama'],
     allowed_transformations: [],
   },
 }

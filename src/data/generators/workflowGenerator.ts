@@ -1,6 +1,6 @@
 import type {
   WeaponClass, WeaponRarity, AtomicStage, WorkflowTile, WorkflowEdge, WorkflowGraph, RolledPatternDraws,
-  ContentProductType, AtomicOrigin, StyleType, StatusType,
+  ContentProductType, AtomicOrigin, StyleType, EmotionType,
 } from '../../types/game'
 import type { PatternStep } from './weaponPatterns'
 import { WEAPON_PATTERNS, drawKindOf } from './weaponPatterns'
@@ -165,7 +165,7 @@ function compilePhase(step: { stage: AtomicStage; min: number; max: number }, ct
   ctx.lastResearchBlockTileIds = step.stage === 'Research' ? newTiles.map(t => t.id) : null
 }
 
-type DrawValue = ContentProductType | AtomicOrigin | StyleType | StatusType
+type DrawValue = ContentProductType | AtomicOrigin | StyleType | EmotionType
 
 // Shared tail for every draw kind: format/transformation also retag the
 // preceding Research block (and require one to exist — a structural
@@ -187,7 +187,7 @@ function applyDrawResult(ctx: CompileContext, kind: SlotKind, value: DrawValue):
   if (kind === 'format') planTile.content_type = value as ContentProductType
   else if (kind === 'transformation') planTile.content_origin = value as AtomicOrigin
   else if (kind === 'style') planTile.style_type = value as StyleType
-  else planTile.status = value as StatusType
+  else planTile.status = value as EmotionType
   ctx.tiles.push(planTile)
   linkFrontier(ctx, planTile.id)
   ctx.frontier = [planTile.id]
@@ -229,7 +229,7 @@ function compileDrawStyle(step: { probability: number }, ctx: CompileContext): v
 }
 
 function resolveStyle(cls: WeaponClassDef, probability: number) {
-  const pool = cls.base_damage_types
+  const pool = cls.styles
   return (pool.length === 0 || Math.random() >= probability) ? null : pool[Math.floor(Math.random() * pool.length)]
 }
 
@@ -256,7 +256,7 @@ function compileFixedDraw(step: { slotKind: SlotKind; value: DrawValue }, ctx: C
   if      (kind === 'format')         planTile.content_type  = value as ContentProductType
   else if (kind === 'transformation') planTile.content_origin = value as AtomicOrigin
   else if (kind === 'style')          planTile.style_type   = value as StyleType
-  else                                planTile.status        = value as StatusType
+  else                                planTile.status        = value as EmotionType
   ctx.tiles.push(planTile)
   linkFrontier(ctx, planTile.id)
   ctx.frontier = [planTile.id]
@@ -274,7 +274,7 @@ function compileDrawEmotion(step: { probability: number }, ctx: CompileContext):
 }
 
 function resolveEmotion(cls: WeaponClassDef, probability: number) {
-  const pool = cls.inherent_status
+  const pool = cls.emotions
   return (pool.length === 0 || Math.random() >= probability) ? null : pool[Math.floor(Math.random() * pool.length)]
 }
 

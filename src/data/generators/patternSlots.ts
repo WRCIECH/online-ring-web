@@ -1,4 +1,4 @@
-import type { WeaponClass, AtomicTime, AtomicOrigin, StyleType, StatusType, ContentProductType, RolledPatternDraws } from '../../types/game'
+import type { WeaponClass, AtomicTime, AtomicOrigin, StyleType, EmotionType, ContentProductType, RolledPatternDraws } from '../../types/game'
 import type { PatternStep } from './weaponPatterns'
 import { WEAPON_PATTERNS } from './weaponPatterns'
 import { WEAPON_CLASSES, type WeaponClassDef } from './weaponClasses'
@@ -15,7 +15,7 @@ export interface SlotRef {
   kind: SlotKind
   occurrenceIndex: number
   probability: number
-  fixedValue?: ContentProductType | AtomicOrigin | StyleType | StatusType
+  fixedValue?: ContentProductType | AtomicOrigin | StyleType | EmotionType
 }
 
 function slotForDraw(step: PatternStep, counters: Record<SlotKind, number>): SlotRef | null {
@@ -127,9 +127,9 @@ const ALL_TRANSFORMATIONS_EXCEPT_NEW: AtomicOrigin[] = [
 const ALL_STYLE_TYPES: StyleType[] = [
   'Minimalism', 'Shock', 'Narration', 'Segmentation', 'Fast', 'Passion', 'Intellectual', 'ProblemSolving', 'Estetic', 'Interactive', 'Cliffhanger',
 ]
-const ALL_STATUS_TYPES: StatusType[] = [
-  'bleed', 'scarlet_rot', 'frostbite', 'madness', 'sleep', 'death_blight', 'glintstone',
-  'frenzy_flame', 'devotion', 'yearning', 'dread', 'murmur', 'grace',
+const ALL_STATUS_TYPES: EmotionType[] = [
+  'Viral', 'Polarization', 'Envy', 'Controversion', 'Comfort', 'Drama', 'Wow',
+  'Humor', 'Parasocial', 'Fomo', 'Fear', 'Rumor', 'Hope',
 ]
 
 function pick<T>(arr: readonly T[]): T {
@@ -150,7 +150,7 @@ export function pickWeighted(weights: number[]): number {
   return weights.length - 1
 }
 
-type SlotValue = ContentProductType | AtomicOrigin | StyleType | StatusType | null
+type SlotValue = ContentProductType | AtomicOrigin | StyleType | EmotionType | null
 
 // Picks from `pool`, excluding `exclude` when an alternative actually
 // exists — used on remaster rerolls so a "redraw" can't silently land back
@@ -167,8 +167,8 @@ function pickExcluding<T extends SlotValue>(pool: readonly T[], exclude: SlotVal
 function poolFor(cls: WeaponClassDef, kind: SlotKind): readonly NonNullable<SlotValue>[] {
   if (kind === 'format') return cls.supported_products.length > 0 ? cls.supported_products : ALL_CONTENT_PRODUCTS
   if (kind === 'transformation') return cls.allowed_transformations.length > 0 ? cls.allowed_transformations : ALL_TRANSFORMATIONS_EXCEPT_NEW
-  if (kind === 'style') return cls.base_damage_types.length > 0 ? cls.base_damage_types : ALL_STYLE_TYPES
-  return cls.inherent_status.length > 0 ? cls.inherent_status : ALL_STATUS_TYPES
+  if (kind === 'style') return cls.styles.length > 0 ? cls.styles : ALL_STYLE_TYPES
+  return cls.emotions.length > 0 ? cls.emotions : ALL_STATUS_TYPES
 }
 
 // `exclude` is only passed on remaster rerolls (states 1..N) — the initial
@@ -184,7 +184,7 @@ function rollSlotValue(cls: WeaponClassDef, slot: SlotRef, exclude?: SlotValue):
 // Whether a group's reroll can ever produce a visible change at all —
 // used to keep the round-robin from giving a turn to a group that's
 // structurally incapable of one (e.g. a lone probability-1 drawStyle()
-// whose class has a single-value base_damage_types pool: every reroll is
+// whose class has a single-value styles pool: every reroll is
 // forced to land back on that same value). An exclusive (eitherOr) group
 // always can, regardless of pool size — resolveGroupState's kind-switch
 // guard above guarantees it. An independent group can if any member
@@ -303,7 +303,7 @@ export function rollPatternDraws(weaponClass: WeaponClass): RolledPatternDraws {
       const prevForGroup = flatIndicesForGroup.map(idx => states[i - 1][idx])
       // groupCanChange only rules out groups that can *never* change —
       // a probability<1 single-value slot (e.g. spears' drawStyle(0.4)
-      // against base_damage_types: ['Segmentation']) can still randomly land
+      // against styles: ['Segmentation']) can still randomly land
       // back on the same null/value state by chance on any given reroll.
       // Retry a bounded number of times rather than accept a no-op —
       // changeable groups always have *some* chance of differing, so
@@ -320,14 +320,14 @@ export function rollPatternDraws(weaponClass: WeaponClass): RolledPatternDraws {
   const format: (ContentProductType | null)[][] = []
   const transformation: (AtomicOrigin | null)[][] = []
   const style: (StyleType | null)[][] = []
-  const emotion: (StatusType | null)[][] = []
+  const emotion: (EmotionType | null)[][] = []
 
   slots.forEach((slot, slotIdx) => {
     const sequence = states.map(state => state[slotIdx])
     if (slot.kind === 'format')         format.push(sequence as (ContentProductType | null)[])
     if (slot.kind === 'transformation') transformation.push(sequence as (AtomicOrigin | null)[])
     if (slot.kind === 'style')          style.push(sequence as (StyleType | null)[])
-    if (slot.kind === 'emotion')        emotion.push(sequence as (StatusType | null)[])
+    if (slot.kind === 'emotion')        emotion.push(sequence as (EmotionType | null)[])
   })
 
   return {

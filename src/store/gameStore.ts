@@ -125,7 +125,7 @@ function generateLocationSequence(numSublocations = 20): LocationData[] {
     let type: SublocationType = 'mob'
     if (roll < eventChance) type = 'event'
     else if (roll < eventChance + eliteChance) type = 'elite'
-    // Sites of Grace are gone — what would've rolled one is now a plain mob fight.
+    // Sites of Hope are gone — what would've rolled one is now a plain mob fight.
     let event_type: 'trial' | undefined
     if (type === 'event') {
       if (Math.random() < 0.6) type = 'mob'

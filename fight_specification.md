@@ -15,7 +15,7 @@ Current implementation reference. All values are taken directly from code.
 | DEX | Damage scaling for fast/technical weapons | Damage |
 | INT | Damage scaling for Intellectual/piercing weapons | Damage |
 | FAI | Damage scaling for faith/ranged weapons | Damage |
-| ARC | Damage scaling for arcane/bleed weapons | Damage |
+| ARC | Damage scaling for arcane/Viral weapons | Damage |
 
 **Leveling cost:** `floor(500 + totalLevelsSpent × 100 + totalLevelsSpent² × 20)` runes per stat point.
 
@@ -54,7 +54,7 @@ typeMult = enemy has weakness to step.style_type ? 1.3
 ```
 
 Active status debuffs stack additionally:
-- **Frostbite active on enemy**: × 1.2 to all incoming damage for 2 turns.
+- **Envy active on enemy**: × 1.2 to all incoming damage for 2 turns.
 
 ### Layer 4 — Dual Shock (twinblades only)
 
@@ -62,9 +62,9 @@ Active status debuffs stack additionally:
 totalDmg = finalDmg + floor(finalDmg × 0.4)
 ```
 
-### Grace lifesteal
+### Hope lifesteal
 
-If the Grace status is active on the player, each successful step heals `floor(totalDmg × 0.05)` HP.
+If the Hope status is active on the player, each successful step heals `floor(totalDmg × 0.05)` HP.
 
 ---
 
@@ -137,16 +137,16 @@ Crossbows and Torches have `heat_threshold: 9999` (effectively infinite).
 
 11 types: **standard, Shock, Narration, Segmentation, Fast** (physical) and **Passion, Intellectual, ProblemSolving, Estetic, Interactive, Cliffhanger** (non-physical).
 
-Each generated step carries a `style_type` from the weapon class's `base_damage_types[0]`. Enemies have `weaknesses[]` (+30% damage) and `resistances[]` (−30% damage).
+Each generated step carries a `style_type` from the weapon class's `styles[0]`. Enemies have `weaknesses[]` (+30% damage) and `resistances[]` (−30% damage).
 
 ### Enemy damage profiles
 
 | Enemy | Weaknesses | Resistances |
 |---|---|---|
 | Procrastination Mob | Fast, Narration | ProblemSolving |
-| The Hater | Estetic, bleed | standard |
+| The Hater | Estetic, Viral | standard |
 | Blank Page Omen | Passion, Narration | ProblemSolving, Intellectual |
-| Burnout Shade | ProblemSolving, grace | Cliffhanger, Estetic |
+| Burnout Shade | ProblemSolving, Hope | Cliffhanger, Estetic |
 | Comparison Engine | Intellectual, Segmentation | Fast, standard |
 | Fear Phantom | Passion, Shock | Intellectual, Segmentation |
 | Perfectionism Knight | Passion, Estetic | standard, Segmentation, Narration |
@@ -155,23 +155,23 @@ Each generated step carries a `style_type` from the weapon class's `base_damage_
 
 ## Status Effects
 
-**Buildup per hit:** 35 points when the player checks the "Applied [Status]" checkbox in the task timer. Murmur doubles buildup rate when active. When accumulation reaches threshold the effect triggers and accumulation resets to 0.
+**Buildup per hit:** 35 points when the player checks the "Applied [Status]" checkbox in the task timer. Rumor doubles buildup rate when active. When accumulation reaches threshold the effect triggers and accumulation resets to 0.
 
 | Status | Threshold | Trigger effect |
 |---|---|---|
-| **Bleed** | 100 | Burst: 15% enemy max HP + 20 flat damage; poise resets |
+| **Viral** | 100 | Burst: 15% enemy max HP + 20 flat damage; poise resets |
 | **Scarlet Rot** | 80 | DOT: 5% max HP per turn for 3 turns; enemy resistance −20% |
-| **Frostbite** | 80 | Burst: 10% max HP; enemy takes +20% all damage for 2 turns |
-| **Madness** | 100 | Burst: 25% max HP; player loses all FP |
-| **Sleep** | 60 | Enemy skips 2 turns; player stamina recovery boost |
+| **Envy** | 80 | Burst: 10% max HP; enemy takes +20% all damage for 2 turns |
+| **Controversion** | 100 | Burst: 25% max HP; player loses all FP |
+| **Comfort** | 60 | Enemy skips 2 turns; player stamina recovery boost |
 | **Death Blight** | 100 | Insta-kill non-boss; vs boss: 30% max HP burst |
-| **Glintstone** | 80 | Player +INT bonus damage for 3 turns |
+| **Wow** | 80 | Player +INT bonus damage for 3 turns |
 | **Frenzy Flame** | 80 | Enemy armor broken for 2 turns; player regains 50% max FP |
-| **Devotion** | 60 | Enemy passive: gives +5 FP/turn to player for 3 turns |
-| **Yearning** | 60 | Player task timers −30% for 2 turns |
-| **Dread** | 80 | Enemy stunned (skips turn); player gains 30% max STA |
-| **Murmur** | 60 | Next status builds at 2× speed for 1 turn |
-| **Grace** | 80 | Lifesteal: each hit heals 5% of damage dealt for 2 turns |
+| **Parasocial** | 60 | Enemy passive: gives +5 FP/turn to player for 3 turns |
+| **Fomo** | 60 | Player task timers −30% for 2 turns |
+| **Fear** | 80 | Enemy stunned (skips turn); player gains 30% max STA |
+| **Rumor** | 60 | Next status builds at 2× speed for 1 turn |
+| **Hope** | 80 | Lifesteal: each hit heals 5% of damage dealt for 2 turns |
 
 Status accumulation bars are displayed in the combat UI below the player resource bars.
 
@@ -202,34 +202,34 @@ Status accumulation bars are displayed in the combat UI below the player resourc
 
 ## All 27 Weapon Classes
 
-| Class | weight | poise_value | heat | base_damage_mult | primary dmg type | scaling | time_mod | sta_mod | inherent_status |
+| Class | weight | poise_value | heat | base_damage_mult | primary dmg type | scaling | time_mod | sta_mod | emotions |
 |---|---|---|---|---|---|---|---|---|---|
 | daggers | 1.5 | 5 | 20 | 0.7 | Fast | DEX S | 0.8 | 0.7 | — |
 | straight_swords | 3.5 | 25 | 12 | 1.0 | standard | STR D, DEX D | 1.0 | 1.0 | — |
 | greatswords | 9.0 | 55 | 6 | 1.5 | Narration | STR B, DEX D | 1.15 | 1.2 | — |
-| colossal_swords | 22.0 | 100 | 3 | 2.2 | Shock | STR S | 1.5 | 1.5 | madness |
-| katanas | 5.5 | 20 | 12 | 1.1 | Narration | DEX A | 0.95 | 1.0 | bleed |
+| colossal_swords | 22.0 | 100 | 3 | 2.2 | Shock | STR S | 1.5 | 1.5 | Controversion |
+| katanas | 5.5 | 20 | 12 | 1.1 | Narration | DEX A | 0.95 | 1.0 | Viral |
 | curved_swords | 4.0 | 15 | 16 | 1.0 | Narration | DEX A | 0.85 | 0.8 | — |
 | curved_greatswords | 10.0 | 40 | 7 | 1.4 | Narration | DEX B, STR D | 1.15 | 1.15 | — |
-| twinblades | 7.0 | 15 | 18 | 0.9 | Narration | DEX S | 0.9 | 1.1 | scarlet_rot |
+| twinblades | 7.0 | 15 | 18 | 0.9 | Narration | DEX S | 0.9 | 1.1 | Polarization |
 | hammers | 5.5 | 45 | 10 | 1.3 | Shock | STR A | 1.0 | 1.15 | — |
-| great_hammers | 12.0 | 75 | 5 | 1.7 | Shock | STR A | 1.2 | 1.3 | death_blight |
-| colossal_weapons | 24.0 | 120 | 2 | 2.4 | Shock | STR S | 1.6 | 1.6 | madness |
+| great_hammers | 12.0 | 75 | 5 | 1.7 | Shock | STR A | 1.2 | 1.3 | Drama |
+| colossal_weapons | 24.0 | 120 | 2 | 2.4 | Shock | STR S | 1.6 | 1.6 | Controversion |
 | axes | 5.0 | 30 | 12 | 0.9 | Narration | STR C, DEX D | 0.9 | 1.0 | — |
 | great_axes | 13.0 | 65 | 6 | 1.35 | Narration | STR A | 1.25 | 1.35 | — |
-| flails | 5.0 | 35 | 15 | 0.95 | Shock | DEX B, STR D | 1.0 | 0.85 | bleed |
+| flails | 5.0 | 35 | 15 | 0.95 | Shock | DEX B, STR D | 1.0 | 0.85 | Viral |
 | spears | 4.5 | 25 | 11 | 1.0 | Segmentation | DEX B, STR D | 1.0 | 0.9 | — |
 | great_spears | 9.5 | 50 | 6 | 1.25 | Segmentation | STR B, DEX C | 1.1 | 1.2 | — |
 | halberds | 8.0 | 40 | 9 | 1.1 | Segmentation | STR C, DEX C | 1.0 | 1.1 | — |
-| thrusting_swords | 2.5 | 10 | 15 | 0.75 | Segmentation/Intellectual | INT A, DEX D | 0.85 | 0.75 | sleep |
-| heavy_thrusting | 6.5 | 35 | 10 | 1.1 | Segmentation/Intellectual | INT B, STR D | 1.05 | 1.1 | glintstone |
-| reapers | 9.5 | 45 | 6 | 1.2 | Narration/Estetic | ARC A, DEX D | 1.2 | 1.2 | dread |
+| thrusting_swords | 2.5 | 10 | 15 | 0.75 | Segmentation/Intellectual | INT A, DEX D | 0.85 | 0.75 | Comfort |
+| heavy_thrusting | 6.5 | 35 | 10 | 1.1 | Segmentation/Intellectual | INT B, STR D | 1.05 | 1.1 | Wow |
+| reapers | 9.5 | 45 | 6 | 1.2 | Narration/Estetic | ARC A, DEX D | 1.2 | 1.2 | Fear |
 | whips | 3.0 | 5 | 14 | 0.9 | Cliffhanger/Estetic | ARC B, DEX C | 0.9 | 0.95 | Cliffhanger |
 | bows | 4.0 | 8 | 15 | 0.85 | Fast | DEX A | 0.75 | 0.85 | — |
-| greatbows | 11.0 | 60 | 4 | 1.6 | ProblemSolving | FAI A, STR D | 1.4 | 1.4 | yearning |
+| greatbows | 11.0 | 60 | 4 | 1.6 | ProblemSolving | FAI A, STR D | 1.4 | 1.4 | Fomo |
 | crossbows | 4.5 | 12 | ∞ | 0.85 | standard | DEX B | 0.5 | 0.0 | — |
-| ballistas | 16.0 | 150 | 1 | 2.2 | standard | STR C, DEX D | 2.0 | 1.5 | death_blight |
-| torches | 1.5 | 2 | ∞ | 0.6 | Passion | FAI A, INT D | 0.7 | 0.5 | grace |
+| ballistas | 16.0 | 150 | 1 | 2.2 | standard | STR C, DEX D | 2.0 | 1.5 | Drama |
+| torches | 1.5 | 2 | ∞ | 0.6 | Passion | FAI A, INT D | 0.7 | 0.5 | Hope |
 | fists | 1.0 | 5 | 12 | 0.65 | standard | STR C, DEX C | 1.0 | 0.0 | — |
 
 **Infused scaling** (applied to weapon when a skill moveset is equipped):

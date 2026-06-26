@@ -131,7 +131,7 @@ export function calcAffinityMultiplier(tile: WorkflowTile, enemy: Enemy): number
       (tile.content_type  != null && conditions.products?.includes(tile.content_type))     ||
       (tile.content_origin != null && conditions.origins?.includes(tile.content_origin))    ||
       (tile.style_type   != null && conditions.styles?.includes(tile.style_type))   ||
-      (tile.status        != null && conditions.statuses?.includes(tile.status))             ||
+      (tile.status        != null && conditions.emotions?.includes(tile.status))             ||
       (conditions.stages?.includes(tile.type))
     if (matched) mult *= AFFINITY_MULTS[tier]
   }

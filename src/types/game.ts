@@ -10,10 +10,10 @@ export type StyleType =
   | 'Minimalism' | 'Shock' | 'Narration' | 'Segmentation' | 'Fast'
   | 'Passion' | 'Intellectual' | 'ProblemSolving' | 'Estetic' | 'Interactive' | 'Cliffhanger'
 
-export type StatusType =
-  | 'bleed' | 'scarlet_rot' | 'frostbite' | 'madness' | 'sleep'
-  | 'death_blight' | 'glintstone' | 'frenzy_flame' | 'devotion'
-  | 'yearning' | 'dread' | 'murmur' | 'grace'
+export type EmotionType =
+  | 'Viral' | 'Polarization' | 'Envy' | 'Controversion' | 'Comfort'
+  | 'Drama' | 'Wow' | 'Humor' | 'Parasocial'
+  | 'Fomo' | 'Fear' | 'Rumor' | 'Hope'
 
 export type WeaponClass =
   | 'daggers' | 'straight_swords' | 'greatswords' | 'katanas'
@@ -52,7 +52,7 @@ export interface WorkflowTile {
   content_type?: ContentProductType
   content_origin?: AtomicOrigin
   style_type?: StyleType
-  status?: StatusType
+  status?: EmotionType
   time_budget?: AtomicTime
   is_completed: boolean
   repeat_count: number
@@ -98,7 +98,7 @@ export interface RolledPatternDraws {
   format:         (ContentProductType | null)[][]   // [occurrenceIndex][stateIndex]
   transformation: (AtomicOrigin | null)[][]   // [occurrenceIndex][stateIndex]
   style:          (StyleType   | null)[][]   // [occurrenceIndex][stateIndex]
-  emotion:        (StatusType   | null)[][]   // [occurrenceIndex][stateIndex]
+  emotion:        (EmotionType   | null)[][]   // [occurrenceIndex][stateIndex]
   length: AtomicTime
 }
 
@@ -120,7 +120,7 @@ export interface MobAffinityConditions {
   products?: ContentProductType[]
   origins?: AtomicOrigin[]
   styles?: StyleType[]
-  statuses?: StatusType[]
+  emotions?: EmotionType[]
   stages?: AtomicStage[]
 }
 

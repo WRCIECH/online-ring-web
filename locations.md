@@ -9,10 +9,10 @@ Castle Morne,Leonine Misbegotten,Weeping Peninsula Coast,medium
 Stormhill Approach,"Margit, the Fell Omen",First Steps & Center,small-medium
 Stormveil Castle,Godrick the Grafted,Stormhill Approach,large
 Liurnia South Highway,"Adan, Thief of Fire",Stormveil Castle,medium
-Academy Gate Town,Glintstone Dragon Smarag,Liurnia South Highway,large
+Academy Gate Town,Wow Dragon Smarag,Liurnia South Highway,large
 Raya Lucaria Academy,"Rennala, Queen of the Full Moon",Academy Gate Town,large
 Caria Manor,Royal Knight Loretta,Liurnia South Highway,medium
-Three Sisters,Glintstone Dragon Adula,Caria Manor,small-medium
+Three Sisters,Wow Dragon Adula,Caria Manor,small-medium
 Ainsel River Well,Dragonkin Soldier of Nokstella,Academy Gate Town,medium
 Ruin-Strewn Precipice,Magma Wyrm Makar,Academy Gate Town,medium
 Caelid Highway West,Decaying Ekzykes,Agheel Lake,medium

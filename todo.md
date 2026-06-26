@@ -23,8 +23,8 @@ Currently bosses have a single moveset pool throughout the fight.
 Needs: a `phase_two_moveset` on boss enemies, triggered when HP crosses 50%.
 
 ### Status effects
-Spec §6 defines 7 statuses: Bleed (hook stack), Madness, Frost Bite, Poison, Scarlet Rot, Sleep, Death Blight.
-None are implemented. Foundation work: add `active_statuses` to `CombatState`, tick them each round, and expose their effects in the combat reducer. Can start with 1–2 (Bleed is the most interesting mechanically).
+Spec §6 defines 7 emotions: Viral (hook stack), Controversion, Frost Bite, Poison, Scarlet Rot, Comfort, Death Blight.
+None are implemented. Foundation work: add `active_statuses` to `CombatState`, tick them each round, and expose their effects in the combat reducer. Can start with 1–2 (Viral is the most interesting mechanically).
 
 ### Damage types / weaknesses / resistances
 Spec §6 mentions elemental affix types (Fire, Lightning, Holy, Magic) and mob weaknesses/resistances.
@@ -57,9 +57,9 @@ When `rollWeapon` generates a weapon its `base_damage_mult` is class-based but r
 Spec §5.2: reaching level 10 should trigger a rarity-specific mastery bonus (Common/Magic: +1 affix slot; Rare: re-roll affix; Epic: amplify special property; Legendary: second instance of unique mechanic).
 Currently nothing happens at level 10 beyond hitting the XP cap.
 
-### Weapon sub-class / affinity (bleeding, frostbite, etc.)
+### Weapon sub-class / affinity (Viraling, Envy, etc.)
 Spec §3: every weapon instance has an affinity prefix that changes its moveset signature.
-"Bleeding Katana" rewards `hook`-tagged movesets; "Holy Greatsword" conflicts with `spicy` moves.
+"Viraling Katana" rewards `hook`-tagged movesets; "Holy Greatsword" conflicts with `spicy` moves.
 Start with: add `affinity` field to `WeaponInstance`, roll it in `weaponGenerator`, expose synergy bonuses as affix effects.
 
 ### Moveset weapon affinity check for equipping
@@ -71,13 +71,13 @@ Currently any moveset can be equipped to any weapon in `EquipOverlay.tsx`. The f
 ## Dungeon & map
 
 ### More event sublocation types
-Only Site of Grace and Trial Gate are implemented. Spec §10 defines 10 event types.
+Only Site of Hope and Trial Gate are implemented. Spec §10 defines 10 event types.
 Next priority targets:
 
 - **Forge** — combine 2 compatible movesets into a hybrid (hard, design-wise, do last)
 - **Whetstone shrine** — +1 weapon level, one-time per run (easy to implement)
 - **Site of Inspiration** — declare you consumed external content → +dmg buff for next N fights (medium)
-- **Memorial stone** — HP/FP restore without combat (easy, similar to Site of Grace)
+- **Memorial stone** — HP/FP restore without combat (easy, similar to Site of Hope)
 - **Mysterious altar** — risk/reward: sacrifice moveset XP for loot (medium)
 
 ### Chest sublocation

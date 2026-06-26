@@ -1,4 +1,4 @@
-import type { AtomicStage, WeaponClass, ContentProductType, AtomicOrigin, StyleType, StatusType } from '../../types/game'
+import type { AtomicStage, WeaponClass, ContentProductType, AtomicOrigin, StyleType, EmotionType } from '../../types/game'
 
 // ── DSL ──────────────────────────────────────────────────────────────────
 //
@@ -13,7 +13,7 @@ import type { AtomicStage, WeaponClass, ContentProductType, AtomicOrigin, StyleT
 //
 // Patterns don't carry their own candidate lists — those live on
 // WeaponClassDef (supported_products, allowed_transformations,
-// base_damage_types, inherent_status). This keeps a pattern terse: it's
+// styles, emotions). This keeps a pattern terse: it's
 // purely the shape, while the per-class "what can be drawn" data lives in
 // one other place (weaponClasses.ts).
 
@@ -25,7 +25,7 @@ export type PatternStep =
   | { kind: 'drawEmotion'; probability: number }
   | { kind: 'branch'; paths: PatternStep[][] }
   | { kind: 'eitherOr'; options: { step: PatternStep; weight: number }[] }
-  | { kind: 'fixedDraw'; slotKind: DrawKind; value: ContentProductType | AtomicOrigin | StyleType | StatusType }
+  | { kind: 'fixedDraw'; slotKind: DrawKind; value: ContentProductType | AtomicOrigin | StyleType | EmotionType }
 
 export type DrawKind = 'format' | 'transformation' | 'style' | 'emotion'
 
@@ -53,7 +53,7 @@ export function drawEmotion(probability = 1): PatternStep { return { kind: 'draw
 export function format(value: ContentProductType): PatternStep         { return { kind: 'fixedDraw', slotKind: 'format',         value } }
 export function transformation(value: AtomicOrigin): PatternStep       { return { kind: 'fixedDraw', slotKind: 'transformation', value } }
 export function style(value: StyleType): PatternStep                  { return { kind: 'fixedDraw', slotKind: 'style',          value } }
-export function emotion(value: StatusType): PatternStep                { return { kind: 'fixedDraw', slotKind: 'emotion',        value } }
+export function emotion(value: EmotionType): PatternStep                { return { kind: 'fixedDraw', slotKind: 'emotion',        value } }
 
 export function branch(...paths: PatternStep[][]): PatternStep {
   if (paths.length < 2) throw new Error('branch() requires at least 2 paths')

@@ -1,4 +1,4 @@
-import type { WeaponInstance, WeaponRarity, Stats, Grade, ContentProductType, AtomicOrigin, StyleType, StatusType } from '../types/game'
+import type { WeaponInstance, WeaponRarity, Stats, Grade, ContentProductType, AtomicOrigin, StyleType, EmotionType } from '../types/game'
 import { CONTENT_TYPE_STATS } from './contentTypeScaling'
 import { ATOMIC_ORIGIN_STATS } from './atomicOriginScaling'
 import { STYLE_TYPE_STATS } from './styleTypeScaling'
@@ -32,7 +32,7 @@ export function calcWeaponScaledDamage(
   contentType?: ContentProductType,
   contentOrigin?: AtomicOrigin,
   styleType?: StyleType,
-  status?: StatusType,
+  status?: EmotionType,
 ): number {
   const levelMult = LEVEL_MULT[weapon.rarity] ?? 0.03
   let statBonus = 0

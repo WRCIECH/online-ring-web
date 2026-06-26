@@ -1,4 +1,4 @@
-import type { AtomicStage, WorkflowTile, WorkflowGraph, ContentProductType, AtomicOrigin, StyleType, StatusType } from '../types/game'
+import type { AtomicStage, WorkflowTile, WorkflowGraph, ContentProductType, AtomicOrigin, StyleType, EmotionType } from '../types/game'
 import type { TranslationBundle } from '../i18n/types'
 import { CONTENT_TYPE_STATS } from './contentTypeScaling'
 import { ATOMIC_ORIGIN_STATS } from './atomicOriginScaling'
@@ -29,7 +29,7 @@ export interface EffectiveTags {
   content_type?:   ContentProductType
   content_origin?: AtomicOrigin
   style_type?:    StyleType
-  status?:         StatusType
+  status?:         EmotionType
 }
 
 // Once a content dimension is introduced on a tile (e.g. content_type
@@ -79,12 +79,12 @@ export function computeEffectiveTags(workflow: WorkflowGraph): Map<string, Effec
 
 // "What are we about to do" badges for a tile: stage first (colored, e.g.
 // Research), then whichever content dimensions apply (content type, origin,
-// damage type, status) — e.g. Livestream, Similar, Lightning, Grace. Pass
+// damage type, status) — e.g. Livestream, Similar, Lightning, Hope. Pass
 // `effective` (from computeEffectiveTags) to include dimensions introduced
 // earlier in the workflow and still in force; omit it to show only what's
 // tagged directly on this tile. Pass `t` (useT()) to label status/damage-type
 // badges with the player-facing translated badge_label (e.g. "Nadzieja"
-// instead of the internal "Grace") and to fill `detail` with the translated
+// instead of the internal "Hope") and to fill `detail` with the translated
 // flavour description (falls back to the mechanical "Scales with X" hint
 // when no translation entry exists, e.g. for an unmapped key).
 export function getTileBadges(tile: WorkflowTile, effective?: EffectiveTags, t?: TranslationBundle): TileBadge[] {
@@ -110,7 +110,7 @@ export function getTileBadges(tile: WorkflowTile, effective?: EffectiveTags, t?:
   }
   if (tags.status) {
     const info  = STATUS_TYPE_STATS[tags.status]
-    const entry = t?.content.status[tags.status]
+    const entry = t?.content.emotion[tags.status]
     badges.push({ key: 'status', label: entry?.badge_label ?? info.label, detail: entry?.detail ?? statsLine(info.stats) })
   }
   return badges

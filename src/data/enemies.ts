@@ -14,7 +14,7 @@ export const ENEMIES: Record<string, Enemy> = {
     moveset: ['mindless_scroll', 'shiny_object'],
     affinities: {
       love:    { stages: ['Research', 'Plan'] },
-      like:    { products: ['CurationFeed'], statuses: ['sleep'] },
+      like:    { products: ['CurationFeed'], emotions: ['Comfort'] },
       dislike: { stages: ['Refine', 'Publish'] },
       hate:    { origins: ['New'], stages: ['Produce'] },
     },
@@ -26,10 +26,10 @@ export const ENEMIES: Record<string, Enemy> = {
     drops: [{ id: 'weapon', first_kill_chance: 1.0, repeat_chance: 0.0 }],
     moveset: ['public_criticism', 'mockery', 'credibility_slash'],
     affinities: {
-      love:    { statuses: ['scarlet_rot', 'death_blight'] },
+      love:    { emotions: ['Polarization', 'Drama'] },
       like:    { origins: ['Commentary'], styles: ['Shock'] },
-      dislike: { statuses: ['sleep', 'grace'] },
-      hate:    { styles: ['ProblemSolving'], statuses: ['devotion'] },
+      dislike: { emotions: ['Comfort', 'Hope'] },
+      hate:    { styles: ['ProblemSolving'], emotions: ['Parasocial'] },
     },
   },
 
@@ -41,7 +41,7 @@ export const ENEMIES: Record<string, Enemy> = {
     moveset: ['infinite_loop', 'standard_terror', 'scope_creep'],
     affinities: {
       love:    { origins: ['New'], stages: ['Research', 'Plan'] },
-      like:    { products: ['Plaintext'], statuses: ['dread'] },
+      like:    { products: ['Plaintext'], emotions: ['Fear'] },
       dislike: { origins: ['Commentary', 'Recycled'], stages: ['Refine'] },
       hate:    { origins: ['Revamped'], styles: ['Shock'], stages: ['Produce'] },
     },
@@ -56,10 +56,10 @@ export const ENEMIES: Record<string, Enemy> = {
     ],
     moveset: ['hollow_stare', 'drag_down'],
     affinities: {
-      love:    { stages: ['Produce'], statuses: ['dread'] },
+      love:    { stages: ['Produce'], emotions: ['Fear'] },
       like:    { products: ['Plaintext', 'RawAudio'] },
-      dislike: { styles: ['Passion'], statuses: ['glintstone'] },
-      hate:    { stages: ['Promote'], statuses: ['frenzy_flame', 'grace'] },
+      dislike: { styles: ['Passion'], emotions: ['Wow'] },
+      hate:    { stages: ['Promote'], emotions: ['Humor', 'Hope'] },
     },
   },
 
@@ -69,10 +69,10 @@ export const ENEMIES: Record<string, Enemy> = {
     drops: [{ id: 'weapon', first_kill_chance: 0.80, repeat_chance: 0.30 }],
     moveset: ['viral_post', 'follower_count', 'trending_now'],
     affinities: {
-      love:    { statuses: ['frostbite', 'yearning'] },
+      love:    { emotions: ['Envy', 'Fomo'] },
       like:    { products: ['Carousel', 'SingleGraphic'] },
       dislike: { origins: ['Reboot', 'Opposite'] },
-      hate:    { styles: ['Minimalism'], statuses: ['devotion'] },
+      hate:    { styles: ['Minimalism'], emotions: ['Parasocial'] },
     },
   },
 
@@ -83,7 +83,7 @@ export const ENEMIES: Record<string, Enemy> = {
     moveset: ['what_if_they_laugh', 'stay_hidden', 'visibility_terror'],
     affinities: {
       love:    { stages: ['Publish', 'Promote'] },
-      like:    { styles: ['Cliffhanger'], statuses: ['dread'] },
+      like:    { styles: ['Cliffhanger'], emotions: ['Fear'] },
       dislike: { origins: ['AudienceAlter', 'Commentary'] },
       hate:    { styles: ['Shock'], stages: ['Produce'] },
     },
@@ -114,7 +114,7 @@ export const ENEMIES: Record<string, Enemy> = {
     drops: [{ id: 'weapon', first_kill_chance: 0.72, repeat_chance: 0.28 }],
     affinities: {
       love:    { products: ['ARollVideo', 'LiveStream'], styles: ['Shock', 'Fast'] },
-      like:    { origins: ['Revamped', 'Compression'], statuses: ['bleed', 'madness'] },
+      like:    { origins: ['Revamped', 'Compression'], emotions: ['Viral', 'Controversion'] },
       dislike: { products: ['Plaintext', 'MultimediaPage'], origins: ['New', 'ZoomOut'] },
       hate:    { products: ['InteractiveApp', 'BranchingNarrative'], styles: ['Intellectual'], stages: ['Research', 'Plan'] },
     },
@@ -128,7 +128,7 @@ export const ENEMIES: Record<string, Enemy> = {
     drops: [{ id: 'weapon', first_kill_chance: 0.65, repeat_chance: 0.22 }],
     affinities: {
       love:    { products: ['StructuredText', 'CurationFeed'], stages: ['Research'] },
-      like:    { products: ['AssetPack', 'Infographic'], styles: ['Segmentation'], statuses: ['glintstone'] },
+      like:    { products: ['AssetPack', 'Infographic'], styles: ['Segmentation'], emotions: ['Wow'] },
       dislike: { products: ['Plaintext', 'RawAudio'], origins: ['New', 'Reboot'] },
       hate:    { products: ['InteractiveApp', 'LiveStream'], styles: ['Interactive'], stages: ['Produce', 'Publish'] },
     },
@@ -143,7 +143,7 @@ export const ENEMIES: Record<string, Enemy> = {
     affinities: {
       love:    { products: ['StructuredText', 'Screencast'], origins: ['Revamped'] },
       like:    { products: ['IllustratedText', 'ProducedAudio'], stages: ['Plan', 'Refine'] },
-      dislike: { origins: ['AudienceAlter', 'Commentary'], statuses: ['frenzy_flame'] },
+      dislike: { origins: ['AudienceAlter', 'Commentary'], emotions: ['Humor'] },
       hate:    { products: ['_blank', 'MultimediaPage'], origins: ['Reboot', 'Opposite'], styles: ['Passion'] },
     },
   },
@@ -157,7 +157,7 @@ export const ENEMIES: Record<string, Enemy> = {
     affinities: {
       love:    { products: ['Plaintext'], styles: ['Minimalism'], stages: ['Produce'] },
       like:    { products: ['RawAudio'], origins: ['Expansion'] },
-      dislike: { products: ['Carousel', 'SingleGraphic'], statuses: ['yearning'] },
+      dislike: { products: ['Carousel', 'SingleGraphic'], emotions: ['Fomo'] },
       hate:    { products: ['StructuredText', 'Infographic'], origins: ['Compression'], styles: ['Segmentation'] },
     },
   },
@@ -170,7 +170,7 @@ export const ENEMIES: Record<string, Enemy> = {
     drops: [{ id: 'weapon', first_kill_chance: 0.50, repeat_chance: 0.16 }],
     affinities: {
       love:    { origins: ['Reboot', 'Recycled'], stages: ['Plan', 'Produce'] },
-      like:    { products: ['_blank'], origins: ['AudienceAlter'], statuses: ['murmur'] },
+      like:    { products: ['_blank'], origins: ['AudienceAlter'], emotions: ['Rumor'] },
       dislike: { products: ['CinematicVideo', 'InteractiveApp'], stages: ['Refine'] },
       hate:    { origins: ['Similar'], styles: ['Narration'], stages: ['Publish', 'Promote'] },
     },
@@ -183,10 +183,10 @@ export const ENEMIES: Record<string, Enemy> = {
     boss_name: 'Lord Atencji',
     drops: [{ id: 'weapon', first_kill_chance: 0.78, repeat_chance: 0.30 }],
     affinities: {
-      love:    { styles: ['Cliffhanger', 'Shock'], statuses: ['death_blight', 'scarlet_rot'] },
+      love:    { styles: ['Cliffhanger', 'Shock'], emotions: ['Drama', 'Polarization'] },
       like:    { products: ['Carousel', 'SingleGraphic'], origins: ['Compression', 'Commentary'] },
       dislike: { products: ['StructuredText'], styles: ['ProblemSolving'] },
-      hate:    { products: ['MultimediaPage', 'AssetPack'], styles: ['Intellectual'], statuses: ['grace'] },
+      hate:    { products: ['MultimediaPage', 'AssetPack'], styles: ['Intellectual'], emotions: ['Hope'] },
     },
   },
 
@@ -237,10 +237,10 @@ export const ENEMIES: Record<string, Enemy> = {
     max_hp: 85, rune_reward: 135, is_boss: false,
     drops: [{ id: 'weapon', first_kill_chance: 0.65, repeat_chance: 0.22 }],
     affinities: {
-      love:    { styles: ['Intellectual'], statuses: ['glintstone'] },
+      love:    { styles: ['Intellectual'], emotions: ['Wow'] },
       like:    { products: ['MultimediaPage', 'BranchingNarrative'] },
       dislike: { styles: ['Shock', 'Cliffhanger'] },
-      hate:    { statuses: ['bleed'] },
+      hate:    { emotions: ['Viral'] },
     },
   },
 
@@ -250,7 +250,7 @@ export const ENEMIES: Record<string, Enemy> = {
     max_hp: 48, rune_reward: 38, is_boss: false,
     drops: [{ id: 'weapon', first_kill_chance: 0.45, repeat_chance: 0.12 }],
     affinities: {
-      love:    { statuses: ['bleed', 'frenzy_flame'] },
+      love:    { emotions: ['Viral', 'Humor'] },
       like:    { products: ['SingleGraphic', 'ARollVideo'], styles: ['Shock'] },
       dislike: { styles: ['Intellectual'] },
       hate:    { products: ['MultimediaPage'], stages: ['Research'] },
@@ -263,10 +263,10 @@ export const ENEMIES: Record<string, Enemy> = {
     max_hp: 52, rune_reward: 44, is_boss: false,
     drops: [{ id: 'weapon', first_kill_chance: 0.48, repeat_chance: 0.14 }],
     affinities: {
-      love:    { statuses: ['sleep', 'grace'] },
+      love:    { emotions: ['Comfort', 'Hope'] },
       like:    { products: ['Plaintext', 'RawAudio'] },
-      dislike: { styles: ['Shock'], statuses: ['yearning'] },
-      hate:    { styles: ['Cliffhanger'], statuses: ['dread'] },
+      dislike: { styles: ['Shock'], emotions: ['Fomo'] },
+      hate:    { styles: ['Cliffhanger'], emotions: ['Fear'] },
     },
   },
 
@@ -277,8 +277,8 @@ export const ENEMIES: Record<string, Enemy> = {
     drops: [{ id: 'weapon', first_kill_chance: 0.60, repeat_chance: 0.20 }],
     affinities: {
       love:    { styles: ['Fast', 'Shock'] },
-      like:    { statuses: ['madness', 'yearning'] },
-      dislike: { products: ['Plaintext'], statuses: ['sleep'] },
+      like:    { emotions: ['Controversion', 'Fomo'] },
+      dislike: { products: ['Plaintext'], emotions: ['Comfort'] },
       hate:    { styles: ['Intellectual'], stages: ['Plan'] },
     },
   },
@@ -289,9 +289,9 @@ export const ENEMIES: Record<string, Enemy> = {
     max_hp: 75, rune_reward: 100, is_boss: false,
     drops: [{ id: 'weapon', first_kill_chance: 0.62, repeat_chance: 0.20 }],
     affinities: {
-      love:    { statuses: ['madness', 'scarlet_rot'] },
+      love:    { emotions: ['Controversion', 'Polarization'] },
       like:    { origins: ['Opposite', 'Commentary'] },
-      dislike: { statuses: ['grace'] },
+      dislike: { emotions: ['Hope'] },
       hate:    { styles: ['Cliffhanger'] },
     },
   },
@@ -302,7 +302,7 @@ export const ENEMIES: Record<string, Enemy> = {
     max_hp: 45, rune_reward: 36, is_boss: false,
     drops: [{ id: 'weapon', first_kill_chance: 0.42, repeat_chance: 0.12 }],
     affinities: {
-      love:    { styles: ['Shock'], statuses: ['frenzy_flame'] },
+      love:    { styles: ['Shock'], emotions: ['Humor'] },
       like:    { products: ['StructuredText'] },
       dislike: { styles: ['Intellectual'] },
       hate:    { products: ['BranchingNarrative', 'InteractiveApp'] },
@@ -335,7 +335,7 @@ export const ENEMIES: Record<string, Enemy> = {
     description: 'A cold geometric intelligence that optimises your voice for engagement over meaning.',
     max_hp: 95, rune_reward: 152, is_boss: false,
     drops: [{ id: 'weapon', first_kill_chance: 0.72, repeat_chance: 0.28 }],
-    moveset: ['engagement_trap', 'shadow_ban', 'virality_curse'],
+    moveset: ['engagement_trap', 'shadow_ban', 'Virality_curse'],
   },
 
   deadline_wraith: {

@@ -3,14 +3,14 @@
 // use getT(locale).content.* from src/i18n/index.ts instead.
 
 import type { ContentEntry } from '../i18n/types'
-import type { AtomicOrigin, StyleType, StatusType } from '../types/game'
+import type { AtomicOrigin, StyleType, EmotionType } from '../types/game'
 import en from '../i18n/en'
 
 export type { ContentEntry }
 
 export const CONTENT_ORIGIN_INFO = en.content.origin
 export const STYLE_INFO        = en.content.style
-export const STATUS_INFO          = en.content.status
+export const EMOTION_INFO          = en.content.emotion
 export const STAGE_INFO           = en.content.stage
 export const PRODUCT_INFO         = en.content.product
 
@@ -24,5 +24,5 @@ export const STYLE_CONTENT = Object.fromEntries(
 ) as Record<StyleType, string>
 
 export const STATUS_CONTENT = Object.fromEntries(
-  (Object.entries(STATUS_INFO) as [StatusType, ContentEntry][]).map(([k, v]) => [k, v.label])
-) as Record<StatusType, string>
+  (Object.entries(EMOTION_INFO) as [EmotionType, ContentEntry][]).map(([k, v]) => [k, v.label])
+) as Record<EmotionType, string>

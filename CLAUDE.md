@@ -67,7 +67,7 @@ Leveling costs runes; cost increases with `total_levels_spent`. Six starting cla
 Weapons are procedurally generated at runtime — no static weapon list for loot drops.
 
 - `rollWeapon(weaponClass?, minRarity?)` → `WeaponInstance` with rarity, affixes, poise_weight, base_damage_mult
-- 27 weapon classes in `weaponClasses.ts` — each has `base_damage_mult`, `poise_weight`, `content_slots`, `heavy_bonus_mult`, `boss_rush_coeff`, `time_mod`, `stamina_mod`, stat scaling, plus the per-class draw pools used by `weaponPatterns.ts` (`supported_products`, `base_damage_types`, `inherent_status`, `allowed_transformations`)
+- 27 weapon classes in `weaponClasses.ts` — each has `base_damage_mult`, `poise_weight`, `content_slots`, `heavy_bonus_mult`, `boss_rush_coeff`, `time_mod`, `stamina_mod`, stat scaling, plus the per-class draw pools used by `weaponPatterns.ts` (`supported_products`, `styles`, `emotions`, `allowed_transformations`)
 
 ### Data layer (`src/data/`)
 Static records — no API calls, no async:
@@ -90,7 +90,7 @@ Drawn on a `<canvas>` (1200×800 coordinate space, CSS-scaled to 3:2 aspect rati
 - `EquipOverlay` (`src/components/overlays/EquipOverlay.tsx`) — modal triggered during combat to assign movesets to weapon skill slots. Shows weapon cards, moveset costs (stamina + FP), and a MovesetPicker for empty slots.
 
 ### Sound (`src/engine/sound.ts`)
-Web Audio API with procedurally generated buffers — no audio files. Sounds synthesized on first user click (`initSound`) and cached. Available keys: `HIT BLOCK ROLL PARRY STAGGER VICTORY DEFEAT BUTTON_CLICK LEVEL_UP SITE_OF_GRACE RUNE_GAIN LOOT_DROP TIMER_DONE`.
+Web Audio API with procedurally generated buffers — no audio files. Sounds synthesized on first user click (`initSound`) and cached. Available keys: `HIT BLOCK ROLL PARRY STAGGER VICTORY DEFEAT BUTTON_CLICK LEVEL_UP SITE_OF_Hope RUNE_GAIN LOOT_DROP TIMER_DONE`.
 
 ### Styling
 CSS Modules (`.module.css`) per component. Global tokens in `src/styles/theme.css` (imported by `globals.css`). Canvas drawing uses hardcoded colors directly; UI components use CSS variables. The background is `--color-bg: #161228`.
