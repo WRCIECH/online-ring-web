@@ -13,9 +13,6 @@ export const RUN_ESTUS_MAX = 3
 /** Minimum active pipeline items required to enter combat. */
 export const MIN_PIPELINE_TO_FIGHT = 2
 
-/** Maximum weapons the player may equip for a run. */
-export const MAX_RUN_WEAPONS = 2
-
 // ── Equip load ───────────────────────────────────────────────────────────────
 
 /** Equip load contributed by each active (non-published) content item. */
@@ -29,13 +26,6 @@ export const ESTUS_HEAL_FRACTION = 0.40
 export const FLOW_GAP_HOT_MINS   = 15
 export const FLOW_GAP_WARM_MINS  = 60
 export const FLOW_GAP_COLD_MINS  = 240
-
-// ── Combat — baseline stamina cost per attack ────────────────────────────────
-// Scaled per weapon class by WeaponClassDef.stamina_mod. Drains the same pool
-// curse-cushioning uses.
-
-export const BASE_STAMINA_COST_LIGHT = 4
-export const BASE_STAMINA_COST_HEAVY = 8
 
 // ── Combat — Heavy attack damage ─────────────────────────────────────────────
 // Heavy damage scales with the tile's actual time_heavy (not a flat multiple of

@@ -28,13 +28,9 @@ function rollRarity(forceMin?: WeaponRarity): WeaponRarity {
 }
 
 const AFFIXES: Affix[] = [
-  { id: 'dmg_15',  label: '+15% damage',      damage_mult:  1.15 },
-  { id: 'dmg_25',  label: '+25% damage',      damage_mult:  1.25 },
-  { id: 'sta_20',  label: '-20% stamina cost', stamina_mult: 0.80 },
-  { id: 'sta_30',  label: '-30% stamina cost', stamina_mult: 0.70 },
-  { id: 'fp_20',   label: '-20% mana cost',   fp_mult:      0.80  },
-  { id: 'dmg_10',  label: '+10% damage',      damage_mult:  1.10 },
-  { id: 'sta_15',  label: '-15% stamina cost', stamina_mult: 0.85 },
+  { id: 'dmg_15', label: '+15% damage', damage_mult: 1.15 },
+  { id: 'dmg_25', label: '+25% damage', damage_mult: 1.25 },
+  { id: 'dmg_10', label: '+10% damage', damage_mult: 1.10 },
 ]
 
 function rollAffixes(rarity: WeaponRarity): Affix[] {

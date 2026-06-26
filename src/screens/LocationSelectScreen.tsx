@@ -31,7 +31,8 @@ export default function LocationSelectScreen() {
   const unlockedSet  = getUnlockedLocationIds(store.completed_locations)
 
   function handleSelect(locId: string, numSublocations: number, runDuration: number) {
-    navigate('/weapons', { state: { locationName: locId, numSublocations, runDuration } })
+    store.startRun(locId, numSublocations, runDuration)
+    navigate('/map')
   }
 
   return (

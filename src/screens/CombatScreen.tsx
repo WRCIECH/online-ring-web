@@ -47,8 +47,13 @@ export default function CombatScreen() {
 
   const enemyData = loc ? ENEMIES[loc.enemy_id] : null
 
+  // ── Weapons available in combat: all that have content attached ──────────
+  const weaponsWithContent = store.weapon_instances.filter(w =>
+    store.content_items.some(c => !c.completed && c.attached_weapon_id === w.instance_id)
+  )
+
   // ── Initial weapon (seeds the very first/resumed workflow only) ──────────
-  const initialWeaponId    = store.equipped_run_weapons[0] ?? 'unarmed'
+  const initialWeaponId    = weaponsWithContent[0]?.instance_id ?? store.weapon_instances[0]?.instance_id ?? 'unarmed'
   const initialWeapon      = WEAPONS[initialWeaponId] as WeaponInstance | undefined
   const initialWeaponLevel = store.weapon_level[initialWeaponId] ?? 0
   const initialWeaponClass  = initialWeapon?.weapon_class ?? 'straight_swords'
@@ -72,7 +77,6 @@ export default function CombatScreen() {
           300, 300, 3,
           { VIG: 10, END: 10, MND: 10, STR: 8, DEX: 8, INT: 8, FAI: 8, ARC: 8 },
           0,
-          100, 100,
         )
       }
       // Resume persisted workflow or generate fresh
@@ -82,11 +86,10 @@ export default function CombatScreen() {
       return initCombatState(
         workflow, enemyData, loc.enemy_id,
         initialWeaponId, initialWeaponLevel,
-        store.current_hp,  store.maxHp(),
+        store.current_hp, store.maxHp(),
         store.run_estus_count,
         store.stats,
         store.abandon_penalty,
-        store.maxStamina(), store.maxStamina(),
         isRemasterPass,
         spawnAsBoss,
       )
@@ -151,7 +154,7 @@ export default function CombatScreen() {
   // ── Victory ───────────────────────────────────────────────────────────────
   const handleVictoryContinue = useCallback(() => {
     if (!loc) return
-    store.syncCombatResult(state.playerHp, state.playerEstus, store.current_fp, state.playerStamina)
+    store.syncCombatResult(state.playerHp, state.playerEstus)
     store.addRunes(state.runesEarned)
     store.clearAbandonPenalty()
     lootItems?.forEach(item => store.addWeaponInstance(item.instance))
@@ -177,7 +180,7 @@ export default function CombatScreen() {
 
   // ── Defeat ────────────────────────────────────────────────────────────────
   const handleDefeat = useCallback(() => {
-    store.syncCombatResult(state.playerHp, state.playerEstus, store.current_fp, state.playerStamina)
+    store.syncCombatResult(state.playerHp, state.playerEstus)
     store.dropRunes(store.run_location_name, store.run_current_index)
     store.endRunFailure()
     navigate('/')
@@ -185,7 +188,7 @@ export default function CombatScreen() {
 
   // ── Abandon (flee) ────────────────────────────────────────────────────────
   const handleFlee = useCallback(() => {
-    store.syncCombatResult(state.playerHp, state.playerEstus, store.current_fp, state.playerStamina)
+    store.syncCombatResult(state.playerHp, state.playerEstus)
     store.setAbandonPenalty(ABANDON_PENALTY)
     store.clearActiveWorkflow()
     store.endRunFailure()
@@ -283,9 +286,7 @@ export default function CombatScreen() {
   return (
     <div className={s.root}>
       <RunHeader
-        hp={state.playerHp}     maxHp={state.playerMaxHp}
-        stamina={state.playerStamina} maxStamina={state.playerMaxStamina}
-        fp={store.current_fp}   maxFp={store.maxFp()}
+        hp={state.playerHp} maxHp={state.playerMaxHp}
         canAddContent={state.phase !== 'STEP_TIMER'}
       />
 
@@ -328,7 +329,7 @@ export default function CombatScreen() {
       </div>
 
       <CombatBottomBar
-        equippedWeaponIds={store.equipped_run_weapons}
+        equippedWeaponIds={weaponsWithContent.map(w => w.instance_id)}
         activeWeaponId={state.equippedWeaponId}
         weaponLevels={store.weapon_level}
         playerEstus={state.playerEstus}

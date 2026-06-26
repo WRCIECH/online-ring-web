@@ -75,8 +75,6 @@ export interface Affix {
   id: string
   label: string
   damage_mult?: number
-  stamina_mult?: number
-  fp_mult?: number
 }
 
 export interface Weapon {
@@ -202,12 +200,9 @@ export interface GameState {
   // Weapon inventory
   owned_weapons: string[]
   weapon_instances: WeaponInstance[]
-  equipped_run_weapons: string[]
   weapon_level: Record<string, number>
   // Player resources
   current_hp: number
-  current_stamina: number
-  current_fp: number
   // Run state
   run_count: number
   run_active: boolean

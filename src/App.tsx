@@ -4,7 +4,6 @@ import { initSound } from './engine/sound'
 import TitleScreen from './screens/TitleScreen'
 import ClassSelectScreen from './screens/ClassSelectScreen'
 import LocationSelectScreen from './screens/LocationSelectScreen'
-import WeaponSelectScreen from './screens/WeaponSelectScreen'
 import RunMapScreen from './screens/RunMapScreen'
 import CombatScreen from './screens/CombatScreen'
 import RunCompleteScreen from './screens/RunCompleteScreen'
@@ -21,7 +20,6 @@ export default function App() {
         <Route path="/"             element={<TitleScreen />} />
         <Route path="/start-class"  element={<ClassSelectScreen />} />
         <Route path="/locations"    element={<LocationSelectScreen />} />
-        <Route path="/weapons"      element={<WeaponSelectScreen />} />
         <Route path="/map"          element={<RunMapScreen />} />
         <Route path="/combat"       element={<CombatScreen />} />
         <Route path="/run-complete" element={<RunCompleteScreen />} />

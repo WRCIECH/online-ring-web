@@ -20,9 +20,6 @@ export function calcMaxHp(vig: number): number {
   if (vig <= 40) return 600 + (vig - 25) * 18
   return 870 + (vig - 40) * 8
 }
-export function calcMaxStamina(end: number): number { return end * 10 }
-export function calcMaxFp(mnd: number): number { return mnd * 3 }
-
 const LOCATION_NAMES = [
   'The Endless Feed', 'Deadline Flats', 'The Comparison Pit', 'Scroll Abyss',
   'Fear Marsh', 'Distraction Fields', 'The Blank Vista', 'Burnout Hollow',
@@ -154,11 +151,8 @@ function initialState(): GameState {
     runes: 0, lost_runes: 0, lost_rune_location: '', lost_rune_node_index: -1,
     owned_weapons: [startWeapon.instance_id],
     weapon_instances: [startWeapon],
-    equipped_run_weapons: [startWeapon.instance_id],
     weapon_level: { [startWeapon.instance_id]: 0 },
     current_hp: calcMaxHp(DEFAULT_STATS.VIG),
-    current_stamina: calcMaxStamina(DEFAULT_STATS.END),
-    current_fp: calcMaxFp(DEFAULT_STATS.MND),
     run_count: 0, run_active: false,
     run_location_sequence: [],
     run_current_index: 0,
@@ -181,27 +175,22 @@ function initialState(): GameState {
 }
 
 export interface GameStore extends GameState {
-  maxHp:      () => number
-  maxStamina: () => number
-  maxFp:      () => number
+  maxHp: () => number
 
   // Run management
-  startRun:            (weapons: string[], locationName?: string, numSublocations?: number, runDuration?: number) => void
+  startRun:            (locationName?: string, numSublocations?: number, runDuration?: number) => void
   advanceRun:          () => void
   endRunVictory:       () => void
   endRunFailure:       () => void
   setPendingEncounter: (loc: LocationData | null) => void
   setPendingReward:    (id: string) => void
   addDefeatedEnemy:    (id: string) => void
-  syncCombatResult:    (hp: number, estus: number, fp: number, stamina: number) => void
+  syncCombatResult:    (hp: number, estus: number) => void
 
   // HP / resources
   takePlayerDamage:  (amount: number) => void
   healPlayer:        (amount: number) => void
   drinkEstus:        () => boolean
-  spendStamina:      (amount: number) => boolean
-  restoreStamina:    () => void
-  spendFp:           (amount: number) => boolean
 
   // Weapon inventory
   addWeaponInstance: (w: WeaponInstance) => void
@@ -253,14 +242,11 @@ hydrateRegistries(_savedOrFresh)
 export const useGameStore = create<GameStore>((set, get) => ({
   ..._savedOrFresh,
 
-  maxHp:      () => calcMaxHp(get().stats.VIG),
-  maxStamina: () => calcMaxStamina(get().stats.END),
-  maxFp:      () => calcMaxFp(get().stats.MND),
+  maxHp: () => calcMaxHp(get().stats.VIG),
 
-  startRun: (weapons, locationName = '', numSublocations = 20, runDuration = RUN_DURATION_SECONDS) => {
+  startRun: (locationName = '', numSublocations = 20, runDuration = RUN_DURATION_SECONDS) => {
     const seq = generateLocationSequence(numSublocations)
     set({
-      equipped_run_weapons: weapons,
       run_active: true,
       run_location_sequence: seq,
       run_current_index: 0,
@@ -268,9 +254,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
       run_duration_seconds: runDuration,
       run_estus_count: RUN_ESTUS_MAX,
       run_defeated_enemies: [],
-      current_hp:      calcMaxHp(get().stats.VIG),
-      current_stamina: calcMaxStamina(get().stats.END),
-      current_fp:      calcMaxFp(get().stats.MND),
+      current_hp: calcMaxHp(get().stats.VIG),
       run_location_name: locationName,
       active_workflow: null,
       active_content_id: null,
@@ -298,7 +282,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
 
   setPendingEncounter: (loc) => { set({ pending_encounter: loc }); get().save() },
   setPendingReward:    (id)  => set({ pending_run_reward: id }),
-  syncCombatResult:    (hp, estus, fp, stamina) => set({ current_hp: hp, run_estus_count: estus, current_fp: fp, current_stamina: stamina }),
+  syncCombatResult:    (hp, estus) => set({ current_hp: hp, run_estus_count: estus }),
   addDefeatedEnemy:    (id)  => set(s => ({ run_defeated_enemies: [...s.run_defeated_enemies, id] })),
 
   takePlayerDamage: (amount) => set(s => ({ current_hp: Math.max(0, s.current_hp - amount) })),
@@ -314,20 +298,6 @@ export const useGameStore = create<GameStore>((set, get) => ({
       run_estus_count: prev.run_estus_count - 1,
       current_hp:      Math.min(calcMaxHp(prev.stats.VIG), prev.current_hp + healAmount),
     }))
-    return true
-  },
-
-  spendStamina: (amount) => {
-    if (get().current_stamina < amount) return false
-    set(prev => ({ current_stamina: Math.max(0, prev.current_stamina - amount) }))
-    return true
-  },
-
-  restoreStamina: () => set(s => ({ current_stamina: calcMaxStamina(s.stats.END) })),
-
-  spendFp: (amount) => {
-    if (get().current_fp < amount) return false
-    set(prev => ({ current_fp: Math.max(0, prev.current_fp - amount) }))
     return true
   },
 
@@ -369,9 +339,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
       runes: prev.runes - cost,
       total_levels_spent: prev.total_levels_spent + 1,
       stats: { ...prev.stats, [stat]: newVal },
-      current_hp:      stat === 'VIG' ? calcMaxHp(newVal)     : prev.current_hp,
-      current_stamina: stat === 'END' ? calcMaxStamina(newVal) : prev.current_stamina,
-      current_fp:      stat === 'MND' ? calcMaxFp(newVal)      : prev.current_fp,
+      current_hp: stat === 'VIG' ? calcMaxHp(newVal) : prev.current_hp,
     }))
     get().save()
     return true
@@ -410,11 +378,8 @@ export const useGameStore = create<GameStore>((set, get) => ({
       runes: 0, lost_runes: 0, lost_rune_location: '', lost_rune_node_index: -1,
       owned_weapons: [w.instance_id],
       weapon_instances: [w],
-      equipped_run_weapons: [w.instance_id],
       weapon_level: { [w.instance_id]: 0 },
-      current_hp:      calcMaxHp(cls.startingStats.VIG),
-      current_stamina: calcMaxStamina(cls.startingStats.END),
-      current_fp:      calcMaxFp(cls.startingStats.MND),
+      current_hp: calcMaxHp(cls.startingStats.VIG),
     })
     get().save()
   },

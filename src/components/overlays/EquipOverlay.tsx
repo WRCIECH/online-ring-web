@@ -37,7 +37,6 @@ export default function EquipOverlay({ onClose }: Props) {
     const slotLoad = selectWeaponSlotLoad(store as Parameters<typeof selectWeaponSlotLoad>[0], wid)
     const attached = store.content_items.filter(c => !c.completed && c.attached_weapon_id === wid)
     const assignable = store.content_items.filter(c => !c.completed && c.attached_weapon_id !== wid)
-    const isEquipped = store.equipped_run_weapons.includes(wid)
     const isExpanded  = !!expandedContent[wid]
 
     return (
@@ -54,7 +53,6 @@ export default function EquipOverlay({ onClose }: Props) {
             {weapon.rarity.toUpperCase()}
           </span>
           <span className={s.level}>+{level}</span>
-          {isEquipped && <span className={s.equippedChip} title={t.ui.equip_equipped_badge}>⚔</span>}
         </div>
 
         <div className={s.weaponDesc}>{t.weapons[weapon.weapon_class]?.description ?? classDef.description}</div>
@@ -66,7 +64,6 @@ export default function EquipOverlay({ onClose }: Props) {
         <div className={s.statsRow}>
           <span className={s.statChip}>+{((LEVEL_MULT[weapon.rarity] ?? 0.03) * 100).toFixed(0)}% {t.ui.stat_dmg_per_level}</span>
           <span className={s.statChip}>×{classDef.base_damage_mult} {t.ui.stat_base_damage}</span>
-          <span className={s.statChip}>×{classDef.stamina_mod} {t.ui.stat_stamina_cost}</span>
           {Object.entries(weapon.scaling).map(([stat, grade]) => (
             <span key={stat} className={s.scalingChip}>{stat} {grade}</span>
           ))}
@@ -126,19 +123,14 @@ export default function EquipOverlay({ onClose }: Props) {
     )
   }
 
-  const weaponsToShow = [...store.owned_weapons].sort((a, b) => {
-    const aEq = store.equipped_run_weapons.includes(a) ? 0 : 1
-    const bEq = store.equipped_run_weapons.includes(b) ? 0 : 1
-    return aEq - bEq
-  })
+  const weaponsToShow = store.owned_weapons
 
   const effectiveSelectedId = selectedWeaponId ?? weaponsToShow[0] ?? null
 
   function renderIcon(wid: string) {
     const weapon = WEAPONS[wid] as WeaponInstance | undefined
     if (!weapon) return null
-    const isEquipped = store.equipped_run_weapons.includes(wid)
-    const isActive   = wid === effectiveSelectedId
+    const isActive = wid === effectiveSelectedId
     return (
       <button
         key={wid}
@@ -151,7 +143,6 @@ export default function EquipOverlay({ onClose }: Props) {
           poiseWeight={weapon.poise_weight ?? 'medium'}
           size={34}
         />
-        {isEquipped && <span className={s.iconEquippedDot} title={t.ui.equip_equipped_badge}>⚔</span>}
         <span className={s.iconTooltip}>{localizeWeaponName(weapon, t)}</span>
       </button>
     )

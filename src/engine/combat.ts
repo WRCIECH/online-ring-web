@@ -3,10 +3,9 @@ import type {
   Enemy, WeaponInstance, Stats, MobAffinities, MobAffinityConditions,
 } from '../types/game'
 import { WEAPONS, calcWeaponScaledDamage } from '../data/weapons'
-import { WEAPON_CLASSES } from '../data/generators/weaponClasses'
 import {
   REPEAT_PENALTY_PER_RETRY, REPEAT_PENALTY_MAX, REPEAT_DAMAGE_PENALTY, SACRIFICE_MULT,
-  BASE_STAMINA_COST_LIGHT, BASE_STAMINA_COST_HEAVY, HEAVY_TIME_BONUS,
+  HEAVY_TIME_BONUS,
 } from '../data/constants'
 
 export interface LogEntry { id: number; text: string; color?: string }
@@ -20,8 +19,6 @@ export interface CombatState {
   playerHp: number
   playerMaxHp: number
   playerEstus: number
-  playerStamina: number
-  playerMaxStamina: number
   // Weapon / stats context
   equippedWeaponId: string
   weaponLevel: number
@@ -201,8 +198,6 @@ export function initCombatState(
   playerEstus: number,
   playerStats: Stats,
   incomingPenalty: number,
-  playerStamina: number,
-  playerMaxStamina: number,
   isRemasterPass = false,
   spawnAsBoss = false,
 ): CombatState {
@@ -219,7 +214,6 @@ export function initCombatState(
     currentTileId: workflow.start_id,
     playerHp, playerMaxHp,
     playerEstus,
-    playerStamina, playerMaxStamina,
     equippedWeaponId, weaponLevel, playerStats,
     incomingPenalty,
     consistencyStreak: 0, isRemasterPass,
@@ -338,14 +332,10 @@ export function combatReducer(state: CombatState, action: CombatAction): CombatS
           * consistencyMult * remasterMult * affinityMult * finisherMult
       )
       const newEnemyHp    = Math.max(0, state.enemyHp - damage)
-      const staminaCost   = (move === 'Heavy' ? BASE_STAMINA_COST_HEAVY : BASE_STAMINA_COST_LIGHT)
-        * (weapon ? WEAPON_CLASSES[weapon.weapon_class]?.stamina_mod ?? 1.0 : 1.0)
-      const newStamina    = Math.max(0, state.playerStamina - staminaCost)
 
       let s = log(
         { ...state, workflow: newWorkflow,
           currentTileId: tile.id, enemyHp: newEnemyHp,
-          playerStamina: newStamina,
           consistencyStreak: state.consistencyStreak + 1,
           timerExpired: false, stepStarted: false,
           pendingTile: null, pendingMove: null, selectedTileId: null },

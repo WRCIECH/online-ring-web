@@ -21,7 +21,6 @@ export interface WeaponClassDef {
   scaling: Partial<Record<StatKey, Grade>>
   base_damage_types: DamageType[]
   time_mod: number
-  stamina_mod: number
   inherent_status: StatusType[]
   allowed_transformations: AtomicOrigin[]
   // Per-weapon cap on simultaneously-attached ContentItems (on top of the
@@ -38,7 +37,6 @@ export const WEAPON_CLASSES: Record<WeaponClass, WeaponClassDef> = {
     id: 'daggers', name: 'Dagger', description: 'Micro-content: tweets, shorts, quick reactions.',
     poise_weight: 'light', base_damage_mult: 0.7,
     scaling: { DEX: 'S' },
-    time_mod: 0.8, stamina_mod: 0.7,
     content_slots: 3,
     remaster_steps: 3,
 
@@ -51,7 +49,6 @@ export const WEAPON_CLASSES: Record<WeaponClass, WeaponClassDef> = {
     id: 'straight_swords', name: 'Straight Sword', description: 'Standard articles and blog posts.',
     poise_weight: 'medium', base_damage_mult: 1.0,
     scaling: { STR: 'D', DEX: 'D' },
-    time_mod: 1.0, stamina_mod: 1.0,
     content_slots: 4,
     remaster_steps: 5,
 
@@ -65,7 +62,6 @@ export const WEAPON_CLASSES: Record<WeaponClass, WeaponClassDef> = {
     id: 'greatswords', name: 'Greatsword', description: 'Long-form essays and deep dives.',
     poise_weight: 'heavy', base_damage_mult: 1.5,
     scaling: { STR: 'B', DEX: 'D' },
-    time_mod: 1.15, stamina_mod: 1.2,
     content_slots: 5,
     remaster_steps: 5,
 
@@ -78,7 +74,6 @@ export const WEAPON_CLASSES: Record<WeaponClass, WeaponClassDef> = {
     id: 'katanas', name: 'Katana', description: 'Polished craft pieces — quality over quantity.',
     poise_weight: 'medium', base_damage_mult: 1.1,
     scaling: { DEX: 'A' },
-    time_mod: 0.95, stamina_mod: 1.0,
     content_slots: 4,
     remaster_steps: 5,
 
@@ -91,7 +86,6 @@ export const WEAPON_CLASSES: Record<WeaponClass, WeaponClassDef> = {
     id: 'hammers', name: 'Hammer', description: 'Hot takes and opinion pieces.',
     poise_weight: 'heavy', base_damage_mult: 1.3,
     scaling: { STR: 'A' },
-    time_mod: 1.0, stamina_mod: 1.15,
     content_slots: 5,
     remaster_steps: 5,
 
@@ -104,7 +98,6 @@ export const WEAPON_CLASSES: Record<WeaponClass, WeaponClassDef> = {
     id: 'spears', name: 'Spear', description: 'Research-driven content.',
     poise_weight: 'medium', base_damage_mult: 1.0,
     scaling: { DEX: 'B', STR: 'D' },
-    time_mod: 1.0, stamina_mod: 0.9,
     content_slots: 4,
     remaster_steps: 5,
 
@@ -117,7 +110,6 @@ export const WEAPON_CLASSES: Record<WeaponClass, WeaponClassDef> = {
     id: 'axes', name: 'Axe', description: 'Editing and compression of existing content.',
     poise_weight: 'medium', base_damage_mult: 0.9,
     scaling: { STR: 'C', DEX: 'D' },
-    time_mod: 0.9, stamina_mod: 1.0,
     content_slots: 4,
     remaster_steps: 5,
 
@@ -130,7 +122,6 @@ export const WEAPON_CLASSES: Record<WeaponClass, WeaponClassDef> = {
     id: 'bows', name: 'Bow', description: 'Async content — newsletters, scheduled posts.',
     poise_weight: 'light', base_damage_mult: 0.85,
     scaling: { DEX: 'A' },
-    time_mod: 0.75, stamina_mod: 0.85,
     content_slots: 3,
     remaster_steps: 3,
 
@@ -143,7 +134,6 @@ export const WEAPON_CLASSES: Record<WeaponClass, WeaponClassDef> = {
     id: 'fists', name: 'Fists', description: 'Raw BTS content and vlogs.',
     poise_weight: 'light', base_damage_mult: 0.65,
     scaling: { STR: 'C', DEX: 'C' },
-    time_mod: 1.0, stamina_mod: 0,
     content_slots: 3,
     remaster_steps: 3,
 
@@ -156,7 +146,6 @@ export const WEAPON_CLASSES: Record<WeaponClass, WeaponClassDef> = {
     id: 'colossal_swords', name: 'Colossal Sword', description: 'Books, courses, and long-form products.',
     poise_weight: 'colossal', base_damage_mult: 2.2,
     scaling: { STR: 'S' },
-    time_mod: 1.5, stamina_mod: 1.5,
     content_slots: 6,
     remaster_steps: 5,
 
@@ -169,7 +158,6 @@ export const WEAPON_CLASSES: Record<WeaponClass, WeaponClassDef> = {
     id: 'thrusting_swords', name: 'Thrusting Sword', description: 'Comments and reply content.',
     poise_weight: 'light', base_damage_mult: 0.75,
     scaling: { INT: 'A', DEX: 'D' },
-    time_mod: 0.85, stamina_mod: 0.75,
     content_slots: 3,
     remaster_steps: 3,
 
@@ -182,7 +170,6 @@ export const WEAPON_CLASSES: Record<WeaponClass, WeaponClassDef> = {
     id: 'heavy_thrusting', name: 'Heavy Thrusting Sword', description: 'In-depth analysis and commentary.',
     poise_weight: 'medium', base_damage_mult: 1.1,
     scaling: { INT: 'B', STR: 'D' },
-    time_mod: 1.05, stamina_mod: 1.1,
     content_slots: 4,
     remaster_steps: 5,
 
@@ -195,7 +182,6 @@ export const WEAPON_CLASSES: Record<WeaponClass, WeaponClassDef> = {
     id: 'curved_swords', name: 'Curved Sword', description: 'Storytelling and narrative content.',
     poise_weight: 'medium', base_damage_mult: 1.0,
     scaling: { DEX: 'A' },
-    time_mod: 0.85, stamina_mod: 0.8,
     content_slots: 4,
     remaster_steps: 5,
 
@@ -208,7 +194,6 @@ export const WEAPON_CLASSES: Record<WeaponClass, WeaponClassDef> = {
     id: 'curved_greatswords', name: 'Curved Greatsword', description: 'Epic series and narrative sagas.',
     poise_weight: 'heavy', base_damage_mult: 1.4,
     scaling: { DEX: 'B', STR: 'D' },
-    time_mod: 1.15, stamina_mod: 1.15,
     content_slots: 5,
     remaster_steps: 5,
 
@@ -221,7 +206,6 @@ export const WEAPON_CLASSES: Record<WeaponClass, WeaponClassDef> = {
     id: 'twinblades', name: 'Twinblade', description: 'Multi-platform cross-posting.',
     poise_weight: 'medium', base_damage_mult: 0.9,
     scaling: { DEX: 'S' },
-    time_mod: 0.9, stamina_mod: 1.1,
     content_slots: 4,
     remaster_steps: 5,
 
@@ -234,7 +218,6 @@ export const WEAPON_CLASSES: Record<WeaponClass, WeaponClassDef> = {
     id: 'great_hammers', name: 'Great Hammer', description: 'Manifestos and major opinion pieces.',
     poise_weight: 'heavy', base_damage_mult: 1.7,
     scaling: { STR: 'A' },
-    time_mod: 1.2, stamina_mod: 1.3,
     content_slots: 5,
     remaster_steps: 5,
 
@@ -247,7 +230,6 @@ export const WEAPON_CLASSES: Record<WeaponClass, WeaponClassDef> = {
     id: 'great_axes', name: 'Great Axe', description: 'Recaps, roundups, and year-in-review content.',
     poise_weight: 'heavy', base_damage_mult: 1.35,
     scaling: { STR: 'A' },
-    time_mod: 1.25, stamina_mod: 1.35,
     content_slots: 5,
     remaster_steps: 5,
 
@@ -260,7 +242,6 @@ export const WEAPON_CLASSES: Record<WeaponClass, WeaponClassDef> = {
     id: 'flails', name: 'Flail', description: 'Spontaneous and improv content.',
     poise_weight: 'medium', base_damage_mult: 0.95,
     scaling: { DEX: 'B', STR: 'D' },
-    time_mod: 1.0, stamina_mod: 0.85,
     content_slots: 4,
     remaster_steps: 5,
 
@@ -273,7 +254,6 @@ export const WEAPON_CLASSES: Record<WeaponClass, WeaponClassDef> = {
     id: 'colossal_weapons', name: 'Colossal Weapon', description: 'Mega-projects — documentaries, full series.',
     poise_weight: 'colossal', base_damage_mult: 2.4,
     scaling: { STR: 'S' },
-    time_mod: 1.6, stamina_mod: 1.6,
     content_slots: 6,
     remaster_steps: 5,
 
@@ -286,7 +266,6 @@ export const WEAPON_CLASSES: Record<WeaponClass, WeaponClassDef> = {
     id: 'great_spears', name: 'Great Spear', description: 'Investigative content.',
     poise_weight: 'heavy', base_damage_mult: 1.25,
     scaling: { STR: 'B', DEX: 'C' },
-    time_mod: 1.1, stamina_mod: 1.2,
     content_slots: 5,
     remaster_steps: 5,
 
@@ -299,7 +278,6 @@ export const WEAPON_CLASSES: Record<WeaponClass, WeaponClassDef> = {
     id: 'halberds', name: 'Halberd', description: 'Hybrid research and opinion.',
     poise_weight: 'medium', base_damage_mult: 1.1,
     scaling: { STR: 'C', DEX: 'C' },
-    time_mod: 1.0, stamina_mod: 1.1,
     content_slots: 4,
     remaster_steps: 5,
 
@@ -312,7 +290,6 @@ export const WEAPON_CLASSES: Record<WeaponClass, WeaponClassDef> = {
     id: 'reapers', name: 'Reaper', description: 'Commentary, takedowns, and critiques.',
     poise_weight: 'heavy', base_damage_mult: 1.2,
     scaling: { ARC: 'A', DEX: 'D' },
-    time_mod: 1.2, stamina_mod: 1.2,
     content_slots: 5,
     remaster_steps: 5,
 
@@ -325,7 +302,6 @@ export const WEAPON_CLASSES: Record<WeaponClass, WeaponClassDef> = {
     id: 'whips', name: 'Whip', description: 'Series and content cycles.',
     poise_weight: 'medium', base_damage_mult: 0.9,
     scaling: { ARC: 'B', DEX: 'C' },
-    time_mod: 0.9, stamina_mod: 0.95,
     content_slots: 4,
     remaster_steps: 5,
 
@@ -338,7 +314,6 @@ export const WEAPON_CLASSES: Record<WeaponClass, WeaponClassDef> = {
     id: 'greatbows', name: 'Greatbow', description: 'Long-tail evergreen content.',
     poise_weight: 'colossal', base_damage_mult: 1.6,
     scaling: { FAI: 'A', STR: 'D' },
-    time_mod: 1.4, stamina_mod: 1.4,
     content_slots: 6,
     remaster_steps: 5,
 
@@ -351,7 +326,6 @@ export const WEAPON_CLASSES: Record<WeaponClass, WeaponClassDef> = {
     id: 'crossbows', name: 'Crossbow', description: 'Email blasts and push notifications.',
     poise_weight: 'medium', base_damage_mult: 0.85,
     scaling: { DEX: 'B' },
-    time_mod: 0.5, stamina_mod: 0,
     content_slots: 4,
     remaster_steps: 5,
 
@@ -364,7 +338,6 @@ export const WEAPON_CLASSES: Record<WeaponClass, WeaponClassDef> = {
     id: 'ballistas', name: 'Ballista', description: 'Major product launches.',
     poise_weight: 'colossal', base_damage_mult: 2.2,
     scaling: { STR: 'C', DEX: 'D' },
-    time_mod: 2.0, stamina_mod: 1.5,
     content_slots: 6,
     remaster_steps: 5,
 
@@ -377,7 +350,6 @@ export const WEAPON_CLASSES: Record<WeaponClass, WeaponClassDef> = {
     id: 'torches', name: 'Torch', description: 'Lifestyle and lo-fi vlog content.',
     poise_weight: 'light', base_damage_mult: 0.6,
     scaling: { FAI: 'A', INT: 'D' },
-    time_mod: 0.7, stamina_mod: 0.5,
     content_slots: 3,
     remaster_steps: 3,
 

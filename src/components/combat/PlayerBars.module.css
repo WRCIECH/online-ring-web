@@ -39,8 +39,6 @@
 }
 
 .fillHp  { background: var(--color-hp); }
-.fillSta { background: var(--color-stamina); }
-.fillFp  { background: var(--color-fp); }
 
 .val {
   font-size: 0.82rem;

@@ -237,9 +237,7 @@ export default function RunMapScreen() {
   return (
     <div className={s.root}>
       <RunHeader
-        hp={store.current_hp}       maxHp={store.maxHp()}
-        stamina={store.current_stamina} maxStamina={store.maxStamina()}
-        fp={store.current_fp}       maxFp={store.maxFp()}
+        hp={store.current_hp} maxHp={store.maxHp()}
       />
 
       {/* Spiral map canvas */}

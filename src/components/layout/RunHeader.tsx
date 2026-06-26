@@ -9,9 +9,7 @@ import { useT } from '../../i18n'
 import s from './RunHeader.module.css'
 
 interface Props {
-  hp: number;      maxHp: number
-  stamina: number; maxStamina: number
-  fp: number;      maxFp: number
+  hp: number; maxHp: number
   canAddContent?: boolean   // false during active combat task timer
 }
 
@@ -24,8 +22,6 @@ function fmtTime(secs: number): string {
 }
 
 const HP_CAP  = 2000
-const STA_CAP = 500
-const FP_CAP  = 500
 
 function Bar({ current, playerMax, cap, color }: { current: number; playerMax: number; cap: number; color: string }) {
   const maxPct  = Math.min(100, playerMax / cap * 100)
@@ -39,7 +35,7 @@ function Bar({ current, playerMax, cap, color }: { current: number; playerMax: n
   )
 }
 
-export default function RunHeader({ hp, maxHp, stamina, maxStamina, fp, maxFp, canAddContent = true }: Props) {
+export default function RunHeader({ hp, maxHp, canAddContent = true }: Props) {
   const store = useGameStore()
   const t     = useT()
   const [remaining, setRemaining] = useState(() =>
@@ -75,14 +71,6 @@ export default function RunHeader({ hp, maxHp, stamina, maxStamina, fp, maxFp, c
           <div className={s.barGroup} data-tip={`${Math.floor(hp)} / ${maxHp}`}>
             <span className={s.barLabel}>HP</span>
             <Bar current={hp} playerMax={maxHp} cap={HP_CAP} color="var(--color-hp)" />
-          </div>
-          <div className={s.barGroup} data-tip={`${Math.floor(stamina)} / ${maxStamina}`}>
-            <span className={s.barLabel}>STA</span>
-            <Bar current={stamina} playerMax={maxStamina} cap={STA_CAP} color="var(--color-stamina)" />
-          </div>
-          <div className={s.barGroup} data-tip={`${Math.floor(fp)} / ${maxFp}`}>
-            <span className={s.barLabel}>FP</span>
-            <Bar current={fp} playerMax={maxFp} cap={FP_CAP} color="var(--color-fp)" />
           </div>
         </div>
 

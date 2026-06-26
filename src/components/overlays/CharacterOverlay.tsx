@@ -15,8 +15,6 @@ type Confirming =
 
 function statEffectPreview(stat: StatKey, val: number): string {
   if (stat === 'VIG') return `HP: ${calcMaxHp(val)} → ${calcMaxHp(val + 1)}`
-  if (stat === 'END') return `STA: ${val * 10} → ${(val + 1) * 10}`
-  if (stat === 'MND') return `FP: ${val * 3} → ${(val + 1) * 3}`
   return ''
 }
 
