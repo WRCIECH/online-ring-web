@@ -1,7 +1,7 @@
-import type { WeaponInstance, WeaponRarity, Stats, Grade, ContentProductType, AtomicOrigin, DamageType, StatusType } from '../types/game'
+import type { WeaponInstance, WeaponRarity, Stats, Grade, ContentProductType, AtomicOrigin, StyleType, StatusType } from '../types/game'
 import { CONTENT_TYPE_STATS } from './contentTypeScaling'
 import { ATOMIC_ORIGIN_STATS } from './atomicOriginScaling'
-import { DAMAGE_TYPE_STATS } from './damageTypeScaling'
+import { STYLE_TYPE_STATS } from './styleTypeScaling'
 import { STATUS_TYPE_STATS } from './statusTypeScaling'
 import { CONTENT_TYPE_STAT_BONUS } from './constants'
 
@@ -11,7 +11,7 @@ export const WEAPONS: Record<string, WeaponInstance> = {}
 // Damage bonus per weapon level, by rarity
 export const LEVEL_MULT: Record<WeaponRarity, number> = {
   common:    0.03,
-  magic:     0.04,
+  Intellectual:     0.04,
   rare:      0.05,
   epic:      0.06,
   legendary: 0.08,
@@ -31,7 +31,7 @@ export function calcWeaponScaledDamage(
   stats: Stats,
   contentType?: ContentProductType,
   contentOrigin?: AtomicOrigin,
-  damageType?: DamageType,
+  styleType?: StyleType,
   status?: StatusType,
 ): number {
   const levelMult = LEVEL_MULT[weapon.rarity] ?? 0.03
@@ -52,8 +52,8 @@ export function calcWeaponScaledDamage(
       statBonus += points * CONTENT_TYPE_STAT_BONUS
     }
   }
-  if (damageType) {
-    for (const stat of DAMAGE_TYPE_STATS[damageType]?.stats ?? []) {
+  if (styleType) {
+    for (const stat of STYLE_TYPE_STATS[styleType]?.stats ?? []) {
       const points = Math.max(0, (stats[stat] ?? 8) - 8)
       statBonus += points * CONTENT_TYPE_STAT_BONUS
     }

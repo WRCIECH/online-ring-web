@@ -62,9 +62,9 @@ export function generateRemasterWorkflow(
   for (let i = 0; i < counts.style; i++) {
     const t = makeTile('Plan', cls.time_mod)
     if (rolledDraws) {
-      t.damage_type = rolledDraws.style[i]?.[stateIndex] ?? undefined
+      t.style_type = rolledDraws.style[i]?.[stateIndex] ?? undefined
     } else if (cls.base_damage_types.length > 0) {
-      t.damage_type = pick(cls.base_damage_types)
+      t.style_type = pick(cls.base_damage_types)
     }
     push(t)
   }
@@ -88,14 +88,14 @@ export function generateRemasterWorkflow(
 }
 
 // Re-tags an already-played workflow in place: same tiles, same edges, same
-// stage shape — only content_type / content_origin / damage_type / status
+// stage shape — only content_type / content_origin / style_type / status
 // get redrawn, and only on the tiles that originally carried that dimension.
 // This is what a remaster pass should use whenever the content item has a
 // snapshot of its prior workflow (ContentItem.last_workflow); it keeps the
 // full Research→Produce→Refine→Publish structure intact instead of
 // collapsing to the short Plan-only retag chain generateRemasterWorkflow()
 // produces for content that has never been played (no snapshot yet).
-// When `rolledDraws` is present, content_type/content_origin/damage_type/
+// When `rolledDraws` is present, content_type/content_origin/style_type/
 // status are all reassigned from `rolledDraws`' per-occurrence state
 // sequence at `stateIndex`, consumed in tile storage order (which matches
 // pattern-traversal order 1:1 for these four, each occurrence tagging
@@ -133,11 +133,11 @@ export function regenerateWorkflowKeepingStructure(
         ? (rolledDraws.transformation[counters.transformation++]?.[stateIndex] ?? undefined)
         : pick(cls.allowed_transformations)
     }
-    if (orig.damage_type) {
+    if (orig.style_type) {
       if (rolledDraws) {
-        tile.damage_type = rolledDraws.style[counters.style++]?.[stateIndex] ?? undefined
+        tile.style_type = rolledDraws.style[counters.style++]?.[stateIndex] ?? undefined
       } else if (cls.base_damage_types.length > 0) {
-        tile.damage_type = pick(cls.base_damage_types)
+        tile.style_type = pick(cls.base_damage_types)
       }
     }
     if (orig.status) {

@@ -15,7 +15,7 @@ interface Props {
 }
 
 const RARITY_COLOURS: Record<WeaponRarity, string> = {
-  common: '#9c9c9c', magic: '#5b9bd5', rare: '#b15bd5', epic: '#d5945b', legendary: '#d5c25b',
+  common: '#9c9c9c', Intellectual: '#5b9bd5', rare: '#b15bd5', epic: '#d5945b', legendary: '#d5c25b',
 }
 
 export default function EquipOverlay({ onClose }: Props) {

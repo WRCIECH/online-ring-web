@@ -13,7 +13,7 @@ Current implementation reference. All values are taken directly from code.
 | MND | FP: MND × 3 | Skill movesets |
 | STR | Damage scaling for heavy weapons | Damage |
 | DEX | Damage scaling for fast/technical weapons | Damage |
-| INT | Damage scaling for magic/piercing weapons | Damage |
+| INT | Damage scaling for Intellectual/piercing weapons | Damage |
 | FAI | Damage scaling for faith/ranged weapons | Damage |
 | ARC | Damage scaling for arcane/bleed weapons | Damage |
 
@@ -32,7 +32,7 @@ baseDmg = floor(step.base_damage × classMult × (1 + level × levelMult + statB
 ```
 
 - **classMult** = `weapon.base_damage_mult` (per weapon class, 0.6–2.4)
-- **levelMult** = per rarity: common 3%, magic 4%, rare 5%, epic 6%, legendary 8%
+- **levelMult** = per rarity: common 3%, Intellectual 4%, rare 5%, epic 6%, legendary 8%
 - **statBonus** = sum of `max(0, statValue − 8) × GRADE_MULT[grade]` for each scaling stat
 
 Grade multipliers per stat point above 8:
@@ -48,7 +48,7 @@ Applied on top of `baseDmg`. See weapon class table below.
 ### Layer 3 — Damage type multiplier
 
 ```
-typeMult = enemy has weakness to step.damage_type ? 1.3
+typeMult = enemy has weakness to step.style_type ? 1.3
          : enemy has resistance                   ? 0.7
          : 1.0
 ```
@@ -56,7 +56,7 @@ typeMult = enemy has weakness to step.damage_type ? 1.3
 Active status debuffs stack additionally:
 - **Frostbite active on enemy**: × 1.2 to all incoming damage for 2 turns.
 
-### Layer 4 — Dual strike (twinblades only)
+### Layer 4 — Dual Shock (twinblades only)
 
 ```
 totalDmg = finalDmg + floor(finalDmg × 0.4)
@@ -72,7 +72,7 @@ If the Grace status is active on the player, each successful step heals `floor(t
 
 Weapon upgrade cost: `(currentLevel + 1) × 500` runes. Cap: +10.
 
-Damage bonus per level by rarity: common +3%, magic +4%, rare +5%, epic +6%, legendary +8%.
+Damage bonus per level by rarity: common +3%, Intellectual +4%, rare +5%, epic +6%, legendary +8%.
 
 ---
 
@@ -135,21 +135,21 @@ Crossbows and Torches have `heat_threshold: 9999` (effectively infinite).
 
 ## Damage Types
 
-11 types: **standard, strike, slash, pierce, lightning** (physical) and **fire, magic, holy, occult, grafting, poison** (non-physical).
+11 types: **standard, Shock, Narration, Segmentation, Fast** (physical) and **Passion, Intellectual, ProblemSolving, Estetic, Interactive, Cliffhanger** (non-physical).
 
-Each generated step carries a `damage_type` from the weapon class's `base_damage_types[0]`. Enemies have `weaknesses[]` (+30% damage) and `resistances[]` (−30% damage).
+Each generated step carries a `style_type` from the weapon class's `base_damage_types[0]`. Enemies have `weaknesses[]` (+30% damage) and `resistances[]` (−30% damage).
 
 ### Enemy damage profiles
 
 | Enemy | Weaknesses | Resistances |
 |---|---|---|
-| Procrastination Mob | lightning, slash | holy |
-| The Hater | occult, bleed | standard |
-| Blank Page Omen | fire, slash | holy, magic |
-| Burnout Shade | holy, grace | poison, occult |
-| Comparison Engine | magic, pierce | lightning, standard |
-| Fear Phantom | fire, strike | magic, pierce |
-| Perfectionism Knight | fire, occult | standard, pierce, slash |
+| Procrastination Mob | Fast, Narration | ProblemSolving |
+| The Hater | Estetic, bleed | standard |
+| Blank Page Omen | Passion, Narration | ProblemSolving, Intellectual |
+| Burnout Shade | ProblemSolving, grace | Cliffhanger, Estetic |
+| Comparison Engine | Intellectual, Segmentation | Fast, standard |
+| Fear Phantom | Passion, Shock | Intellectual, Segmentation |
+| Perfectionism Knight | Passion, Estetic | standard, Segmentation, Narration |
 
 ---
 
@@ -188,7 +188,7 @@ Status accumulation bars are displayed in the combat UI below the player resourc
 | heavy_thrusting | ×1.2 | 1.0 | 1.0 | Precise |
 | katanas | ×1.15 | 1.0 | 1.0 | Swift |
 | bows / greatbows / crossbows / ballistas | ×1.5 | ×0 | 1.0 | Ranged: no poise, gap override=1.0 |
-| twinblades | 1.0 | 1.0 | 1.0 | Dual strike: auto +40% off-hand hit |
+| twinblades | 1.0 | 1.0 | 1.0 | Dual Shock: auto +40% off-hand hit |
 | curved_swords / curved_greatswords | 1.0 | 1.0 | 0.7 in-chain | Flow: 30% STA discount after step 1 |
 | hammers | ×0.8 | ×2.0 | 1.0 | Stagger |
 | great_hammers / colossal_swords / colossal_weapons / great_axes | ×0.85 | ×2.5 | 1.0 | Crush |
@@ -204,32 +204,32 @@ Status accumulation bars are displayed in the combat UI below the player resourc
 
 | Class | weight | poise_value | heat | base_damage_mult | primary dmg type | scaling | time_mod | sta_mod | inherent_status |
 |---|---|---|---|---|---|---|---|---|---|
-| daggers | 1.5 | 5 | 20 | 0.7 | lightning | DEX S | 0.8 | 0.7 | — |
+| daggers | 1.5 | 5 | 20 | 0.7 | Fast | DEX S | 0.8 | 0.7 | — |
 | straight_swords | 3.5 | 25 | 12 | 1.0 | standard | STR D, DEX D | 1.0 | 1.0 | — |
-| greatswords | 9.0 | 55 | 6 | 1.5 | slash | STR B, DEX D | 1.15 | 1.2 | — |
-| colossal_swords | 22.0 | 100 | 3 | 2.2 | strike | STR S | 1.5 | 1.5 | madness |
-| katanas | 5.5 | 20 | 12 | 1.1 | slash | DEX A | 0.95 | 1.0 | bleed |
-| curved_swords | 4.0 | 15 | 16 | 1.0 | slash | DEX A | 0.85 | 0.8 | — |
-| curved_greatswords | 10.0 | 40 | 7 | 1.4 | slash | DEX B, STR D | 1.15 | 1.15 | — |
-| twinblades | 7.0 | 15 | 18 | 0.9 | slash | DEX S | 0.9 | 1.1 | scarlet_rot |
-| hammers | 5.5 | 45 | 10 | 1.3 | strike | STR A | 1.0 | 1.15 | — |
-| great_hammers | 12.0 | 75 | 5 | 1.7 | strike | STR A | 1.2 | 1.3 | death_blight |
-| colossal_weapons | 24.0 | 120 | 2 | 2.4 | strike | STR S | 1.6 | 1.6 | madness |
-| axes | 5.0 | 30 | 12 | 0.9 | slash | STR C, DEX D | 0.9 | 1.0 | — |
-| great_axes | 13.0 | 65 | 6 | 1.35 | slash | STR A | 1.25 | 1.35 | — |
-| flails | 5.0 | 35 | 15 | 0.95 | strike | DEX B, STR D | 1.0 | 0.85 | bleed |
-| spears | 4.5 | 25 | 11 | 1.0 | pierce | DEX B, STR D | 1.0 | 0.9 | — |
-| great_spears | 9.5 | 50 | 6 | 1.25 | pierce | STR B, DEX C | 1.1 | 1.2 | — |
-| halberds | 8.0 | 40 | 9 | 1.1 | pierce | STR C, DEX C | 1.0 | 1.1 | — |
-| thrusting_swords | 2.5 | 10 | 15 | 0.75 | pierce/magic | INT A, DEX D | 0.85 | 0.75 | sleep |
-| heavy_thrusting | 6.5 | 35 | 10 | 1.1 | pierce/magic | INT B, STR D | 1.05 | 1.1 | glintstone |
-| reapers | 9.5 | 45 | 6 | 1.2 | slash/occult | ARC A, DEX D | 1.2 | 1.2 | dread |
-| whips | 3.0 | 5 | 14 | 0.9 | poison/occult | ARC B, DEX C | 0.9 | 0.95 | poison |
-| bows | 4.0 | 8 | 15 | 0.85 | lightning | DEX A | 0.75 | 0.85 | — |
-| greatbows | 11.0 | 60 | 4 | 1.6 | holy | FAI A, STR D | 1.4 | 1.4 | yearning |
+| greatswords | 9.0 | 55 | 6 | 1.5 | Narration | STR B, DEX D | 1.15 | 1.2 | — |
+| colossal_swords | 22.0 | 100 | 3 | 2.2 | Shock | STR S | 1.5 | 1.5 | madness |
+| katanas | 5.5 | 20 | 12 | 1.1 | Narration | DEX A | 0.95 | 1.0 | bleed |
+| curved_swords | 4.0 | 15 | 16 | 1.0 | Narration | DEX A | 0.85 | 0.8 | — |
+| curved_greatswords | 10.0 | 40 | 7 | 1.4 | Narration | DEX B, STR D | 1.15 | 1.15 | — |
+| twinblades | 7.0 | 15 | 18 | 0.9 | Narration | DEX S | 0.9 | 1.1 | scarlet_rot |
+| hammers | 5.5 | 45 | 10 | 1.3 | Shock | STR A | 1.0 | 1.15 | — |
+| great_hammers | 12.0 | 75 | 5 | 1.7 | Shock | STR A | 1.2 | 1.3 | death_blight |
+| colossal_weapons | 24.0 | 120 | 2 | 2.4 | Shock | STR S | 1.6 | 1.6 | madness |
+| axes | 5.0 | 30 | 12 | 0.9 | Narration | STR C, DEX D | 0.9 | 1.0 | — |
+| great_axes | 13.0 | 65 | 6 | 1.35 | Narration | STR A | 1.25 | 1.35 | — |
+| flails | 5.0 | 35 | 15 | 0.95 | Shock | DEX B, STR D | 1.0 | 0.85 | bleed |
+| spears | 4.5 | 25 | 11 | 1.0 | Segmentation | DEX B, STR D | 1.0 | 0.9 | — |
+| great_spears | 9.5 | 50 | 6 | 1.25 | Segmentation | STR B, DEX C | 1.1 | 1.2 | — |
+| halberds | 8.0 | 40 | 9 | 1.1 | Segmentation | STR C, DEX C | 1.0 | 1.1 | — |
+| thrusting_swords | 2.5 | 10 | 15 | 0.75 | Segmentation/Intellectual | INT A, DEX D | 0.85 | 0.75 | sleep |
+| heavy_thrusting | 6.5 | 35 | 10 | 1.1 | Segmentation/Intellectual | INT B, STR D | 1.05 | 1.1 | glintstone |
+| reapers | 9.5 | 45 | 6 | 1.2 | Narration/Estetic | ARC A, DEX D | 1.2 | 1.2 | dread |
+| whips | 3.0 | 5 | 14 | 0.9 | Cliffhanger/Estetic | ARC B, DEX C | 0.9 | 0.95 | Cliffhanger |
+| bows | 4.0 | 8 | 15 | 0.85 | Fast | DEX A | 0.75 | 0.85 | — |
+| greatbows | 11.0 | 60 | 4 | 1.6 | ProblemSolving | FAI A, STR D | 1.4 | 1.4 | yearning |
 | crossbows | 4.5 | 12 | ∞ | 0.85 | standard | DEX B | 0.5 | 0.0 | — |
 | ballistas | 16.0 | 150 | 1 | 2.2 | standard | STR C, DEX D | 2.0 | 1.5 | death_blight |
-| torches | 1.5 | 2 | ∞ | 0.6 | fire | FAI A, INT D | 0.7 | 0.5 | grace |
+| torches | 1.5 | 2 | ∞ | 0.6 | Passion | FAI A, INT D | 0.7 | 0.5 | grace |
 | fists | 1.0 | 5 | 12 | 0.65 | standard | STR C, DEX C | 1.0 | 0.0 | — |
 
 **Infused scaling** (applied to weapon when a skill moveset is equipped):
@@ -287,7 +287,7 @@ MEDIUM_STA: Writing×1.0, Audio×1.1, Video×1.3, Image×0.9, Design×1.2, Outli
 | Rarity | Damage | Stamina |
 |---|---|---|
 | common | ×1.0 | ×1.0 |
-| magic | ×1.1 | ×0.95 |
+| Intellectual | ×1.1 | ×0.95 |
 | rare | ×1.2 | ×0.9 |
 | epic | ×1.35 | ×0.85 |
 | legendary | ×1.5 | ×0.75 |
@@ -347,4 +347,4 @@ weapon_extra_movesets Skill slots    — from drops, costs FP, carries infusion
 defense_movesets.block Block moveset — used on Block action
 ```
 
-Skill slot count by rarity: common=1, magic=1, rare=2, epic=3, legendary=3–4.
+Skill slot count by rarity: common=1, Intellectual=1, rare=2, epic=3, legendary=3–4.

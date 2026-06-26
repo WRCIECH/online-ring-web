@@ -27,9 +27,9 @@ export const ENEMIES: Record<string, Enemy> = {
     moveset: ['public_criticism', 'mockery', 'credibility_slash'],
     affinities: {
       love:    { statuses: ['scarlet_rot', 'death_blight'] },
-      like:    { origins: ['Commentary'], damage_types: ['strike'] },
+      like:    { origins: ['Commentary'], styles: ['Shock'] },
       dislike: { statuses: ['sleep', 'grace'] },
-      hate:    { damage_types: ['holy'], statuses: ['devotion'] },
+      hate:    { styles: ['ProblemSolving'], statuses: ['devotion'] },
     },
   },
 
@@ -43,7 +43,7 @@ export const ENEMIES: Record<string, Enemy> = {
       love:    { origins: ['New'], stages: ['Research', 'Plan'] },
       like:    { products: ['Plaintext'], statuses: ['dread'] },
       dislike: { origins: ['Commentary', 'Recycled'], stages: ['Refine'] },
-      hate:    { origins: ['Revamped'], damage_types: ['strike'], stages: ['Produce'] },
+      hate:    { origins: ['Revamped'], styles: ['Shock'], stages: ['Produce'] },
     },
   },
 
@@ -58,7 +58,7 @@ export const ENEMIES: Record<string, Enemy> = {
     affinities: {
       love:    { stages: ['Produce'], statuses: ['dread'] },
       like:    { products: ['Plaintext', 'RawAudio'] },
-      dislike: { damage_types: ['fire'], statuses: ['glintstone'] },
+      dislike: { styles: ['Passion'], statuses: ['glintstone'] },
       hate:    { stages: ['Promote'], statuses: ['frenzy_flame', 'grace'] },
     },
   },
@@ -72,7 +72,7 @@ export const ENEMIES: Record<string, Enemy> = {
       love:    { statuses: ['frostbite', 'yearning'] },
       like:    { products: ['Carousel', 'SingleGraphic'] },
       dislike: { origins: ['Reboot', 'Opposite'] },
-      hate:    { damage_types: ['standard'], statuses: ['devotion'] },
+      hate:    { styles: ['Minimalism'], statuses: ['devotion'] },
     },
   },
 
@@ -83,9 +83,9 @@ export const ENEMIES: Record<string, Enemy> = {
     moveset: ['what_if_they_laugh', 'stay_hidden', 'visibility_terror'],
     affinities: {
       love:    { stages: ['Publish', 'Promote'] },
-      like:    { damage_types: ['poison'], statuses: ['dread'] },
+      like:    { styles: ['Cliffhanger'], statuses: ['dread'] },
       dislike: { origins: ['AudienceAlter', 'Commentary'] },
-      hate:    { damage_types: ['strike'], stages: ['Produce'] },
+      hate:    { styles: ['Shock'], stages: ['Produce'] },
     },
   },
 
@@ -113,10 +113,10 @@ export const ENEMIES: Record<string, Enemy> = {
     boss_name: 'Suweren Feedu',
     drops: [{ id: 'weapon', first_kill_chance: 0.72, repeat_chance: 0.28 }],
     affinities: {
-      love:    { products: ['ARollVideo', 'LiveStream'], damage_types: ['strike', 'lightning'] },
+      love:    { products: ['ARollVideo', 'LiveStream'], styles: ['Shock', 'Fast'] },
       like:    { origins: ['Revamped', 'Compression'], statuses: ['bleed', 'madness'] },
       dislike: { products: ['Plaintext', 'MultimediaPage'], origins: ['New', 'ZoomOut'] },
-      hate:    { products: ['InteractiveApp', 'BranchingNarrative'], damage_types: ['magic'], stages: ['Research', 'Plan'] },
+      hate:    { products: ['InteractiveApp', 'BranchingNarrative'], styles: ['Intellectual'], stages: ['Research', 'Plan'] },
     },
   },
 
@@ -128,9 +128,9 @@ export const ENEMIES: Record<string, Enemy> = {
     drops: [{ id: 'weapon', first_kill_chance: 0.65, repeat_chance: 0.22 }],
     affinities: {
       love:    { products: ['StructuredText', 'CurationFeed'], stages: ['Research'] },
-      like:    { products: ['AssetPack', 'Infographic'], damage_types: ['pierce'], statuses: ['glintstone'] },
+      like:    { products: ['AssetPack', 'Infographic'], styles: ['Segmentation'], statuses: ['glintstone'] },
       dislike: { products: ['Plaintext', 'RawAudio'], origins: ['New', 'Reboot'] },
-      hate:    { products: ['InteractiveApp', 'LiveStream'], damage_types: ['grafting'], stages: ['Produce', 'Publish'] },
+      hate:    { products: ['InteractiveApp', 'LiveStream'], styles: ['Interactive'], stages: ['Produce', 'Publish'] },
     },
   },
 
@@ -144,7 +144,7 @@ export const ENEMIES: Record<string, Enemy> = {
       love:    { products: ['StructuredText', 'Screencast'], origins: ['Revamped'] },
       like:    { products: ['IllustratedText', 'ProducedAudio'], stages: ['Plan', 'Refine'] },
       dislike: { origins: ['AudienceAlter', 'Commentary'], statuses: ['frenzy_flame'] },
-      hate:    { products: ['_blank', 'MultimediaPage'], origins: ['Reboot', 'Opposite'], damage_types: ['fire'] },
+      hate:    { products: ['_blank', 'MultimediaPage'], origins: ['Reboot', 'Opposite'], styles: ['Passion'] },
     },
   },
 
@@ -155,10 +155,10 @@ export const ENEMIES: Record<string, Enemy> = {
     boss_name: 'Golem Monolitu',
     drops: [{ id: 'weapon', first_kill_chance: 0.55, repeat_chance: 0.18 }],
     affinities: {
-      love:    { products: ['Plaintext'], damage_types: ['standard'], stages: ['Produce'] },
+      love:    { products: ['Plaintext'], styles: ['Minimalism'], stages: ['Produce'] },
       like:    { products: ['RawAudio'], origins: ['Expansion'] },
       dislike: { products: ['Carousel', 'SingleGraphic'], statuses: ['yearning'] },
-      hate:    { products: ['StructuredText', 'Infographic'], origins: ['Compression'], damage_types: ['pierce'] },
+      hate:    { products: ['StructuredText', 'Infographic'], origins: ['Compression'], styles: ['Segmentation'] },
     },
   },
 
@@ -172,7 +172,7 @@ export const ENEMIES: Record<string, Enemy> = {
       love:    { origins: ['Reboot', 'Recycled'], stages: ['Plan', 'Produce'] },
       like:    { products: ['_blank'], origins: ['AudienceAlter'], statuses: ['murmur'] },
       dislike: { products: ['CinematicVideo', 'InteractiveApp'], stages: ['Refine'] },
-      hate:    { origins: ['Similar'], damage_types: ['slash'], stages: ['Publish', 'Promote'] },
+      hate:    { origins: ['Similar'], styles: ['Narration'], stages: ['Publish', 'Promote'] },
     },
   },
 
@@ -183,10 +183,10 @@ export const ENEMIES: Record<string, Enemy> = {
     boss_name: 'Lord Atencji',
     drops: [{ id: 'weapon', first_kill_chance: 0.78, repeat_chance: 0.30 }],
     affinities: {
-      love:    { damage_types: ['poison', 'strike'], statuses: ['death_blight', 'scarlet_rot'] },
+      love:    { styles: ['Cliffhanger', 'Shock'], statuses: ['death_blight', 'scarlet_rot'] },
       like:    { products: ['Carousel', 'SingleGraphic'], origins: ['Compression', 'Commentary'] },
-      dislike: { products: ['StructuredText'], damage_types: ['holy'] },
-      hate:    { products: ['MultimediaPage', 'AssetPack'], damage_types: ['magic'], statuses: ['grace'] },
+      dislike: { products: ['StructuredText'], styles: ['ProblemSolving'] },
+      hate:    { products: ['MultimediaPage', 'AssetPack'], styles: ['Intellectual'], statuses: ['grace'] },
     },
   },
 
@@ -237,9 +237,9 @@ export const ENEMIES: Record<string, Enemy> = {
     max_hp: 85, rune_reward: 135, is_boss: false,
     drops: [{ id: 'weapon', first_kill_chance: 0.65, repeat_chance: 0.22 }],
     affinities: {
-      love:    { damage_types: ['magic'], statuses: ['glintstone'] },
+      love:    { styles: ['Intellectual'], statuses: ['glintstone'] },
       like:    { products: ['MultimediaPage', 'BranchingNarrative'] },
-      dislike: { damage_types: ['strike', 'poison'] },
+      dislike: { styles: ['Shock', 'Cliffhanger'] },
       hate:    { statuses: ['bleed'] },
     },
   },
@@ -251,8 +251,8 @@ export const ENEMIES: Record<string, Enemy> = {
     drops: [{ id: 'weapon', first_kill_chance: 0.45, repeat_chance: 0.12 }],
     affinities: {
       love:    { statuses: ['bleed', 'frenzy_flame'] },
-      like:    { products: ['SingleGraphic', 'ARollVideo'], damage_types: ['strike'] },
-      dislike: { damage_types: ['magic'] },
+      like:    { products: ['SingleGraphic', 'ARollVideo'], styles: ['Shock'] },
+      dislike: { styles: ['Intellectual'] },
       hate:    { products: ['MultimediaPage'], stages: ['Research'] },
     },
   },
@@ -265,8 +265,8 @@ export const ENEMIES: Record<string, Enemy> = {
     affinities: {
       love:    { statuses: ['sleep', 'grace'] },
       like:    { products: ['Plaintext', 'RawAudio'] },
-      dislike: { damage_types: ['strike'], statuses: ['yearning'] },
-      hate:    { damage_types: ['poison'], statuses: ['dread'] },
+      dislike: { styles: ['Shock'], statuses: ['yearning'] },
+      hate:    { styles: ['Cliffhanger'], statuses: ['dread'] },
     },
   },
 
@@ -276,10 +276,10 @@ export const ENEMIES: Record<string, Enemy> = {
     max_hp: 70, rune_reward: 90, is_boss: false,
     drops: [{ id: 'weapon', first_kill_chance: 0.60, repeat_chance: 0.20 }],
     affinities: {
-      love:    { damage_types: ['lightning', 'strike'] },
+      love:    { styles: ['Fast', 'Shock'] },
       like:    { statuses: ['madness', 'yearning'] },
       dislike: { products: ['Plaintext'], statuses: ['sleep'] },
-      hate:    { damage_types: ['magic'], stages: ['Plan'] },
+      hate:    { styles: ['Intellectual'], stages: ['Plan'] },
     },
   },
 
@@ -292,7 +292,7 @@ export const ENEMIES: Record<string, Enemy> = {
       love:    { statuses: ['madness', 'scarlet_rot'] },
       like:    { origins: ['Opposite', 'Commentary'] },
       dislike: { statuses: ['grace'] },
-      hate:    { damage_types: ['poison'] },
+      hate:    { styles: ['Cliffhanger'] },
     },
   },
 
@@ -302,9 +302,9 @@ export const ENEMIES: Record<string, Enemy> = {
     max_hp: 45, rune_reward: 36, is_boss: false,
     drops: [{ id: 'weapon', first_kill_chance: 0.42, repeat_chance: 0.12 }],
     affinities: {
-      love:    { damage_types: ['strike'], statuses: ['frenzy_flame'] },
+      love:    { styles: ['Shock'], statuses: ['frenzy_flame'] },
       like:    { products: ['StructuredText'] },
-      dislike: { damage_types: ['magic'] },
+      dislike: { styles: ['Intellectual'] },
       hate:    { products: ['BranchingNarrative', 'InteractiveApp'] },
     },
   },

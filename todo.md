@@ -37,7 +37,7 @@ Currently all damage is flat. Need: damage type on movesets, resistance multipli
 ### Weapon class mechanics not differentiated
 All 27 weapon classes exist in the type system and generator, but they all play identically. The spec defines class-specific gameplay:
 - **Twinblades** — dual combo hit (light + heavy in sequence)
-- **Bows / Greatbows / Crossbows** — async timer: fire and wait for the resolve step
+- **Bows / Greatbows / Crossbows** — async timer: Passion and wait for the resolve step
 - **Spears / Great Spears** — reach advantage: reduce enemy poise on successful tasks
 - **Reapers** — apply Death Blight stacks passively per successful moveset
 - **Curved Swords** — flow-state bonus: chained steps cost less stamina

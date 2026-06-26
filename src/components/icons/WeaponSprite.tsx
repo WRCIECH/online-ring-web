@@ -11,13 +11,13 @@ interface Props {
 }
 
 const BLADE: Record<WeaponRarity, string> = {
-  common: '#888', magic: '#6699dd', rare: '#ddbb44', epic: '#bb66ee', legendary: '#ff9944',
+  common: '#888', Intellectual: '#6699dd', rare: '#ddbb44', epic: '#bb66ee', legendary: '#ff9944',
 }
 const SECONDARY: Record<WeaponRarity, string> = {
-  common: '#555', magic: '#4466aa', rare: '#997733', epic: '#8833bb', legendary: '#cc6622',
+  common: '#555', Intellectual: '#4466aa', rare: '#997733', epic: '#8833bb', legendary: '#cc6622',
 }
 const GLOW: Record<WeaponRarity, string | null> = {
-  common: null, magic: '#4488cc', rare: '#ccaa22', epic: '#9944cc', legendary: '#ee8822',
+  common: null, Intellectual: '#4488cc', rare: '#ccaa22', epic: '#9944cc', legendary: '#ee8822',
 }
 const SCALE: Record<PoiseWeight, number> = {
   light: 0.88, medium: 1.0, heavy: 1.1, colossal: 1.2,

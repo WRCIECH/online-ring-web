@@ -1,8 +1,8 @@
-import type { AtomicStage, WorkflowTile, WorkflowGraph, ContentProductType, AtomicOrigin, DamageType, StatusType } from '../types/game'
+import type { AtomicStage, WorkflowTile, WorkflowGraph, ContentProductType, AtomicOrigin, StyleType, StatusType } from '../types/game'
 import type { TranslationBundle } from '../i18n/types'
 import { CONTENT_TYPE_STATS } from './contentTypeScaling'
 import { ATOMIC_ORIGIN_STATS } from './atomicOriginScaling'
-import { DAMAGE_TYPE_STATS } from './damageTypeScaling'
+import { STYLE_TYPE_STATS } from './styleTypeScaling'
 import { STATUS_TYPE_STATS } from './statusTypeScaling'
 
 export const STAGE_COLOR: Record<AtomicStage, string> = {
@@ -28,7 +28,7 @@ function statsLine(stats: string[]): string {
 export interface EffectiveTags {
   content_type?:   ContentProductType
   content_origin?: AtomicOrigin
-  damage_type?:    DamageType
+  style_type?:    StyleType
   status?:         StatusType
 }
 
@@ -63,7 +63,7 @@ export function computeEffectiveTags(workflow: WorkflowGraph): Map<string, Effec
     result.set(id, {
       content_type:   tile.content_type   ?? inherited.content_type,
       content_origin: tile.content_origin ?? inherited.content_origin,
-      damage_type:    tile.damage_type    ?? inherited.damage_type,
+      style_type:    tile.style_type    ?? inherited.style_type,
       status:         tile.status         ?? inherited.status,
     })
 
@@ -103,9 +103,9 @@ export function getTileBadges(tile: WorkflowTile, effective?: EffectiveTags, t?:
     const entry  = t?.content.origin[tags.content_origin]
     badges.push({ key: 'origin', label: entry?.badge_label ?? info.label, detail: entry?.detail ?? statsLine(info.stats) })
   }
-  if (tags.damage_type) {
-    const info  = DAMAGE_TYPE_STATS[tags.damage_type]
-    const entry = t?.content.dmg_type[tags.damage_type]
+  if (tags.style_type) {
+    const info  = STYLE_TYPE_STATS[tags.style_type]
+    const entry = t?.content.style[tags.style_type]
     badges.push({ key: 'damageType', label: entry?.badge_label ?? info.label, detail: entry?.detail ?? statsLine(info.stats) })
   }
   if (tags.status) {

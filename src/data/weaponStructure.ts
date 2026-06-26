@@ -1,4 +1,4 @@
-import type { AtomicStage, WeaponInstance, ContentProductType, AtomicOrigin, DamageType, StatusType, Affix } from '../types/game'
+import type { AtomicStage, WeaponInstance, ContentProductType, AtomicOrigin, StyleType, StatusType, Affix } from '../types/game'
 import type { TranslationBundle } from '../i18n'
 import type { PatternStep } from './generators/weaponPatterns'
 import { WEAPON_PATTERNS, drawKindOf } from './generators/weaponPatterns'
@@ -24,7 +24,7 @@ export interface DrawNode {
   // omitted entirely by describeWeaponPattern rather than appearing here
   // as null — there's nothing to show for a dimension this instance
   // simply doesn't have.
-  value: ContentProductType | AtomicOrigin | DamageType | StatusType
+  value: ContentProductType | AtomicOrigin | StyleType | StatusType
 }
 
 export interface BranchNode {
@@ -47,7 +47,7 @@ export const DRAW_LABEL_KEY: Record<DrawNode['label'], string> = {
 export const VALUE_BUCKET: Record<DrawNode['label'], keyof TranslationBundle['content']> = {
   format: 'product',
   transformation: 'origin',
-  style: 'dmg_type',
+  style: 'style',
   emotion: 'status',
 }
 
@@ -133,7 +133,7 @@ function describeStep(
 export interface RemasterSlotView {
   kind: SlotKind
   occurrenceIndex: number
-  value: ContentProductType | AtomicOrigin | DamageType | StatusType | null   // null = absent at this state
+  value: ContentProductType | AtomicOrigin | StyleType | StatusType | null   // null = absent at this state
   changed: boolean   // differs from this slot's value at the previous state (always false at state 0)
 }
 

@@ -1,14 +1,14 @@
 export type Locale = 'pl' | 'en'
 export type StatKey = 'VIG' | 'END' | 'MND' | 'STR' | 'DEX' | 'INT' | 'FAI' | 'ARC'
 export type Grade = 'S' | 'A' | 'B' | 'C' | 'D' | 'E'
-export type WeaponRarity = 'common' | 'magic' | 'rare' | 'epic' | 'legendary'
+export type WeaponRarity = 'common' | 'Intellectual' | 'rare' | 'epic' | 'legendary'
 export type SublocationType = 'mob' | 'elite' | 'event' | 'boss'
 export type MoveType = 'Light' | 'Heavy'
 
 // Kept for content pipeline stamps and badge colours
-export type DamageType =
-  | 'standard' | 'strike' | 'slash' | 'pierce' | 'lightning'
-  | 'fire' | 'magic' | 'holy' | 'occult' | 'grafting' | 'poison'
+export type StyleType =
+  | 'Minimalism' | 'Shock' | 'Narration' | 'Segmentation' | 'Fast'
+  | 'Passion' | 'Intellectual' | 'ProblemSolving' | 'Estetic' | 'Interactive' | 'Cliffhanger'
 
 export type StatusType =
   | 'bleed' | 'scarlet_rot' | 'frostbite' | 'madness' | 'sleep'
@@ -51,7 +51,7 @@ export interface WorkflowTile {
   time_heavy: number   // seconds for Heavy Attack timer
   content_type?: ContentProductType
   content_origin?: AtomicOrigin
-  damage_type?: DamageType
+  style_type?: StyleType
   status?: StatusType
   time_budget?: AtomicTime
   is_completed: boolean
@@ -97,7 +97,7 @@ export interface Weapon {
 export interface RolledPatternDraws {
   format:         (ContentProductType | null)[][]   // [occurrenceIndex][stateIndex]
   transformation: (AtomicOrigin | null)[][]   // [occurrenceIndex][stateIndex]
-  style:          (DamageType   | null)[][]   // [occurrenceIndex][stateIndex]
+  style:          (StyleType   | null)[][]   // [occurrenceIndex][stateIndex]
   emotion:        (StatusType   | null)[][]   // [occurrenceIndex][stateIndex]
   length: AtomicTime
 }
@@ -119,7 +119,7 @@ export interface WeaponInstance extends Weapon {
 export interface MobAffinityConditions {
   products?: ContentProductType[]
   origins?: AtomicOrigin[]
-  damage_types?: DamageType[]
+  styles?: StyleType[]
   statuses?: StatusType[]
   stages?: AtomicStage[]
 }

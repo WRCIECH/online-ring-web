@@ -1,4 +1,4 @@
-import type { WeaponClass, AtomicTime, AtomicOrigin, DamageType, StatusType, ContentProductType, RolledPatternDraws } from '../../types/game'
+import type { WeaponClass, AtomicTime, AtomicOrigin, StyleType, StatusType, ContentProductType, RolledPatternDraws } from '../../types/game'
 import type { PatternStep } from './weaponPatterns'
 import { WEAPON_PATTERNS } from './weaponPatterns'
 import { WEAPON_CLASSES, type WeaponClassDef } from './weaponClasses'
@@ -15,7 +15,7 @@ export interface SlotRef {
   kind: SlotKind
   occurrenceIndex: number
   probability: number
-  fixedValue?: ContentProductType | AtomicOrigin | DamageType | StatusType
+  fixedValue?: ContentProductType | AtomicOrigin | StyleType | StatusType
 }
 
 function slotForDraw(step: PatternStep, counters: Record<SlotKind, number>): SlotRef | null {
@@ -124,8 +124,8 @@ const ALL_TRANSFORMATIONS_EXCEPT_NEW: AtomicOrigin[] = [
   'Compression', 'Expansion', 'Recycled', 'Remastered', 'Revamped', 'Reboot',
   'ZoomIn', 'ZoomOut', 'AudienceAlter', 'Commentary', 'Similar', 'Opposite',
 ]
-const ALL_DAMAGE_TYPES: DamageType[] = [
-  'standard', 'strike', 'slash', 'pierce', 'lightning', 'fire', 'magic', 'holy', 'occult', 'grafting', 'poison',
+const ALL_STYLE_TYPES: StyleType[] = [
+  'Minimalism', 'Shock', 'Narration', 'Segmentation', 'Fast', 'Passion', 'Intellectual', 'ProblemSolving', 'Estetic', 'Interactive', 'Cliffhanger',
 ]
 const ALL_STATUS_TYPES: StatusType[] = [
   'bleed', 'scarlet_rot', 'frostbite', 'madness', 'sleep', 'death_blight', 'glintstone',
@@ -150,12 +150,12 @@ export function pickWeighted(weights: number[]): number {
   return weights.length - 1
 }
 
-type SlotValue = ContentProductType | AtomicOrigin | DamageType | StatusType | null
+type SlotValue = ContentProductType | AtomicOrigin | StyleType | StatusType | null
 
 // Picks from `pool`, excluding `exclude` when an alternative actually
 // exists — used on remaster rerolls so a "redraw" can't silently land back
 // on the exact same value it's replacing (which, for a small/skewed pool
-// like halberds' 2:1 pierce/slash, would otherwise read as "nothing
+// like halberds' 2:1 Segmentation/Narration, would otherwise read as "nothing
 // changed" purely by chance).
 function pickExcluding<T extends SlotValue>(pool: readonly T[], exclude: SlotValue): T {
   const filtered = pool.filter(v => v !== exclude)
@@ -167,7 +167,7 @@ function pickExcluding<T extends SlotValue>(pool: readonly T[], exclude: SlotVal
 function poolFor(cls: WeaponClassDef, kind: SlotKind): readonly NonNullable<SlotValue>[] {
   if (kind === 'format') return cls.supported_products.length > 0 ? cls.supported_products : ALL_CONTENT_PRODUCTS
   if (kind === 'transformation') return cls.allowed_transformations.length > 0 ? cls.allowed_transformations : ALL_TRANSFORMATIONS_EXCEPT_NEW
-  if (kind === 'style') return cls.base_damage_types.length > 0 ? cls.base_damage_types : ALL_DAMAGE_TYPES
+  if (kind === 'style') return cls.base_damage_types.length > 0 ? cls.base_damage_types : ALL_STYLE_TYPES
   return cls.inherent_status.length > 0 ? cls.inherent_status : ALL_STATUS_TYPES
 }
 
@@ -280,7 +280,7 @@ export function rollPatternDraws(weaponClass: WeaponClass): RolledPatternDraws {
   // Round-robin only cycles through groups that can actually produce a
   // visible change (groupCanChange) — a group stuck on a single-value,
   // always-on pool (e.g. straight_swords' lone drawStyle(1) against
-  // base_damage_types: ['standard']) would otherwise "take a turn" that's
+  // style: ['Minimalism']) would otherwise "take a turn" that's
   // guaranteed to do nothing.
   const changeableGroupIdxs = groups.map((_, i) => i).filter(i => !groups[i].fixed && groupCanChange(cls, groups[i]))
 
@@ -303,7 +303,7 @@ export function rollPatternDraws(weaponClass: WeaponClass): RolledPatternDraws {
       const prevForGroup = flatIndicesForGroup.map(idx => states[i - 1][idx])
       // groupCanChange only rules out groups that can *never* change —
       // a probability<1 single-value slot (e.g. spears' drawStyle(0.4)
-      // against base_damage_types: ['pierce']) can still randomly land
+      // against base_damage_types: ['Segmentation']) can still randomly land
       // back on the same null/value state by chance on any given reroll.
       // Retry a bounded number of times rather than accept a no-op —
       // changeable groups always have *some* chance of differing, so
@@ -319,14 +319,14 @@ export function rollPatternDraws(weaponClass: WeaponClass): RolledPatternDraws {
 
   const format: (ContentProductType | null)[][] = []
   const transformation: (AtomicOrigin | null)[][] = []
-  const style: (DamageType | null)[][] = []
+  const style: (StyleType | null)[][] = []
   const emotion: (StatusType | null)[][] = []
 
   slots.forEach((slot, slotIdx) => {
     const sequence = states.map(state => state[slotIdx])
     if (slot.kind === 'format')         format.push(sequence as (ContentProductType | null)[])
     if (slot.kind === 'transformation') transformation.push(sequence as (AtomicOrigin | null)[])
-    if (slot.kind === 'style')          style.push(sequence as (DamageType | null)[])
+    if (slot.kind === 'style')          style.push(sequence as (StyleType | null)[])
     if (slot.kind === 'emotion')        emotion.push(sequence as (StatusType | null)[])
   })
 

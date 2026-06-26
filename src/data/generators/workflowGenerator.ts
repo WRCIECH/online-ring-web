@@ -1,6 +1,6 @@
 import type {
   WeaponClass, WeaponRarity, AtomicStage, WorkflowTile, WorkflowEdge, WorkflowGraph, RolledPatternDraws,
-  ContentProductType, AtomicOrigin, DamageType, StatusType,
+  ContentProductType, AtomicOrigin, StyleType, StatusType,
 } from '../../types/game'
 import type { PatternStep } from './weaponPatterns'
 import { WEAPON_PATTERNS, drawKindOf } from './weaponPatterns'
@@ -76,7 +76,7 @@ function pickName(stage: AtomicStage): string {
 // Rarity adds extra Produce-tile capacity (applied once, to the first
 // Produce phase encountered in a pattern).
 const RARITY_EXTRA: Record<WeaponRarity, number> = {
-  common: 0, magic: 1, rare: 2, epic: 3, legendary: 4,
+  common: 0, Intellectual: 1, rare: 2, epic: 3, legendary: 4,
 }
 
 // ── UID ───────────────────────────────────────────────────────────────────
@@ -165,7 +165,7 @@ function compilePhase(step: { stage: AtomicStage; min: number; max: number }, ct
   ctx.lastResearchBlockTileIds = step.stage === 'Research' ? newTiles.map(t => t.id) : null
 }
 
-type DrawValue = ContentProductType | AtomicOrigin | DamageType | StatusType
+type DrawValue = ContentProductType | AtomicOrigin | StyleType | StatusType
 
 // Shared tail for every draw kind: format/transformation also retag the
 // preceding Research block (and require one to exist — a structural
@@ -186,7 +186,7 @@ function applyDrawResult(ctx: CompileContext, kind: SlotKind, value: DrawValue):
   const planTile = makeTile('Plan', ctx.cls.time_mod)
   if (kind === 'format') planTile.content_type = value as ContentProductType
   else if (kind === 'transformation') planTile.content_origin = value as AtomicOrigin
-  else if (kind === 'style') planTile.damage_type = value as DamageType
+  else if (kind === 'style') planTile.style_type = value as StyleType
   else planTile.status = value as StatusType
   ctx.tiles.push(planTile)
   linkFrontier(ctx, planTile.id)
@@ -255,7 +255,7 @@ function compileFixedDraw(step: { slotKind: SlotKind; value: DrawValue }, ctx: C
   const planTile = makeTile('Plan', ctx.cls.time_mod)
   if      (kind === 'format')         planTile.content_type  = value as ContentProductType
   else if (kind === 'transformation') planTile.content_origin = value as AtomicOrigin
-  else if (kind === 'style')          planTile.damage_type   = value as DamageType
+  else if (kind === 'style')          planTile.style_type   = value as StyleType
   else                                planTile.status        = value as StatusType
   ctx.tiles.push(planTile)
   linkFrontier(ctx, planTile.id)

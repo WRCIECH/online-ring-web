@@ -32,7 +32,7 @@ function fmtMoveTime(secs: number): string {
 }
 
 const RARITY_COLOURS: Record<WeaponRarity, string> = {
-  common: '#aaaaaa', magic: '#4488cc', rare: '#ccaa22',
+  common: '#aaaaaa', Intellectual: '#4488cc', rare: '#ccaa22',
   epic: '#9944cc', legendary: '#ee8822',
 }
 
@@ -136,7 +136,7 @@ export default function CombatScreen() {
     const sub          = loc.sublocation_type
     const minRarity: WeaponRarity =
       sub === 'boss' || sub === 'event' ? 'rare' :
-      sub === 'elite'                   ? 'magic' : 'common'
+      sub === 'elite'                   ? 'Intellectual' : 'common'
 
     const items: LootItem[] = []
     for (const drop of enemy.drops) {

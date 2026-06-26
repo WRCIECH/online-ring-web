@@ -16,9 +16,9 @@ function pick<T>(items: T[], weights?: number[]): T {
 }
 
 const RARITY_WEIGHTS: Record<WeaponRarity, number> = {
-  common: 55, magic: 25, rare: 12, epic: 6, legendary: 2,
+  common: 55, Intellectual: 25, rare: 12, epic: 6, legendary: 2,
 }
-const RARITIES: WeaponRarity[] = ['common', 'magic', 'rare', 'epic', 'legendary']
+const RARITIES: WeaponRarity[] = ['common', 'Intellectual', 'rare', 'epic', 'legendary']
 
 function rollRarity(forceMin?: WeaponRarity): WeaponRarity {
   const minIdx   = forceMin ? RARITIES.indexOf(forceMin) : 0
@@ -35,7 +35,7 @@ const AFFIXES: Affix[] = [
 
 function rollAffixes(rarity: WeaponRarity): Affix[] {
   const counts: Record<WeaponRarity, [number, number]> = {
-    common: [0, 0], magic: [1, 2], rare: [2, 3], epic: [3, 4], legendary: [4, 5],
+    common: [0, 0], Intellectual: [1, 2], rare: [2, 3], epic: [3, 4], legendary: [4, 5],
   }
   const [min, max] = counts[rarity]
   if (min === 0) return []
@@ -45,7 +45,7 @@ function rollAffixes(rarity: WeaponRarity): Affix[] {
 
 const RARITY_PREFIXES: Record<WeaponRarity, string[]> = {
   common:    ['Crude', 'Plain', 'Common', 'Standard', 'Simple'],
-  magic:     ['Sharp', 'Swift', 'Keen', 'Flowing', 'Measured'],
+  Intellectual:     ['Sharp', 'Swift', 'Keen', 'Flowing', 'Measured'],
   rare:      ['Radiant', 'Refined', 'Precise', 'Resonant', 'Vivid'],
   epic:      ['Sovereign', 'Blazing', 'Ancient', 'Profound', 'Relentless'],
   legendary: ['Legendary', 'Mythbound', 'Transcendent', 'Eternal'],

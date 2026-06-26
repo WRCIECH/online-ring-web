@@ -1,4 +1,4 @@
-import type { AtomicStage, WeaponClass, ContentProductType, AtomicOrigin, DamageType, StatusType } from '../../types/game'
+import type { AtomicStage, WeaponClass, ContentProductType, AtomicOrigin, StyleType, StatusType } from '../../types/game'
 
 // ── DSL ──────────────────────────────────────────────────────────────────
 //
@@ -6,7 +6,7 @@ import type { AtomicStage, WeaponClass, ContentProductType, AtomicOrigin, Damage
 // workflow is built. Only `phase()` costs time (it materializes actual
 // tiles); the draw* calls just "color" the tiles around them with what the
 // player is making — format (product), transformation (origin), style
-// (damage type) and emotion (status) — without adding extra time on their
+// and emotion — without adding extra time on their
 // own (drawFormat/drawTransformation each still add exactly one dedicated
 // Plan tile; drawStyle/drawEmotion add one Plan tile only if their roll
 // succeeds and the weapon class has a non-empty candidate pool for it).
@@ -25,7 +25,7 @@ export type PatternStep =
   | { kind: 'drawEmotion'; probability: number }
   | { kind: 'branch'; paths: PatternStep[][] }
   | { kind: 'eitherOr'; options: { step: PatternStep; weight: number }[] }
-  | { kind: 'fixedDraw'; slotKind: DrawKind; value: ContentProductType | AtomicOrigin | DamageType | StatusType }
+  | { kind: 'fixedDraw'; slotKind: DrawKind; value: ContentProductType | AtomicOrigin | StyleType | StatusType }
 
 export type DrawKind = 'format' | 'transformation' | 'style' | 'emotion'
 
@@ -52,7 +52,7 @@ export function drawEmotion(probability = 1): PatternStep { return { kind: 'draw
 // Fixed draws: pin a single value permanently — never changed by remaster.
 export function format(value: ContentProductType): PatternStep         { return { kind: 'fixedDraw', slotKind: 'format',         value } }
 export function transformation(value: AtomicOrigin): PatternStep       { return { kind: 'fixedDraw', slotKind: 'transformation', value } }
-export function style(value: DamageType): PatternStep                  { return { kind: 'fixedDraw', slotKind: 'style',          value } }
+export function style(value: StyleType): PatternStep                  { return { kind: 'fixedDraw', slotKind: 'style',          value } }
 export function emotion(value: StatusType): PatternStep                { return { kind: 'fixedDraw', slotKind: 'emotion',        value } }
 
 export function branch(...paths: PatternStep[][]): PatternStep {
@@ -143,14 +143,14 @@ export const WEAPON_PATTERNS: Record<WeaponClass, PatternStep[]> = {
     transformation('Expansion'), phase('Produce', 2), phase('Refine', 1), phase('Publish'),
   ],
   katanas: [
-    phase('Research', 2), drawFormat(), drawTransformation(), style('slash'),
+    phase('Research', 2), drawFormat(), drawTransformation(), style('Narration'),
     phase('Produce', 3), phase('Refine', 2), phase('Publish'),
-    style('slash'), phase('Produce', 3), phase('Refine', 2), phase('Publish'),
+    style('Narration'), phase('Produce', 3), phase('Refine', 2), phase('Publish'),
   ],
   reapers: [
-    phase('Research', 2), drawFormat(), drawTransformation(), style('pierce'),
+    phase('Research', 2), drawFormat(), drawTransformation(), style('Segmentation'),
     phase('Produce', 3), phase('Refine', 2), phase('Publish'),
-    style('pierce'), phase('Produce', 3), phase('Refine', 2), phase('Publish'),
+    style('Segmentation'), phase('Produce', 3), phase('Refine', 2), phase('Publish'),
   ],
   torches: [   
     phase('Research'), drawFormat(), drawTransformation(), drawEmotion(),

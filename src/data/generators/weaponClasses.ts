@@ -1,5 +1,4 @@
-import { selectWeaponSlotLoad } from '../../store/gameStore'
-import type { WeaponClass, StatKey, Grade, DamageType, StatusType, AtomicOrigin } from '../../types/game'
+import type { WeaponClass, StatKey, Grade, StyleType, StatusType, AtomicOrigin } from '../../types/game'
 
 type PoiseWeight = 'light' | 'medium' | 'heavy' | 'colossal'
 import type { ContentProductType } from '../contentProducts'
@@ -19,7 +18,7 @@ export interface WeaponClassDef {
   // disabling the draw.
   supported_products: ContentProductType[]
   scaling: Partial<Record<StatKey, Grade>>
-  base_damage_types: DamageType[]
+  base_damage_types: StyleType[]
   time_mod: number
   inherent_status: StatusType[]
   allowed_transformations: AtomicOrigin[]
@@ -39,6 +38,7 @@ export const WEAPON_CLASSES: Record<WeaponClass, WeaponClassDef> = {
     scaling: { DEX: 'S' },
     content_slots: 3,
     remaster_steps: 3,
+    time_mod: 1.0,
 
     supported_products: ['Plaintext', 'SingleGraphic', 'RawAudio', 'ARollVideo'],
     base_damage_types: [],
@@ -51,6 +51,7 @@ export const WEAPON_CLASSES: Record<WeaponClass, WeaponClassDef> = {
     scaling: { STR: 'D', DEX: 'D' },
     content_slots: 4,
     remaster_steps: 5,
+    time_mod: 1.0,
 
     supported_products: ['Plaintext', 'StructuredText', "IllustratedText", "SingleGraphic", 'Carousel', 'RawAudio', 'ARollVideo', 'SlideshowVideo', 'Screencast'],
 
@@ -64,6 +65,7 @@ export const WEAPON_CLASSES: Record<WeaponClass, WeaponClassDef> = {
     scaling: { STR: 'B', DEX: 'D' },
     content_slots: 5,
     remaster_steps: 5,
+    time_mod: 1.0,
 
     supported_products: ['Plaintext', 'StructuredText', "IllustratedText", "SingleGraphic", 'Carousel', 'RawAudio', 'ARollVideo', 'SlideshowVideo', 'Screencast', 'CinematicVideo', 'MotionGraphics', 'ProducedAudio'],
     base_damage_types: [],
@@ -76,6 +78,7 @@ export const WEAPON_CLASSES: Record<WeaponClass, WeaponClassDef> = {
     scaling: { DEX: 'A' },
     content_slots: 4,
     remaster_steps: 5,
+    time_mod: 1.0,
 
     supported_products: ['Plaintext', 'IllustratedText', 'Carousel', 'RawAudio', 'ProducedAudio', 'ARollVideo', 'SlideshowVideo', 'CinematicVideo', 'MotionGraphics', 'LiveStream', 'BranchingNarrative', '_blank'],
     base_damage_types: [],
@@ -88,9 +91,10 @@ export const WEAPON_CLASSES: Record<WeaponClass, WeaponClassDef> = {
     scaling: { STR: 'A' },
     content_slots: 5,
     remaster_steps: 5,
+    time_mod: 1.0,
 
     supported_products: ['Plaintext', 'StructuredText', 'IllustratedText', 'Carousel', 'RawAudio', 'ProducedAudio', 'ARollVideo', 'SlideshowVideo', 'CinematicVideo', 'MotionGraphics', 'LiveStream'],
-    base_damage_types: ['strike', 'slash', 'pierce', 'lightning', 'fire', 'poison'],
+    base_damage_types: ['Shock', 'Narration', 'Segmentation', 'Fast', 'Passion', 'Cliffhanger'],
     inherent_status: ['bleed', 'glintstone', 'frenzy_flame', 'scarlet_rot', 'frostbite', 'madness', 'death_blight', 'dread', 'murmur'],
     allowed_transformations: [],
   },
@@ -100,6 +104,7 @@ export const WEAPON_CLASSES: Record<WeaponClass, WeaponClassDef> = {
     scaling: { DEX: 'B', STR: 'D' },
     content_slots: 4,
     remaster_steps: 5,
+    time_mod: 1.0,
 
     supported_products: [],
     base_damage_types: [],
@@ -112,6 +117,7 @@ export const WEAPON_CLASSES: Record<WeaponClass, WeaponClassDef> = {
     scaling: { STR: 'C', DEX: 'D' },
     content_slots: 4,
     remaster_steps: 5,
+    time_mod: 1.0,
 
     supported_products: [],
     base_damage_types: [],
@@ -124,6 +130,7 @@ export const WEAPON_CLASSES: Record<WeaponClass, WeaponClassDef> = {
     scaling: { DEX: 'A' },
     content_slots: 3,
     remaster_steps: 3,
+    time_mod: 1.0,
 
     supported_products: ['Plaintext', 'SingleGraphic', 'Carousel', 'RawAudio', 'ARollVideo', 'LiveStream', 'CurationFeed', 'CommunitySpace'],
     base_damage_types: [],
@@ -136,6 +143,7 @@ export const WEAPON_CLASSES: Record<WeaponClass, WeaponClassDef> = {
     scaling: { STR: 'C', DEX: 'C' },
     content_slots: 3,
     remaster_steps: 3,
+    time_mod: 1.0,
 
     supported_products: ['Plaintext', 'SingleGraphic', 'RawAudio', 'ARollVideo'],
     base_damage_types: [],
@@ -148,6 +156,7 @@ export const WEAPON_CLASSES: Record<WeaponClass, WeaponClassDef> = {
     scaling: { STR: 'S' },
     content_slots: 6,
     remaster_steps: 5,
+    time_mod: 1.0,
 
     supported_products: ['Plaintext', 'StructuredText', "IllustratedText", "SingleGraphic", 'Carousel', 'RawAudio', 'ARollVideo', 'SlideshowVideo', 'Screencast', 'CinematicVideo', 'MotionGraphics', 'ProducedAudio'],
     base_damage_types: [],
@@ -160,6 +169,7 @@ export const WEAPON_CLASSES: Record<WeaponClass, WeaponClassDef> = {
     scaling: { INT: 'A', DEX: 'D' },
     content_slots: 3,
     remaster_steps: 3,
+    time_mod: 1.0,
 
     supported_products: ['Plaintext', 'StructuredText', 'IllustratedText', 'SingleGraphic', 'Carousel', 'RawAudio', 'ProducedAudio', 'ARollVideo', 'SlideshowVideo', 'CinematicVideo', 'MotionGraphics', 'LiveStream', 'MultimediaPage', 'BranchingNarrative', 'CommunitySpace'],
     base_damage_types: [],
@@ -172,6 +182,7 @@ export const WEAPON_CLASSES: Record<WeaponClass, WeaponClassDef> = {
     scaling: { INT: 'B', STR: 'D' },
     content_slots: 4,
     remaster_steps: 5,
+    time_mod: 1.0,
 
     supported_products: ['Plaintext', 'StructuredText', 'IllustratedText', 'SingleGraphic', 'Carousel', 'RawAudio', 'ProducedAudio', 'ARollVideo', 'SlideshowVideo', 'CinematicVideo', 'MotionGraphics', 'LiveStream', 'MultimediaPage', 'BranchingNarrative', 'CommunitySpace'],
     base_damage_types: [],
@@ -184,6 +195,7 @@ export const WEAPON_CLASSES: Record<WeaponClass, WeaponClassDef> = {
     scaling: { DEX: 'A' },
     content_slots: 4,
     remaster_steps: 5,
+    time_mod: 1.0,
 
     supported_products: [],
     base_damage_types: [],
@@ -196,6 +208,7 @@ export const WEAPON_CLASSES: Record<WeaponClass, WeaponClassDef> = {
     scaling: { DEX: 'B', STR: 'D' },
     content_slots: 5,
     remaster_steps: 5,
+    time_mod: 1.0,
 
     supported_products: [],
     base_damage_types: [],
@@ -208,6 +221,7 @@ export const WEAPON_CLASSES: Record<WeaponClass, WeaponClassDef> = {
     scaling: { DEX: 'S' },
     content_slots: 4,
     remaster_steps: 5,
+    time_mod: 1.0,
 
     supported_products: [],
     base_damage_types: [],
@@ -220,9 +234,10 @@ export const WEAPON_CLASSES: Record<WeaponClass, WeaponClassDef> = {
     scaling: { STR: 'A' },
     content_slots: 5,
     remaster_steps: 5,
+    time_mod: 1.0,
 
     supported_products: ['Plaintext', 'StructuredText', 'IllustratedText', 'Carousel', 'RawAudio', 'ProducedAudio', 'ARollVideo', 'SlideshowVideo', 'CinematicVideo', 'MotionGraphics', 'LiveStream'],
-    base_damage_types: ['strike', 'slash', 'pierce', 'lightning', 'fire', 'poison'],
+    base_damage_types: ['Shock', 'Narration', 'Segmentation', 'Fast', 'Passion', 'Cliffhanger'],
     inherent_status: ['bleed', 'glintstone', 'frenzy_flame', 'scarlet_rot', 'frostbite', 'madness', 'death_blight', 'dread', 'murmur'],
     allowed_transformations: [],
   },
@@ -232,6 +247,7 @@ export const WEAPON_CLASSES: Record<WeaponClass, WeaponClassDef> = {
     scaling: { STR: 'A' },
     content_slots: 5,
     remaster_steps: 5,
+    time_mod: 1.0,
 
     supported_products: [],
     base_damage_types: [],
@@ -244,6 +260,7 @@ export const WEAPON_CLASSES: Record<WeaponClass, WeaponClassDef> = {
     scaling: { DEX: 'B', STR: 'D' },
     content_slots: 4,
     remaster_steps: 5,
+    time_mod: 1.0,
 
     supported_products: ['StructuredText', 'IllustratedText', 'Infographic', 'ProducedAudio', 'ARollVideo', 'SlideshowVideo', 'Screencast', 'CinematicVideo', 'MotionGraphics', 'LiveStream', 'MultimediaPage', 'BranchingNarrative', 'AssetPack', 'CurationFeed', 'InteractiveApp', '_blank'],
     base_damage_types: [],
@@ -256,6 +273,7 @@ export const WEAPON_CLASSES: Record<WeaponClass, WeaponClassDef> = {
     scaling: { STR: 'S' },
     content_slots: 6,
     remaster_steps: 5,
+    time_mod: 1.0,
 
     supported_products: ['StructuredText', 'IllustratedText', 'Infographic', 'ProducedAudio', 'CinematicVideo', 'SlideshowVideo', 'MotionGraphics', 'MultimediaPage', 'BranchingNarrative', 'AssetPack', 'InteractiveApp', '_blank'],
     base_damage_types: [],
@@ -268,6 +286,7 @@ export const WEAPON_CLASSES: Record<WeaponClass, WeaponClassDef> = {
     scaling: { STR: 'B', DEX: 'C' },
     content_slots: 5,
     remaster_steps: 5,
+    time_mod: 1.0,
 
     supported_products: [],
     base_damage_types: [],
@@ -280,9 +299,10 @@ export const WEAPON_CLASSES: Record<WeaponClass, WeaponClassDef> = {
     scaling: { STR: 'C', DEX: 'C' },
     content_slots: 4,
     remaster_steps: 5,
+    time_mod: 1.0,
 
     supported_products: ['StructuredText', 'IllustratedText', 'Infographic', 'SlideshowVideo', 'Screencast', 'MultimediaPage', 'AssetPack', 'CurationFeed', 'InteractiveApp', '_blank'],
-    base_damage_types: ['standard', 'pierce', 'magic', 'magic', 'magic', 'holy', 'holy'],
+    base_damage_types: ['Minimalism', 'Segmentation', 'Intellectual', 'Intellectual', 'Intellectual', 'ProblemSolving', 'ProblemSolving'],
     inherent_status: ['glintstone', 'grace', 'madness'],
     allowed_transformations: [],
   },
@@ -292,6 +312,7 @@ export const WEAPON_CLASSES: Record<WeaponClass, WeaponClassDef> = {
     scaling: { ARC: 'A', DEX: 'D' },
     content_slots: 5,
     remaster_steps: 5,
+    time_mod: 1.0,
 
     supported_products: ['StructuredText', 'IllustratedText', 'Carousel', 'RawAudio', 'SlideshowVideo', 'CurationFeed', 'ARollVideo'],
     base_damage_types: [],
@@ -304,6 +325,7 @@ export const WEAPON_CLASSES: Record<WeaponClass, WeaponClassDef> = {
     scaling: { ARC: 'B', DEX: 'C' },
     content_slots: 4,
     remaster_steps: 5,
+    time_mod: 1.0,
 
     supported_products: ['ARollVideo', 'CinematicVideo', 'SlideshowVideo', 'MotionGraphics', 'LiveStream'],
     base_damage_types: [],
@@ -316,6 +338,7 @@ export const WEAPON_CLASSES: Record<WeaponClass, WeaponClassDef> = {
     scaling: { FAI: 'A', STR: 'D' },
     content_slots: 6,
     remaster_steps: 5,
+    time_mod: 1.0,
 
     supported_products: ['Carousel', 'BranchingNarrative', 'InteractiveApp', 'LiveStream', 'MultimediaPage', 'CommunitySpace', '_blank'],
     base_damage_types: [],
@@ -328,6 +351,7 @@ export const WEAPON_CLASSES: Record<WeaponClass, WeaponClassDef> = {
     scaling: { DEX: 'B' },
     content_slots: 4,
     remaster_steps: 5,
+    time_mod: 1.0,
 
     supported_products: [],
     base_damage_types: [],
@@ -340,6 +364,7 @@ export const WEAPON_CLASSES: Record<WeaponClass, WeaponClassDef> = {
     scaling: { STR: 'C', DEX: 'D' },
     content_slots: 6,
     remaster_steps: 5,
+    time_mod: 1.0,
 
     supported_products: ['StructuredText', 'IllustratedText', 'Infographic', 'ProducedAudio', 'SlideshowVideo', 'CinematicVideo', 'MotionGraphics', 'MultimediaPage', 'BranchingNarrative', 'AssetPack', 'CurationFeed', 'InteractiveApp', '_blank'],
     base_damage_types: [],
@@ -352,9 +377,10 @@ export const WEAPON_CLASSES: Record<WeaponClass, WeaponClassDef> = {
     scaling: { FAI: 'A', INT: 'D' },
     content_slots: 3,
     remaster_steps: 3,
+    time_mod: 1.0,
 
     supported_products: ['Plaintext', 'SingleGraphic', 'Carousel', 'RawAudio', 'ARollVideo', 'CinematicVideo', 'LiveStream', 'CommunitySpace'],
-    base_damage_types: ['strike', 'slash', 'lightning', 'fire', 'poison'],
+    base_damage_types: ['Shock', 'Narration', 'Fast', 'Passion', 'Cliffhanger'],
     inherent_status: ['bleed', 'glintstone', 'frenzy_flame', 'yearning', 'scarlet_rot', 'frostbite', 'madness', 'death_blight'],
     allowed_transformations: [],
   },
