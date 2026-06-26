@@ -65,7 +65,7 @@ export function describeWeaponPattern(weapon: WeaponInstance): PatternNode[] {
   const counters: Record<SlotKind, number> = { format: 0, transformation: 0, style: 0, emotion: 0 }
   return steps
     .map(step => describeStep(step, cls, weapon, counters))
-    .filter((n): n is PatternNode => n !== null)
+    .filter((n): n is PatternNode => n != null)
 }
 
 function describeStep(
@@ -124,6 +124,9 @@ function describeStep(
       }
       return result
     }
+    case 'fixedDraw':
+      counters[step.slotKind]++
+      return { kind: 'draw', label: step.slotKind, value: step.value }
   }
 }
 
