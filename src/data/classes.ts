@@ -13,7 +13,7 @@ export const CLASS_DEFINITIONS: ClassDef[] = [
     id: 'chronicler',
     name: 'Chronicler',
     description: 'Balanced and methodical. Covers all formats with equal confidence.',
-    weaponClass: 'thrusting_swords',
+    weaponClass: 'straight_swords',
     startingStats: { VIG:11, END:11, MND:10, STR:9, DEX:12, INT:11, FAI:9, ARC:7 },
   },
   {
@@ -27,7 +27,7 @@ export const CLASS_DEFINITIONS: ClassDef[] = [
     id: 'architect',
     name: 'Architect',
     description: 'Heavy and deliberate. Builds structures designed to last.',
-    weaponClass: 'great_spears',
+    weaponClass: 'colossal_swords',
     startingStats: { VIG:13, END:10, MND:9, STR:14, DEX:10, INT:8, FAI:9, ARC:7 },
   },
   {
@@ -55,7 +55,7 @@ export const CLASS_DEFINITIONS: ClassDef[] = [
     id: 'curator',
     name: 'Curator',
     description: 'Discovers and organises. Connects scattered ideas into something valuable.',
-    weaponClass: 'spears',
+    weaponClass: 'bows',
     startingStats: { VIG:9, END:10, MND:11, STR:11, DEX:13, INT:10, FAI:9, ARC:7 },
   },
   {
@@ -69,7 +69,7 @@ export const CLASS_DEFINITIONS: ClassDef[] = [
     id: 'experimenter',
     name: 'Experimenter',
     description: 'Learns by doing. Publishes results instead of theories.',
-    weaponClass: 'katanas',
+    weaponClass: 'flails',
     startingStats: { VIG:9, END:12, MND:10, STR:8, DEX:14, INT:11, FAI:8, ARC:8 },
   },
   {
@@ -83,14 +83,14 @@ export const CLASS_DEFINITIONS: ClassDef[] = [
     id: 'polemicist',
     name: 'Polemicist',
     description: 'Confrontational and uncompromising. Thrives in the clash of ideas.',
-    weaponClass: 'colossal_swords',
+    weaponClass: 'hammers',
     startingStats: { VIG:13, END:10, MND:8, STR:16, DEX:8, INT:8, FAI:9, ARC:8 },
   },
   {
     id: 'aesthete',
     name: 'Aesthete',
     description: 'Form is content. Builds atmosphere, beauty, and a distinctive mood.',
-    weaponClass: 'reapers',
+    weaponClass: 'katanas',
     startingStats: { VIG:9, END:10, MND:12, STR:8, DEX:11, INT:9, FAI:8, ARC:13 },
   },
   {
@@ -104,7 +104,7 @@ export const CLASS_DEFINITIONS: ClassDef[] = [
     id: 'exposer',
     name: 'Exposer',
     description: 'Hunts hidden truths. Uncovers what others prefer to leave unsaid.',
-    weaponClass: 'great_hammers',
+    weaponClass: 'great_spears',
     startingStats: { VIG:12, END:9, MND:9, STR:15, DEX:8, INT:12, FAI:8, ARC:7 },
   },
   {
