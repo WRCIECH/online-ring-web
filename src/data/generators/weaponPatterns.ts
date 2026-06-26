@@ -120,10 +120,11 @@ export const WEAPON_PATTERNS: Record<WeaponClass, PatternStep[]> = {
   ],
   fists: [
     phase('Research'), drawFormat(), phase('Produce', 1), 
-    branch([drawTransformation(), eitherOr(drawStyle(), drawEmotion()), phase('Produce', 1), phase('Publish')]),
-    branch([drawTransformation(), eitherOr(drawStyle(), drawEmotion()), phase('Produce', 1), phase('Publish')]),
-    branch([drawTransformation(), eitherOr(drawStyle(), drawEmotion()), phase('Produce', 1), phase('Publish')]),
-  ],
+    branch(
+      [drawTransformation(), eitherOr(drawStyle(), drawEmotion()), phase('Produce', 1), phase('Publish')],
+      [drawTransformation(), eitherOr(drawStyle(), drawEmotion()), phase('Produce', 1), phase('Publish')],
+      [drawTransformation(), eitherOr(drawStyle(), drawEmotion()), phase('Produce', 1), phase('Publish')],
+  ), ],
   flails: [
     phase('Research'), drawFormat(), drawTransformation(), drawEmotion(1),
     phase('Produce', 2), phase('Refine'), phase('Publish'), phase('Promote', 3, 5),
@@ -173,20 +174,26 @@ export const WEAPON_PATTERNS: Record<WeaponClass, PatternStep[]> = {
     transformation('Opposite'), phase('Produce', 3), phase('Refine', 2), phase('Publish'),
   ],
   axes: [
-    phase('Research', 3), drawFormat(), phase('Produce', 1), 
-    branch([drawTransformation(), phase('Research', 2), eitherOr(drawStyle(), drawEmotion()), phase('Produce', 5), phase('Refine', 2), phase('Publish')]),
-    branch([drawTransformation(), phase('Research', 2), eitherOr(drawStyle(), drawEmotion()), phase('Produce', 5), phase('Refine', 2), phase('Publish')]),
+    phase('Research', 3), drawFormat(), phase('Produce', 1),
+    branch(
+      [drawTransformation(), phase('Research', 2), eitherOr(drawStyle(), drawEmotion()), phase('Produce', 5), phase('Refine', 2), phase('Publish')],
+      [drawTransformation(), phase('Research', 2), eitherOr(drawStyle(), drawEmotion()), phase('Produce', 5), phase('Refine', 2), phase('Publish')],
+    ),
   ],
   great_axes: [
-    phase('Research', 6), drawFormat(), phase('Produce', 2), 
-    branch([drawTransformation(), phase('Research', 4), eitherOr(drawStyle(), drawEmotion()), phase('Produce', 8), phase('Refine', 3), phase('Publish')]),
-    branch([drawTransformation(), phase('Research', 4), eitherOr(drawStyle(), drawEmotion()), phase('Produce', 8), phase('Refine', 3), phase('Publish')]),
+    phase('Research', 6), drawFormat(), phase('Produce', 2),
+    branch(
+      [drawTransformation(), phase('Research', 4), eitherOr(drawStyle(), drawEmotion()), phase('Produce', 8), phase('Refine', 3), phase('Publish')],
+      [drawTransformation(), phase('Research', 4), eitherOr(drawStyle(), drawEmotion()), phase('Produce', 8), phase('Refine', 3), phase('Publish')],
+    ),
   ],
   twinblades: [
-    phase('Research', 6), drawFormat(), phase('Produce', 2), 
-    branch([drawTransformation(), phase('Research', 4), eitherOr(drawStyle(), drawEmotion()), phase('Produce', 8), phase('Refine', 3), phase('Publish')]),
-    branch([drawTransformation(), phase('Research', 4), eitherOr(drawStyle(), drawEmotion()), phase('Produce', 8), phase('Refine', 3), phase('Publish')]),
-    branch([drawTransformation(), phase('Research', 4), eitherOr(drawStyle(), drawEmotion()), phase('Produce', 8), phase('Refine', 3), phase('Publish')]),
+    phase('Research', 6), drawFormat(), phase('Produce', 2),
+    branch(
+      [drawTransformation(), phase('Research', 4), eitherOr(drawStyle(), drawEmotion()), phase('Produce', 8), phase('Refine', 3), phase('Publish')],
+      [drawTransformation(), phase('Research', 4), eitherOr(drawStyle(), drawEmotion()), phase('Produce', 8), phase('Refine', 3), phase('Publish')],
+      [drawTransformation(), phase('Research', 4), eitherOr(drawStyle(), drawEmotion()), phase('Produce', 8), phase('Refine', 3), phase('Publish')],
+    ),
   ],
   hammers: [
     phase('Research', 2, 4), drawFormat(), drawTransformation(), drawStyle(), drawEmotion(),
@@ -238,40 +245,21 @@ export const WEAPON_PATTERNS: Record<WeaponClass, PatternStep[]> = {
 
 // ── Branch-draw validation ──────────────────────────────────────────────
 //
-// A branch may draw inside its paths (e.g. halberds: 3 parallel pieces of
-// content, each with its own Style) instead of sharing every draw before
-// the branch (the axes/twinblades/etc. shape, where the branch only
-// multiplies Produce/Refine). When it does, exactly one draw-kind may vary
-// per branch, drawn in every path exactly once, always at probability 1 —
-// so the N parallel pieces of content stay symmetric (every one gets a
-// value for that kind, never null) and a future edit can't accidentally
-// mix kinds across paths or skip one. Validated eagerly at module load,
-// same as phase()/branch() throwing on invalid construction above.
-//
-// eitherOr() isn't supported inside a branch path yet — drawKindOf()
-// returns null for it (it's not itself a single draw), so without this
-// explicit check it would silently be treated as "not a draw" rather
-// than rejected.
+// Branches may draw inside their paths — including eitherOr() and multiple
+// draw kinds per path (e.g. each path has its own drawTransformation() plus
+// eitherOr(drawStyle(), drawEmotion())). The only remaining constraint:
+// direct drawStyle/drawEmotion steps inside a branch (not wrapped in
+// eitherOr) must use probability 1 so parallel paths never silently drop
+// a draw that sibling paths kept. eitherOr wrapping already enforces this
+// at eitherOr() construction time, so those options don't need a second check.
 function validateBranch(cls: WeaponClass, step: { paths: PatternStep[][] }): void {
   for (const path of step.paths) {
-    if (path.some(s => s.kind === 'eitherOr')) {
-      throw new Error(`${cls}: eitherOr() inside a branch() path isn't supported yet`)
-    }
-  }
-  const perPath = step.paths.map(path => path.filter(s => drawKindOf(s) !== null))
-  const kindsUsed = new Set(perPath.flatMap(draws => draws.map(d => drawKindOf(d)!)))
-  if (kindsUsed.size === 0) return   // existing draw-free branches (axes, twinblades, ...) stay valid
-  if (kindsUsed.size > 1) {
-    throw new Error(`${cls}: branch mixes draw kinds across paths (${[...kindsUsed].join(', ')}) — exactly one kind may vary per branch`)
-  }
-  const [onlyKind] = kindsUsed
-  for (const draws of perPath) {
-    if (draws.length !== 1) {
-      throw new Error(`${cls}: every path in this branch must draw exactly one ${onlyKind} (found ${draws.length} in one path)`)
-    }
-    const draw = draws[0]
-    if ((draw.kind === 'drawStyle' || draw.kind === 'drawEmotion') && draw.probability !== 1) {
-      throw new Error(`${cls}: branch-nested ${draw.kind} must use probability 1, got ${draw.probability}`)
+    const draws = path
+      .flatMap(s => s.kind === 'eitherOr' ? s.options.map(o => o.step) : [s])
+      .filter(s => drawKindOf(s) !== null)
+    for (const draw of draws) {
+      if ((draw.kind === 'drawStyle' || draw.kind === 'drawEmotion') && draw.probability !== 1)
+        throw new Error(`${cls}: branch-nested ${draw.kind} must use probability 1, got ${draw.probability}`)
     }
   }
 }

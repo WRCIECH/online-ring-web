@@ -329,7 +329,7 @@ export const WEAPON_CLASSES: Record<WeaponClass, WeaponClassDef> = {
     content_slots: 4,
     remaster_steps: 5,
 
-    supported_products: ['ARollVideo', 'SlideshowVideo', 'CinematicVideo', 'SlideshowVideo', 'MotionGraphics', 'LiveStream'],
+    supported_products: ['ARollVideo', 'CinematicVideo', 'SlideshowVideo', 'MotionGraphics', 'LiveStream'],
     base_damage_types: [],
     inherent_status: [],
     allowed_transformations: [],

@@ -29,24 +29,27 @@ function slotForDraw(step: PatternStep, counters: Record<SlotKind, number>): Slo
   }
 }
 
-// Groups slots for the remaster round-robin. Two kinds of group:
-// - "independent" (no `weights`): a top-level draw is its own group
-//   (redrawn independently, e.g. spears' two sequential drawStyle()
-//   calls), while every draw inside one branch()'s paths (e.g. halberds'
-//   3 parallel drawStyle() calls — one per path, validated by
-//   weaponPatterns.ts to be the same kind in every path) forms a single
-//   group, redrawn together on that group's round-robin turn so the
-//   parallel pieces of content stay in lockstep about *when* they
-//   change, even though each still gets its own independent roll and
-//   can land on a different value than its siblings.
-// - "exclusive" (`weights` present, born from an eitherOr() step): every
-//   member shares one group, but only one (chosen by weight) ever
-//   resolves to a real value per state — the rest are forced null. See
-//   resolveGroupState below.
-// listPatternSlots()'s flat order is exactly groups.flatMap(g => g.slots)
-// — branches/eitherOrs don't reorder anything relative to the old
-// purely-recursive walk.
-export interface SlotGroup { slots: SlotRef[]; weights?: number[]; fixed?: boolean }
+// Groups slots for the remaster round-robin. Three kinds of group:
+// - "independent" (no `weights`, no `exclusiveGroups`): a top-level draw
+//   is its own group (redrawn independently), while every draw inside one
+//   branch()'s paths forms a single group redrawn together — parallel
+//   siblings always change in the same step, each still getting its own
+//   independent roll.
+// - "exclusive" (`weights` present, born from a top-level eitherOr()):
+//   only one member (chosen by weight) resolves to a real value; the rest
+//   are forced null.
+// - "branch with exclusive sub-groups" (`exclusiveGroups` present): a
+//   branch group where some paths contain eitherOr() — the eitherOr
+//   options are embedded in the flat slot list and tracked via
+//   `exclusiveGroups[].slotIndices` so resolveGroupState can enforce
+//   exactly-one-non-null per eitherOr occurrence per path.
+// listPatternSlots()'s flat order is exactly groups.flatMap(g => g.slots).
+export interface SlotGroup {
+  slots: SlotRef[]
+  weights?: number[]
+  fixed?: boolean
+  exclusiveGroups?: { slotIndices: number[]; weights: number[] }[]
+}
 
 export function listSlotGroups(steps: PatternStep[]): SlotGroup[] {
   const groups: SlotGroup[] = []
@@ -54,13 +57,25 @@ export function listSlotGroups(steps: PatternStep[]): SlotGroup[] {
   for (const step of steps) {
     if (step.kind === 'branch') {
       const branchSlots: SlotRef[] = []
+      const exclusiveGroups: { slotIndices: number[]; weights: number[] }[] = []
       for (const path of step.paths) {
         for (const innerStep of path) {
-          const slot = slotForDraw(innerStep, counters)
-          if (slot) branchSlots.push(slot)
+          if (innerStep.kind === 'eitherOr') {
+            const indices: number[] = []
+            const weights: number[] = []
+            for (const opt of innerStep.options) {
+              const slot = slotForDraw(opt.step, counters)
+              if (slot) { indices.push(branchSlots.length); branchSlots.push(slot); weights.push(opt.weight) }
+            }
+            if (indices.length > 0) exclusiveGroups.push({ slotIndices: indices, weights })
+          } else {
+            const slot = slotForDraw(innerStep, counters)
+            if (slot) branchSlots.push(slot)
+          }
         }
       }
-      if (branchSlots.length > 0) groups.push({ slots: branchSlots })
+      if (branchSlots.length > 0)
+        groups.push({ slots: branchSlots, exclusiveGroups: exclusiveGroups.length > 0 ? exclusiveGroups : undefined })
     } else if (step.kind === 'eitherOr') {
       const exSlots: SlotRef[] = []
       const weights: number[] = []
@@ -177,6 +192,7 @@ function rollSlotValue(cls: WeaponClassDef, slot: SlotRef, exclude?: SlotValue):
 // or has a pool with at least 2 distinct values to land on.
 function groupCanChange(cls: WeaponClassDef, group: SlotGroup): boolean {
   if (group.weights) return true
+  if (group.exclusiveGroups?.length) return true
   return group.slots.some(slot => slot.probability < 1 || new Set(poolFor(cls, slot.kind)).size >= 2)
 }
 
@@ -190,10 +206,28 @@ function groupCanChange(cls: WeaponClassDef, group: SlotGroup): boolean {
 //   other member is forced null.
 function resolveGroupState(cls: WeaponClassDef, group: SlotGroup, prev: SlotValue[] | null): SlotValue[] {
   if (!group.weights) {
-    return group.slots.map((slot, i) => {
+    const result = group.slots.map((slot, i) => {
       if (prev === null && slot.kind === 'transformation') return 'New'
       return rollSlotValue(cls, slot, prev !== null ? prev[i] : undefined)
     })
+    // Apply exclusive semantics for any eitherOr() sub-groups embedded in this branch group —
+    // pick one winner per sub-group (same anti-no-op guard as the top-level eitherOr handler).
+    if (group.exclusiveGroups) {
+      for (const eg of group.exclusiveGroups) {
+        const prevWinnerLocalIdx = prev !== null
+          ? eg.slotIndices.findIndex(slotIdx => prev[slotIdx] !== null)
+          : -1
+        let winnerLocalIdx = pickWeighted(eg.weights)
+        let winnerValue = result[eg.slotIndices[winnerLocalIdx]]
+        if (prev !== null && winnerLocalIdx === prevWinnerLocalIdx
+            && winnerValue === prev[eg.slotIndices[winnerLocalIdx]]) {
+          winnerLocalIdx = pickWeighted(eg.weights.map((w, k) => (k === winnerLocalIdx ? 0 : w)))
+          winnerValue = result[eg.slotIndices[winnerLocalIdx]]
+        }
+        eg.slotIndices.forEach((slotIdx, k) => { result[slotIdx] = k === winnerLocalIdx ? winnerValue : null })
+      }
+    }
+    return result
   }
 
   const rollWinnerValue = (idx: number): SlotValue => {
