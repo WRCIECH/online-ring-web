@@ -3,7 +3,7 @@ import type { GameState, LocationData, Stats, WeaponInstance, SublocationType, C
 import { ENEMIES } from '../data/enemies'
 import { saveGame, loadGame } from '../engine/save'
 import { registerWeapon, WEAPONS } from '../data/weapons'
-import { RUN_DURATION_SECONDS, RUN_ESTUS_MAX, ESTUS_HEAL_FRACTION, ARTICLE_EQUIP_WEIGHT, statLevelCost, weaponUpgradeCost } from '../data/constants'
+import { RUN_DURATION_SECONDS, RUN_ESTUS_MAX, ESTUS_HEAL_FRACTION, statLevelCost, weaponUpgradeCost, WEAPON_SELL_PRICE } from '../data/constants'
 import { rollWeapon } from '../data/generators/weaponGenerator'
 import { WEAPON_CLASSES } from '../data/generators/weaponClasses'
 import { generateRemasterWorkflow, regenerateWorkflowKeepingStructure } from '../data/generators/remasterGenerator'
@@ -196,6 +196,7 @@ export interface GameStore extends GameState {
   addWeaponInstance: (w: WeaponInstance) => void
   unlockWeapon:      (id: string) => void
   upgradeWeapon:     (weaponId: string) => boolean
+  sellWeapon:        (weaponInstanceId: string) => void
 
   // Rune economy
   addRunes:         (amount: number) => void
@@ -318,6 +319,19 @@ export const useGameStore = create<GameStore>((set, get) => ({
     weapon_level:  s.weapon_level[id] !== undefined ? s.weapon_level : { ...s.weapon_level, [id]: 0 },
   })),
 
+  sellWeapon: (weaponInstanceId) => {
+    set(s => ({
+      owned_weapons:    s.owned_weapons.filter(id => id !== weaponInstanceId),
+      weapon_instances: s.weapon_instances.filter(w => w.instance_id !== weaponInstanceId),
+      weapon_level:     Object.fromEntries(Object.entries(s.weapon_level).filter(([k]) => k !== weaponInstanceId)),
+      content_items:    s.content_items.map(c =>
+        c.attached_weapon_id === weaponInstanceId ? { ...c, attached_weapon_id: undefined } : c
+      ),
+      runes: s.runes + WEAPON_SELL_PRICE,
+    }))
+    get().save()
+  },
+
   addRunes: (amount) => set(s => ({ runes: s.runes + amount })),
 
   dropRunes: (location, nodeIndex) => set(s => ({
@@ -423,6 +437,9 @@ export const useGameStore = create<GameStore>((set, get) => ({
   },
 
   attachContentToWeapon: (contentId, weaponInstanceId) => {
+    const s = get()
+    const assigned = s.content_items.filter(c => !c.completed && !!c.attached_weapon_id).length
+    if (assigned >= s.stats.END) return
     set(s => ({
       content_items: s.content_items.map(c => c.id === contentId ? { ...c, attached_weapon_id: weaponInstanceId } : c),
     }))
@@ -495,6 +512,6 @@ export const selectWeaponSlotLoad = (s: GameStore, weaponInstanceId: string) => 
 }
 
 export const selectEquipLoad = (s: GameStore) => {
-  const contentUsed = s.content_items.filter(c => !c.completed).length * ARTICLE_EQUIP_WEIGHT
+  const contentUsed = s.content_items.filter(c => !c.completed && !!c.attached_weapon_id).length
   return { used: contentUsed, capacity: s.stats.END }
 }

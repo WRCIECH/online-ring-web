@@ -1,7 +1,8 @@
 import { useState } from 'react'
-import { useGameStore, selectWeaponSlotLoad } from '../../store/gameStore'
+import { useGameStore, selectWeaponSlotLoad, selectEquipLoad } from '../../store/gameStore'
 import { WEAPONS, LEVEL_MULT } from '../../data/weapons'
 import { WEAPON_CLASSES } from '../../data/generators/weaponClasses'
+import { WEAPON_SELL_PRICE } from '../../data/constants'
 import { mergeAffixesForDisplay } from '../../data/weaponStructure'
 import type { WeaponInstance, WeaponRarity } from '../../types/game'
 import { useT, localizeWeaponName } from '../../i18n'
@@ -23,10 +24,24 @@ export default function EquipOverlay({ onClose }: Props) {
   const t     = useT()
   const [expandedContent, setExpandedContent] = useState<Record<string, boolean>>({})
   const [selectedWeaponId, setSelectedWeaponId] = useState<string | null>(null)
+  const [confirmSellId, setConfirmSellId] = useState<string | null>(null)
+
+  const globalLoad = selectEquipLoad(store as Parameters<typeof selectEquipLoad>[0])
+  const assignFull = globalLoad.used >= globalLoad.capacity
 
   function handleAssign(weaponInstanceId: string, contentId: string) {
     if (!contentId) return
     store.attachContentToWeapon(contentId, weaponInstanceId)
+  }
+
+  function handleSell(wid: string) {
+    if (confirmSellId === wid) {
+      store.sellWeapon(wid)
+      setConfirmSellId(null)
+      setSelectedWeaponId(null)
+    } else {
+      setConfirmSellId(wid)
+    }
   }
 
   function renderWeapon(wid: string) {
@@ -75,6 +90,15 @@ export default function EquipOverlay({ onClose }: Props) {
           </div>
         )}
 
+        {store.owned_weapons.length > 1 && (
+          <button
+            className={confirmSellId === wid ? s.btnSellConfirm : s.btnSell}
+            onClick={() => handleSell(wid)}
+          >
+            {confirmSellId === wid ? t.ui.btn_sell_confirm : `${t.ui.btn_sell_weapon} (${WEAPON_SELL_PRICE} ✦)`}
+          </button>
+        )}
+
         <div className={s.contentToggleRow}>
           <span className={[s.slotCount, slotLoad.used > slotLoad.capacity ? s.slotOver : ''].join(' ')}>
             {slotLoad.used} / {slotLoad.capacity}
@@ -103,17 +127,23 @@ export default function EquipOverlay({ onClose }: Props) {
               }
               return (
                 <div key={i} className={s.slotRow}>
-                  <select
-                    className={s.slotSelect}
-                    value=""
-                    onChange={e => handleAssign(wid, e.target.value)}
-                  >
-                    <option value="">{t.ui.equip_slot_assign}</option>
-                    {assignable.map(c => (
-                      <option key={c.id} value={c.id}>{c.name || t.ui.untitled}</option>
-                    ))}
-                  </select>
-                  <span className={s.slotEmptyLabel}>{t.ui.equip_slot_empty}</span>
+                  {assignFull ? (
+                    <span className={s.slotEmptyLabel}>{t.ui.assign_cap_reached}</span>
+                  ) : (
+                    <>
+                      <select
+                        className={s.slotSelect}
+                        value=""
+                        onChange={e => handleAssign(wid, e.target.value)}
+                      >
+                        <option value="">{t.ui.equip_slot_assign}</option>
+                        {assignable.map(c => (
+                          <option key={c.id} value={c.id}>{c.name || t.ui.untitled}</option>
+                        ))}
+                      </select>
+                      <span className={s.slotEmptyLabel}>{t.ui.equip_slot_empty}</span>
+                    </>
+                  )}
                 </div>
               )
             })}
@@ -135,7 +165,7 @@ export default function EquipOverlay({ onClose }: Props) {
       <button
         key={wid}
         className={[s.iconBtn, isActive ? s.iconBtnActive : ''].join(' ')}
-        onClick={() => setSelectedWeaponId(wid)}
+        onClick={() => { setSelectedWeaponId(wid); setConfirmSellId(null) }}
       >
         <WeaponSprite
           weaponClass={weapon.weapon_class}

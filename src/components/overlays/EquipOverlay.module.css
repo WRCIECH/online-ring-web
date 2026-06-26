@@ -305,3 +305,33 @@
 }
 
 .btnDetach:hover { color: #e85555; border-color: #5a1515; }
+
+/* ── Sell weapon ──────────────────────────────────────────────────────── */
+
+.btnSell {
+  align-self: flex-start;
+  font-size: 0.72rem;
+  padding: 3px 10px;
+  border-radius: 4px;
+  background: transparent;
+  border: 1px solid var(--color-sep);
+  color: var(--color-text-dim);
+  cursor: pointer;
+  transition: color 0.1s, border-color 0.1s;
+}
+
+.btnSell:hover { color: var(--color-text); border-color: var(--color-border); }
+
+.btnSellConfirm {
+  align-self: flex-start;
+  font-size: 0.72rem;
+  padding: 3px 10px;
+  border-radius: 4px;
+  background: transparent;
+  border: 1px solid #c06040;
+  color: #e07050;
+  cursor: pointer;
+  transition: color 0.1s, border-color 0.1s;
+}
+
+.btnSellConfirm:hover { color: #f09070; border-color: #e07050; }

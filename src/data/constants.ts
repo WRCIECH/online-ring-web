@@ -89,3 +89,8 @@ export const REPEAT_PENALTY_MAX = 0.60
 
 /** Flat damage penalty when repeating an already-completed tile. */
 export const REPEAT_DAMAGE_PENALTY = 0.20
+
+// ── Economy ───────────────────────────────────────────────────────────────────
+
+/** Runes received when selling a weapon. */
+export const WEAPON_SELL_PRICE = 100

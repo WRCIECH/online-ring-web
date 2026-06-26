@@ -144,7 +144,7 @@ export default function ContentOverlay({ onClose, canAdd = true }: Props) {
           <div className={s.loadLabel}>
             <span>{t.ui.equip_load_label}</span>
             <span className={overloaded ? s.loadOver : s.loadVal}>
-              {load.used.toFixed(1)} / {load.capacity.toFixed(1)}
+              {load.used.toFixed(0)} / {load.capacity.toFixed(0)}
             </span>
           </div>
           <div className={s.loadTrack}>
