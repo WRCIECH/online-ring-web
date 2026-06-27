@@ -372,7 +372,7 @@ const en: TranslationBundle = {
     stat_INSIGHT: 'Insight',
 
     stat_VIG_desc:       'Max HP = VIG × 10. Your capacity to absorb damage before defeat.',
-    stat_END_desc:       'Max Stamina = END × 5. Spent on every writing move you execute.',
+    stat_END_desc:       'Content load capacity = END. Limits how many active content items you can carry in your pipeline.',
     stat_TEXT_desc:      'Mastery of the written word. Scales weapons built around text content.',
     stat_VIDEO_desc:     'Video production skill. Scales weapons focused on visual storytelling.',
     stat_AUDIO_desc:     'Podcast and audio craft. Scales weapons that work through sound.',

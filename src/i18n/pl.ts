@@ -367,7 +367,7 @@ const pl: TranslationBundle = {
     stat_INSIGHT: 'Inwencja',
 
     stat_VIG_desc:       'Maks. HP = VIG × 10. Zdolność do absorbowania obrażeń przed przegraną.',
-    stat_END_desc:       'Maks. Stamina = END × 5. Wydawana przy każdym ruchu pisarskim.',
+    stat_END_desc:       'Pojemność treści = END. Ogranicza liczbę aktywnych pozycji, które możesz mieć w pipeline.',
     stat_TEXT_desc:      'Mistrzostwo pisanego słowa. Skaluje broń opartą na treści tekstowej.',
     stat_VIDEO_desc:     'Umiejętność produkcji wideo. Skaluje broń skupioną na wizualnym storytellingu.',
     stat_AUDIO_desc:     'Rzemiosło podcastów i audio. Skaluje broń działającą przez dźwięk.',
