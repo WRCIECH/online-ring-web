@@ -9,10 +9,10 @@ import { useT } from '../i18n'
 import { MIN_PIPELINE_TO_FIGHT } from '../data/constants'
 import s from './RunMapScreen.module.css'
 
-// ── Map geometry (mirrors Godot constants) ────────────────────────────────
+// ── Map geometry ──────────────────────────────────────────────────────────
 const CX = 600, CY = 390
 const R0 = 45, DR = 16, DTHETA = 1.082
-const NODE_R = 22
+const NODE_R = 14
 
 interface NodePos { x: number; y: number; idx: number }
 
@@ -89,7 +89,7 @@ export default function RunMapScreen() {
     const ctx = canvas.getContext('2d')!
     ctx.clearRect(0, 0, canvas.width, canvas.height)
 
-    // Background particles — dust motes, barely visible
+    // Background particles
     BG_PARTICLES.forEach(p => {
       ctx.beginPath()
       ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2)
@@ -97,7 +97,7 @@ export default function RunMapScreen() {
       ctx.fill()
     })
 
-    // Corner atmosphere — very faint depth vignette
+    // Corner vignette
     const corners = [[0,0],[1200,0],[0,800],[1200,800]]
     corners.forEach(([cx,cy]) => {
       const g = ctx.createRadialGradient(cx, cy, 0, cx, cy, 340)
@@ -110,15 +110,27 @@ export default function RunMapScreen() {
     const ns = nodes.current
     if (ns.length === 0) return
 
-    // Connection lines
+    // Connection lines — quadratic bezier curves
     for (let i = 0; i < ns.length - 1; i++) {
       const beaten = i < current
+      const a = ns[i], b = ns[i + 1]
+      const mx = (a.x + b.x) / 2
+      const my = (a.y + b.y) / 2
+      const dx = b.x - a.x, dy = b.y - a.y
+      const len = Math.sqrt(dx * dx + dy * dy)
+      // Perpendicular offset (counterclockwise normal) for the curve bow
+      const offset = len * 0.18
+      const cpx = mx + (-dy / len) * offset
+      const cpy = my + (dx / len) * offset
+
       ctx.beginPath()
-      ctx.moveTo(ns[i].x, ns[i].y)
-      ctx.lineTo(ns[i+1].x, ns[i+1].y)
-      ctx.strokeStyle = beaten ? 'rgba(22,88,58,0.70)' : 'rgba(42,38,72,0.85)'
-      ctx.lineWidth = 1.5
+      ctx.moveTo(a.x, a.y)
+      ctx.quadraticCurveTo(cpx, cpy, b.x, b.y)
+      ctx.strokeStyle = beaten ? 'rgba(30,100,68,0.72)' : 'rgba(42,38,72,0.70)'
+      ctx.lineWidth   = beaten ? 2 : 1.2
+      if (!beaten) ctx.setLineDash([3, 6])
       ctx.stroke()
+      ctx.setLineDash([])
     }
 
     // Nodes
@@ -126,52 +138,67 @@ export default function RunMapScreen() {
       const beaten  = i < current
       const active  = i === current
       const isHover = i === hoverIdx
+      const stype   = seq[i]?.sublocation_type
 
-      let fillColor  = '#0d0c18'
-      let ringColor  = '#22203a'
-      let labelColor = '#565490'
-
+      // Colors by state / type
+      let fillColor: string, ringColor: string, labelColor: string
       if (beaten) {
         fillColor = '#0c1a14'; ringColor = '#1e6e50'; labelColor = '#2a9a6e'
       } else if (active) {
-        fillColor = '#1a1200'; ringColor = '#8a6810'; labelColor = '#b89020'
+        fillColor = '#1a1200'; ringColor = '#8a6810'; labelColor = '#c0a030'
+      } else if (stype === 'boss') {
+        fillColor = '#180a0a'; ringColor = '#7a2222'; labelColor = '#c04040'
+      } else if (stype === 'elite') {
+        fillColor = '#0e0818'; ringColor = '#522080'; labelColor = '#9060c8'
+      } else if (stype === 'event') {
+        fillColor = '#081016'; ringColor = '#205870'; labelColor = '#3a90aa'
+      } else {
+        fillColor = '#0d0c18'; ringColor = '#22203a'; labelColor = '#5654a0'
       }
 
       const r = active ? NODE_R + 3 : NODE_R
 
+      // Glow halos
       if (active) {
-        ctx.beginPath()
-        ctx.arc(n.x, n.y, r + 10, 0, Math.PI * 2)
-        ctx.fillStyle = 'rgba(120,88,12,0.22)'
-        ctx.fill()
-        ctx.beginPath()
-        ctx.arc(n.x, n.y, r + 5, 0, Math.PI * 2)
-        ctx.fillStyle = 'rgba(140,104,16,0.18)'
-        ctx.fill()
+        ctx.beginPath(); ctx.arc(n.x, n.y, r + 14, 0, Math.PI * 2)
+        ctx.fillStyle = 'rgba(120,88,12,0.14)'; ctx.fill()
+        ctx.beginPath(); ctx.arc(n.x, n.y, r + 7, 0, Math.PI * 2)
+        ctx.fillStyle = 'rgba(140,104,16,0.22)'; ctx.fill()
+      } else if (!beaten && stype === 'boss') {
+        ctx.beginPath(); ctx.arc(n.x, n.y, r + 9, 0, Math.PI * 2)
+        ctx.fillStyle = 'rgba(120,28,28,0.16)'; ctx.fill()
+      } else if (!beaten && stype === 'elite') {
+        ctx.beginPath(); ctx.arc(n.x, n.y, r + 7, 0, Math.PI * 2)
+        ctx.fillStyle = 'rgba(82,32,128,0.14)'; ctx.fill()
       }
       if (isHover && !beaten && i !== current) {
-        ctx.beginPath()
-        ctx.arc(n.x, n.y, r + 5, 0, Math.PI * 2)
-        ctx.fillStyle = 'rgba(100,75,10,0.14)'
-        ctx.fill()
+        ctx.beginPath(); ctx.arc(n.x, n.y, r + 5, 0, Math.PI * 2)
+        ctx.fillStyle = 'rgba(100,75,10,0.18)'; ctx.fill()
       }
 
+      // Node fill + ring
       ctx.beginPath()
       ctx.arc(n.x, n.y, r, 0, Math.PI * 2)
       ctx.fillStyle = fillColor
       ctx.fill()
       ctx.strokeStyle = ringColor
-      ctx.lineWidth = beaten ? 1.5 : (active ? 2.5 : 1)
+      ctx.lineWidth = active ? 2.5 : (stype === 'boss' ? 2 : 1.2)
       ctx.stroke()
 
-      // Label
+      // Symbol
+      let symbol: string
+      if (beaten) symbol = '✓'
+      else if (active) symbol = String(i + 1)
+      else if (stype === 'boss')  symbol = '★'
+      else if (stype === 'elite') symbol = '◆'
+      else if (stype === 'event') symbol = '✦'
+      else symbol = '?'
+
       ctx.fillStyle = labelColor
-      ctx.font = `bold ${active ? 13 : 11}px system-ui`
+      ctx.font = `bold ${active ? 12 : 10}px system-ui`
       ctx.textAlign = 'center'
       ctx.textBaseline = 'middle'
-      const label = beaten ? String(i + 1) : (active ? String(i + 1) : (i > current ? '?' : String(i + 1)))
-      ctx.fillText(label, n.x, n.y)
-
+      ctx.fillText(symbol, n.x, n.y)
     })
   }, [seq, current, hoverIdx])
 
