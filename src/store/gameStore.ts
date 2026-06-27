@@ -13,7 +13,7 @@ function hydrateRegistries(state: GameState): void {
   state.weapon_instances.forEach(w => registerWeapon(w))
 }
 
-const DEFAULT_STATS: Stats = { VIG: 10, END: 10, MND: 10, TEXT: 8, VIDEO: 8, AUDIO: 8, GRAPHIC: 8, VELOCITY: 8, DEPTH: 8, PARASOCIAL: 8, FRICTION: 8, INSIGHT: 8 }
+const DEFAULT_STATS: Stats = { VIG: 10, END: 10, TEXT: 8, VIDEO: 8, AUDIO: 8, GRAPHIC: 8, VELOCITY: 8, DEPTH: 8, PARASOCIAL: 8, FRICTION: 8, INSIGHT: 8 }
 
 export function calcMaxHp(vig: number): number {
   if (vig <= 25) return 300 + vig * 12

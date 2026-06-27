@@ -88,11 +88,21 @@
   margin-top: 2px;
 }
 
-.statsRow {
-  display: grid;
-  grid-template-columns: repeat(8, 1fr);
+.statsWrap {
+  display: flex;
+  flex-direction: column;
   gap: 3px;
   margin-top: 4px;
+}
+.statsCoreRow {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 3px;
+}
+.statsContentGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 3px;
 }
 .statCell {
   display: flex;

@@ -75,7 +75,7 @@ export default function CombatScreen() {
           ENEMIES['procrastination_mob'], 'procrastination_mob',
           'unarmed', 0,
           300, 300, 3,
-          { VIG: 10, END: 10, MND: 10, TEXT: 8, VIDEO: 8, AUDIO: 8, GRAPHIC: 8, VELOCITY: 8, DEPTH: 8, PARASOCIAL: 8, FRICTION: 8, INSIGHT: 8 },
+          { VIG: 10, END: 10, TEXT: 8, VIDEO: 8, AUDIO: 8, GRAPHIC: 8, VELOCITY: 8, DEPTH: 8, PARASOCIAL: 8, FRICTION: 8, INSIGHT: 8 },
           0,
         )
       }

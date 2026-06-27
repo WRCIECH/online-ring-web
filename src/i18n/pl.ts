@@ -408,7 +408,7 @@ const pl: TranslationBundle = {
     // StatsOverlay
     stat_VIG: 'Żywotność',
     stat_END: 'Wytrzymałość',
-    stat_MND: 'Umysł',
+
     stat_TEXT: 'Tekst',
     stat_VIDEO: 'Wideo',
     stat_AUDIO: 'Audio',

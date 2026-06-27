@@ -414,7 +414,7 @@ const en: TranslationBundle = {
     // StatsOverlay
     stat_VIG: 'Vigor',
     stat_END: 'Endurance',
-    stat_MND: 'Mind',
+
     stat_TEXT: 'Text',
     stat_VIDEO: 'Video',
     stat_AUDIO: 'Audio',

@@ -7,7 +7,7 @@ import s from './CharacterOverlay.module.css'
 
 interface Props { onClose: () => void; canLevel?: boolean }
 
-const ALL_STATS: StatKey[] = ['VIG','END','MND','TEXT','VIDEO','AUDIO','GRAPHIC','VELOCITY','DEPTH','PARASOCIAL','FRICTION','INSIGHT']
+const ALL_STATS: StatKey[] = ['VIG','END','TEXT','VIDEO','AUDIO','GRAPHIC','VELOCITY','DEPTH','PARASOCIAL','FRICTION','INSIGHT']
 
 type Confirming =
   | { type: 'stat'; stat: StatKey }
@@ -26,7 +26,7 @@ export default function CharacterOverlay({ onClose, canLevel = true }: Props) {
   const levelCost = statLevelCost(store.total_levels_spent)
 
   const STAT_LABELS: Record<StatKey, string> = {
-    VIG: t.ui.stat_VIG, END: t.ui.stat_END, MND: t.ui.stat_MND,
+    VIG: t.ui.stat_VIG, END: t.ui.stat_END,
     TEXT: t.ui.stat_TEXT, VIDEO: t.ui.stat_VIDEO, AUDIO: t.ui.stat_AUDIO,
     GRAPHIC: t.ui.stat_GRAPHIC, VELOCITY: t.ui.stat_VELOCITY, DEPTH: t.ui.stat_DEPTH,
     PARASOCIAL: t.ui.stat_PARASOCIAL, FRICTION: t.ui.stat_FRICTION, INSIGHT: t.ui.stat_INSIGHT,

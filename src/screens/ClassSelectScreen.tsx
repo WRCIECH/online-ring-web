@@ -6,9 +6,11 @@ import type { StatKey } from '../types/game'
 import { useT } from '../i18n'
 import s from './ClassSelectScreen.module.css'
 
-const STAT_KEYS: StatKey[] = ['VIG','END','MND','TEXT','VIDEO','AUDIO','GRAPHIC','VELOCITY','DEPTH','PARASOCIAL','FRICTION','INSIGHT']
+const CORE_STATS:    StatKey[] = ['VIG', 'END']
+const CONTENT_STATS: StatKey[] = ['TEXT','VIDEO','AUDIO','GRAPHIC','VELOCITY','DEPTH','PARASOCIAL','FRICTION','INSIGHT']
+const ALL_STAT_KEYS: StatKey[] = [...CORE_STATS, ...CONTENT_STATS]
 const STAT_COLOUR: Partial<Record<StatKey, string>> = {
-  VIG: '#cc3333', END: '#33aacc', MND: '#9944cc',
+  VIG: '#cc3333', END: '#33aacc',
   TEXT: '#4488cc', VIDEO: '#dd7722', AUDIO: '#cc4455',
   GRAPHIC: '#22cc88', VELOCITY: '#88cc22', DEPTH: '#2244cc',
   PARASOCIAL: '#cc44aa', FRICTION: '#cc5522', INSIGHT: '#aa44cc',
@@ -38,7 +40,7 @@ export default function ClassSelectScreen() {
       <div className={s.grid}>
         {CLASS_DEFINITIONS.map(cls => {
           const isChosen = chosen === cls.id
-          const highStat = STAT_KEYS.reduce((best, k) =>
+          const highStat = ALL_STAT_KEYS.reduce((best, k) =>
             cls.startingStats[k] > cls.startingStats[best] ? k : best, 'VIG' as StatKey)
           const accent = STAT_COLOUR[highStat] ?? '#ccaa22'
           const clsName = t.classes[cls.id]?.name ?? cls.name
@@ -57,13 +59,23 @@ export default function ClassSelectScreen() {
                 <div className={s.className}>{clsName}</div>
                 <div className={s.classDesc}>{clsDesc}</div>
                 <div className={s.weaponBadge}>{wName}</div>
-                <div className={s.statsRow}>
-                  {STAT_KEYS.map(k => (
-                    <div key={k} className={[s.statCell, cls.startingStats[k] >= 14 ? s.statHigh : cls.startingStats[k] >= 11 ? s.statMid : ''].join(' ')}>
-                      <span className={s.statKey}>{k}</span>
-                      <span className={s.statVal}>{cls.startingStats[k]}</span>
-                    </div>
-                  ))}
+                <div className={s.statsWrap}>
+                  <div className={s.statsCoreRow}>
+                    {CORE_STATS.map(k => (
+                      <div key={k} className={[s.statCell, cls.startingStats[k] >= 14 ? s.statHigh : cls.startingStats[k] >= 11 ? s.statMid : ''].join(' ')}>
+                        <span className={s.statKey}>{k}</span>
+                        <span className={s.statVal}>{cls.startingStats[k]}</span>
+                      </div>
+                    ))}
+                  </div>
+                  <div className={s.statsContentGrid}>
+                    {CONTENT_STATS.map(k => (
+                      <div key={k} className={[s.statCell, cls.startingStats[k] >= 14 ? s.statHigh : cls.startingStats[k] >= 11 ? s.statMid : ''].join(' ')}>
+                        <span className={s.statKey}>{k}</span>
+                        <span className={s.statVal}>{cls.startingStats[k]}</span>
+                      </div>
+                    ))}
+                  </div>
                 </div>
               </div>
             </button>
