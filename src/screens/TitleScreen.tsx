@@ -39,13 +39,19 @@ export default function TitleScreen() {
 
   return (
     <div className={s.root}>
-      <h1 className={s.title}>{t.ui.title}</h1>
-      <p className={s.subtitle}>{t.ui.subtitle}</p>
 
-      {store.run_count > 0 && (
-        <p className={s.runCount}>{t.ui.great_run}{store.run_count}</p>
-      )}
+      {/* ── Hero: 3-D ring + title ────────────────────────────────── */}
+      <div className={s.hero}>
+        <div className={s.ringWrap}>
+          <div className={s.ring3d}/>
+        </div>
+        <div className={s.heroText}>
+          <h1 className={s.title}>{t.ui.title}</h1>
+          <p className={s.subtitle}>{t.ui.subtitle}</p>
+        </div>
+      </div>
 
+      {/* ── Buttons ───────────────────────────────────────────────── */}
       <div className={s.buttons}>
         {saveExists && (
           <button className={s.btnPrimary} onClick={handleContinue}>
@@ -57,6 +63,7 @@ export default function TitleScreen() {
         </button>
       </div>
 
+      {/* ── Language toggle ───────────────────────────────────────── */}
       <button
         className={s.btnLang}
         onClick={() => store.setLocale(store.locale === 'pl' ? 'en' : 'pl')}
@@ -65,6 +72,7 @@ export default function TitleScreen() {
         {t.ui.lang_toggle}
       </button>
 
+      {/* ── Erase confirmation ────────────────────────────────────── */}
       {confirming && (
         <div className={s.confirmOverlay}>
           <div className={s.confirmBox}>
@@ -78,6 +86,7 @@ export default function TitleScreen() {
         </div>
       )}
 
+      {/* ── New-game intro ────────────────────────────────────────── */}
       {showIntro && (
         <div className={s.introOverlay}>
           <div className={s.introPanel}>

@@ -1,3 +1,5 @@
+/* ── Root ───────────────────────────────────────────────────────────────── */
+
 .root {
   display: flex;
   flex-direction: column;
@@ -5,81 +7,151 @@
   justify-content: center;
   height: 100vh;
   gap: 0;
-  background: var(--color-bg);
+  background: radial-gradient(ellipse 120% 90% at 50% 48%, #1a1038 0%, #161228 65%);
   position: relative;
   overflow: hidden;
 }
 
-/* subtle radial glow behind title */
-.root::before {
+/* Edge vignette */
+.root::after {
   content: '';
   position: absolute;
-  width: 600px;
+  inset: 0;
+  background: radial-gradient(ellipse 180% 180% at 50% 50%, transparent 35%, rgba(8,6,18,0.55) 100%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* ── Hero (ring + title together) ───────────────────────────────────────── */
+
+.hero {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 40px;
+}
+
+/* ── 3-D metallic ring ──────────────────────────────────────────────────── */
+
+.ringWrap {
+  width: 300px;
   height: 300px;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -70%);
-  background: radial-gradient(ellipse, rgba(230,191,51,0.07) 0%, transparent 70%);
+  perspective: 700px;
+  flex-shrink: 0;
+  /* The ring visually collapses to ~93 px tall when tilted 72° */
+}
+
+.ring3d {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  background: conic-gradient(
+    from -30deg,
+    #4a3006  0deg,
+    #c8982a 45deg,
+    #f0d060 90deg,
+    #ffe898 120deg,
+    #e6bf33 165deg,
+    #b08828 210deg,
+    #7a5810 255deg,
+    #4a3006 300deg,
+    #4a3006 360deg
+  );
+  mask: radial-gradient(circle at center, transparent 36%, black 38%, black 50%);
+  -webkit-mask: radial-gradient(circle at center, transparent 36%, black 38%, black 50%);
+  animation: spin3d 9s linear infinite;
+  filter:
+    drop-shadow(0 12px 32px rgba(0,0,0,0.80))
+    drop-shadow(0 0 24px rgba(230,191,51,0.30));
+}
+
+@keyframes spin3d {
+  from { transform: rotateX(72deg) rotateZ(0deg); }
+  to   { transform: rotateX(72deg) rotateZ(360deg); }
+}
+
+/* ── Title text (overlays ring center) ──────────────────────────────────── */
+
+.heroText {
+  text-align: center;
+  margin-top: -88px;   /* pull up to sit over ring's visual center */
+  position: relative;
+  z-index: 1;
   pointer-events: none;
 }
 
 .title {
-  font-size: 4rem;
-  font-weight: 300;
-  letter-spacing: 0.25em;
+  font-family: 'Cinzel Decorative', serif;
+  font-weight: 400;
+  font-size: 2.8rem;
+  letter-spacing: 0.12em;
   color: var(--color-gold);
-  text-shadow: var(--glow-gold);
-  margin-bottom: 6px;
+  text-shadow:
+    0 0 20px rgba(230,191,51,0.60),
+    0 0 60px rgba(230,191,51,0.20);
+  margin-bottom: 8px;
   text-transform: uppercase;
 }
 
 .subtitle {
-  font-size: 0.85rem;
-  letter-spacing: 0.3em;
-  color: var(--color-text-dim);
+  font-size: 0.72rem;
+  letter-spacing: 0.38em;
+  color: rgba(185,162,105,0.62);
   text-transform: uppercase;
-  margin-bottom: 48px;
+  margin-bottom: 0;
 }
 
-.runCount {
-  font-size: 0.75rem;
-  letter-spacing: 0.2em;
-  color: var(--color-gold-dim);
-  text-transform: uppercase;
-  margin-top: -36px;
-  margin-bottom: 36px;
-}
-
+/* ── Buttons ────────────────────────────────────────────────────────────── */
 
 .buttons {
+  position: relative;
+  z-index: 1;
   display: flex;
   flex-direction: column;
-  gap: 14px;
-  width: 260px;
+  gap: 12px;
+  width: 248px;
 }
 
 .btnPrimary {
-  font-size: 1rem;
-  letter-spacing: 0.12em;
+  font-size: 0.88rem;
+  letter-spacing: 0.16em;
   text-transform: uppercase;
-  padding: 14px 20px;
-  background: rgba(230, 191, 51, 0.08);
-  border: 1px solid var(--color-gold-dim);
-  color: var(--color-gold);
+  padding: 13px 20px;
+  background: rgba(230,191,51,0.07);
+  border: 1px solid rgba(230,191,51,0.35);
+  color: rgba(230,191,51,0.90);
+  transition: background 0.2s, box-shadow 0.2s, border-color 0.2s;
 }
 
 .btnPrimary:hover:not(:disabled) {
-  background: rgba(230, 191, 51, 0.16);
-  box-shadow: var(--glow-gold);
+  background: rgba(230,191,51,0.15);
+  border-color: rgba(230,191,51,0.65);
+  box-shadow: 0 0 18px rgba(230,191,51,0.22), inset 0 0 18px rgba(230,191,51,0.05);
 }
 
-.btnSecondary {
-  font-size: 0.85rem;
-  letter-spacing: 0.08em;
-  padding: 10px 20px;
+/* ── Language toggle ────────────────────────────────────────────────────── */
+
+.btnLang {
+  position: absolute;
+  top: 18px;
+  right: 20px;
+  font-size: 0.7rem;
+  letter-spacing: 0.12em;
+  padding: 5px 10px;
   color: var(--color-text-dim);
   border-color: var(--color-border);
+  opacity: 0.55;
+  z-index: 2;
 }
+.btnLang:hover {
+  opacity: 1;
+  color: var(--color-gold-dim);
+  border-color: var(--color-gold-dim);
+}
+
+/* ── Intro overlay ──────────────────────────────────────────────────────── */
 
 .introOverlay {
   position: fixed;
@@ -115,7 +187,8 @@
   text-transform: uppercase;
 }
 
-/* Erase confirmation overlay */
+/* ── Erase-save confirmation ────────────────────────────────────────────── */
+
 .confirmOverlay {
   position: fixed;
   inset: 0;
@@ -161,26 +234,15 @@
   color: var(--color-text-danger);
   border-color: #5a1515;
 }
-
 .btnDanger:hover:not(:disabled) {
-  background: rgba(200, 20, 20, 0.12);
+  background: rgba(200,20,20,0.12);
   border-color: var(--color-text-danger);
 }
 
-.btnLang {
-  position: absolute;
-  top: 18px;
-  right: 20px;
-  font-size: 0.7rem;
-  letter-spacing: 0.12em;
-  padding: 5px 10px;
+.btnSecondary {
+  font-size: 0.85rem;
+  letter-spacing: 0.08em;
+  padding: 10px 20px;
   color: var(--color-text-dim);
   border-color: var(--color-border);
-  opacity: 0.6;
-}
-
-.btnLang:hover {
-  opacity: 1;
-  color: var(--color-gold-dim);
-  border-color: var(--color-gold-dim);
 }

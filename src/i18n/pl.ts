@@ -233,8 +233,7 @@ const pl: TranslationBundle = {
   ui: {
     // TitleScreen
     title:            'Online Ring',
-    subtitle:         'RPG twórcy internetowego',
-    great_run:        'Wielki Run #',
+    subtitle:         'Content Creator Game',
     btn_continue:     'Kontynuuj',
     btn_new_game:     'Nowa gra',
     erase_title:      'Usunąć zapis?',
