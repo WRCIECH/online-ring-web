@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useGameStore, selectWeaponSlotLoad, selectEquipLoad } from '../../store/gameStore'
-import { WEAPONS, LEVEL_MULT } from '../../data/weapons'
+import { WEAPONS, LEVEL_MULT, weaponUpgradeCost } from '../../data/weapons'
 import { WEAPON_CLASSES } from '../../data/generators/weaponClasses'
 import { WEAPON_SELL_PRICE } from '../../data/constants'
 import { mergeAffixesForDisplay } from '../../data/weaponStructure'
@@ -25,6 +25,7 @@ export default function EquipOverlay({ onClose }: Props) {
   const [expandedContent, setExpandedContent] = useState<Record<string, boolean>>({})
   const [selectedWeaponId, setSelectedWeaponId] = useState<string | null>(null)
   const [confirmSellId, setConfirmSellId] = useState<string | null>(null)
+  const [confirmUpgradeId, setConfirmUpgradeId] = useState<string | null>(null)
 
   const globalLoad = selectEquipLoad(store as Parameters<typeof selectEquipLoad>[0])
   const assignFull = globalLoad.used >= globalLoad.capacity
@@ -32,6 +33,15 @@ export default function EquipOverlay({ onClose }: Props) {
   function handleAssign(weaponInstanceId: string, contentId: string) {
     if (!contentId) return
     store.attachContentToWeapon(contentId, weaponInstanceId)
+  }
+
+  function handleUpgrade(wid: string) {
+    if (confirmUpgradeId === wid) {
+      store.upgradeWeapon(wid)
+      setConfirmUpgradeId(null)
+    } else {
+      setConfirmUpgradeId(wid)
+    }
   }
 
   function handleSell(wid: string) {
@@ -193,6 +203,43 @@ export default function EquipOverlay({ onClose }: Props) {
           <div className={s.empty}>{t.ui.equip_no_weapons}</div>
         ) : (
           <>
+            {/* ── Weapon upgrade section ── */}
+            <div className={s.upgradeSection}>
+              <div className={s.upgradeSectionTitle}>{t.ui.upgrade_weapons_title}</div>
+              {weaponsToShow.map(wid => {
+                const weapon = WEAPONS[wid] as WeaponInstance | undefined
+                if (!weapon) return null
+                const level      = store.weapon_level[wid] ?? 0
+                const isMax      = level >= 10
+                const cost       = weaponUpgradeCost(level)
+                const canAfford  = !isMax && store.runes >= cost
+                const isConfirm  = confirmUpgradeId === wid
+                return (
+                  <div key={wid} className={s.upgradeRow}>
+                    <span className={s.upgradeName}>{localizeWeaponName(weapon, t)}</span>
+                    <span className={s.upgradeRarity} style={{ color: RARITY_COLOURS[weapon.rarity] }}>
+                      {weapon.rarity.toUpperCase()}
+                    </span>
+                    <span className={s.upgradeLevel}>
+                      {isMax ? `+${level}` : `+${level} → +${level + 1}`}
+                    </span>
+                    {isMax ? (
+                      <span className={s.upgradeMax}>{t.ui.max_tag}</span>
+                    ) : (
+                      <button
+                        className={[s.btnUpgrade, isConfirm ? s.btnUpgradeConfirm : '', !canAfford ? s.btnUpgradeDim : ''].join(' ')}
+                        disabled={!canAfford}
+                        onClick={() => handleUpgrade(wid)}
+                      >
+                        {isConfirm ? t.ui.btn_confirm_q : `↑ ${cost.toLocaleString()} ✦`}
+                      </button>
+                    )}
+                  </div>
+                )
+              })}
+            </div>
+            <hr className={s.sep} />
+
             <div className={s.iconStrip}>
               {weaponsToShow.map(renderIcon)}
             </div>

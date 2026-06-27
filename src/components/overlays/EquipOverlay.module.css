@@ -50,6 +50,89 @@
   margin: 0;
 }
 
+/* ── Weapon upgrade section ───────────────────────────────────────────── */
+
+.upgradeSection {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.upgradeSectionTitle {
+  font-size: 0.68rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--color-gold-dim);
+  margin-bottom: 4px;
+}
+
+.upgradeRow {
+  display: grid;
+  grid-template-columns: 1fr auto auto auto;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 8px;
+  border-radius: var(--radius);
+  transition: background 0.1s;
+}
+
+.upgradeRow:hover { background: rgba(255,255,255,0.025); }
+
+.upgradeName {
+  font-size: 0.82rem;
+  color: var(--color-text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
+}
+
+.upgradeRarity {
+  font-size: 0.65rem;
+  letter-spacing: 0.06em;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.upgradeLevel {
+  font-size: 0.75rem;
+  color: var(--color-text-dim);
+  white-space: nowrap;
+}
+
+.upgradeMax {
+  font-size: 0.65rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--color-text-dim);
+  opacity: 0.5;
+}
+
+.btnUpgrade {
+  font-size: 0.72rem;
+  letter-spacing: 0.05em;
+  padding: 4px 10px;
+  white-space: nowrap;
+  background: rgba(230,191,51,0.07);
+  border: 1px solid var(--color-gold-dim);
+  color: var(--color-gold);
+  border-radius: var(--radius);
+  cursor: pointer;
+  transition: background 0.1s, box-shadow 0.1s;
+}
+
+.btnUpgrade:hover:not(:disabled) {
+  background: rgba(230,191,51,0.16);
+  box-shadow: var(--glow-gold);
+}
+
+.btnUpgradeConfirm {
+  background: rgba(230,191,51,0.18) !important;
+  border-color: var(--color-gold) !important;
+}
+
+.btnUpgradeDim { opacity: 0.30; cursor: not-allowed; }
+
 /* ── Icon strip ───────────────────────────────────────────────────────── */
 
 .iconStrip {

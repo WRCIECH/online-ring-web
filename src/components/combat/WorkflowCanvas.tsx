@@ -25,20 +25,20 @@ interface Props {
 }
 
 // ── Layout constants ──────────────────────────────────────────────────────
-const TILE    = 42
-const TILE_RX = 8
-const H_GAP   = 22    // gap between tiles sharing a spiral step (branch lanes)
-const PAD     = 28
-const MIN_W   = 180
+const TILE    = 32
+const TILE_RX = 5
+const H_GAP   = 14    // gap between tiles sharing a spiral step (branch lanes)
+const PAD     = 20
+const MIN_W   = 140
 
 // Spiral step constants — DR must clear TILE + H_GAP so consecutive coils
 // don't overlap; DTHETA chosen so the coil opens up steadily. R0 is pushed
 // out past MOB_FOOTPRINT_R so the first ring of tiles clears the enemy
 // centerpiece sitting at the spiral's origin.
-const SPIRAL_R0     = 126
-const SPIRAL_DR     = 68
-const SPIRAL_DTHETA = 1.3
-const MOB_FOOTPRINT_R = 110
+const SPIRAL_R0     = 115
+const SPIRAL_DR     = 48
+const SPIRAL_DTHETA = 0.70
+const MOB_FOOTPRINT_R = 100
 
 const TILE_LABEL: Record<AtomicStage, string> = {
   Research: 'Research',
@@ -152,15 +152,15 @@ function render(
     const x2 = to.x   + TILE / 2,  y2 = to.y   + TILE / 2
     const dx = x2 - x1, dy = y2 - y1
     const dist = Math.hypot(dx, dy) || 1
-    const nx = -dy / dist, ny = dx / dist   // unit perpendicular
+    const nx = -dy / dist, ny = dx / dist   // unit perpendicular (left-hand)
     const bow = Math.min(32, dist * 0.24)
-    const cx1 = (x1 + x2) / 2 + nx * bow
-    const cy1 = (y1 + y2) / 2 + ny * bow
+    const cx1 = (x1 + x2) / 2 - nx * bow   // negate → bows outward from mob center
+    const cy1 = (y1 + y2) / 2 - ny * bow
 
     ctx.beginPath()
-    ctx.strokeStyle = isActive ? 'rgba(200,180,100,0.75)' : 'rgba(120,112,170,0.55)'
-    ctx.lineWidth   = isActive ? 2.5 : 1.5
-    ctx.setLineDash(isActive ? [] : [6, 3])
+    ctx.strokeStyle = isActive ? 'rgba(200,180,100,0.85)' : 'rgba(110,100,185,0.72)'
+    ctx.lineWidth   = isActive ? 2.5 : 1.8
+    ctx.setLineDash(isActive ? [] : [5, 5])
     ctx.moveTo(x1, y1)
     ctx.quadraticCurveTo(cx1, cy1, x2, y2)
     ctx.stroke()
@@ -184,7 +184,7 @@ function render(
     ctx.fill()
 
     // Border
-    let bc = 'rgba(38,34,75,0.45)', bw = 1
+    let bc = 'rgba(78,72,145,0.65)', bw = 1
     if (isSelected && done) { bc = '#e6bf33';               bw = 2.5 }
     else if (isSelected)    { bc = '#e6bf33';               bw = 2.5 }
     else if (isReach)       { bc = 'rgba(110,175,255,0.9)'; bw = 2   }
@@ -217,25 +217,25 @@ function render(
 
     if (done) {
       ctx.fillStyle = '#3d8845'
-      ctx.font      = 'bold 17px sans-serif'
+      ctx.font      = 'bold 13px sans-serif'
       ctx.fillText('✓', cx, cy)
     } else if (locked) {
       // Padlock — shackle arc + body rect
-      ctx.strokeStyle = 'rgba(55,52,95,0.7)'
-      ctx.lineWidth   = 2
+      ctx.strokeStyle = 'rgba(105,98,170,0.88)'
+      ctx.lineWidth   = 1.5
       ctx.beginPath()
-      ctx.arc(cx, cy - 5, 5, Math.PI, 0, false)
+      ctx.arc(cx, cy - 4, 4, Math.PI, 0, false)
       ctx.stroke()
       ctx.beginPath()
-      ctx.roundRect(cx - 6, cy - 1, 12, 9, 2)
-      ctx.fillStyle   = 'rgba(38,35,80,0.7)'
+      ctx.roundRect(cx - 5, cy - 1, 10, 7, 2)
+      ctx.fillStyle   = 'rgba(62,58,128,0.82)'
       ctx.fill()
-      ctx.strokeStyle = 'rgba(55,52,95,0.6)'
+      ctx.strokeStyle = 'rgba(105,98,170,0.82)'
       ctx.lineWidth   = 1
       ctx.stroke()
     } else {
       ctx.fillStyle = '#c8c0d8'
-      ctx.font      = 'bold 14px sans-serif'
+      ctx.font      = 'bold 11px sans-serif'
       ctx.fillText((TILE_LABEL[tile.type] ?? '?')[0], cx, cy)
     }
 

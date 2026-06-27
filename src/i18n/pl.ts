@@ -255,7 +255,7 @@ const pl: TranslationBundle = {
     btn_begin_as:       'Zacznij jako',
 
     // LocationSelectScreen
-    choose_dungeon_title: 'Wybierz loch',
+    choose_dungeon_title: 'Wybierz lokację',
     choose_dungeon_first: 'Rozpocznij podróż — tylko pierwsze kroki są dla ciebie otwarte',
     choose_dungeon_next:  'Wybierz kolejne wyzwanie',
     locations_progress:   'lokacji ukończono',
@@ -436,6 +436,13 @@ const pl: TranslationBundle = {
     player_stats_section:  'Statystyki gracza',
     cost_each_suffix:      '✦ każdy',
     upgrade_weapons_title: 'Ulepszaj broń',
+    btn_level_up:          'Podnieś poziom',
+    lv_pending:            'Oczekujące',
+    lv_total_cost:         'Łączny koszt',
+    lv_col_current:        'Aktualne',
+    lv_col_preview:        'Podgląd',
+    lv_scaling_bonus:      'Skalowanie stat.',
+    lv_no_scaling:         'Brak skalowania statystyk',
     btn_confirm_q:         'Potwierdź?',
     btn_yes_spend:         'Tak, wydaj',
     no_weapon_scaling:     '— brak broni skalowanej tą statystyką',

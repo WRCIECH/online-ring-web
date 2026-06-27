@@ -17,7 +17,7 @@ export const LEVEL_MULT: Record<WeaponRarity, number> = {
   legendary: 0.08,
 }
 
-const GRADE_MULT: Record<Grade, number> = {
+export const GRADE_MULT: Record<Grade, number> = {
   S: 0.030, A: 0.022, B: 0.015, C: 0.010, D: 0.006, E: 0.003,
 }
 

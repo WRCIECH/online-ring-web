@@ -113,12 +113,12 @@ export default function RunMapScreen() {
     // Connection lines — quadratic bezier curves
     for (let i = 0; i < ns.length - 1; i++) {
       const beaten = i < current
+      const isNext = i === current   // line leading out of the active node
       const a = ns[i], b = ns[i + 1]
       const mx = (a.x + b.x) / 2
       const my = (a.y + b.y) / 2
       const dx = b.x - a.x, dy = b.y - a.y
       const len = Math.sqrt(dx * dx + dy * dy)
-      // Perpendicular offset (counterclockwise normal) for the curve bow
       const offset = len * 0.18
       const cpx = mx + (-dy / len) * offset
       const cpy = my + (dx / len) * offset
@@ -126,11 +126,27 @@ export default function RunMapScreen() {
       ctx.beginPath()
       ctx.moveTo(a.x, a.y)
       ctx.quadraticCurveTo(cpx, cpy, b.x, b.y)
-      ctx.strokeStyle = beaten ? 'rgba(30,100,68,0.72)' : 'rgba(42,38,72,0.70)'
-      ctx.lineWidth   = beaten ? 2 : 1.2
-      if (!beaten) ctx.setLineDash([3, 6])
+
+      if (beaten) {
+        ctx.strokeStyle = 'rgba(52,190,118,0.88)'
+        ctx.lineWidth   = 2.5
+        ctx.shadowColor = 'rgba(52,190,118,0.45)'
+        ctx.shadowBlur  = 6
+        ctx.setLineDash([])
+      } else if (isNext) {
+        ctx.strokeStyle = 'rgba(180,145,35,0.72)'
+        ctx.lineWidth   = 2.0
+        ctx.shadowBlur  = 0
+        ctx.setLineDash([7, 5])
+      } else {
+        ctx.strokeStyle = 'rgba(110,100,185,0.70)'
+        ctx.lineWidth   = 1.8
+        ctx.shadowBlur  = 0
+        ctx.setLineDash([5, 7])
+      }
       ctx.stroke()
       ctx.setLineDash([])
+      ctx.shadowBlur = 0
     }
 
     // Nodes
@@ -153,7 +169,7 @@ export default function RunMapScreen() {
       } else if (stype === 'event') {
         fillColor = '#081016'; ringColor = '#205870'; labelColor = '#3a90aa'
       } else {
-        fillColor = '#0d0c18'; ringColor = '#22203a'; labelColor = '#5654a0'
+        fillColor = '#0d0c18'; ringColor = '#4a4880'; labelColor = '#b8b5f0'
       }
 
       const r = active ? NODE_R + 3 : NODE_R

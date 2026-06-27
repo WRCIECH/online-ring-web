@@ -14,7 +14,7 @@
   background: var(--color-bg-panel);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-lg);
-  width: 680px;
+  width: 860px;
   max-width: 98vw;
   display: flex;
   flex-direction: column;
@@ -35,10 +35,7 @@
   gap: 6px;
 }
 
-.runeIcon {
-  font-size: 1rem;
-  color: var(--color-gold);
-}
+.runeIcon  { font-size: 1rem; color: var(--color-gold); }
 
 .runeCount {
   font-size: 1.6rem;
@@ -55,10 +52,7 @@
   text-transform: uppercase;
 }
 
-.playerLevel {
-  display: flex;
-  align-items: center;
-}
+.playerLevel { display: flex; align-items: center; }
 
 .levelNum {
   font-size: 0.88rem;
@@ -74,23 +68,37 @@
   border: 1px solid var(--color-border);
   padding: 6px 14px;
 }
-
 .btnClose:hover { color: var(--color-text); border-color: var(--color-text-dim); }
 
-.sep {
-  border: none;
-  border-top: 1px solid var(--color-sep);
-  margin: 0;
-}
+.sep { border: none; border-top: 1px solid var(--color-sep); margin: 0; }
 
-/* ── Body ──────────────────────────────────────────────────────────────── */
+/* ── Two-column body ───────────────────────────────────────────────────── */
 
 .body {
-  padding: 8px 0 24px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0;
+  padding: 0;
 }
 
+.leftCol {
+  display: flex;
+  flex-direction: column;
+  padding: 16px 20px 20px 24px;
+  border-right: 1px solid var(--color-sep);
+}
+
+.rightCol {
+  display: flex;
+  flex-direction: column;
+  padding: 16px 24px 20px 20px;
+  gap: 12px;
+}
+
+/* ── Locked notice ─────────────────────────────────────────────────────── */
+
 .lockedNotice {
-  margin: 8px 24px 0;
+  margin-bottom: 10px;
   padding: 8px 12px;
   font-size: 0.75rem;
   color: var(--color-text-dim);
@@ -101,30 +109,31 @@
   letter-spacing: 0.04em;
 }
 
-.section {
-  padding: 16px 24px 8px;
-}
+/* ── Section title ─────────────────────────────────────────────────────── */
 
 .sectionTitle {
-  font-size: 0.72rem;
-  letter-spacing: 0.18em;
+  font-size: 0.70rem;
+  letter-spacing: 0.16em;
   text-transform: uppercase;
   color: var(--color-gold-dim);
-  margin-bottom: 12px;
+  margin-bottom: 10px;
+}
+
+.nextCost {
+  color: var(--color-text-dim);
+  font-size: 0.68rem;
+  letter-spacing: 0.06em;
+  text-transform: none;
 }
 
 /* ── Stat rows ─────────────────────────────────────────────────────────── */
 
-.statBlock {
-  margin-bottom: 4px;
-}
-
 .statRow {
   display: grid;
-  grid-template-columns: 100px 36px 1fr auto;
+  grid-template-columns: 110px 1fr 28px 28px;
   align-items: center;
-  gap: 10px;
-  padding: 8px 6px;
+  gap: 8px;
+  padding: 5px 4px;
   border-radius: var(--radius);
   transition: background 0.1s;
 }
@@ -132,152 +141,292 @@
 .statRow:hover { background: rgba(255,255,255,0.03); }
 
 .statName {
-  font-size: 0.82rem;
+  font-size: 0.80rem;
   color: var(--color-text);
-  letter-spacing: 0.04em;
+  letter-spacing: 0.03em;
+  cursor: default;
 }
 
 .statVal {
-  font-size: 1rem;
+  font-size: 0.95rem;
   color: var(--color-gold);
-  text-align: center;
   font-variant-numeric: tabular-nums;
-}
-
-.preview {
   display: flex;
-  flex-direction: column;
+  align-items: baseline;
   gap: 2px;
 }
 
-.previewLine {
-  font-size: 0.72rem;
+.valBase    { color: var(--color-text-dim); }
+.valArrow   { color: rgba(255,255,255,0.20); font-size: 0.7rem; }
+.valPending { color: var(--color-gold); font-weight: 600; }
+
+.btnPM {
+  width: 28px;
+  height: 26px;
+  font-size: 1.1rem;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--color-border);
+  background: rgba(255,255,255,0.03);
   color: var(--color-text-dim);
-  line-height: 1.4;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background 0.1s, color 0.1s, border-color 0.1s;
 }
 
-.btnLevel {
+.btnPM:hover:not(:disabled) {
+  background: rgba(230,191,51,0.12);
+  color: var(--color-gold);
+  border-color: var(--color-gold-dim);
+}
+
+.btnPM:disabled { opacity: 0.25; cursor: not-allowed; }
+
+/* ── Pending summary ───────────────────────────────────────────────────── */
+
+.pendingSummary {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  margin-top: 12px;
+  padding-top: 10px;
+  border-top: 1px solid var(--color-sep);
+  min-height: 38px;
+}
+
+.pendingCount {
   font-size: 0.75rem;
+  color: var(--color-gold);
+  letter-spacing: 0.05em;
+}
+
+.pendingCost {
+  font-size: 0.72rem;
+  color: var(--color-text-dim);
+}
+
+.pendingHint {
+  font-size: 0.72rem;
+  color: rgba(255,255,255,0.22);
+}
+
+/* ── Action row ────────────────────────────────────────────────────────── */
+
+.actionRow {
+  display: flex;
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.btnCancel {
+  font-size: 0.76rem;
   letter-spacing: 0.06em;
-  padding: 5px 10px;
-  white-space: nowrap;
-  background: rgba(230,191,51,0.08);
+  padding: 8px 16px;
+  border: 1px solid var(--color-border);
+  color: var(--color-text-dim);
+  border-radius: var(--radius);
+  background: transparent;
+  cursor: pointer;
+  transition: color 0.12s, border-color 0.12s;
+}
+
+.btnCancel:hover:not(:disabled) { color: var(--color-text); border-color: var(--color-text-dim); }
+
+.btnLevelUp {
+  flex: 1;
+  font-size: 0.80rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 8px 16px;
+  background: rgba(230,191,51,0.10);
   border: 1px solid var(--color-gold-dim);
   color: var(--color-gold);
   border-radius: var(--radius);
+  cursor: pointer;
+  transition: background 0.12s, box-shadow 0.12s;
 }
 
-.btnLevel:hover:not(:disabled) {
-  background: rgba(230,191,51,0.18);
+.btnLevelUp:hover:not(:disabled) {
+  background: rgba(230,191,51,0.22);
   box-shadow: var(--glow-gold);
 }
 
-.btnPending {
-  background: rgba(230,191,51,0.18) !important;
-  border-color: var(--color-gold) !important;
+.btnDim { opacity: 0.30; cursor: not-allowed; }
+
+/* ── Weapon tabs ───────────────────────────────────────────────────────── */
+
+.weaponTabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
 }
 
-/* ── Confirm row ───────────────────────────────────────────────────────── */
+.weaponTab {
+  font-size: 0.68rem;
+  padding: 4px 10px;
+  border: 1px solid var(--color-border);
+  color: var(--color-text-dim);
+  border-radius: var(--radius);
+  background: transparent;
+  cursor: pointer;
+  letter-spacing: 0.04em;
+  transition: color 0.1s, border-color 0.1s;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 140px;
+}
 
-.confirmRow {
+.weaponTab:hover { color: var(--color-text); border-color: var(--color-border); }
+
+.weaponTabActive {
+  color: var(--color-gold-dim);
+  border-color: var(--color-gold-dim);
+  background: rgba(230,191,51,0.06);
+}
+
+/* ── Weapon preview card ───────────────────────────────────────────────── */
+
+.weaponPreviewCard {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  padding: 14px 16px;
+  background: rgba(255,255,255,0.02);
+}
+
+.weaponPreviewName {
+  font-size: 0.92rem;
+  color: var(--color-gold-text);
+  font-weight: 500;
+  letter-spacing: 0.03em;
+  line-height: 1.3;
+}
+
+.weaponPreviewMeta {
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 6px 6px 8px 6px;
-  margin-bottom: 4px;
-  background: rgba(230,191,51,0.05);
-  border-radius: var(--radius);
-  border: 1px solid rgba(230,191,51,0.15);
+  font-size: 0.70rem;
 }
 
-.confirmText {
-  font-size: 0.75rem;
-  color: var(--color-text-dim);
-  flex: 1;
-}
-
-.btnConfirm {
-  font-size: 0.75rem;
-  padding: 4px 12px;
-  color: var(--color-text-success);
-  border: 1px solid #1a4a1a;
-  background: rgba(50,180,50,0.07);
-  border-radius: var(--radius);
-}
-
-.btnConfirm:hover { background: rgba(50,180,50,0.15); border-color: var(--color-text-success); }
-
-.btnCancel {
-  font-size: 0.75rem;
-  padding: 4px 10px;
-  color: var(--color-text-dim);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius);
-}
-
-.btnCancel:hover { color: var(--color-text); }
-
-/* ── Weapon rows ───────────────────────────────────────────────────────── */
-
-.weaponBlock {
-  margin-bottom: 4px;
-}
-
-.weaponRow {
-  display: grid;
-  grid-template-columns: 1fr 90px 1fr auto;
-  align-items: center;
-  gap: 10px;
-  padding: 8px 6px;
-  border-radius: var(--radius);
-  transition: background 0.1s;
-}
-
-.weaponRow:hover { background: rgba(255,255,255,0.03); }
-
-.weaponName {
-  font-size: 0.82rem;
-  color: var(--color-text);
-}
-
-.weaponLevel {
-  font-size: 0.78rem;
-  color: var(--color-gold-dim);
-  text-align: center;
-  white-space: nowrap;
-}
-
-.weaponPreview {
-  font-size: 0.72rem;
+.weaponPreviewLevel {
   color: var(--color-text-dim);
 }
 
-.btnUpgrade {
-  font-size: 0.75rem;
-  letter-spacing: 0.06em;
-  padding: 5px 10px;
-  white-space: nowrap;
-  background: rgba(230,191,51,0.08);
-  border: 1px solid var(--color-gold-dim);
-  color: var(--color-gold);
-  border-radius: var(--radius);
+.weaponPreviewLvlPct {
+  color: rgba(255,255,255,0.25);
 }
 
-.btnUpgrade:hover:not(:disabled) {
-  background: rgba(230,191,51,0.18);
-  box-shadow: var(--glow-gold);
+.scalingGrades {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
 }
 
-.maxTag {
+.scalingChip {
   font-size: 0.68rem;
-  letter-spacing: 0.1em;
+  padding: 2px 7px;
+  border: 1px solid rgba(230,191,51,0.22);
+  border-radius: 3px;
+  color: var(--color-gold-dim);
+  background: rgba(230,191,51,0.05);
+  letter-spacing: 0.08em;
+}
+
+/* ── Preview two-column table ──────────────────────────────────────────── */
+
+.previewTable {
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  gap: 4px 16px;
+  align-items: center;
+}
+
+.previewHeaderRow {
+  display: contents;
+}
+
+.previewHeaderRow > span {
+  font-size: 0.62rem;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
+  color: rgba(255,255,255,0.30);
+  padding-bottom: 4px;
+  border-bottom: 1px solid var(--color-sep);
+}
+
+.previewDataRow {
+  display: contents;
+}
+
+.previewLabel {
+  font-size: 0.74rem;
   color: var(--color-text-dim);
-  opacity: 0.5;
+  padding: 2px 0;
+}
+
+.previewCurrent {
+  font-size: 0.80rem;
+  color: var(--color-text-dim);
+  font-variant-numeric: tabular-nums;
   text-align: right;
 }
 
-.disabled {
-  opacity: 0.35;
-  cursor: not-allowed;
+.previewAfter {
+  font-size: 0.80rem;
+  color: var(--color-text-dim);
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+  transition: color 0.15s;
+}
+
+.previewUp {
+  color: var(--color-gold);
+  font-weight: 600;
+}
+
+.previewNote {
+  font-size: 0.62rem;
+  color: rgba(255,255,255,0.22);
+  line-height: 1.4;
+}
+
+.noScalingNote {
+  font-size: 0.72rem;
+  color: rgba(255,255,255,0.25);
+  font-style: italic;
+}
+
+/* ── Stat hover tooltip ────────────────────────────────────────────────── */
+
+.tooltip {
+  position: fixed;
+  transform: translate(0, calc(-100% - 8px));
+  background: color-mix(in srgb, var(--color-bg) 80%, #2a2050);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  padding: 8px 12px;
+  min-width: 180px;
+  max-width: 240px;
+  z-index: 100;
+  pointer-events: none;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.5);
+}
+
+.tipTitle {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--color-gold);
+  margin-bottom: 4px;
+}
+
+.tipBody {
+  font-size: 0.66rem;
+  color: var(--color-text-dim);
+  line-height: 1.5;
 }
