@@ -6,10 +6,12 @@ import type { StatKey } from '../types/game'
 import { useT } from '../i18n'
 import s from './ClassSelectScreen.module.css'
 
-const STAT_KEYS: StatKey[] = ['VIG','END','MND','STR','DEX','INT','FAI','ARC']
+const STAT_KEYS: StatKey[] = ['VIG','END','MND','TEXT','VIDEO','AUDIO','GRAPHIC','VELOCITY','DEPTH','PARASOCIAL','FRICTION','INSIGHT']
 const STAT_COLOUR: Partial<Record<StatKey, string>> = {
   VIG: '#cc3333', END: '#33aacc', MND: '#9944cc',
-  STR: '#cc7722', DEX: '#22cc88', INT: '#4488cc', FAI: '#ccaa22', ARC: '#aa44cc',
+  TEXT: '#4488cc', VIDEO: '#dd7722', AUDIO: '#cc4455',
+  GRAPHIC: '#22cc88', VELOCITY: '#88cc22', DEPTH: '#2244cc',
+  PARASOCIAL: '#cc44aa', FRICTION: '#cc5522', INSIGHT: '#aa44cc',
 }
 
 export default function ClassSelectScreen() {

@@ -1,5 +1,5 @@
 export type Locale = 'pl' | 'en'
-export type StatKey = 'VIG' | 'END' | 'MND' | 'STR' | 'DEX' | 'INT' | 'FAI' | 'ARC'
+export type StatKey = 'VIG' | 'END' | 'MND' | 'TEXT' | 'VIDEO' | 'AUDIO' | 'GRAPHIC' | 'VELOCITY' | 'DEPTH' | 'PARASOCIAL' | 'FRICTION' | 'INSIGHT'
 export type Grade = 'S' | 'A' | 'B' | 'C' | 'D' | 'E'
 export type WeaponRarity = 'common' | 'Intellectual' | 'rare' | 'epic' | 'legendary'
 export type SublocationType = 'mob' | 'elite' | 'event' | 'boss'
@@ -169,7 +169,8 @@ export interface LocationData {
 // ── Player stats ─────────────────────────────────────────────────────────
 export interface Stats {
   VIG: number; END: number; MND: number
-  STR: number; DEX: number; INT: number; FAI: number; ARC: number
+  TEXT: number; VIDEO: number; AUDIO: number; GRAPHIC: number
+  VELOCITY: number; DEPTH: number; PARASOCIAL: number; FRICTION: number; INSIGHT: number
 }
 
 // ── Content pipeline ──────────────────────────────────────────────────────
