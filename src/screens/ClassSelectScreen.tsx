@@ -1,9 +1,10 @@
-import { useState } from 'react'
+import { useState, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useGameStore } from '../store/gameStore'
 import { CLASS_DEFINITIONS } from '../data/classes'
 import type { StatKey } from '../types/game'
 import { useT } from '../i18n'
+import WeaponIcon from '../components/WeaponIcon'
 import s from './ClassSelectScreen.module.css'
 
 const CORE_STATS:    StatKey[] = ['VIG', 'END']
@@ -16,11 +17,20 @@ const STAT_COLOUR: Partial<Record<StatKey, string>> = {
   PARASOCIAL: '#cc44aa', FRICTION: '#cc5522', INSIGHT: '#aa44cc',
 }
 
+interface Tip { node: React.ReactNode; x: number; y: number }
+
 export default function ClassSelectScreen() {
   const navigate = useNavigate()
   const store    = useGameStore()
   const t        = useT()
   const [chosen, setChosen] = useState<string | null>(null)
+  const [tip, setTip]       = useState<Tip | null>(null)
+
+  const showTip = useCallback((e: React.MouseEvent, node: React.ReactNode) => {
+    const r = e.currentTarget.getBoundingClientRect()
+    setTip({ node, x: r.left + r.width / 2, y: r.top })
+  }, [])
+  const hideTip = useCallback(() => setTip(null), [])
 
   function handleConfirm() {
     if (!chosen) return
@@ -45,7 +55,23 @@ export default function ClassSelectScreen() {
           const accent = STAT_COLOUR[highStat] ?? '#ccaa22'
           const clsName = t.classes[cls.id]?.name ?? cls.name
           const clsDesc = t.classes[cls.id]?.description ?? cls.description
-          const wName   = t.weapons[cls.weaponClass]?.name ?? cls.weaponClass
+          const wEntry  = t.weapons[cls.weaponClass]
+
+          const weaponTip = (
+            <>
+              <div className={s.tipTitle}>{wEntry?.name ?? cls.weaponClass}</div>
+              <div className={s.tipBody}>{wEntry?.description}</div>
+            </>
+          )
+
+          function statTip(k: StatKey) {
+            return (
+              <>
+                <div className={s.tipTitle}>{t.ui[`stat_${k}`] ?? k}</div>
+                <div className={s.tipBody}>{t.ui[`stat_${k}_desc`]}</div>
+              </>
+            )
+          }
 
           return (
             <button
@@ -57,12 +83,25 @@ export default function ClassSelectScreen() {
               <div className={s.accentBar} style={{ background: accent }} />
               <div className={s.cardBody}>
                 <div className={s.className}>{clsName}</div>
-                <div className={s.classDesc}>{clsDesc}</div>
-                <div className={s.weaponBadge}>{wName}</div>
+                <div className={s.classInfo}>
+                  <div className={s.classDesc}>{clsDesc}</div>
+                  <div
+                    className={s.weaponIconWrap}
+                    onMouseEnter={e => showTip(e, weaponTip)}
+                    onMouseLeave={hideTip}
+                  >
+                    <WeaponIcon weaponClass={cls.weaponClass} className={s.weaponIcon} />
+                  </div>
+                </div>
                 <div className={s.statsWrap}>
                   <div className={s.statsCoreRow}>
                     {CORE_STATS.map(k => (
-                      <div key={k} className={[s.statCell, cls.startingStats[k] >= 14 ? s.statHigh : cls.startingStats[k] >= 11 ? s.statMid : ''].join(' ')}>
+                      <div
+                        key={k}
+                        className={[s.statCell, cls.startingStats[k] >= 14 ? s.statHigh : cls.startingStats[k] >= 11 ? s.statMid : ''].join(' ')}
+                        onMouseEnter={e => showTip(e, statTip(k))}
+                        onMouseLeave={hideTip}
+                      >
                         <span className={s.statKey}>{k}</span>
                         <span className={s.statVal}>{cls.startingStats[k]}</span>
                       </div>
@@ -70,7 +109,12 @@ export default function ClassSelectScreen() {
                   </div>
                   <div className={s.statsContentGrid}>
                     {CONTENT_STATS.map(k => (
-                      <div key={k} className={[s.statCell, cls.startingStats[k] >= 14 ? s.statHigh : cls.startingStats[k] >= 11 ? s.statMid : ''].join(' ')}>
+                      <div
+                        key={k}
+                        className={[s.statCell, cls.startingStats[k] >= 14 ? s.statHigh : cls.startingStats[k] >= 11 ? s.statMid : ''].join(' ')}
+                        onMouseEnter={e => showTip(e, statTip(k))}
+                        onMouseLeave={hideTip}
+                      >
                         <span className={s.statKey}>{k}</span>
                         <span className={s.statVal}>{cls.startingStats[k]}</span>
                       </div>
@@ -94,6 +138,12 @@ export default function ClassSelectScreen() {
             : t.ui.btn_select_class}
         </button>
       </div>
+
+      {tip && (
+        <div className={s.tooltip} style={{ left: tip.x, top: tip.y }}>
+          {tip.node}
+        </div>
+      )}
     </div>
   )
 }
