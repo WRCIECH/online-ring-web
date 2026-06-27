@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useGameStore, selectRunRemainingSeconds } from '../../store/gameStore'
+import { LOCATION_DEFINITIONS } from '../../data/locations'
 import CharacterOverlay  from '../overlays/CharacterOverlay'
 import ContentOverlay    from '../overlays/ContentOverlay'
 import LocationsOverlay  from '../overlays/LocationsOverlay'
@@ -7,6 +8,8 @@ import AnalyticsOverlay  from '../overlays/AnalyticsOverlay'
 import EquipOverlay      from '../overlays/EquipOverlay'
 import { useT } from '../../i18n'
 import s from './RunHeader.module.css'
+
+const LOC_MAP = Object.fromEntries(LOCATION_DEFINITIONS.map(l => [l.id, l]))
 
 interface Props {
   hp: number; maxHp: number
@@ -62,7 +65,7 @@ export default function RunHeader({ hp, maxHp, canAddContent = true }: Props) {
         {/* Run info */}
         <div className={s.runInfo}>
           <button className={s.runTitle} onClick={() => setShowLocations(true)}>
-            {store.run_location_name ? (t.locations[store.run_location_name] ?? store.run_location_name) : `Run #${store.run_count + 1}`}
+            {store.run_location_name ? (LOC_MAP[store.run_location_name]?.displayName ?? store.run_location_name) : `Run #${store.run_count + 1}`}
           </button>
           <span className={[s.timer, isUrgent ? s.urgent : ''].join(' ')}>{fmtTime(remaining)}</span>
         </div>

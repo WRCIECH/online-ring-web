@@ -98,10 +98,32 @@
   margin-bottom: 4px;
 }
 
+.infoThemeRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.themeBadge {
+  font-size: 0.60rem;
+  letter-spacing: 0.10em;
+  border: 1px solid;
+  border-radius: 3px;
+  padding: 1px 6px;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
 .infoBoss {
   font-size: 0.70rem;
   color: var(--color-text-dim);
-  margin-bottom: 10px;
+}
+
+.diffBadge {
+  font-size: 0.60rem;
+  color: rgba(180, 140, 80, 0.75);
+  letter-spacing: 0.06em;
 }
 
 .infoMeta {

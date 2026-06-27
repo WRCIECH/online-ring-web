@@ -11,7 +11,6 @@ export const ENEMIES: Record<string, Enemy> = {
       { id: 'weapon', first_kill_chance: 0.60, repeat_chance: 0.20 },
       { id: 'weapon', first_kill_chance: 0.40, repeat_chance: 0.15 },
     ],
-    moveset: ['mindless_scroll', 'shiny_object'],
     affinities: {
       love:    { stages: ['Research', 'Plan'] },
       like:    { products: ['CurationFeed'], emotions: ['Comfort'] },
@@ -24,7 +23,6 @@ export const ENEMIES: Record<string, Enemy> = {
     name: 'Hejter', description: 'Feeds on the gap between your work and its potential.',
     max_hp: 90, rune_reward: 150, is_boss: false,
     drops: [{ id: 'weapon', first_kill_chance: 1.0, repeat_chance: 0.0 }],
-    moveset: ['public_criticism', 'mockery', 'credibility_slash'],
     affinities: {
       love:    { emotions: ['Polarization', 'Drama'] },
       like:    { origins: ['Commentary'], styles: ['Shock'] },
@@ -38,7 +36,6 @@ export const ENEMIES: Record<string, Enemy> = {
     max_hp: 110, rune_reward: 200, is_boss: false,
     boss_name: 'Terror Próżni',
     drops: [{ id: 'weapon', first_kill_chance: 1.0, repeat_chance: 0.0 }],
-    moveset: ['infinite_loop', 'standard_terror', 'scope_creep'],
     affinities: {
       love:    { origins: ['New'], stages: ['Research', 'Plan'] },
       like:    { products: ['Plaintext'], emotions: ['Fear'] },
@@ -54,7 +51,6 @@ export const ENEMIES: Record<string, Enemy> = {
       { id: 'weapon', first_kill_chance: 0.30, repeat_chance: 0.10 },
       { id: 'weapon', first_kill_chance: 0.50, repeat_chance: 0.20 },
     ],
-    moveset: ['hollow_stare', 'drag_down'],
     affinities: {
       love:    { stages: ['Produce'], emotions: ['Fear'] },
       like:    { products: ['Plaintext', 'RawAudio'] },
@@ -67,7 +63,6 @@ export const ENEMIES: Record<string, Enemy> = {
     name: 'Maszyna Porównań', description: 'An infinite scroll of everyone doing it better than you.',
     max_hp: 100, rune_reward: 160, is_boss: false,
     drops: [{ id: 'weapon', first_kill_chance: 0.80, repeat_chance: 0.30 }],
-    moveset: ['viral_post', 'follower_count', 'trending_now'],
     affinities: {
       love:    { emotions: ['Envy', 'Fomo'] },
       like:    { products: ['Carousel', 'SingleGraphic'] },
@@ -80,7 +75,6 @@ export const ENEMIES: Record<string, Enemy> = {
     name: 'Widmo Strachu', description: 'The imagined audience that never lets you publish.',
     max_hp: 85, rune_reward: 130, is_boss: false,
     drops: [{ id: 'weapon', first_kill_chance: 0.70, repeat_chance: 0.25 }],
-    moveset: ['what_if_they_laugh', 'stay_hidden', 'visibility_terror'],
     affinities: {
       love:    { stages: ['Publish', 'Promote'] },
       like:    { styles: ['Cliffhanger'], emotions: ['Fear'] },
@@ -95,7 +89,6 @@ export const ENEMIES: Record<string, Enemy> = {
     max_hp: 200, rune_reward: 500,
     is_boss: true, is_remembrance: true, unlocks_area: 'second_area',
     drops: [{ id: 'weapon', first_kill_chance: 1.0, repeat_chance: 0.0 }],
-    moveset: ['revision_spiral', 'not_good_enough', 'one_more_source'],
     affinities: {
       love:    { stages: ['Refine'] },
       like:    { products: ['CinematicVideo', 'StructuredText'] },
@@ -319,7 +312,6 @@ export const ENEMIES: Record<string, Enemy> = {
       { id: 'weapon', first_kill_chance: 0.55, repeat_chance: 0.18 },
       { id: 'weapon', first_kill_chance: 0.35, repeat_chance: 0.12 },
     ],
-    moveset: ['ping_attack', 'alert_flood'],
   },
 
   impostor_shade: {
@@ -327,7 +319,6 @@ export const ENEMIES: Record<string, Enemy> = {
     description: 'Wears a mask of competence that keeps cracking at the edges.',
     max_hp: 85, rune_reward: 138, is_boss: false,
     drops: [{ id: 'weapon', first_kill_chance: 0.65, repeat_chance: 0.22 }],
-    moveset: ['identity_erosion', 'credential_doubt'],
   },
 
   algorithm_specter: {
@@ -335,7 +326,6 @@ export const ENEMIES: Record<string, Enemy> = {
     description: 'A cold geometric intelligence that optimises your voice for engagement over meaning.',
     max_hp: 95, rune_reward: 152, is_boss: false,
     drops: [{ id: 'weapon', first_kill_chance: 0.72, repeat_chance: 0.28 }],
-    moveset: ['engagement_trap', 'shadow_ban', 'Virality_curse'],
   },
 
   deadline_wraith: {
@@ -343,7 +333,6 @@ export const ENEMIES: Record<string, Enemy> = {
     description: 'A cloaked figure whose chest holds a clock stopped a few minutes before midnight.',
     max_hp: 105, rune_reward: 168, is_boss: false,
     drops: [{ id: 'weapon', first_kill_chance: 0.60, repeat_chance: 0.20 }],
-    moveset: ['time_pressure', 'clock_crush'],
   },
 
   overload_colossus: {
@@ -352,7 +341,6 @@ export const ENEMIES: Record<string, Enemy> = {
     max_hp: 220, rune_reward: 520,
     is_boss: true, is_remembrance: true,
     drops: [{ id: 'weapon', first_kill_chance: 1.0, repeat_chance: 0.0 }],
-    moveset: ['data_tsunami', 'tab_avalanche', 'context_switch'],
   },
 
   distraction_weaver: {
@@ -361,7 +349,6 @@ export const ENEMIES: Record<string, Enemy> = {
     max_hp: 210, rune_reward: 495,
     is_boss: true, is_remembrance: true,
     drops: [{ id: 'weapon', first_kill_chance: 1.0, repeat_chance: 0.0 }],
-    moveset: ['attention_snare', 'rabbit_hole', 'hypnotic_feed'],
   },
 
   void_tyrant: {
@@ -370,6 +357,5 @@ export const ENEMIES: Record<string, Enemy> = {
     max_hp: 245, rune_reward: 560,
     is_boss: true, is_remembrance: true,
     drops: [{ id: 'weapon', first_kill_chance: 1.0, repeat_chance: 0.0 }],
-    moveset: ['creative_void', 'meaningless_abyss', 'void_embrace'],
   },
 }

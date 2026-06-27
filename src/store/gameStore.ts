@@ -1,5 +1,5 @@
 import { create } from 'zustand'
-import type { GameState, LocationData, Stats, WeaponInstance, SublocationType, ContentItem, Locale, WorkflowGraph } from '../types/game'
+import type { GameState, LocationData, Stats, WeaponInstance, SublocationType, ContentItem, Locale, WorkflowGraph, LocationTheme } from '../types/game'
 import { ENEMIES } from '../data/enemies'
 import { saveGame, loadGame } from '../engine/save'
 import { registerWeapon, WEAPONS } from '../data/weapons'
@@ -8,6 +8,7 @@ import { rollWeapon } from '../data/generators/weaponGenerator'
 import { WEAPON_CLASSES } from '../data/generators/weaponClasses'
 import { generateRemasterWorkflow, regenerateWorkflowKeepingStructure } from '../data/generators/remasterGenerator'
 import { CLASS_DEFINITIONS } from '../data/classes'
+import type { LocationDef } from '../data/locations'
 
 function hydrateRegistries(state: GameState): void {
   state.weapon_instances.forEach(w => registerWeapon(w))
@@ -79,12 +80,57 @@ const ENCOUNTER_POOL: Array<{ enemy_id: string; tier: number }> = [
   { enemy_id: 'overload_colossus',    tier: 4 },
   { enemy_id: 'distraction_weaver',   tier: 4 },
   { enemy_id: 'void_tyrant',          tier: 4 },
+  // ── T1 audience archetypes + simple content-blocker mobs ──────────────
+  { enemy_id: 'glupi',                    tier: 1 },
+  { enemy_id: 'glupi',                    tier: 1 },
+  { enemy_id: 'glupi',                    tier: 1 },
+  { enemy_id: 'brainless',               tier: 1 },
+  { enemy_id: 'brainless',               tier: 1 },
+  { enemy_id: 'brainless',               tier: 1 },
+  { enemy_id: 'czytacz',                 tier: 1 },
+  { enemy_id: 'czytacz',                 tier: 1 },
+  { enemy_id: 'czytacz',                 tier: 1 },
+  { enemy_id: 'zmeczony',                tier: 1 },
+  { enemy_id: 'zmeczony',                tier: 1 },
+  { enemy_id: 'zmeczony',                tier: 1 },
+  { enemy_id: 'sluchowiec',              tier: 1 },
+  { enemy_id: 'sluchowiec',              tier: 1 },
+  { enemy_id: 'sluchowiec',              tier: 1 },
+  { enemy_id: 'baron_pivot',             tier: 1 },
+  { enemy_id: 'baron_pivot',             tier: 1 },
+  { enemy_id: 'baron_pivot',             tier: 1 },
+  { enemy_id: 'architekt_sciany_tekstu', tier: 1 },
+  { enemy_id: 'architekt_sciany_tekstu', tier: 1 },
+  { enemy_id: 'architekt_sciany_tekstu', tier: 1 },
+  { enemy_id: 'wzrokowiec',              tier: 1 },
+  { enemy_id: 'wzrokowiec',              tier: 1 },
+  { enemy_id: 'wzrokowiec',              tier: 1 },
+  // ── T2 strategic engagement/format mobs ───────────────────────────────
+  { enemy_id: 'pobudzony',               tier: 2 },
+  { enemy_id: 'pobudzony',               tier: 2 },
+  { enemy_id: 'sfrustrowany',            tier: 2 },
+  { enemy_id: 'sfrustrowany',            tier: 2 },
+  { enemy_id: 'intelektualista',         tier: 2 },
+  { enemy_id: 'intelektualista',         tier: 2 },
+  { enemy_id: 'kolekcjoner_kursow',      tier: 2 },
+  { enemy_id: 'kolekcjoner_kursow',      tier: 2 },
+  { enemy_id: 'formatowy_purysta',       tier: 2 },
+  { enemy_id: 'formatowy_purysta',       tier: 2 },
+  { enemy_id: 'algorytmiczny_zombie',    tier: 2 },
+  { enemy_id: 'algorytmiczny_zombie',    tier: 2 },
+  { enemy_id: 'fabryka_wyswietlen',      tier: 2 },
+  { enemy_id: 'fabryka_wyswietlen',      tier: 2 },
 ]
 
-const TIER_DIST: Record<number, [number, number, number]> = {
-  10: [3, 4, 2], 15: [5, 6, 3], 20: [7, 8, 4], 25: [8, 10, 6], 30: [10, 12, 7],
-}
 const TIER_MULTS: Record<number, number> = { 1: 0.65, 2: 1.0, 3: 1.35, 4: 1.60 }
+
+function calcTierCounts(numSublocations: number): [number, number, number] {
+  const mobs = Math.max(3, numSublocations - 1)
+  const t1 = Math.max(1, Math.round(mobs * 0.30))
+  const t2 = Math.max(1, Math.round(mobs * 0.42))
+  const t3 = Math.max(1, mobs - t1 - t2)
+  return [t1, t2, t3]
+}
 
 function shuffle<T>(arr: T[]): T[] {
   const a = [...arr]
@@ -95,14 +141,22 @@ function shuffle<T>(arr: T[]): T[] {
   return a
 }
 
-function generateLocationSequence(numSublocations = 20): LocationData[] {
-  const [t1, t2, t3] = TIER_DIST[numSublocations] ?? TIER_DIST[20]
+function generateLocationSequence(
+  numSublocations: number,
+  difficulty: number,
+  theme: LocationTheme,
+  runCount: number,
+): LocationData[] {
+  const [t1, t2, t3] = calcTierCounts(numSublocations)
   const tier1    = shuffle(ENCOUNTER_POOL.filter(e => e.tier === 1)).slice(0, t1)
   const tier2    = shuffle(ENCOUNTER_POOL.filter(e => e.tier === 2)).slice(0, t2)
   const tier3    = shuffle(ENCOUNTER_POOL.filter(e => e.tier === 3)).slice(0, t3)
   const bossPool = ENCOUNTER_POOL.filter(e => e.tier === 4)
   const boss     = [bossPool[Math.floor(Math.random() * bossPool.length)]]
   const ordered  = [...tier1, ...tier2, ...tier3, ...boss]
+
+  const diffMult = 1.0 + difficulty * 0.05
+  const runMult  = 1.0 + Math.min(20, runCount) * 0.03
 
   return ordered.map((enc, i) => {
     const baseMult = TIER_MULTS[enc.tier] ?? 1.0
@@ -112,10 +166,11 @@ function generateLocationSequence(numSublocations = 20): LocationData[] {
       return {
         enemy_id: enc.enemy_id,
         name: LOCATION_NAMES[i] ?? `Location ${i + 1}`,
-        mult: baseMult,
+        mult: baseMult * diffMult * runMult,
         tier: enc.tier,
         sublocation_type: 'boss' as SublocationType,
         boss_name: bossEnemy?.boss_name ?? bossEnemy?.name ?? enc.enemy_id,
+        locationTheme: theme,
       }
     }
     const position = i / ordered.length
@@ -125,18 +180,18 @@ function generateLocationSequence(numSublocations = 20): LocationData[] {
     let type: SublocationType = 'mob'
     if (roll < eventChance) type = 'event'
     else if (roll < eventChance + eliteChance) type = 'elite'
-    // Sites of Hope are gone — what would've rolled one is now a plain mob fight.
     let event_type: 'trial' | undefined
     if (type === 'event') {
       if (Math.random() < 0.6) type = 'mob'
       else event_type = 'trial'
     }
-    const finalMult = type === 'elite' ? baseMult * 1.3 : baseMult
+    const finalMult = (type === 'elite' ? baseMult * 1.3 : baseMult) * diffMult * runMult
     return {
       enemy_id: enc.enemy_id,
       name: LOCATION_NAMES[i] ?? `Location ${i + 1}`,
       mult: finalMult, tier: enc.tier,
       sublocation_type: type,
+      locationTheme: theme,
       ...(event_type ? { event_type } : {}),
     }
   })
@@ -178,7 +233,7 @@ export interface GameStore extends GameState {
   maxHp: () => number
 
   // Run management
-  startRun:            (locationName?: string, numSublocations?: number, runDuration?: number) => void
+  startRun:            (loc: LocationDef) => void
   advanceRun:          () => void
   endRunVictory:       () => void
   endRunFailure:       () => void
@@ -245,18 +300,19 @@ export const useGameStore = create<GameStore>((set, get) => ({
 
   maxHp: () => calcMaxHp(get().stats.VIG),
 
-  startRun: (locationName = '', numSublocations = 20, runDuration = RUN_DURATION_SECONDS) => {
-    const seq = generateLocationSequence(numSublocations)
+  startRun: (loc: LocationDef) => {
+    const runCount = get().run_count
+    const seq = generateLocationSequence(loc.numSublocations, loc.difficulty, loc.theme, runCount)
     set({
       run_active: true,
       run_location_sequence: seq,
       run_current_index: 0,
       run_start_time: Date.now() / 1000,
-      run_duration_seconds: runDuration,
+      run_duration_seconds: loc.runDuration,
       run_estus_count: RUN_ESTUS_MAX,
       run_defeated_enemies: [],
       current_hp: calcMaxHp(get().stats.VIG),
-      run_location_name: locationName,
+      run_location_name: loc.id,
       active_workflow: null,
       active_content_id: null,
     })

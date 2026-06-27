@@ -1,10 +1,11 @@
 import { useGameStore } from '../../store/gameStore'
 import { LOCATION_DEFINITIONS, getUnlockedLocationIds, SIZE_LABEL, SIZE_COLOUR } from '../../data/locations'
+import { LOCATION_THEMES } from '../../data/locationThemes'
 import { useT } from '../../i18n'
 import s from './LocationsOverlay.module.css'
 
-const SIZE_TIME: Record<string, string> = {
-  'small': '34h', 'small-medium': '39h', 'medium': '44h', 'large': '49h', 'very large': '54h',
+function fmtDuration(seconds: number): string {
+  return `${Math.round(seconds / 3600)}h`
 }
 
 function LockIcon() {
@@ -39,6 +40,7 @@ export default function LocationsOverlay({ onClose }: Props) {
             const isUnlocked  = unlockedSet.has(loc.id)
             const isLocked    = !isUnlocked
             const colour      = SIZE_COLOUR[loc.size]
+            const themeColor  = LOCATION_THEMES[loc.theme].color
             const isCurrent   = store.run_location_name === loc.id
 
             return (
@@ -51,24 +53,24 @@ export default function LocationsOverlay({ onClose }: Props) {
                 ].join(' ')}
                 style={{ '--loc-colour': colour } as React.CSSProperties}
               >
-                <div className={s.topBar} style={{ background: isLocked ? 'rgba(255,255,255,0.06)' : colour }}/>
+                <div className={s.topBar} style={{ background: isLocked ? 'rgba(255,255,255,0.06)' : themeColor }}/>
                 <div className={s.body}>
                   <div className={s.nameRow}>
                     {isLocked && <span className={s.lockIcon}><LockIcon/></span>}
-                    <span className={s.name}>{t.locations[loc.id] ?? loc.id}</span>
+                    <span className={s.name}>{loc.displayName}</span>
                     {isCompleted && <span className={s.doneTag}>✓</span>}
                     {isCurrent  && <span className={s.currentTag}>◉</span>}
                   </div>
                   {!isLocked && (
                     <>
-                      <div className={s.boss}>{t.ui.enemy_boss_label}</div>
+                      <div className={s.boss} style={{ color: themeColor }}>{LOCATION_THEMES[loc.theme].displayLabel}</div>
                       <div className={s.meta}>
                         <span className={s.sizeBadge} style={{ color: colour, borderColor: `${colour}60` }}>
                           {SIZE_LABEL[loc.size]}
                         </span>
                         <span>{loc.numSublocations} {t.ui.loc_locations}</span>
                         <span>·</span>
-                        <span>{SIZE_TIME[loc.size]}</span>
+                        <span>{fmtDuration(loc.runDuration)}</span>
                       </div>
                     </>
                   )}

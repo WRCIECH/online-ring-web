@@ -147,7 +147,6 @@ export interface Enemy {
   is_remembrance?: boolean
   unlocks_area?: string
   drops: EnemyDrop[]
-  moveset?: string[]
   affinities?: MobAffinities
   boss_name?: string
 }
@@ -156,6 +155,10 @@ export interface Enemy {
 export type CombatPhase = 'PLAYER_TURN' | 'STEP_TIMER' | 'VICTORY' | 'DEFEAT' | 'FLED'
 
 // ── Location ──────────────────────────────────────────────────────────────
+export type LocationTheme =
+  | 'text' | 'video' | 'audio' | 'graphic'
+  | 'research' | 'social' | 'deadline'
+
 export interface LocationData {
   enemy_id: string
   name: string
@@ -164,6 +167,7 @@ export interface LocationData {
   sublocation_type: SublocationType
   event_type?: string
   boss_name?: string
+  locationTheme?: LocationTheme
 }
 
 // ── Player stats ─────────────────────────────────────────────────────────

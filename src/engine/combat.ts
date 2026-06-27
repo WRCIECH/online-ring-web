@@ -1,7 +1,8 @@
 import type {
   CombatPhase, MoveType, WorkflowGraph, WorkflowTile,
-  Enemy, WeaponInstance, Stats, MobAffinities, MobAffinityConditions,
+  Enemy, WeaponInstance, Stats, MobAffinities, MobAffinityConditions, LocationTheme,
 } from '../types/game'
+import { LOCATION_THEMES } from '../data/locationThemes'
 import { WEAPONS, calcWeaponScaledDamage } from '../data/weapons'
 import {
   REPEAT_PENALTY_PER_RETRY, REPEAT_PENALTY_MAX, REPEAT_DAMAGE_PENALTY, SACRIFICE_MULT,
@@ -42,6 +43,8 @@ export interface CombatState {
   timerExpired: boolean
   // Rune reward — set once, from the defeated enemy's rune_reward, on VICTORY
   runesEarned: number
+  // Location theme bonus
+  locationTheme?: LocationTheme
   // Log
   log: LogEntry[]
   logId: number
@@ -120,7 +123,7 @@ function consistencyMultFor(streak: number): number {
   return 1.0 + Math.min(0.5, 0.05 * streak)
 }
 
-// Multiply all matched affinity tiers together (love×like=3.0, etc.).
+// Mob-affinity mult only (love/like/dislike/hate from the enemy definition).
 export function calcAffinityMultiplier(tile: WorkflowTile, enemy: Enemy): number {
   const { affinities } = enemy
   if (!affinities) return 1
@@ -128,14 +131,24 @@ export function calcAffinityMultiplier(tile: WorkflowTile, enemy: Enemy): number
   for (const [tier, conditions] of Object.entries(affinities) as [keyof MobAffinities, MobAffinityConditions][]) {
     if (!conditions) continue
     const matched =
-      (tile.content_type  != null && conditions.products?.includes(tile.content_type))     ||
-      (tile.content_origin != null && conditions.origins?.includes(tile.content_origin))    ||
-      (tile.style_type   != null && conditions.styles?.includes(tile.style_type))   ||
-      (tile.status        != null && conditions.emotions?.includes(tile.status))             ||
+      (tile.content_type  != null && conditions.products?.includes(tile.content_type))   ||
+      (tile.content_origin != null && conditions.origins?.includes(tile.content_origin))  ||
+      (tile.style_type   != null && conditions.styles?.includes(tile.style_type))         ||
+      (tile.status        != null && conditions.emotions?.includes(tile.status))           ||
       (conditions.stages?.includes(tile.type))
     if (matched) mult *= AFFINITY_MULTS[tier]
   }
   return mult
+}
+
+// +20% if tile content/stage matches the location theme's focus.
+export function calcThemeBonus(tile: WorkflowTile, locationTheme?: LocationTheme): number {
+  if (!locationTheme) return 1
+  const theme = LOCATION_THEMES[locationTheme]
+  const themeMatch =
+    (tile.content_type != null && theme.contentFocus.includes(tile.content_type)) ||
+    (theme.stageFocus.length > 0 && theme.stageFocus.includes(tile.type))
+  return themeMatch ? 1.20 : 1
 }
 
 // One named factor in the damage chain — `active` is true whenever it's
@@ -163,6 +176,7 @@ export function previewMove(state: CombatState, tile: WorkflowTile, move: MoveTy
   const consistencyMult  = consistencyMultFor(state.consistencyStreak)
   const remasterMult     = state.isRemasterPass ? 1.2 : 1.0
   const affinityMult     = calcAffinityMultiplier(tile, state.enemyData)
+  const themeBonus       = calcThemeBonus(tile, state.locationTheme)
   const isRepeat       = tile.is_completed
   const rawDamage      = calcTileDamage(tile, move, weapon, state.weaponLevel, state.playerStats)
   const repeatDamage   = isRepeat ? Math.round(rawDamage * (1 - REPEAT_DAMAGE_PENALTY)) : rawDamage
@@ -170,7 +184,7 @@ export function previewMove(state: CombatState, tile: WorkflowTile, move: MoveTy
   const finisherMult   = wouldFinishAll ? 3.0 : 1.0
   const damage         = Math.round(
     repeatDamage * (1 - repeatPenalty) * (1 - state.incomingPenalty)
-      * consistencyMult * remasterMult * affinityMult * finisherMult
+      * consistencyMult * remasterMult * affinityMult * themeBonus * finisherMult
   )
   const multipliers: DamageMultiplier[] = [
     { key: 'heavyBonus',    value: HEAVY_TIME_BONUS,          active: move === 'Heavy' },
@@ -178,6 +192,7 @@ export function previewMove(state: CombatState, tile: WorkflowTile, move: MoveTy
     { key: 'repeatScaling', value: 1 - repeatPenalty,         active: repeatPenalty > 0 },
     { key: 'abandon',       value: 1 - state.incomingPenalty, active: state.incomingPenalty > 0 },
     { key: 'affinity',      value: affinityMult,              active: affinityMult !== 1.0 },
+    { key: 'theme',         value: themeBonus,                active: themeBonus !== 1.0 },
     { key: 'streak',        value: consistencyMult,           active: state.consistencyStreak > 0 },
     { key: 'remaster',      value: 1.2,                       active: state.isRemasterPass },
     { key: 'finisher',      value: 3.0,                       active: wouldFinishAll },
@@ -200,6 +215,7 @@ export function initCombatState(
   incomingPenalty: number,
   isRemasterPass = false,
   spawnAsBoss = false,
+  locationTheme?: LocationTheme,
 ): CombatState {
   // Derive boss version when the encounter is a boss slot but the enemy entry
   // is a regular mob — scale HP ×2 and swap in the boss display name.
@@ -225,6 +241,7 @@ export function initCombatState(
     stepTimer: 0, stepTotal: 1,
     stepStarted: false, timerExpired: false,
     runesEarned: 0,
+    locationTheme,
     log: [], logId: 0,
   }
   state = log(state, `${effectiveEnemy.name} — complete tiles to deal damage. Drain HP to win.`, '#c9a93a')
@@ -315,6 +332,7 @@ export function combatReducer(state: CombatState, action: CombatAction): CombatS
       const consistencyMult = consistencyMultFor(state.consistencyStreak)
       const remasterMult    = state.isRemasterPass ? 1.2 : 1.0
       const affinityMult    = calcAffinityMultiplier(tile, state.enemyData)
+      const themeBonus      = calcThemeBonus(tile, state.locationTheme)
 
       const updatedTiles = state.workflow.tiles.map(t => {
         if (t.id !== tile.id) return t
@@ -329,7 +347,7 @@ export function combatReducer(state: CombatState, action: CombatAction): CombatS
       const repeatDamage  = isRepeat ? Math.round(rawDamage * (1 - REPEAT_DAMAGE_PENALTY)) : rawDamage
       const damage        = Math.round(
         repeatDamage * (1 - repeatPenalty) * (1 - state.incomingPenalty)
-          * consistencyMult * remasterMult * affinityMult * finisherMult
+          * consistencyMult * remasterMult * affinityMult * themeBonus * finisherMult
       )
       const newEnemyHp    = Math.max(0, state.enemyHp - damage)
 
@@ -348,6 +366,9 @@ export function combatReducer(state: CombatState, action: CombatAction): CombatS
       if (affinityMult !== 1.0) {
         const tier = affinityMult > 1 ? (affinityMult >= 2 ? 'LOVE' : 'LIKE') : (affinityMult <= 0.5 ? 'HATE' : 'DISLIKE')
         s = log(s, `Affinity: ${tier} ×${affinityMult.toFixed(1)}`, affinityMult > 1 ? '#44dd88' : '#dd6644')
+      }
+      if (themeBonus !== 1.0) {
+        s = log(s, `Location theme match +20%`, '#88ccff')
       }
       if (allTilesDone) {
         s = log(s, '⚡ Final tile — 3× damage!', '#e6bf33')

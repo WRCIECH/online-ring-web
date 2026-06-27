@@ -92,6 +92,7 @@ export default function CombatScreen() {
         store.abandon_penalty,
         isRemasterPass,
         spawnAsBoss,
+        loc.locationTheme,
       )
     }
   )

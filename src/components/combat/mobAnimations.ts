@@ -218,6 +218,183 @@ export const MOB_ANIMATIONS: Record<string, AnimFn> = {
     })
   },
 
+  // ── New mobs ────────────────────────────────────────────────────────────────
+
+  sluchowiec: () => {
+    gsap.to('[data-anim="mob-root"]', {
+      y: -8, duration: 3, ease: 'sine.inOut', yoyo: true, repeat: -1,
+    })
+    gsap.to('[data-anim="eye-glow"]', {
+      opacity: 0.2, duration: 2.5, ease: 'sine.inOut', yoyo: true, repeat: -1,
+      stagger: 0.6,
+    })
+  },
+
+  wzrokowiec: () => {
+    gsap.to('[data-anim="mob-root"]', {
+      y: -6, duration: 2.5, ease: 'sine.inOut', yoyo: true, repeat: -1,
+    })
+    gsap.to('[data-anim="main-eye"]', {
+      scale: 1.08, svgOrigin: '0 -10',
+      duration: 1.8, ease: 'sine.inOut', yoyo: true, repeat: -1,
+    })
+    gsap.to('[data-anim="eye-small"]', {
+      opacity: 0.3, duration: 0.7, ease: 'power2.inOut', yoyo: true, repeat: -1,
+      stagger: { each: 0.2, from: 'random' },
+    })
+  },
+
+  czytacz: () => {
+    gsap.to('[data-anim="mob-root"]', {
+      y: -8, duration: 3.5, ease: 'sine.inOut', yoyo: true, repeat: -1,
+    })
+    gsap.to('[data-anim="page"]', {
+      rotation: 3, svgOrigin: '-38 30',
+      duration: 2, ease: 'sine.inOut', yoyo: true, repeat: -1,
+    })
+  },
+
+  brainless: () => {
+    gsap.to('[data-anim="mob-root"]', {
+      y: -5, duration: 4, ease: 'sine.inOut', yoyo: true, repeat: -1,
+    })
+    gsap.to('[data-anim="mob-root"]', {
+      x: 4, duration: 5.5, ease: 'sine.inOut', yoyo: true, repeat: -1, delay: 1.2,
+    })
+  },
+
+  zmeczony: () => {
+    gsap.to('[data-anim="mob-root"]', {
+      y: -5, duration: 5, ease: 'sine.inOut', yoyo: true, repeat: -1,
+    })
+    gsap.to('[data-anim="mob-root"]', {
+      x: 3, duration: 7, ease: 'sine.inOut', yoyo: true, repeat: -1, delay: 1.5,
+    })
+  },
+
+  glupi: () => {
+    gsap.to('[data-anim="mob-root"]', {
+      rotation: 5, svgOrigin: '0 0',
+      duration: 2.8, ease: 'sine.inOut', yoyo: true, repeat: -1,
+    })
+    gsap.to('[data-anim="mob-root"]', {
+      y: -6, duration: 3.5, ease: 'sine.inOut', yoyo: true, repeat: -1, delay: 0.7,
+    })
+  },
+
+  architekt_sciany_tekstu: () => {
+    gsap.to('[data-anim="mob-root"]', {
+      scaleY: 1.02, svgOrigin: '0 60',
+      duration: 4, ease: 'sine.inOut', yoyo: true, repeat: -1,
+    })
+    gsap.to('[data-anim="eye"]', {
+      opacity: 0.3, duration: 1.5, ease: 'sine.inOut', yoyo: true, repeat: -1,
+      stagger: 0.5,
+    })
+  },
+
+  baron_pivot: () => {
+    gsap.to('[data-anim="mob-root"]', {
+      y: -6, duration: 2.5, ease: 'sine.inOut', yoyo: true, repeat: -1,
+    })
+    gsap.to('[data-anim="arrow-l"]', {
+      rotation: -25, svgOrigin: '-14 -20',
+      duration: 1.4, ease: 'sine.inOut', yoyo: true, repeat: -1,
+    })
+    gsap.to('[data-anim="arrow-r"]', {
+      rotation: 25, svgOrigin: '14 -15',
+      duration: 1.8, ease: 'sine.inOut', yoyo: true, repeat: -1, delay: 0.3,
+    })
+  },
+
+  pobudzony: () => {
+    gsap.to('[data-anim="mob-root"]', {
+      x: 4, duration: 0.25, ease: 'power1.inOut', yoyo: true, repeat: -1,
+    })
+    gsap.to('[data-anim="mob-root"]', {
+      y: -4, duration: 0.3, ease: 'power1.inOut', yoyo: true, repeat: -1, delay: 0.08,
+    })
+    gsap.to('[data-anim="ray"]', {
+      opacity: 0.15, duration: 0.35, ease: 'sine.inOut', yoyo: true, repeat: -1,
+      stagger: { each: 0.05, from: 'random' },
+    })
+    gsap.to('[data-anim="eye"]', {
+      scale: 1.2, svgOrigin: '0 -26',
+      duration: 0.2, ease: 'power2.inOut', yoyo: true, repeat: -1,
+    })
+  },
+
+  sfrustrowany: () => {
+    gsap.to('[data-anim="mob-root"]', {
+      x: -3, duration: 0.5, ease: 'power1.inOut', yoyo: true, repeat: -1,
+    })
+    gsap.to('[data-anim="crack"]', {
+      opacity: 0.4, duration: 1.2, ease: 'power2.inOut', yoyo: true, repeat: -1, repeatDelay: 0.5,
+    })
+    gsap.to('[data-anim="steam"]', {
+      y: -14, opacity: 0.1, duration: 1.5, ease: 'power1.out', yoyo: true, repeat: -1,
+      stagger: { each: 0.4, from: 'random' },
+    })
+  },
+
+  kolekcjoner_kursow: () => {
+    gsap.to('[data-anim="mob-root"]', {
+      rotation: 3, svgOrigin: '0 20',
+      duration: 2.2, ease: 'sine.inOut', yoyo: true, repeat: -1,
+    })
+    gsap.to('[data-anim^="book-"]', {
+      x: 5, duration: 1.8, ease: 'sine.inOut', yoyo: true, repeat: -1,
+      stagger: { each: 0.2, from: 'end', yoyo: true },
+    })
+  },
+
+  formatowy_purysta: () => {
+    gsap.to('[data-anim="mob-root"]', {
+      y: -4, duration: 3, ease: 'sine.inOut', yoyo: true, repeat: -1,
+    })
+    gsap.to('[data-anim="ruler-arm"]', {
+      rotation: 8, svgOrigin: '18 -55',
+      duration: 2.5, ease: 'sine.inOut', yoyo: true, repeat: -1,
+    })
+  },
+
+  algorytmiczny_zombie: () => {
+    gsap.to('[data-anim="mob-root"]', {
+      x: -5, duration: 0.8, ease: 'power1.inOut', yoyo: true, repeat: -1,
+    })
+    gsap.to('[data-anim="mob-root"]', {
+      y: -4, duration: 1.1, ease: 'power1.inOut', yoyo: true, repeat: -1, delay: 0.2,
+    })
+    gsap.to('[data-anim="eye-node"]', {
+      opacity: 0.2, duration: 0.6, ease: 'sine.inOut', yoyo: true, repeat: -1,
+      stagger: { each: 0.3, from: 'random' },
+    })
+  },
+
+  intelektualista: () => {
+    gsap.to('[data-anim="mob-root"]', {
+      y: -9, duration: 3.5, ease: 'sine.inOut', yoyo: true, repeat: -1,
+    })
+    gsap.to('[data-anim="finger"]', {
+      rotation: 12, svgOrigin: '8 -42',
+      duration: 1.2, ease: 'sine.inOut', yoyo: true, repeat: -1,
+    })
+  },
+
+  fabryka_wyswietlen: () => {
+    gsap.to('[data-anim="mob-root"]', {
+      y: -5, duration: 3, ease: 'sine.inOut', yoyo: true, repeat: -1,
+    })
+    gsap.to('[data-anim="eye"]', {
+      scale: 1.08, svgOrigin: '0 -95',
+      duration: 2.2, ease: 'sine.inOut', yoyo: true, repeat: -1,
+    })
+    gsap.to('[data-anim="smoke"]', {
+      y: -18, opacity: 0.04, duration: 2, ease: 'power1.out', yoyo: true, repeat: -1,
+      stagger: { each: 0.7, from: 'random' },
+    })
+  },
+
   void_tyrant: () => {
     // Vast slow drift — cosmic scale
     gsap.to('[data-anim="mob-root"]', {
