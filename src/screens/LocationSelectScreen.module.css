@@ -1,146 +1,116 @@
 .root {
+  position: relative;
+  width: 100%;
   height: 100vh;
-  overflow-y: auto;
+  overflow: hidden;
   background: var(--color-bg);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding: 40px 24px 56px;
 }
 
-/* ── Header ──────────────────────────────────────────────────────────────── */
-.header {
-  text-align: center;
-  margin-bottom: 36px;
+/* ── Map container ───────────────────────────────────────────────────────── */
+.mapWrap {
+  position: absolute;
+  top: 60px;
+  bottom: 32px;
+  left: 0;
+  right: 0;
 }
+
+/* ── Top overlay bar ─────────────────────────────────────────────────────── */
+.topBar {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 10;
+  height: 52px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 0 20px;
+  background: linear-gradient(to bottom, rgba(22,18,40,0.94) 60%, transparent);
+  pointer-events: none;
+}
+.topBar > * { pointer-events: auto; }
 
 .title {
-  font-size: 1.5rem;
+  font-size: 0.9rem;
   font-weight: 300;
-  letter-spacing: 0.22em;
+  letter-spacing: 0.2em;
   text-transform: uppercase;
   color: var(--color-gold);
   text-shadow: var(--glow-gold);
-  margin-bottom: 8px;
-}
-
-.subtitle {
-  font-size: 0.82rem;
-  letter-spacing: 0.1em;
-  color: var(--color-text-dim);
+  margin-right: 4px;
 }
 
 .progress {
-  margin-top: 6px;
-  font-size: 0.78rem;
-  letter-spacing: 0.08em;
+  font-size: 0.75rem;
   color: var(--color-gold-dim);
+  letter-spacing: 0.06em;
 }
 
-/* ── Grid ────────────────────────────────────────────────────────────────── */
-.grid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 10px;
-  width: 100%;
-  max-width: 1100px;
+.runeDisplay {
+  font-size: 0.78rem;
+  color: var(--color-gold-dim);
+  letter-spacing: 0.06em;
+  margin-left: auto;
 }
 
-/* ── Card ─────────────────────────────────────────────────────────────────── */
-.card {
-  background: var(--color-bg-panel);
+.btnMeta {
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+  padding: 5px 14px;
+  background: rgba(230,191,51,0.07);
+  border: 1px solid var(--color-gold-dim);
+  color: var(--color-gold);
+  border-radius: var(--radius);
+}
+.btnMeta:hover {
+  background: rgba(230,191,51,0.14);
+  box-shadow: var(--glow-gold);
+}
+
+/* ── Info panel ──────────────────────────────────────────────────────────── */
+.infoPanel {
+  position: absolute;
+  bottom: 20px;
+  right: 20px;
+  z-index: 10;
+  width: 270px;
+  background: rgba(22,18,40,0.90);
   border: 1px solid var(--color-border);
   border-radius: var(--radius);
-  display: flex;
-  flex-direction: column;
-  align-items: stretch;
-  text-align: left;
-  padding: 0;
-  cursor: pointer;
-  transition: border-color 0.14s, box-shadow 0.14s, transform 0.1s;
-  overflow: hidden;
-  min-height: 110px;
+  padding: 16px 18px 18px;
+  backdrop-filter: blur(6px);
+  transition: border-color 0.18s;
 }
 
-.card:disabled { cursor: not-allowed; }
-
-.cardUnlocked:hover {
-  border-color: var(--loc-colour, var(--color-gold-dim));
-  box-shadow: 0 0 14px color-mix(in srgb, var(--loc-colour, var(--color-gold)) 22%, transparent);
-  transform: translateY(-2px);
+.infoPanelSelected {
+  border-color: var(--color-gold-dim);
+  box-shadow: 0 0 18px rgba(0,0,0,0.5);
 }
 
-.cardCompleted {
-  border-color: rgba(46,204,136,0.30);
-}
-.cardCompleted:hover {
-  border-color: rgba(46,204,136,0.65);
-  box-shadow: 0 0 12px rgba(46,204,136,0.18);
-  transform: translateY(-2px);
-}
-
-.cardLocked {
-  opacity: 0.35;
-}
-
-/* ── Top accent bar ───────────────────────────────────────────────────────── */
-.topBar {
-  height: 3px;
-  flex-shrink: 0;
-}
-
-/* ── Card body ────────────────────────────────────────────────────────────── */
-.body {
-  flex: 1;
-  padding: 10px 12px 11px;
-  display: flex;
-  flex-direction: column;
-  gap: 5px;
-}
-
-.nameRow {
-  display: flex;
-  align-items: flex-start;
-  gap: 6px;
-}
-
-.lockIcon {
-  flex-shrink: 0;
-  color: var(--color-text-dim);
-  margin-top: 1px;
-}
-
-.name {
-  font-size: 0.80rem;
+.infoName {
+  font-size: 1.0rem;
   font-weight: 600;
   color: var(--color-gold-text);
   letter-spacing: 0.03em;
-  line-height: 1.3;
-  flex: 1;
+  line-height: 1.25;
+  margin-bottom: 4px;
 }
 
-.doneTag {
-  color: #2ecc88;
-  font-weight: 700;
-  font-size: 0.82rem;
-  flex-shrink: 0;
-}
-
-.boss {
+.infoBoss {
   font-size: 0.70rem;
   color: var(--color-text-dim);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  margin-top: auto;
+  margin-bottom: 10px;
 }
 
-.meta {
+.infoMeta {
   display: flex;
   align-items: center;
-  gap: 5px;
-  font-size: 0.66rem;
+  gap: 6px;
+  font-size: 0.68rem;
   color: var(--color-text-dim);
+  margin-bottom: 12px;
 }
 
 .sizeBadge {
@@ -148,34 +118,58 @@
   letter-spacing: 0.1em;
   border: 1px solid;
   border-radius: 3px;
-  padding: 1px 4px;
-  flex-shrink: 0;
+  padding: 1px 5px;
 }
 
-.headerActions {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin-top: 12px;
+.metaDot { opacity: 0.4; }
+
+.prereqs {
+  font-size: 0.66rem;
+  color: var(--color-text-dim);
+  margin-bottom: 10px;
+  border-top: 1px solid var(--color-border);
+  padding-top: 10px;
+}
+.prereqsLabel {
+  font-size: 0.60rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.35);
+  margin-bottom: 5px;
+}
+.prereqItem {
+  line-height: 1.6;
 }
 
-.runeDisplay {
-  font-size: 0.82rem;
-  color: var(--color-gold-dim);
+.completedTag {
+  font-size: 0.68rem;
+  color: #2ecc88;
+  margin-bottom: 10px;
+  font-weight: 600;
   letter-spacing: 0.06em;
 }
 
-.btnStats {
-  font-size: 0.78rem;
-  letter-spacing: 0.08em;
-  padding: 6px 16px;
-  background: rgba(230,191,51,0.07);
+.btnBegin {
+  width: 100%;
+  margin-top: 4px;
+  padding: 10px;
+  font-size: 0.82rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  background: rgba(230,191,51,0.10);
   border: 1px solid var(--color-gold-dim);
   color: var(--color-gold);
   border-radius: var(--radius);
 }
-
-.btnStats:hover {
-  background: rgba(230,191,51,0.14);
+.btnBegin:hover {
+  background: rgba(230,191,51,0.20);
   box-shadow: var(--glow-gold);
+}
+
+.clickHint {
+  margin-top: 8px;
+  font-size: 0.64rem;
+  color: rgba(255,255,255,0.25);
+  letter-spacing: 0.1em;
+  text-align: center;
 }

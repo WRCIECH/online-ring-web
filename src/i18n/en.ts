@@ -273,6 +273,7 @@ const en: TranslationBundle = {
     weapon_selected:         'selected',
     weapon_select_at_least:  'Select at least one weapon',
     btn_begin_run:           'Begin Run',
+    click_to_select:         'Click to select',
     weapon_overheated:       '🔥 Overheated',
     weapon_run_singular:     'run',
     weapon_run_plural:       'runs',

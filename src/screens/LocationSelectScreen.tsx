@@ -2,6 +2,8 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useGameStore } from '../store/gameStore'
 import { LOCATION_DEFINITIONS, getUnlockedLocationIds, SIZE_LABEL, SIZE_COLOUR } from '../data/locations'
+import type { LocationDef } from '../data/locations'
+import LocationMap from '../components/LocationMap'
 import CharacterOverlay  from '../components/overlays/CharacterOverlay'
 import AnalyticsOverlay from '../components/overlays/AnalyticsOverlay'
 import { useT } from '../i18n'
@@ -11,94 +13,108 @@ const SIZE_TIME: Record<string, string> = {
   'small': '34h', 'small-medium': '39h', 'medium': '44h', 'large': '49h', 'very large': '54h',
 }
 
-function LockIcon() {
-  return (
-    <svg viewBox="0 0 24 24" width={14} height={14} fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round">
-      <rect x="3" y="11" width="18" height="11" rx="2"/>
-      <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
-    </svg>
-  )
-}
+const LOC_MAP = Object.fromEntries(LOCATION_DEFINITIONS.map(l => [l.id, l]))
 
 export default function LocationSelectScreen() {
   const navigate   = useNavigate()
   const store      = useGameStore()
   const t          = useT()
+  const [hoveredId,     setHoveredId]     = useState<string | null>(null)
+  const [selectedId,    setSelectedId]    = useState<string | null>(null)
   const [showStats,     setShowStats]     = useState(false)
   const [showAnalytics, setShowAnalytics] = useState(false)
 
   const completedSet = new Set(store.completed_locations)
   const unlockedSet  = getUnlockedLocationIds(store.completed_locations)
 
-  function handleSelect(locId: string, numSublocations: number, runDuration: number) {
-    store.startRun(locId, numSublocations, runDuration)
+  function handleSelect(id: string) {
+    setSelectedId(prev => prev === id ? null : id)
+  }
+
+  function handleBeginRun(loc: LocationDef) {
+    store.startRun(loc.id, loc.numSublocations, loc.runDuration)
     navigate('/map')
   }
+
+  // Info panel: selected takes priority over hovered
+  const activeId  = selectedId ?? hoveredId
+  const activeLoc = activeId ? LOC_MAP[activeId] : null
+  const activeState = activeLoc
+    ? completedSet.has(activeLoc.id) ? 'completed'
+      : unlockedSet.has(activeLoc.id) ? 'available'
+      : 'locked'
+    : null
+  const missingPrereqs = activeLoc?.requires.filter(r => !completedSet.has(r)) ?? []
+  const canBegin = !!selectedId && activeState !== 'locked'
 
   return (
     <div className={s.root}>
       {showStats     && <CharacterOverlay  onClose={() => setShowStats(false)} />}
       {showAnalytics && <AnalyticsOverlay onClose={() => setShowAnalytics(false)} />}
-      <div className={s.header}>
+
+      {/* ── Full-screen map ── */}
+      <div className={s.mapWrap}>
+        <LocationMap
+          completedSet={completedSet}
+          unlockedSet={unlockedSet}
+          hoveredId={hoveredId}
+          selectedId={selectedId}
+          onHover={setHoveredId}
+          onSelect={handleSelect}
+        />
+      </div>
+
+      {/* ── Top overlay bar ── */}
+      <div className={s.topBar}>
         <h1 className={s.title}>{t.ui.choose_dungeon_title}</h1>
-        <p className={s.subtitle}>
-          {store.completed_locations.length === 0
-            ? t.ui.choose_dungeon_first
-            : t.ui.choose_dungeon_next}
-        </p>
-        <p className={s.progress}>
-          {store.completed_locations.length} / {LOCATION_DEFINITIONS.length} {t.ui.locations_progress}
-        </p>
-        <div className={s.headerActions}>
-          <span className={s.runeDisplay}>✦ {store.runes.toLocaleString()}</span>
-          <button className={s.btnStats} onClick={() => setShowStats(true)}>{t.ui.btn_stats_levelup}</button>
-          <button className={s.btnStats} onClick={() => setShowAnalytics(true)}>{t.ui.btn_analytics}</button>
+        <span className={s.progress}>
+          {store.completed_locations.length} / {LOCATION_DEFINITIONS.length}
+        </span>
+        <span className={s.runeDisplay}>✦ {store.runes.toLocaleString()}</span>
+        <button className={s.btnMeta} onClick={() => setShowStats(true)}>{t.ui.btn_stats_levelup}</button>
+        <button className={s.btnMeta} onClick={() => setShowAnalytics(true)}>{t.ui.btn_analytics}</button>
+      </div>
+
+      {/* ── Info panel (bottom-right) ── */}
+      {activeLoc && (
+        <div className={[s.infoPanel, selectedId ? s.infoPanelSelected : ''].join(' ')}>
+          <div className={s.infoName}>{t.locations[activeLoc.id] ?? activeLoc.id}</div>
+          <div className={s.infoBoss}>{activeLoc.boss}</div>
+
+          <div className={s.infoMeta}>
+            <span className={s.sizeBadge} style={{ color: SIZE_COLOUR[activeLoc.size], borderColor: `${SIZE_COLOUR[activeLoc.size]}55` }}>
+              {SIZE_LABEL[activeLoc.size]}
+            </span>
+            <span>{activeLoc.numSublocations} {t.ui.loc_locations}</span>
+            <span className={s.metaDot}>·</span>
+            <span>{SIZE_TIME[activeLoc.size]}</span>
+          </div>
+
+          {activeState === 'locked' && missingPrereqs.length > 0 && (
+            <div className={s.prereqs}>
+              <div className={s.prereqsLabel}>Requires:</div>
+              {missingPrereqs.map(r => (
+                <div key={r} className={s.prereqItem}>· {t.locations[r] ?? r}</div>
+              ))}
+            </div>
+          )}
+
+          {activeState === 'completed' && (
+            <div className={s.completedTag}>✓ Completed</div>
+          )}
+
+          {activeState !== 'locked' && (
+            selectedId
+              ? (
+                <button className={s.btnBegin} onClick={() => handleBeginRun(activeLoc)}>
+                  {t.ui.btn_begin_run}
+                </button>
+              ) : (
+                <div className={s.clickHint}>{t.ui.click_to_select ?? 'Click to select'}</div>
+              )
+          )}
         </div>
-      </div>
-
-      <div className={s.grid}>
-        {LOCATION_DEFINITIONS.map(loc => {
-          const isCompleted = completedSet.has(loc.id)
-          const isUnlocked  = unlockedSet.has(loc.id)
-          const isLocked    = !isUnlocked
-          const colour      = SIZE_COLOUR[loc.size]
-
-          return (
-            <button
-              key={loc.id}
-              className={[
-                s.card,
-                isCompleted ? s.cardCompleted : isUnlocked ? s.cardUnlocked : s.cardLocked,
-              ].join(' ')}
-              style={{ '--loc-colour': colour } as React.CSSProperties}
-              disabled={isLocked}
-              onClick={() => handleSelect(loc.id, loc.numSublocations, loc.runDuration)}
-            >
-              <div className={s.topBar} style={{ background: isLocked ? 'rgba(255,255,255,0.06)' : colour }}/>
-              <div className={s.body}>
-                <div className={s.nameRow}>
-                  {isLocked && <span className={s.lockIcon}><LockIcon/></span>}
-                  <span className={s.name}>{t.locations[loc.id] ?? loc.id}</span>
-                  {isCompleted && <span className={s.doneTag}>✓</span>}
-                </div>
-                {!isLocked && (
-                  <>
-                    <div className={s.boss}>{t.ui.enemy_boss_label}</div>
-                    <div className={s.meta}>
-                      <span className={s.sizeBadge} style={{ color: colour, borderColor: `${colour}60` }}>
-                        {SIZE_LABEL[loc.size]}
-                      </span>
-                      <span>{loc.numSublocations} {t.ui.loc_locations}</span>
-                      <span>·</span>
-                      <span>{SIZE_TIME[loc.size]}</span>
-                    </div>
-                  </>
-                )}
-              </div>
-            </button>
-          )
-        })}
-      </div>
+      )}
     </div>
   )
 }
