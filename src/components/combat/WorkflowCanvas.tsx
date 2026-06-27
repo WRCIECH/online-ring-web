@@ -25,19 +25,19 @@ interface Props {
 }
 
 // ── Layout constants ──────────────────────────────────────────────────────
-const TILE    = 32
-const TILE_RX = 5
-const H_GAP   = 14    // gap between tiles sharing a spiral step (branch lanes)
+const TILE    = 28
+const TILE_RX = 8
+const H_GAP   = 8    // gap between tiles sharing a spiral step (branch lanes)
 const PAD     = 20
-const MIN_W   = 140
+const MIN_W   = 100
 
 // Spiral step constants — DR must clear TILE + H_GAP so consecutive coils
 // don't overlap; DTHETA chosen so the coil opens up steadily. R0 is pushed
 // out past MOB_FOOTPRINT_R so the first ring of tiles clears the enemy
 // centerpiece sitting at the spiral's origin.
-const SPIRAL_R0     = 115
-const SPIRAL_DR     = 48
-const SPIRAL_DTHETA = 0.70
+const SPIRAL_R0     = 125
+const SPIRAL_DR     = 9
+const SPIRAL_DTHETA = 0.65
 const MOB_FOOTPRINT_R = 100
 
 const TILE_LABEL: Record<AtomicStage, string> = {
