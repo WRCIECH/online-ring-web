@@ -65,7 +65,8 @@ export type CombatAction =
 
 // ── Constants ─────────────────────────────────────────────────────────────
 
-const FAIL_DAMAGE_PER_MIN = 8   // HP damage per minute of tile time on failure
+const FAIL_DAMAGE_PER_MIN = 4   // HP damage per minute of tile time on failure
+const DMG_PER_MIN = 3           // enemy damage per minute of task time (base rate)
 
 const AFFINITY_MULTS: Record<keyof MobAffinities, number> = {
   love:    2.0,
@@ -104,7 +105,7 @@ export function getReachableTiles(graph: WorkflowGraph): Set<string> {
 function tileDamageBase(tile: WorkflowTile, move: MoveType): number {
   const timeMin = (move === 'Heavy' ? tile.time_heavy : tile.time_light) / 60
   const moveMult = move === 'Heavy' ? HEAVY_TIME_BONUS : 1.0
-  return timeMin * 8 * moveMult
+  return timeMin * DMG_PER_MIN * moveMult
 }
 
 // Damage dealt to enemy when a tile is completed.
