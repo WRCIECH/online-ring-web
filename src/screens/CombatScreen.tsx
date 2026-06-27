@@ -260,7 +260,7 @@ export default function CombatScreen() {
     if (!radialPos || !selectedTile) return []
     const N = MOVE_DEFS.length
     return MOVE_DEFS.map((def, i) => {
-      const angle   = (i / N) * 2 * Math.PI - Math.PI / 2
+      const angle   = Math.PI - (i / N) * 2 * Math.PI
       const preview = previewMove(state, selectedTile, def.move)
       return {
         id: def.move,

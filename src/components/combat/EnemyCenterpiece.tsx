@@ -21,22 +21,24 @@ export default function EnemyCenterpiece(props: Props) {
   const hpPct = Math.max(0, props.maxHp > 0 ? (props.hp / props.maxHp) * 100 : 0)
 
   return (
-    <div
-      className={s.wrap}
-      style={{ left: props.x, top: props.y }}
-      onMouseEnter={e => setHoverPos({ x: e.clientX + 16, y: e.clientY - 8 })}
-      onMouseMove={e => setHoverPos({ x: e.clientX + 16, y: e.clientY - 8 })}
-      onMouseLeave={() => setHoverPos(null)}
-    >
-      <div className={s.nameRow}>
-        <span className={s.name}>{props.name}</span>
-        {props.isBoss && <span className={s.bossBadge}>Boss</span>}
-      </div>
-      <div className={s.hpRow}>
-        <div className={`${s.hpTrack} ${props.isBoss ? s.bossHpTrack : ''}`}>
-          <div className={s.hpFill} style={{ width: `${hpPct}%` }} />
+    <div className={s.wrap} style={{ left: props.x, top: props.y }}>
+      {/* pointer-events: auto only on the small info strip; sprite area passes clicks through */}
+      <div
+        className={s.info}
+        onMouseEnter={e => setHoverPos({ x: e.clientX + 16, y: e.clientY - 8 })}
+        onMouseMove={e => setHoverPos({ x: e.clientX + 16, y: e.clientY - 8 })}
+        onMouseLeave={() => setHoverPos(null)}
+      >
+        <div className={s.nameRow}>
+          <span className={s.name}>{props.name}</span>
+          {props.isBoss && <span className={s.bossBadge}>Boss</span>}
         </div>
-        <span className={s.hpText}>{props.hp} / {props.maxHp}</span>
+        <div className={s.hpRow}>
+          <div className={`${s.hpTrack} ${props.isBoss ? s.bossHpTrack : ''}`}>
+            <div className={s.hpFill} style={{ width: `${hpPct}%` }} />
+          </div>
+          <span className={s.hpText}>{props.hp} / {props.maxHp}</span>
+        </div>
       </div>
       <div className={s.sprite}>
         <EnemyDisplay
