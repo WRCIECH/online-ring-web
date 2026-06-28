@@ -51,6 +51,9 @@
   white-space: nowrap;
 }
 
+.ttBadgeDetail      { font-size: 0.7rem; color: var(--color-text-dim); line-height: 1.35; }
+.ttBadgeDetailLabel { font-weight: 600; color: var(--color-text); margin-right: 2px; }
+
 .ttDone    { font-size: 0.75rem; color: #44884a; }
 .ttRepeat  { font-size: 0.72rem; color: #cc8833; }
 .ttLocked  { font-size: 0.75rem; color: var(--color-text-dim); font-style: italic; }

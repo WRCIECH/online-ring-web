@@ -439,10 +439,12 @@ export default function WorkflowCanvas({ workflow, selectedTileId, onSelectTile,
           />
         )}
       </div>
-      {hovered && (
+      {hovered && (() => {
+        const hovBadges = getTileBadges(hovered.tile, effectiveTags.get(hovered.tile.id), t)
+        return (
         <div className={s.tooltip} style={{ left: hovered.cx, top: hovered.cy }}>
           <div className={s.ttBadgeRow}>
-            {getTileBadges(hovered.tile, effectiveTags.get(hovered.tile.id), t).map(b => (
+            {hovBadges.map(b => (
               <span
                 key={b.key}
                 className={s.ttBadge}
@@ -452,6 +454,11 @@ export default function WorkflowCanvas({ workflow, selectedTileId, onSelectTile,
               </span>
             ))}
           </div>
+          {hovBadges.filter(b => b.detail).map(b => (
+            <div key={b.key} className={s.ttBadgeDetail}>
+              <span className={s.ttBadgeDetailLabel}>{b.label}:</span> {b.detail}
+            </div>
+          ))}
           {hovered.tile.is_completed && (
             <>
               <span className={s.ttDone}>✓ Completed — repeat allowed</span>
@@ -470,7 +477,8 @@ export default function WorkflowCanvas({ workflow, selectedTileId, onSelectTile,
             </span>
           )}
         </div>
-      )}
+        )
+      })()}
     </div>
   )
 }

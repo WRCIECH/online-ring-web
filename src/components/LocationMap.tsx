@@ -73,6 +73,7 @@ export default function LocationMap({ completedSet, unlockedSet, hoveredId, sele
     <svg
       viewBox={`0 0 ${MAP_W} ${MAP_H}`}
       className={s.svg}
+      style={{ cursor: 'pointer' }}
       preserveAspectRatio="xMidYMid meet"
       onMouseLeave={() => onHover(null)}
     >

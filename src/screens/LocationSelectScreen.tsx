@@ -24,6 +24,7 @@ export default function LocationSelectScreen() {
   const [selectedId,    setSelectedId]    = useState<string | null>(null)
   const [showStats,     setShowStats]     = useState(false)
   const [showAnalytics, setShowAnalytics] = useState(false)
+  const [mousePos,      setMousePos]      = useState({ x: 0, y: 0 })
 
   const completedSet = new Set(store.completed_locations)
   const unlockedSet  = getUnlockedLocationIds(store.completed_locations)
@@ -53,7 +54,7 @@ export default function LocationSelectScreen() {
       {showAnalytics && <AnalyticsOverlay onClose={() => setShowAnalytics(false)} />}
 
       {/* ── Full-screen map ── */}
-      <div className={s.mapWrap}>
+      <div className={s.mapWrap} onMouseMove={e => setMousePos({ x: e.clientX, y: e.clientY })}>
         <LocationMap
           completedSet={completedSet}
           unlockedSet={unlockedSet}
@@ -132,6 +133,11 @@ export default function LocationSelectScreen() {
                 <div className={s.clickHint}>{t.ui.click_to_select ?? 'Click to select'}</div>
               )
           )}
+        </div>
+      )}
+      {hoveredId && activeLoc && (
+        <div className={s.nameTooltip} style={{ left: mousePos.x + 14, top: mousePos.y - 10 }}>
+          {activeLoc.displayName}
         </div>
       )}
     </div>
