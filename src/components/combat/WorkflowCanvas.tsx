@@ -291,8 +291,8 @@ export default function WorkflowCanvas({ workflow, selectedTileId, onSelectTile,
     const scale = Math.min(MAX_SCALE, Math.max(MIN_SCALE, fitScale))
     setView({
       scale,
-      x: (rect.width - canvasW * scale) / 2,
-      y: (rect.height - canvasH * scale) / 2,
+      x: canvasW / 2 - center.x * scale,
+      y: rect.height / 2 - center.y * scale,
     })
   }, [workflow.start_id, canvasW, canvasH])
 
