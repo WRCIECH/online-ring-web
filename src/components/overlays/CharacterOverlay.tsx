@@ -1,6 +1,6 @@
 import { useState, useCallback } from 'react'
 import { useGameStore } from '../../store/gameStore'
-import { WEAPONS, statLevelCost, GRADE_MULT, weaponUpgradeCost, LEVEL_MULT } from '../../data/weapons'
+import { WEAPONS, statLevelCost, GRADE_MULT, LEVEL_MULT } from '../../data/weapons'
 import type { StatKey, WeaponInstance, Grade, Stats, WeaponRarity } from '../../types/game'
 import { useT, localizeWeaponName } from '../../i18n'
 import s from './CharacterOverlay.module.css'
