@@ -1,10 +1,15 @@
 :root {
   /* Background */
-  --color-bg:           #161228;
-  --color-bg-panel:     #1e1a30;
-  --color-bg-overlay:   rgba(0, 0, 0, 0.80);
+  --color-bg:           #0a0818;
+  --color-bg-panel:     #0f0d22;
+  --color-bg-overlay:   rgba(0, 0, 0, 0.85);
 
-  /* Gold / accent */
+  /* Primary accent — neon blue (replaces gold as UI chrome) */
+  --color-accent:       #4a9eff;
+  --color-accent-dim:   #1e5599;
+  --color-accent-text:  #7ab8ff;
+
+  /* Gold — demoted to rare/boss only (active node, boss glow, special rewards) */
   --color-gold:         #e6bf33;
   --color-gold-dim:     #a88a20;
   --color-gold-text:    #c9a93a;
@@ -34,8 +39,8 @@
   --color-text-success: #55cc55;
 
   /* Borders / separators */
-  --color-border:       #2e2840;
-  --color-sep:          #2a2535;
+  --color-border:       #1c1a3a;
+  --color-sep:          #14122a;
 
   /* Fonts */
   --font-main: 'Segoe UI', system-ui, sans-serif;
@@ -46,6 +51,9 @@
   --radius-lg: 12px;
 
   /* Glow */
-  --glow-gold: 0 0 8px rgba(230, 191, 51, 0.5);
-  --glow-red:  0 0 8px rgba(200, 20, 20, 0.5);
+  --glow-accent:  0 0 10px rgba(74, 158, 255, 0.55);
+  --glow-violet:  0 0 10px rgba(150, 80, 255, 0.50);
+  --glow-cyan:    0 0 10px rgba(30, 200, 240, 0.50);
+  --glow-gold:    0 0 8px  rgba(230, 191, 51, 0.50);
+  --glow-red:     0 0 8px  rgba(200, 20, 20, 0.50);
 }

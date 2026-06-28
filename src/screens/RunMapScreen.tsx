@@ -24,7 +24,6 @@ function buildNodes(count: number): NodePos[] {
   })
 }
 
-
 function getNodeAt(x: number, y: number, nodes: NodePos[]): number {
   for (const n of nodes) {
     const dx = x - n.x, dy = y - n.y
@@ -33,11 +32,26 @@ function getNodeAt(x: number, y: number, nodes: NodePos[]): number {
   return -1
 }
 
-// ── Background particles (computed once) ─────────────────────────────────
-const BG_PARTICLES = Array.from({ length: 140 }, () => ({
-  x: Math.random() * 1200, y: Math.random() * 800,
-  r: 0.2 + Math.random() * 0.9, a: 0.02 + Math.random() * 0.09,
+// ── Background: stars + nebulas (seeded once) ────────────────────────────
+const STARS = Array.from({ length: 200 }, () => ({
+  x: Math.random() * 1200,
+  y: Math.random() * 800,
+  r: 0.3 + Math.random() * 0.9,
+  a: 0.25 + Math.random() * 0.55,
+  glow: Math.random() < 0.07,
 }))
+
+const NEBULAS: Array<{ cx: number; cy: number; r: number; col: [number,number,number]; a: number }> = [
+  { cx: 180,  cy: 160, r: 380, col: [90,  20, 140], a: 0.38 },
+  { cx: 980,  cy: 350, r: 320, col: [20,  50, 160], a: 0.32 },
+  { cx: 600,  cy: 660, r: 260, col: [150, 30,  90], a: 0.28 },
+  { cx: 1050, cy: 130, r: 180, col: [20, 120, 180], a: 0.22 },
+]
+
+// Replace alpha in rgba(..., alpha) string
+function withAlpha(rgba: string, a: number) {
+  return rgba.replace(/[\d.]+\)$/, `${a.toFixed(2)})`)
+}
 
 export default function RunMapScreen() {
   const navigate   = useNavigate()
@@ -45,6 +59,10 @@ export default function RunMapScreen() {
   const t          = useT()
   const canvasRef  = useRef<HTMLCanvasElement>(null)
   const nodes      = useRef<NodePos[]>([])
+  const rafRef     = useRef<number>(0)
+  const dashOffRef = useRef(0)
+  const drawRef    = useRef<(off: number) => void>(() => {})
+
   const [hoverIdx, setHoverIdx]     = useState(-1)
   const [tooltipPos, setTooltipPos] = useState({ x: 0, y: 0 })
   const [popupIdx, setPopupIdx]     = useState(-1)
@@ -58,12 +76,10 @@ export default function RunMapScreen() {
   const seq     = store.run_location_sequence
   const current = store.run_current_index
 
-  // Redirect if no active run
   useEffect(() => {
     if (!store.run_active) navigate('/')
   }, [store.run_active, navigate])
 
-  // Expiry check — display timer is in RunHeader
   useEffect(() => {
     const id = setInterval(() => {
       const rem = selectRunRemainingSeconds(store as Parameters<typeof selectRunRemainingSeconds>[0])
@@ -77,31 +93,57 @@ export default function RunMapScreen() {
     return () => clearInterval(id)
   }, [store, navigate])
 
-  // Build nodes when sequence changes
   useEffect(() => {
     nodes.current = buildNodes(seq.length)
   }, [seq.length])
 
-  // Draw canvas
-  const draw = useCallback(() => {
+  const draw = useCallback((dashOffset: number) => {
     const canvas = canvasRef.current
     if (!canvas) return
     const ctx = canvas.getContext('2d')!
     ctx.clearRect(0, 0, canvas.width, canvas.height)
 
-    // Background particles
-    BG_PARTICLES.forEach(p => {
-      ctx.beginPath()
-      ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2)
-      ctx.fillStyle = `rgba(120,132,170,${p.a})`
-      ctx.fill()
+    // ── Layer 1: Deep gradient base ──────────────────────────────────────
+    const bgGrad = ctx.createRadialGradient(CX, CY, 0, CX, CY, 700)
+    bgGrad.addColorStop(0, '#16102e')
+    bgGrad.addColorStop(1, '#0a0818')
+    ctx.fillStyle = bgGrad
+    ctx.fillRect(0, 0, 1200, 800)
+
+    // ── Layer 2: Nebula blobs ─────────────────────────────────────────────
+    NEBULAS.forEach(({ cx, cy, r, col: [rc, gc, bc], a }) => {
+      const g = ctx.createRadialGradient(cx, cy, 0, cx, cy, r)
+      g.addColorStop(0,   `rgba(${rc},${gc},${bc},${a})`)
+      g.addColorStop(0.5, `rgba(${rc},${gc},${bc},${(a * 0.4).toFixed(2)})`)
+      g.addColorStop(1,   'transparent')
+      ctx.fillStyle = g
+      ctx.fillRect(0, 0, 1200, 800)
     })
 
-    // Corner vignette
-    const corners = [[0,0],[1200,0],[0,800],[1200,800]]
-    corners.forEach(([cx,cy]) => {
+    // ── Layer 3: Stars ────────────────────────────────────────────────────
+    STARS.forEach(star => {
+      if (star.glow) {
+        ctx.save()
+        ctx.shadowBlur = 5
+        ctx.shadowColor = 'rgba(150,200,255,0.7)'
+        ctx.beginPath()
+        ctx.arc(star.x, star.y, star.r * 1.4, 0, Math.PI * 2)
+        ctx.fillStyle = `rgba(200,225,255,${star.a})`
+        ctx.fill()
+        ctx.restore()
+      } else {
+        ctx.beginPath()
+        ctx.arc(star.x, star.y, star.r, 0, Math.PI * 2)
+        ctx.fillStyle = `rgba(200,225,255,${star.a})`
+        ctx.fill()
+      }
+    })
+
+    // ── Layer 4: Corner vignettes ─────────────────────────────────────────
+    const corners = [[0,0],[1200,0],[0,800],[1200,800]] as const
+    corners.forEach(([cx, cy]) => {
       const g = ctx.createRadialGradient(cx, cy, 0, cx, cy, 340)
-      g.addColorStop(0, 'rgba(30,14,60,0.08)')
+      g.addColorStop(0, 'rgba(8,5,20,0.60)')
       g.addColorStop(1, 'transparent')
       ctx.fillStyle = g
       ctx.fillRect(0, 0, 1200, 800)
@@ -110,10 +152,10 @@ export default function RunMapScreen() {
     const ns = nodes.current
     if (ns.length === 0) return
 
-    // Connection lines — quadratic bezier curves
+    // ── Connection lines ──────────────────────────────────────────────────
     for (let i = 0; i < ns.length - 1; i++) {
       const beaten = i < current
-      const isNext = i === current   // line leading out of the active node
+      const isNext = i === current
       const a = ns[i], b = ns[i + 1]
       const mx = (a.x + b.x) / 2
       const my = (a.y + b.y) / 2
@@ -128,77 +170,114 @@ export default function RunMapScreen() {
       ctx.quadraticCurveTo(cpx, cpy, b.x, b.y)
 
       if (beaten) {
-        ctx.strokeStyle = 'rgba(52,190,118,0.88)'
-        ctx.lineWidth   = 2.5
-        ctx.shadowColor = 'rgba(52,190,118,0.45)'
-        ctx.shadowBlur  = 6
+        ctx.strokeStyle    = 'rgba(52,200,130,0.9)'
+        ctx.lineWidth      = 2.5
+        ctx.shadowColor    = 'rgba(52,200,130,0.50)'
+        ctx.shadowBlur     = 6
         ctx.setLineDash([])
+        ctx.lineDashOffset = 0
       } else if (isNext) {
-        ctx.strokeStyle = 'rgba(180,145,35,0.72)'
-        ctx.lineWidth   = 2.0
-        ctx.shadowBlur  = 0
+        ctx.strokeStyle    = 'rgba(200,160,40,0.85)'
+        ctx.lineWidth      = 2.2
+        ctx.shadowBlur     = 0
         ctx.setLineDash([7, 5])
+        ctx.lineDashOffset = -(dashOffset * 0.5)
       } else {
-        ctx.strokeStyle = 'rgba(110,100,185,0.70)'
-        ctx.lineWidth   = 1.8
-        ctx.shadowBlur  = 0
+        ctx.strokeStyle    = 'rgba(100,90,200,0.55)'
+        ctx.lineWidth      = 1.5
+        ctx.shadowBlur     = 0
         ctx.setLineDash([5, 7])
+        ctx.lineDashOffset = -(dashOffset * 0.25)
       }
       ctx.stroke()
       ctx.setLineDash([])
-      ctx.shadowBlur = 0
+      ctx.lineDashOffset = 0
+      ctx.shadowBlur     = 0
     }
 
-    // Nodes
+    // ── Nodes ─────────────────────────────────────────────────────────────
     ns.forEach((n, i) => {
       const beaten  = i < current
       const active  = i === current
       const isHover = i === hoverIdx
       const stype   = seq[i]?.sublocation_type
 
-      // Colors by state / type
-      let fillColor: string, ringColor: string, labelColor: string
+      let fillColor: string, glowColor: string, labelColor: string
       if (beaten) {
-        fillColor = '#0c1a14'; ringColor = '#1e6e50'; labelColor = '#2a9a6e'
+        fillColor = '#061812'; glowColor = 'rgba(40,210,130,0.9)';  labelColor = '#5adfa0'
       } else if (active) {
-        fillColor = '#1a1200'; ringColor = '#8a6810'; labelColor = '#c0a030'
+        fillColor = '#1a1200'; glowColor = 'rgba(200,165,40,1.0)';  labelColor = '#d4aa30'
       } else if (stype === 'boss') {
-        fillColor = '#180a0a'; ringColor = '#7a2222'; labelColor = '#c04040'
+        fillColor = '#1a0808'; glowColor = 'rgba(220,50,50,0.9)';   labelColor = '#e06060'
       } else if (stype === 'elite') {
-        fillColor = '#0e0818'; ringColor = '#522080'; labelColor = '#9060c8'
+        fillColor = '#130a20'; glowColor = 'rgba(140,60,220,0.9)';  labelColor = '#b070e8'
       } else if (stype === 'event') {
-        fillColor = '#081016'; ringColor = '#205870'; labelColor = '#3a90aa'
+        fillColor = '#061620'; glowColor = 'rgba(30,180,220,0.9)';  labelColor = '#50c8e0'
       } else {
-        fillColor = '#0d0c18'; ringColor = '#4a4880'; labelColor = '#b8b5f0'
+        fillColor = '#0f0e22'; glowColor = 'rgba(100,90,220,0.9)';  labelColor = '#a0a0ff'
       }
 
       const r = active ? NODE_R + 3 : NODE_R
 
-      // Glow halos
+      // Outer soft glow ring
+      ctx.save()
+      ctx.shadowBlur  = 22
+      ctx.shadowColor = glowColor
+      ctx.beginPath()
+      ctx.arc(n.x, n.y, r + 3, 0, Math.PI * 2)
+      ctx.strokeStyle = withAlpha(glowColor, 0.7)
+      ctx.lineWidth   = 1.5
+      ctx.stroke()
+      ctx.restore()
+
+      // Active animated pulse rings
       if (active) {
-        ctx.beginPath(); ctx.arc(n.x, n.y, r + 14, 0, Math.PI * 2)
-        ctx.fillStyle = 'rgba(120,88,12,0.14)'; ctx.fill()
-        ctx.beginPath(); ctx.arc(n.x, n.y, r + 7, 0, Math.PI * 2)
-        ctx.fillStyle = 'rgba(140,104,16,0.22)'; ctx.fill()
+        const p1 = 0.16 + 0.14 * Math.sin(dashOffset * 0.05)
+        const p2 = 0.28 + 0.20 * Math.sin(dashOffset * 0.05 + Math.PI / 2)
+        ctx.beginPath()
+        ctx.arc(n.x, n.y, r + 14, 0, Math.PI * 2)
+        ctx.fillStyle = withAlpha(glowColor, p1)
+        ctx.fill()
+        ctx.beginPath()
+        ctx.arc(n.x, n.y, r + 7, 0, Math.PI * 2)
+        ctx.fillStyle = withAlpha(glowColor, p2)
+        ctx.fill()
       } else if (!beaten && stype === 'boss') {
-        ctx.beginPath(); ctx.arc(n.x, n.y, r + 9, 0, Math.PI * 2)
-        ctx.fillStyle = 'rgba(120,28,28,0.16)'; ctx.fill()
+        ctx.beginPath()
+        ctx.arc(n.x, n.y, r + 10, 0, Math.PI * 2)
+        ctx.fillStyle = 'rgba(220,50,50,0.12)'
+        ctx.fill()
       } else if (!beaten && stype === 'elite') {
-        ctx.beginPath(); ctx.arc(n.x, n.y, r + 7, 0, Math.PI * 2)
-        ctx.fillStyle = 'rgba(82,32,128,0.14)'; ctx.fill()
-      }
-      if (isHover && !beaten && i !== current) {
-        ctx.beginPath(); ctx.arc(n.x, n.y, r + 5, 0, Math.PI * 2)
-        ctx.fillStyle = 'rgba(100,75,10,0.18)'; ctx.fill()
+        ctx.beginPath()
+        ctx.arc(n.x, n.y, r + 8, 0, Math.PI * 2)
+        ctx.fillStyle = 'rgba(140,60,220,0.12)'
+        ctx.fill()
       }
 
-      // Node fill + ring
+      // Hover ring
+      if (isHover && !beaten && i !== current) {
+        ctx.beginPath()
+        ctx.arc(n.x, n.y, r + 6, 0, Math.PI * 2)
+        ctx.fillStyle = 'rgba(74,158,255,0.16)'
+        ctx.fill()
+      }
+
+      // Node body
       ctx.beginPath()
       ctx.arc(n.x, n.y, r, 0, Math.PI * 2)
       ctx.fillStyle = fillColor
       ctx.fill()
-      ctx.strokeStyle = ringColor
-      ctx.lineWidth = active ? 2.5 : (stype === 'boss' ? 2 : 1.2)
+
+      // Node ring
+      ctx.strokeStyle = glowColor
+      ctx.lineWidth   = active ? 2.5 : stype === 'boss' ? 2.0 : 1.5
+      ctx.stroke()
+
+      // Inner energy ring
+      ctx.beginPath()
+      ctx.arc(n.x, n.y, r * 0.55, 0, Math.PI * 2)
+      ctx.strokeStyle = withAlpha(glowColor, 0.32)
+      ctx.lineWidth   = 0.8
       ctx.stroke()
 
       // Symbol
@@ -210,17 +289,30 @@ export default function RunMapScreen() {
       else if (stype === 'event') symbol = '✦'
       else symbol = '?'
 
-      ctx.fillStyle = labelColor
-      ctx.font = `bold ${active ? 12 : 10}px system-ui`
-      ctx.textAlign = 'center'
+      ctx.shadowBlur = 0
+      ctx.fillStyle  = labelColor
+      ctx.font       = `bold ${active ? 13 : 11}px system-ui`
+      ctx.textAlign  = 'center'
       ctx.textBaseline = 'middle'
       ctx.fillText(symbol, n.x, n.y)
     })
   }, [seq, current, hoverIdx])
 
+  // Keep drawRef current so RAF always calls latest version
   useEffect(() => {
-    draw()
-  }, [draw])
+    drawRef.current = draw
+  })
+
+  // RAF animation loop
+  useEffect(() => {
+    function tick() {
+      dashOffRef.current += 0.6
+      drawRef.current(dashOffRef.current)
+      rafRef.current = requestAnimationFrame(tick)
+    }
+    rafRef.current = requestAnimationFrame(tick)
+    return () => cancelAnimationFrame(rafRef.current)
+  }, [])
 
   // ── Input ────────────────────────────────────────────────────────────────
   function canvasCoords(e: React.MouseEvent<HTMLCanvasElement>) {

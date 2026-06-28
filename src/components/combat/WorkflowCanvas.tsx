@@ -158,9 +158,9 @@ function render(
     const cy1 = (y1 + y2) / 2 - ny * bow
 
     ctx.beginPath()
-    ctx.strokeStyle = isActive ? 'rgba(200,180,100,0.85)' : 'rgba(110,100,185,0.72)'
-    ctx.lineWidth   = isActive ? 2.5 : 1.8
-    ctx.setLineDash(isActive ? [] : [5, 5])
+    ctx.strokeStyle = isActive ? 'rgba(200,170,60,0.88)' : 'rgba(80,90,200,0.55)'
+    ctx.lineWidth   = isActive ? 2.5 : 1.5
+    ctx.setLineDash(isActive ? [] : [5, 7])
     ctx.moveTo(x1, y1)
     ctx.quadraticCurveTo(cx1, cy1, x2, y2)
     ctx.stroke()
@@ -184,11 +184,10 @@ function render(
     ctx.fill()
 
     // Border
-    let bc = 'rgba(78,72,145,0.65)', bw = 1
-    if (isSelected && done) { bc = '#e6bf33';               bw = 2.5 }
-    else if (isSelected)    { bc = '#e6bf33';               bw = 2.5 }
-    else if (isReach)       { bc = 'rgba(110,175,255,0.9)'; bw = 2   }
-    else if (done)          { bc = 'rgba(48,92,52,0.75)';   bw = 1.5 }
+    let bc = 'rgba(60,55,130,0.55)', bw = 1
+    if (isSelected) { bc = '#4a9eff';               bw = 2.5 }
+    else if (isReach) { bc = 'rgba(110,175,255,0.9)'; bw = 2   }
+    else if (done)    { bc = 'rgba(48,92,52,0.75)';   bw = 1.5 }
 
     ctx.beginPath()
     ctx.roundRect(p.x, p.y, TILE, TILE, TILE_RX)
@@ -196,8 +195,18 @@ function render(
     ctx.lineWidth   = bw
     ctx.stroke()
 
-    // Reachable glow
-    if (isReach) {
+    // Reachable / selected glow
+    if (isSelected) {
+      ctx.save()
+      ctx.shadowColor = 'rgba(74,158,255,0.6)'
+      ctx.shadowBlur  = 16
+      ctx.beginPath()
+      ctx.roundRect(p.x, p.y, TILE, TILE, TILE_RX)
+      ctx.strokeStyle = 'rgba(74,158,255,0.35)'
+      ctx.lineWidth   = 1
+      ctx.stroke()
+      ctx.restore()
+    } else if (isReach) {
       ctx.save()
       ctx.shadowColor = 'rgba(100,170,255,0.4)'
       ctx.shadowBlur  = 12

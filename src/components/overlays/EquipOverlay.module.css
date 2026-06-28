@@ -11,14 +11,16 @@
 }
 
 .panel {
-  background: var(--color-bg-panel);
-  border: 1px solid var(--color-border);
+  background: rgba(15, 13, 34, 0.92);
+  border: 1px solid rgba(74, 100, 200, 0.22);
   border-radius: var(--radius-lg);
   padding: 24px 30px;
   width: 660px;
   max-width: 96vw;
   max-height: 88vh;
   overflow-y: auto;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
   display: flex;
   flex-direction: column;
   gap: 12px;
@@ -62,7 +64,7 @@
   font-size: 0.68rem;
   letter-spacing: 0.16em;
   text-transform: uppercase;
-  color: var(--color-gold-dim);
+  color: var(--color-accent-dim);
   margin-bottom: 4px;
 }
 
@@ -113,22 +115,22 @@
   letter-spacing: 0.05em;
   padding: 4px 10px;
   white-space: nowrap;
-  background: rgba(230,191,51,0.07);
-  border: 1px solid var(--color-gold-dim);
-  color: var(--color-gold);
+  background: rgba(74,158,255,0.07);
+  border: 1px solid var(--color-accent-dim);
+  color: var(--color-accent);
   border-radius: var(--radius);
   cursor: pointer;
   transition: background 0.1s, box-shadow 0.1s;
 }
 
 .btnUpgrade:hover:not(:disabled) {
-  background: rgba(230,191,51,0.16);
-  box-shadow: var(--glow-gold);
+  background: rgba(74,158,255,0.16);
+  box-shadow: var(--glow-accent);
 }
 
 .btnUpgradeConfirm {
-  background: rgba(230,191,51,0.18) !important;
-  border-color: var(--color-gold) !important;
+  background: rgba(74,158,255,0.18) !important;
+  border-color: var(--color-accent) !important;
 }
 
 .btnUpgradeDim { opacity: 0.30; cursor: not-allowed; }
@@ -160,7 +162,7 @@
 .iconBtn:hover { border-color: var(--color-border); background: rgba(255,255,255,0.05); }
 
 .iconBtnActive {
-  border-color: var(--color-gold-dim);
+  border-color: var(--color-accent-dim);
   background: rgba(255,200,80,0.06);
 }
 
@@ -169,7 +171,7 @@
   top: 2px;
   right: 3px;
   font-size: 0.6rem;
-  color: var(--color-gold-dim);
+  color: var(--color-accent-dim);
   line-height: 1;
 }
 
@@ -250,7 +252,7 @@
 
 .equippedChip {
   font-size: 0.85rem;
-  color: var(--color-gold-dim);
+  color: var(--color-accent-dim);
 }
 
 .slotCount {
@@ -289,7 +291,7 @@
 }
 
 .scalingChip {
-  color: var(--color-gold-dim);
+  color: var(--color-accent-dim);
 }
 
 .affixList {

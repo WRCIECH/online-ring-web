@@ -207,11 +207,11 @@
   letter-spacing: 0.14em;
   text-transform: uppercase;
   padding: 16px;
-  background: rgba(230,191,51,0.08);
-  border-color: var(--color-gold-dim);
-  color: var(--color-gold);
+  background: rgba(74,158,255,0.08);
+  border-color: var(--color-accent-dim);
+  color: var(--color-accent);
 }
-.btnConfirm:hover { background: rgba(230,191,51,0.16); box-shadow: var(--glow-gold); }
+.btnConfirm:hover { background: rgba(74,158,255,0.18); box-shadow: var(--glow-accent); }
 
 /* ── Tooltip ─────────────────────────────────────────────────────────────── */
 .tooltip {

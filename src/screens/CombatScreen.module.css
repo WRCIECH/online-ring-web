@@ -2,8 +2,12 @@
   display: flex;
   flex-direction: column;
   height: 100vh;
-  background: var(--color-bg);
   overflow: hidden;
+  background:
+    radial-gradient(ellipse 70% 55% at 10% 20%, rgba(90,20,140,0.28) 0%, transparent 70%),
+    radial-gradient(ellipse 55% 45% at 85% 75%, rgba(20,50,160,0.22) 0%, transparent 70%),
+    radial-gradient(ellipse 40% 35% at 55% 10%, rgba(150,30,90,0.18) 0%, transparent 70%),
+    #0a0818;
 }
 
 /* ── Main layout ───────────────────────────────────────────────────────────── */
@@ -20,9 +24,11 @@
   align-items: center;
   gap: 8px;
   padding: 5px 18px;
-  border-bottom: 1px solid var(--color-sep);
+  border-bottom: 1px solid rgba(74, 100, 200, 0.18);
   flex-shrink: 0;
-  background: rgba(6,5,14,0.5);
+  background: rgba(10, 8, 24, 0.60);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
 }
 
 .contentBarLabel {
@@ -34,7 +40,7 @@
 
 .contentBarTitle {
   font-size: 0.85rem;
-  color: var(--color-gold-dim);
+  color: var(--color-accent-dim);
 }
 
 .canvasWrap {
@@ -56,7 +62,7 @@
 .endOverlay {
   position: fixed;
   inset: 0;
-  background: rgba(0,0,0,0.85);
+  background: rgba(8, 5, 20, 0.88);
   z-index: 15;
   display: flex;
   align-items: center;
@@ -64,8 +70,8 @@
 }
 
 .endBox {
-  background: var(--color-bg-panel);
-  border: 1px solid var(--color-border);
+  background: rgba(15, 13, 34, 0.92);
+  border: 1px solid rgba(74, 100, 200, 0.25);
   border-radius: var(--radius-lg);
   padding: 48px 56px;
   text-align: center;
@@ -74,6 +80,9 @@
   gap: 20px;
   max-width: 440px;
   min-width: 320px;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  box-shadow: 0 8px 40px rgba(0,0,0,0.7);
 }
 
 .endTitle {
@@ -120,12 +129,12 @@
   font-size: 0.9rem;
   letter-spacing: 0.06em;
   border-radius: var(--radius);
-  background: rgba(230,191,51,0.08);
-  border: 1px solid var(--color-gold-dim);
-  color: var(--color-gold);
+  background: rgba(74,158,255,0.08);
+  border: 1px solid var(--color-accent-dim);
+  color: var(--color-accent);
 }
 
-.btnCancel:hover { background: rgba(230,191,51,0.16); }
+.btnCancel:hover { background: rgba(74,158,255,0.16); box-shadow: var(--glow-accent); }
 
 .btnConfirmDanger {
   flex: 1;
@@ -164,8 +173,8 @@
 }
 
 .contentPickItem:hover {
-  background: rgba(230,191,51,0.08);
-  border-color: var(--color-gold-dim);
+  background: rgba(74,158,255,0.08);
+  border-color: var(--color-accent-dim);
 }
 
 .contentPickName {
@@ -182,7 +191,6 @@
   flex-shrink: 0;
 }
 
-
 .contentBarPhase {
   font-size: 0.65rem;
   letter-spacing: 0.1em;
@@ -196,12 +204,12 @@
   letter-spacing: 0.1em;
   text-transform: uppercase;
   padding: 14px 24px;
-  background: rgba(230,191,51,0.08);
-  border-color: var(--color-gold-dim);
-  color: var(--color-gold);
+  background: rgba(74,158,255,0.08);
+  border-color: var(--color-accent-dim);
+  color: var(--color-accent);
 }
 
-.endBtn:hover { background: rgba(230,191,51,0.16); box-shadow: var(--glow-gold); }
+.endBtn:hover { background: rgba(74,158,255,0.16); box-shadow: var(--glow-accent); }
 
 /* ── Loot reveal ───────────────────────────────────────────────────────────── */
 .lootEnemyName {

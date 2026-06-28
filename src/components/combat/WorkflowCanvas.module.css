@@ -21,8 +21,8 @@
 .tooltip {
   position: fixed;
   pointer-events: none;
-  background: var(--color-bg-panel);
-  border: 1px solid var(--color-border);
+  background: rgba(15, 13, 34, 0.90);
+  border: 1px solid rgba(74, 100, 200, 0.22);
   border-radius: 8px;
   padding: 8px 12px;
   display: flex;
@@ -32,6 +32,8 @@
   min-width: 170px;
   max-width: 260px;
   box-shadow: 0 4px 16px rgba(0,0,0,0.55);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
 }
 
 .ttBadgeRow {
