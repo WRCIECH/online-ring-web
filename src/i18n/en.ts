@@ -201,6 +201,8 @@ const en: TranslationBundle = {
     btn_begin_as:       'Begin as',
 
     // LocationSelectScreen
+    world_map_title:      'Online Lands',
+    locations_visited:    'locations visited',
     choose_dungeon_title: 'Choose Your Dungeon',
     choose_dungeon_first: 'Begin your journey — only the first steps are open to you',
     choose_dungeon_next:  'Choose your next challenge',
@@ -251,7 +253,7 @@ const en: TranslationBundle = {
     btn_detach:             'Detach',
     btn_sell_weapon:        'Sell',
     btn_sell_confirm:       'Confirm sell?',
-    btn_equipment:          '⚔ Equipment',
+    btn_equipment:          'Equipment',
     equipment_title:        'EQUIPMENT',
     equip_no_weapons:       'No weapons owned yet.',
     equip_slot_empty:       'Empty slot',
@@ -328,8 +330,8 @@ const en: TranslationBundle = {
     // RunHeader
     run_prefix:   'Run #',
     btn_equip:    '⚙ Equip',
-    btn_stats:           '📊 Character',
-    btn_analytics:       '📈 Statistics',
+    btn_stats:           'Character',
+    btn_analytics:       'Statistics',
     analytics_title:     'Statistics',
     analytics_content_hdr: 'Content',
     analytics_time_hdr:  'Time Invested',
@@ -338,7 +340,7 @@ const en: TranslationBundle = {
     analytics_in_progress: 'In Progress',
     analytics_runs:      'Completed Runs',
     analytics_locations: 'Locations Cleared',
-    btn_pipeline: '📋 Pipeline',
+    btn_pipeline: 'Pipeline',
 
     // EquipOverlay
     equip_title:          '⚙ Equipment',

@@ -5,8 +5,7 @@ import { LOCATION_DEFINITIONS, getUnlockedLocationIds, SIZE_LABEL, SIZE_COLOUR }
 import type { LocationDef } from '../data/locations'
 import { LOCATION_THEMES } from '../data/locationThemes'
 import LocationMap from '../components/LocationMap'
-import CharacterOverlay  from '../components/overlays/CharacterOverlay'
-import AnalyticsOverlay from '../components/overlays/AnalyticsOverlay'
+import ActionBar from '../components/layout/ActionBar'
 import { useT } from '../i18n'
 import s from './LocationSelectScreen.module.css'
 
@@ -20,11 +19,9 @@ export default function LocationSelectScreen() {
   const navigate   = useNavigate()
   const store      = useGameStore()
   const t          = useT()
-  const [hoveredId,     setHoveredId]     = useState<string | null>(null)
-  const [selectedId,    setSelectedId]    = useState<string | null>(null)
-  const [showStats,     setShowStats]     = useState(false)
-  const [showAnalytics, setShowAnalytics] = useState(false)
-  const [mousePos,      setMousePos]      = useState({ x: 0, y: 0 })
+  const [hoveredId,  setHoveredId]  = useState<string | null>(null)
+  const [selectedId, setSelectedId] = useState<string | null>(null)
+  const [mousePos,   setMousePos]   = useState({ x: 0, y: 0 })
 
   const completedSet = new Set(store.completed_locations)
   const unlockedSet  = getUnlockedLocationIds(store.completed_locations)
@@ -50,9 +47,6 @@ export default function LocationSelectScreen() {
 
   return (
     <div className={s.root}>
-      {showStats     && <CharacterOverlay  onClose={() => setShowStats(false)} />}
-      {showAnalytics && <AnalyticsOverlay onClose={() => setShowAnalytics(false)} />}
-
       {/* ── Full-screen map ── */}
       <div className={s.mapWrap} onMouseMove={e => setMousePos({ x: e.clientX, y: e.clientY })}>
         <LocationMap
@@ -67,13 +61,11 @@ export default function LocationSelectScreen() {
 
       {/* ── Top overlay bar ── */}
       <div className={s.topBar}>
-        <h1 className={s.title}>{t.ui.choose_dungeon_title}</h1>
+        <span className={s.worldTitle}>{t.ui.world_map_title}</span>
         <span className={s.progress}>
-          {store.completed_locations.length} / {LOCATION_DEFINITIONS.length}
+          {store.completed_locations.length} / {LOCATION_DEFINITIONS.length} {t.ui.locations_visited}
         </span>
-        <span className={s.runeDisplay}>✦ {store.runes.toLocaleString()}</span>
-        <button className={s.btnMeta} onClick={() => setShowStats(true)}>{t.ui.btn_stats_levelup}</button>
-        <button className={s.btnMeta} onClick={() => setShowAnalytics(true)}>{t.ui.btn_analytics}</button>
+        <ActionBar />
       </div>
 
       {/* ── Info panel (bottom-right) ── */}

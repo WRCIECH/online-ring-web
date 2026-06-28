@@ -112,13 +112,3 @@
 }
 
 
-/* ── Action buttons ───────────────────────────────────────────────────── */
-.actions {
-  display: flex;
-  gap: 8px;
-}
-
-.btn {
-  font-size: 1.23rem;
-  padding: 8px 18px;
-}

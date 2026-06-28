@@ -201,6 +201,8 @@ const pl: TranslationBundle = {
     btn_begin_as:       'Zacznij jako',
 
     // LocationSelectScreen
+    world_map_title:      'Online Lands',
+    locations_visited:    'lokacji odwiedzonych',
     choose_dungeon_title: 'Wybierz lokację',
     choose_dungeon_first: 'Rozpocznij podróż — tylko pierwsze kroki są dla ciebie otwarte',
     choose_dungeon_next:  'Wybierz kolejne wyzwanie',
@@ -252,7 +254,7 @@ const pl: TranslationBundle = {
     btn_detach:             'Odłącz',
     btn_sell_weapon:        'Sprzedaj',
     btn_sell_confirm:       'Potwierdź sprzedaż?',
-    btn_equipment:          '⚔ Ekwipunek',
+    btn_equipment:          'Ekwipunek',
     equipment_title:        'EKWIPUNEK',
     equip_no_weapons:       'Nie posiadasz jeszcze żadnej broni.',
     equip_slot_empty:       'Wolny slot',
@@ -323,8 +325,8 @@ const pl: TranslationBundle = {
     // RunHeader
     run_prefix:   'Run #',
     btn_equip:    '⚙ Ekwipunek',
-    btn_stats:           '📊 Postać',
-    btn_analytics:       '📈 Statystyki',
+    btn_stats:           'Postać',
+    btn_analytics:       'Statystyki',
     analytics_title:     'Statystyki',
     analytics_content_hdr: 'Treść',
     analytics_time_hdr:  'Czas pracy',
@@ -333,7 +335,7 @@ const pl: TranslationBundle = {
     analytics_in_progress: 'W toku',
     analytics_runs:      'Ukończone wyprawy',
     analytics_locations: 'Lokacje',
-    btn_pipeline: '📋 Content',
+    btn_pipeline: 'Content',
 
     // EquipOverlay
     equip_title:          '⚙ Ekwipunek',

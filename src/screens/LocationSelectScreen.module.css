@@ -10,9 +10,9 @@
 .mapWrap {
   position: absolute;
   top: 60px;
-  bottom: 32px;
-  left: 0;
-  right: 0;
+  bottom: 48px;
+  left: 56px;
+  right: 56px;
 }
 
 /* ── Top overlay bar ─────────────────────────────────────────────────────── */
@@ -32,42 +32,23 @@
 }
 .topBar > * { pointer-events: auto; }
 
-.title {
-  font-size: 0.9rem;
+.worldTitle {
+  font-size: 0.72rem;
   font-weight: 300;
-  letter-spacing: 0.2em;
+  letter-spacing: 0.22em;
   text-transform: uppercase;
-  color: var(--color-gold);
-  text-shadow: var(--glow-gold);
+  color: var(--color-gold-dim);
   margin-right: 4px;
 }
 
 .progress {
-  font-size: 0.75rem;
-  color: var(--color-gold-dim);
-  letter-spacing: 0.06em;
-}
-
-.runeDisplay {
-  font-size: 0.78rem;
-  color: var(--color-gold-dim);
-  letter-spacing: 0.06em;
-  margin-left: auto;
-}
-
-.btnMeta {
   font-size: 0.72rem;
-  letter-spacing: 0.08em;
-  padding: 5px 14px;
-  background: rgba(230,191,51,0.07);
-  border: 1px solid var(--color-gold-dim);
-  color: var(--color-gold);
-  border-radius: var(--radius);
+  color: var(--color-text-dim);
+  letter-spacing: 0.04em;
+  margin-left: auto;
+  margin-right: 8px;
 }
-.btnMeta:hover {
-  background: rgba(230,191,51,0.14);
-  box-shadow: var(--glow-gold);
-}
+
 
 /* ── Info panel ──────────────────────────────────────────────────────────── */
 .infoPanel {
