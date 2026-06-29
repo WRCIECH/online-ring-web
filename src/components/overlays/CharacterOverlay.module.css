@@ -268,27 +268,63 @@
 }
 
 .weaponTab {
-  font-size: 0.68rem;
-  padding: 4px 10px;
+  position: relative;
+  width: 52px;
+  height: 52px;
+  padding: 6px;
   border: 1px solid var(--color-border);
-  color: var(--color-text-dim);
   border-radius: var(--radius);
-  background: transparent;
+  background: var(--color-bg-panel);
   cursor: pointer;
-  letter-spacing: 0.04em;
-  transition: color 0.1s, border-color 0.1s;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  max-width: 140px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: border-color 0.14s, background 0.14s, box-shadow 0.14s;
+  color: var(--color-text-dim);
 }
 
-.weaponTab:hover { color: var(--color-text); border-color: var(--color-border); }
+.weaponTab:hover {
+  border-color: var(--color-accent-dim);
+  background: rgba(74,158,255,0.07);
+}
 
 .weaponTabActive {
-  color: var(--color-accent-dim);
-  border-color: var(--color-accent-dim);
-  background: rgba(74,158,255,0.06);
+  border-color: var(--color-accent);
+  box-shadow: var(--glow-accent);
+}
+
+.weaponTabTip {
+  position: absolute;
+  bottom: calc(100% + 7px);
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(15, 13, 34, 0.95);
+  border: 1px solid rgba(74, 100, 200, 0.28);
+  border-radius: var(--radius);
+  padding: 7px 11px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.12s;
+  white-space: nowrap;
+  z-index: 10;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.5);
+}
+
+.weaponTab:hover .weaponTabTip { opacity: 1; }
+
+.weaponTabTipName {
+  font-size: 0.82rem;
+  color: var(--color-accent-text);
+  font-weight: 600;
+}
+
+.weaponTabTipSub {
+  font-size: 0.70rem;
+  color: var(--color-text-dim);
+  text-transform: capitalize;
 }
 
 /* ── Weapon preview card ───────────────────────────────────────────────── */

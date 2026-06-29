@@ -3,6 +3,7 @@ import { useGameStore } from '../../store/gameStore'
 import { WEAPONS, statLevelCost, GRADE_MULT, LEVEL_MULT } from '../../data/weapons'
 import type { StatKey, WeaponInstance, Grade, Stats, WeaponRarity } from '../../types/game'
 import { useT, localizeWeaponName } from '../../i18n'
+import WeaponSprite from '../icons/WeaponSprite'
 import s from './CharacterOverlay.module.css'
 
 interface Props { onClose: () => void; canLevel?: boolean }
@@ -182,18 +183,31 @@ export default function CharacterOverlay({ onClose, canLevel = true }: Props) {
 
           {/* RIGHT: weapon preview ──────────────────────────────────── */}
           <div className={s.rightCol}>
-            {weaponIds.length > 1 && (
+            {weaponIds.length > 0 && (
               <div className={s.weaponTabs}>
                 {weaponIds.map((wid, i) => {
                   const w = WEAPONS[wid] as WeaponInstance | undefined
                   if (!w) return null
+                  const level = store.weapon_level[wid] ?? 0
                   return (
                     <button
                       key={wid}
                       className={[s.weaponTab, i === safeIdx ? s.weaponTabActive : ''].join(' ')}
                       onClick={() => setPreviewWeaponIdx(i)}
                     >
-                      {localizeWeaponName(w, t).slice(0, 18)}
+                      <WeaponSprite
+                        weaponClass={w.weapon_class}
+                        rarity={w.rarity ?? 'common'}
+                        poiseWeight={w.poise_weight ?? 'medium'}
+                        size={36}
+                      />
+                      <span className={s.weaponTabTip}>
+                        <span className={s.weaponTabTipName}>{localizeWeaponName(w, t)}</span>
+                        <span className={s.weaponTabTipSub}>
+                          {t.weapons[w.weapon_class]?.name ?? w.weapon_class.replace(/_/g, ' ')}
+                          {' · '}{w.rarity}{' · '}Lv {level}
+                        </span>
+                      </span>
                     </button>
                   )
                 })}
