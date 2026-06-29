@@ -5,6 +5,7 @@ import { CLASS_DEFINITIONS } from '../data/classes'
 import type { StatKey } from '../types/game'
 import { useT } from '../i18n'
 import WeaponIcon from '../components/WeaponIcon'
+import ClassSymbol from '../components/ClassSymbol'
 import s from './ClassSelectScreen.module.css'
 
 const CORE_STATS:    StatKey[] = ['VIG', 'END']
@@ -115,15 +116,19 @@ export default function ClassSelectScreen() {
                     tabIndex={abs > 0 ? 0 : undefined}
                   >
                     <div className={s.cardTop}>
-                      <div className={s.cardTopName}>{clsName}</div>
                       {abs === 0 && (
                         <div className={s.cardTopWeapon}>
                           <WeaponIcon weaponClass={cls.weaponClass} className={s.cardTopWeaponImg} />
                         </div>
                       )}
+                      <div className={s.cardTopName}>{clsName}</div>
                     </div>
                     <div className={s.cardArt}>
                       <div className={s.cardArtGlow} />
+                      <ClassSymbol classId={cls.id} className={s.cardSymbol} />
+                      {abs === 0 && (
+                        <div className={s.cardDescOverlay}>{clsDesc}</div>
+                      )}
                     </div>
                   </div>
                 )
