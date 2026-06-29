@@ -59,7 +59,7 @@ export type CombatAction =
   | { type: 'CANCEL_TIMER' }
   | { type: 'USE_ESTUS' }
   | { type: 'ABANDON' }
-  | { type: 'SWITCH_WORKFLOW'; workflow: WorkflowGraph; isRemaster?: boolean }
+  | { type: 'SWITCH_WORKFLOW'; workflow: WorkflowGraph; isRemaster?: boolean; consistencyStreak?: number }
   | { type: 'SWITCH_WEAPON'; weaponId: string; weaponLevel: number }
   | { type: 'ADD_LOG'; text: string; color?: string }
 
@@ -414,7 +414,8 @@ export function combatReducer(state: CombatState, action: CombatAction): CombatS
       return log(
         { ...state, workflow: action.workflow, currentTileId: action.workflow.start_id,
           selectedTileId: null, pendingTile: null, pendingMove: null,
-          consistencyStreak: 0, isRemasterPass: action.isRemaster ?? false },
+          consistencyStreak: action.consistencyStreak ?? 0,
+          isRemasterPass: action.isRemaster ?? false },
         'A new piece of work begins — the fight continues.', '#c9a93a'
       )
     }
@@ -425,8 +426,7 @@ export function combatReducer(state: CombatState, action: CombatAction): CombatS
       const newWeapon = WEAPONS[action.weaponId] as WeaponInstance | undefined
       return log(
         { ...state, equippedWeaponId: action.weaponId, weaponLevel: action.weaponLevel,
-          selectedTileId: null, pendingTile: null, pendingMove: null,
-          consistencyStreak: 0 },
+          selectedTileId: null, pendingTile: null, pendingMove: null },
         `You switch to ${newWeapon?.name ?? action.weaponId}.`, '#88aadd'
       )
     }

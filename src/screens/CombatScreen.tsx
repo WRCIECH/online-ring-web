@@ -102,9 +102,10 @@ export default function CombatScreen() {
   const wClass  = weapon?.weapon_class ?? initialWeaponClass
   const wRarity = weapon?.rarity       ?? initialWeaponRarity
 
-  // Per-weapon workflow cache: preserves progress when the player switches away and back
-  const weaponWorkflows = useRef<Record<string, WorkflowGraph>>({
-    [initialWeaponId]: state.workflow,
+  // Per-weapon workflow+streak cache: preserves progress when switching away and back
+  type WeaponSnapshot = { workflow: WorkflowGraph; streak: number }
+  const weaponWorkflows = useRef<Record<string, WeaponSnapshot>>({
+    [initialWeaponId]: { workflow: state.workflow, streak: state.consistencyStreak },
   })
   // Keep the cache current as tiles are completed for the active weapon
   const stateRef = useRef(state)
@@ -114,22 +115,25 @@ export default function CombatScreen() {
     const cur = stateRef.current
     if (weaponId === cur.equippedWeaponId) return
 
-    // Save current weapon's in-progress workflow before leaving
-    weaponWorkflows.current[cur.equippedWeaponId] = cur.workflow
+    // Save current weapon's workflow + streak before leaving
+    weaponWorkflows.current[cur.equippedWeaponId] = {
+      workflow: cur.workflow,
+      streak:   cur.consistencyStreak,
+    }
 
     dispatch({ type: 'SWITCH_WEAPON', weaponId, weaponLevel })
 
-    // Restore saved workflow or generate a fresh one for a weapon seen for the first time
+    // Restore saved snapshot or generate a fresh workflow for a first-seen weapon
     const saved = weaponWorkflows.current[weaponId]
     if (saved) {
-      dispatch({ type: 'SWITCH_WORKFLOW', workflow: saved, isRemaster: false })
+      dispatch({ type: 'SWITCH_WORKFLOW', workflow: saved.workflow, isRemaster: false, consistencyStreak: saved.streak })
     } else {
       const newWeapon   = WEAPONS[weaponId] as WeaponInstance | undefined
       const newClass    = newWeapon?.weapon_class ?? 'straight_swords'
       const newRarity   = newWeapon?.rarity       ?? 'common'
       const isBoss      = loc?.sublocation_type === 'boss'
       const newWorkflow = generateWorkflow(newClass, newRarity, isBoss, newWeapon?.rolled_draws)
-      weaponWorkflows.current[weaponId] = newWorkflow
+      weaponWorkflows.current[weaponId] = { workflow: newWorkflow, streak: 0 }
       dispatch({ type: 'SWITCH_WORKFLOW', workflow: newWorkflow, isRemaster: false })
     }
 
