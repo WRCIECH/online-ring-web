@@ -124,15 +124,24 @@
   box-shadow: 0 0 28px rgba(230,191,51,0.25);
 }
 
+@keyframes cardEnterFromRight {
+  from { opacity: 0; transform: scale(0.93) translateX(20px); }
+}
+@keyframes cardEnterFromLeft {
+  from { opacity: 0; transform: scale(0.93) translateX(-20px); }
+}
+.cardEnterFromRight { animation: cardEnterFromRight 0.30s ease-out; }
+.cardEnterFromLeft  { animation: cardEnterFromLeft  0.30s ease-out; }
+
 .cardNear {
   opacity: 0.52;
   transform: scale(0.76);
   cursor: pointer;
-  border-color: rgba(168,138,32,0.22);
+  border-color: rgba(200,162,40,0.70);
 }
 .cardNear:hover {
   opacity: 0.72;
-  border-color: rgba(168,138,32,0.38);
+  border-color: rgba(200,162,40,0.90);
 }
 
 /* ── Card art ────────────────────────────────────────────────────────────── */
@@ -421,8 +430,7 @@
   font-size: 0.88rem;
   letter-spacing: 0.14em;
   text-transform: uppercase;
-  padding: 13px 24px;
-  width: 100%;
+  padding: 13px 48px;
   background: rgba(230,191,51,0.07);
   border: 1px solid rgba(230,191,51,0.38);
   color: rgba(230,191,51,0.88);

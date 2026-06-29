@@ -32,6 +32,7 @@ export default function ClassSelectScreen() {
   const store    = useGameStore()
   const t        = useT()
   const [activeIndex, setActiveIndex] = useState(0)
+  const [direction, setDirection] = useState<1 | -1>(1)
   const [tip, setTip] = useState<Tip | null>(null)
 
   const showTip = useCallback((e: React.MouseEvent, node: React.ReactNode) => {
@@ -40,8 +41,12 @@ export default function ClassSelectScreen() {
   }, [])
   const hideTip = useCallback(() => setTip(null), [])
 
-  function prev() { setActiveIndex(i => (i - 1 + N) % N) }
-  function next() { setActiveIndex(i => (i + 1) % N) }
+  function prev() { setDirection(-1); setActiveIndex(i => (i - 1 + N) % N) }
+  function next() { setDirection(1);  setActiveIndex(i => (i + 1) % N) }
+  function goTo(i: number) {
+    setDirection(i === activeIndex ? 1 : i > activeIndex ? 1 : -1)
+    setActiveIndex(i)
+  }
 
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
@@ -100,18 +105,22 @@ export default function ClassSelectScreen() {
 
             <div className={s.track}>
               {visible.map(({ cls, offset }) => {
-                const abs       = Math.abs(offset)
+                const abs        = Math.abs(offset)
                 const cardAccent = getAccent(cls)
-                const clsName   = t.classes[cls.id]?.name ?? cls.name
-                const clsDesc   = t.classes[cls.id]?.description ?? cls.description
-                const cardCls   = abs === 0 ? s.cardCenter : s.cardNear
+                const clsName    = t.classes[cls.id]?.name ?? cls.name
+                const clsDesc    = t.classes[cls.id]?.description ?? cls.description
+                const cardCls    = abs === 0 ? s.cardCenter : s.cardNear
+                const enterCls   = abs === 0
+                  ? (direction > 0 ? s.cardEnterFromRight : s.cardEnterFromLeft)
+                  : ''
+                const cardKey    = abs === 0 ? `center-${activeIndex}` : `${offset}-${cls.id}`
 
                 return (
                   <div
-                    key={`${offset}-${cls.id}`}
-                    className={[s.card, cardCls].join(' ')}
+                    key={cardKey}
+                    className={[s.card, cardCls, enterCls].filter(Boolean).join(' ')}
                     style={{ '--accent': cardAccent } as React.CSSProperties}
-                    onClick={abs > 0 ? () => setActiveIndex((activeIndex + offset + N) % N) : undefined}
+                    onClick={abs > 0 ? () => { setDirection(offset > 0 ? 1 : -1); setActiveIndex((activeIndex + offset + N) % N) } : undefined}
                     role={abs > 0 ? 'button' : undefined}
                     tabIndex={abs > 0 ? 0 : undefined}
                   >
@@ -144,7 +153,7 @@ export default function ClassSelectScreen() {
               <button
                 key={i}
                 className={i === activeIndex ? s.dotActive : s.dot}
-                onClick={() => setActiveIndex(i)}
+                onClick={() => goTo(i)}
                 aria-label={CLASS_DEFINITIONS[i].name}
               />
             ))}
@@ -177,7 +186,7 @@ export default function ClassSelectScreen() {
                 <div className={s.spBar}>
                   <div
                     className={s.spBarFill}
-                    style={{ width: `${Math.max(0, (activeCls.startingStats[k] - 8) / 8 * 100)}%` }}
+                    style={{ width: `${Math.max(0, (activeCls.startingStats[k] - 7) / 9 * 100)}%` }}
                   />
                 </div>
                 <span className={s.spStatVal}>{activeCls.startingStats[k]}</span>
