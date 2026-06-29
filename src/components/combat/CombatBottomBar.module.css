@@ -36,6 +36,7 @@
 }
 
 .label {
+  font-family: var(--font-meta);
   font-size: 0.58rem;
   letter-spacing: 0.07em;
   text-transform: uppercase;
@@ -83,8 +84,9 @@
   position: absolute;
   top: 4px;
   right: 6px;
+  font-family: var(--font-numbers);
   font-size: 0.7rem;
-  font-weight: 700;
+  font-weight: 600;
   color: var(--color-accent);
   font-variant-numeric: tabular-nums;
   line-height: 1;

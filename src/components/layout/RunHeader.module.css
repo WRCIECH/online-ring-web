@@ -36,6 +36,7 @@
 }
 
 .timer {
+  font-family: var(--font-numbers);
   font-size: 1.58rem;
   letter-spacing: 0.1em;
   color: var(--color-text-dim);

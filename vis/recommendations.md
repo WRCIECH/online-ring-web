@@ -257,6 +257,88 @@ Rule:
 
 **90% calm → 10% spectacle**
 
+# 9. Fonts
+## Logo/Main Title
+Primary choice: Cinzel
+License: Open Font License (free)
+Inspiration: Roman inscriptions / cinematic fantasy
+Why:
+Very close to the vibe in the generated mockups
+Premium without becoming unreadable
+Works surprisingly well for games
+
+Settings:
+```css
+font-family: "Cinzel";
+font-weight: 500;
+letter-spacing: 0.06em;
+text-transform: uppercase;
+```
+
+## Alternative Logo Font (more elegant)
+Cormorant Garamond
+Free
+More mystical / literary
+Great if you want less LOTR and more prestige-tech
+
+Settings:
+```css
+font-family: "Cormorant Garamond";
+font-weight: 600;
+letter-spacing: 0.03em;
+```
+
+Good for: `Content Creator Game`
+
+## 3. UI Font (buttons, stats, menus)
+Primary: Inter
+- Free
+- Extremely readable
+- Feels modern and premium
+
+Settings:
+```css
+font-family: "Inter";
+font-weight: 500;
+letter-spacing: 0.08em;
+```
+
+Use for:
+```
+CONTINUE
+NEW GAME
+HP
+MAP
+MISSIONS
+```
+
+## 4. Alternative UI Font (more game-like)
+Space Grotesk
+- Free
+- Slightly futuristic
+- Works well with cosmic themes
+
+Good for:
+```
+31:59:31
+WORLD PROGRESS
+LEVEL 32
+```
+
+## 5. Small Labels / Metadata
+IBM Plex Sans
+- Free
+- Excellent at small sizes
+
+Use for:
+
+```
+CONTENT CREATOR GAME
+PATCH NOTES
+17% COMPLETE
+```
+
+
 ---
 
 # Core Design Formula

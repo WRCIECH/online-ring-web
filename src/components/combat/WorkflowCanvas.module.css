@@ -43,6 +43,7 @@
 }
 
 .ttBadge {
+  font-family: var(--font-meta);
   font-size: 0.62rem;
   letter-spacing: 0.07em;
   text-transform: uppercase;
@@ -53,7 +54,7 @@
   white-space: nowrap;
 }
 
-.ttBadgeDetail      { font-size: 0.7rem; color: var(--color-text-dim); line-height: 1.35; }
+.ttBadgeDetail      { font-family: var(--font-meta); font-size: 0.7rem; color: var(--color-text-dim); line-height: 1.35; }
 .ttBadgeDetailLabel { font-weight: 600; color: var(--color-text); margin-right: 2px; }
 
 .ttDone    { font-size: 0.75rem; color: #44884a; }

@@ -43,8 +43,12 @@
   --color-sep:          #14122a;
 
   /* Fonts */
-  --font-main: 'Segoe UI', system-ui, sans-serif;
-  --font-mono: 'Courier New', Courier, monospace;
+  --font-title:    'Cinzel', serif;
+  --font-subtitle: 'Cormorant Garamond', serif;
+  --font-main:     'Inter', system-ui, sans-serif;
+  --font-numbers:  'Space Grotesk', system-ui, sans-serif;
+  --font-meta:     'IBM Plex Sans', system-ui, sans-serif;
+  --font-mono:     'Courier New', Courier, monospace;
 
   /* Sizes */
   --radius:    6px;

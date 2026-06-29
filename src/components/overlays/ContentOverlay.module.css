@@ -298,6 +298,7 @@
 }
 
 .stamp {
+  font-family: var(--font-meta);
   font-size: 0.67rem;
   letter-spacing: 0.05em;
   padding: 2px 8px;

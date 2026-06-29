@@ -40,8 +40,9 @@
 .runeIcon  { font-size: 1rem; color: var(--color-gold); }
 
 .runeCount {
+  font-family: var(--font-numbers);
   font-size: 1.6rem;
-  font-weight: 300;
+  font-weight: 400;
   color: var(--color-gold);
   letter-spacing: 0.04em;
   text-shadow: var(--glow-gold);
@@ -150,6 +151,7 @@
 }
 
 .statVal {
+  font-family: var(--font-numbers);
   font-size: 0.95rem;
   color: var(--color-accent);
   font-variant-numeric: tabular-nums;
@@ -331,6 +333,7 @@
 }
 
 .scalingChip {
+  font-family: var(--font-meta);
   font-size: 0.68rem;
   padding: 2px 7px;
   border: 1px solid rgba(74,158,255,0.22);

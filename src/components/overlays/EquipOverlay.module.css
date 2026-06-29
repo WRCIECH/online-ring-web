@@ -282,6 +282,7 @@
 }
 
 .statChip, .scalingChip {
+  font-family: var(--font-meta);
   font-size: 0.7rem;
   color: var(--color-text-dim);
   background: rgba(255,255,255,0.04);

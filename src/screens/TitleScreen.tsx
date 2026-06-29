@@ -40,6 +40,11 @@ export default function TitleScreen() {
   return (
     <div className={s.root}>
 
+      {/* ── Atmospheric elements (z-index 0, behind everything) ───── */}
+      <div className={s.lightBeam} />
+      <div className={`${s.planet} ${s.planetLeft}`} />
+      <div className={`${s.planet} ${s.planetRight}`} />
+
       {/* ── Hero: 3-D ring + title ────────────────────────────────── */}
       <div className={s.hero}>
         <div className={s.ringWrap}>
@@ -50,6 +55,8 @@ export default function TitleScreen() {
           <p className={s.subtitle}>{t.ui.subtitle}</p>
         </div>
       </div>
+
+      <div className={s.divider} />
 
       {/* ── Buttons ───────────────────────────────────────────────── */}
       <div className={s.buttons}>
@@ -100,6 +107,14 @@ export default function TitleScreen() {
           </div>
         </div>
       )}
+
+      {/* ── Bottom bar ────────────────────────────────────────────── */}
+      <div className={s.bottomBar}>
+        <div className={s.bottomLeft}>
+          <div className={s.journeyTitle}>Your Journey Awaits</div>
+          <div className={s.journeyTagline}>Create. Explore. Conquer.</div>
+        </div>
+      </div>
     </div>
   )
 }

@@ -7,7 +7,11 @@
   justify-content: center;
   height: 100vh;
   gap: 0;
-  background: radial-gradient(ellipse 120% 90% at 50% 48%, #1a1038 0%, #161228 65%);
+  background:
+    radial-gradient(ellipse 80% 65% at 50% 25%, rgba(90,20,140,0.42) 0%, transparent 60%),
+    radial-gradient(ellipse 55% 45% at 10% 65%, rgba(20,40,150,0.32) 0%, transparent 65%),
+    radial-gradient(ellipse 45% 40% at 85% 60%, rgba(140,50,20,0.22) 0%, transparent 65%),
+    radial-gradient(ellipse 120% 90% at 50% 48%, #1a1038 0%, #0a0818 100%);
   position: relative;
   overflow: hidden;
 }
@@ -33,6 +37,54 @@
   margin-bottom: 40px;
 }
 
+/* ── Light beam behind ring ─────────────────────────────────────────────── */
+
+.lightBeam {
+  position: absolute;
+  width: 120px;
+  height: 55vh;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  background: linear-gradient(to bottom,
+    transparent 0%,
+    rgba(230,191,51,0.06) 20%,
+    rgba(230,191,51,0.22) 60%,
+    rgba(255,230,100,0.38) 100%);
+  filter: blur(22px);
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* ── Decorative planets ──────────────────────────────────────────────────── */
+
+.planet {
+  position: absolute;
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.planetLeft {
+  width: 240px;
+  height: 240px;
+  left: -80px;
+  top: 38%;
+  background: radial-gradient(circle at 38% 32%, #3a4a7a, #1a2245 55%, #060a18);
+  box-shadow: inset -22px -18px 45px rgba(0,0,0,0.65), 0 0 50px rgba(30,50,130,0.25);
+  opacity: 0.78;
+}
+
+.planetRight {
+  width: 150px;
+  height: 150px;
+  right: 30px;
+  top: 30%;
+  background: radial-gradient(circle at 32% 28%, #7a4535, #4a2018 55%, #1a0808);
+  box-shadow: inset -15px -12px 30px rgba(0,0,0,0.65), 0 0 35px rgba(130,50,20,0.25);
+  opacity: 0.72;
+}
+
 /* ── 3-D metallic ring ──────────────────────────────────────────────────── */
 
 .ringWrap {
@@ -40,7 +92,19 @@
   height: 300px;
   perspective: 700px;
   flex-shrink: 0;
+  position: relative;
   /* The ring visually collapses to ~93 px tall when tilted 72° */
+}
+
+/* Halo glow behind the entire ring assembly */
+.ringWrap::after {
+  content: '';
+  position: absolute;
+  inset: -50px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(230,191,51,0.12) 0%, transparent 70%);
+  pointer-events: none;
+  z-index: -1;
 }
 
 .ring3d {
@@ -49,22 +113,48 @@
   border-radius: 50%;
   background: conic-gradient(
     from -30deg,
-    #4a3006  0deg,
-    #c8982a 45deg,
-    #f0d060 90deg,
-    #ffe898 120deg,
-    #e6bf33 165deg,
-    #b08828 210deg,
-    #7a5810 255deg,
-    #4a3006 300deg,
-    #4a3006 360deg
+    #0e0700  0deg,    /* near-bottom: darkest (edge, transitioning) */
+    #6a4008 20deg,
+    #c8982a 50deg,
+    #f4d458 75deg,
+    #fff8c0 95deg,    /* near-top highlight: brightest */
+    #fce870 115deg,
+    #d4a030 140deg,
+    #7a5010 170deg,
+    #3a2004 200deg,   /* far arc: very dark (shadow side) */
+    #200e00 220deg,
+    #1a0900 250deg,   /* far-bottom: deepest shadow */
+    #200e00 280deg,
+    #3a2004 310deg,
+    #6a4008 335deg,
+    #0e0700 360deg
   );
-  mask: radial-gradient(circle at center, transparent 36%, black 38%, black 50%);
-  -webkit-mask: radial-gradient(circle at center, transparent 36%, black 38%, black 50%);
-  animation: spin3d 9s linear infinite;
+  /* Three concentric bands: thin inner, wide main, thin outer */
+  mask: radial-gradient(circle at center,
+    transparent 0%,
+    transparent 27%,
+    black 28.5%, black 32%,
+    transparent 33%, transparent 35.5%,
+    black 37%, black 44.5%,
+    transparent 45.5%, transparent 47%,
+    black 48%, black 50%,
+    transparent 51%
+  );
+  -webkit-mask: radial-gradient(circle at center,
+    transparent 0%,
+    transparent 27%,
+    black 28.5%, black 32%,
+    transparent 33%, transparent 35.5%,
+    black 37%, black 44.5%,
+    transparent 45.5%, transparent 47%,
+    black 48%, black 50%,
+    transparent 51%
+  );
+  animation: spin3d 14s linear infinite;
   filter:
     drop-shadow(0 12px 32px rgba(0,0,0,0.80))
-    drop-shadow(0 0 24px rgba(230,191,51,0.30));
+    drop-shadow(0 0 40px rgba(230,191,51,0.55))
+    drop-shadow(0 0 90px rgba(230,191,51,0.22));
 }
 
 @keyframes spin3d {
@@ -83,10 +173,10 @@
 }
 
 .title {
-  font-family: 'Cinzel Decorative', serif;
-  font-weight: 400;
+  font-family: var(--font-title);
+  font-weight: 500;
   font-size: 2.8rem;
-  letter-spacing: 0.12em;
+  letter-spacing: 0.06em;
   color: var(--color-gold);
   text-shadow:
     0 0 20px rgba(230,191,51,0.60),
@@ -96,11 +186,22 @@
 }
 
 .subtitle {
-  font-size: 0.72rem;
-  letter-spacing: 0.38em;
+  font-family: var(--font-subtitle);
+  font-weight: 600;
+  font-size: 0.80rem;
+  letter-spacing: 0.30em;
   color: rgba(185,162,105,0.62);
   text-transform: uppercase;
   margin-bottom: 0;
+}
+
+/* ── Separator line ─────────────────────────────────────────────────────── */
+
+.divider {
+  width: 140px;
+  height: 1px;
+  background: linear-gradient(to right, transparent, rgba(230,191,51,0.45), transparent);
+  margin: 20px auto 4px;
 }
 
 /* ── Buttons ────────────────────────────────────────────────────────────── */
@@ -246,3 +347,55 @@
   color: var(--color-text-dim);
   border-color: var(--color-border);
 }
+
+/* ── Bottom bar ─────────────────────────────────────────────────────────── */
+
+.bottomBar {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  padding: 0 24px 18px;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.bottomLeft {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.journeyTitle {
+  font-family: var(--font-meta);
+  font-size: 0.64rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: rgba(185,162,105,0.55);
+}
+
+.journeyTagline {
+  font-family: var(--font-meta);
+  font-size: 0.60rem;
+  letter-spacing: 0.10em;
+  color: rgba(185,162,105,0.35);
+}
+
+.btnBatchNotes {
+  font-family: var(--font-meta);
+  font-size: 0.62rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgba(185,162,105,0.40);
+  background: transparent;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  pointer-events: all;
+  transition: color 0.15s;
+}
+
+.btnBatchNotes:hover { color: rgba(185,162,105,0.75); }
