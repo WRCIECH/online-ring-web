@@ -237,7 +237,15 @@ export default function CombatScreen() {
     navigate('/')
   }, [store, navigate, state])
 
-  const [musicMuted, setMusicMuted] = useState(false)
+  const [musicMuted, setMusicMuted] = useState(() => localStorage.getItem('music_muted') === '1')
+
+  const toggleMusicMuted = useCallback(() => {
+    setMusicMuted(m => {
+      const next = !m
+      localStorage.setItem('music_muted', next ? '1' : '0')
+      return next
+    })
+  }, [])
   const [showAbandonConfirm, setShowAbandonConfirm] = useState(false)
   // If a content item was already locked in the store, skip the picker entirely
   const [selectedContentId, setSelectedContentId] = useState<string | null>(
@@ -506,7 +514,7 @@ export default function CombatScreen() {
         videoId={COMBAT_MUSIC[loc.enemy_id]}
         label={enemyLabel}
         muted={musicMuted}
-        onToggleMute={() => setMusicMuted(m => !m)}
+        onToggleMute={toggleMusicMuted}
       />
 
       {/* ── Abandon confirmation ──────────────────────────────────────── */}
