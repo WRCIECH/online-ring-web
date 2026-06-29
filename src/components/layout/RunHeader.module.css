@@ -1,117 +1,93 @@
 .header {
-  display: flex;
+  display: grid;
+  grid-template-columns: auto 1fr auto;
   align-items: center;
-  gap: 20px;
-  padding: 6px 20px;
-  background: rgba(10, 8, 24, 0.78);
-  border-bottom: 1px solid rgba(74, 100, 200, 0.22);
+  gap: 16px;
+  padding: 10px 20px 14px;
+  background: rgba(10, 8, 24, 0.82);
+  border-bottom: 1px solid rgba(255,255,255,0.07);
   flex-shrink: 0;
   z-index: 5;
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
 }
 
-/* ── Run info ─────────────────────────────────────────────────────────── */
+/* ── Left group: logo + HP ────────────────────────────────────────────── */
+.leftGroup {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.hpSection {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding-left: 4px;
+}
+
+.hpLabel {
+  font-family: var(--font-meta);
+  font-size: 0.66rem;
+  letter-spacing: 0.10em;
+  color: rgba(255,255,255,0.50);
+  flex-shrink: 0;
+}
+
+.hpBarTrack {
+  width: 120px;
+  height: 7px;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(200,50,50,0.30);
+  border-radius: 3px;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.hpBarFill {
+  height: 100%;
+  background: linear-gradient(90deg, #991a1a, #e03030 60%, #ff5555);
+  border-radius: 3px;
+  transition: width 0.3s ease;
+  box-shadow: 0 0 6px rgba(220,40,40,0.55);
+}
+
+.hpText {
+  font-family: var(--font-meta);
+  font-size: 0.66rem;
+  color: rgba(255,255,255,0.72);
+  letter-spacing: 0.06em;
+}
+
+/* ── Center: location + timer ─────────────────────────────────────────── */
 .runInfo {
   display: flex;
   flex-direction: column;
-  gap: 1px;
-  min-width: 130px;
+  align-items: center;
+  gap: 0;
+  text-align: center;
 }
 
 .runTitle {
-  font-size: 1.08rem;
-  letter-spacing: 0.18em;
+  font-family: var(--font-numbers);
+  font-size: 1.10rem;
+  letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: var(--color-accent-dim);
-  background: none;
-  border: none;
-  padding: 0;
-  text-align: left;
-  cursor: pointer;
-  transition: color 0.14s;
-}
-.runTitle:hover {
-  color: var(--color-accent);
+  color: var(--color-text);
+  font-variant-numeric: tabular-nums;
 }
 
 .timer {
   font-family: var(--font-numbers);
-  font-size: 1.58rem;
-  letter-spacing: 0.1em;
-  color: var(--color-text-dim);
-  font-variant-numeric: tabular-nums;
-}
-
-.timer.urgent { color: var(--color-text-danger); }
-
-/* ── Resource bars ────────────────────────────────────────────────────── */
-.bars {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  flex: 1;
-}
-
-.barGroup {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  position: relative;
-}
-
-.barGroup::after {
-  content: attr(data-tip);
-  position: absolute;
-  top: calc(100% + 5px);
-  left: 36px; /* aligns with the bar, past the label */
-  background: var(--color-bg-panel);
-  border: 1px solid var(--color-border);
-  border-radius: 3px;
-  padding: 2px 8px;
-  font-size: 0.72rem;
+  font-size: 1.90rem;
+  letter-spacing: 0.08em;
   color: var(--color-text);
-  white-space: nowrap;
-  pointer-events: none;
-  opacity: 0;
-  transition: opacity 0.12s;
-  z-index: 20;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
 }
 
-.barGroup:hover::after {
-  opacity: 1;
+.timer.urgent {
+  color: var(--color-text-danger);
+  text-shadow: 0 0 12px rgba(220,60,60,0.55);
 }
-
-.barLabel {
-  font-size: 1.02rem;
-  letter-spacing: 0.1em;
-  color: var(--color-text-dim);
-  width: 28px;
-  text-align: right;
-  flex-shrink: 0;
-}
-
-/* Invisible full-width track — determines scale via cap */
-.barTrack {
-  flex: 1;
-  height: 9px;
-  position: relative;
-}
-
-/* Bordered box — width = playerMax / cap, shows how far levelled */
-.barMax {
-  height: 100%;
-  border-radius: 3px;
-  border: 1px solid rgba(255,255,255,0.28);
-  background: rgba(255,255,255,0.06);
-  overflow: hidden;
-  box-shadow: inset 0 1px 2px rgba(0,0,0,0.4);
-}
-
-/* Colour fill — width = current / playerMax, inside the bordered box */
-.barFill {
-  height: 100%;
-  transition: width 0.2s ease;
-}
-
-

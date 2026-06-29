@@ -1,0 +1,56 @@
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  background: none;
+  border: none;
+  padding: 4px 10px 4px 4px;
+  border-radius: 6px;
+  cursor: pointer;
+  opacity: 0.88;
+  transition: opacity 0.18s, background 0.18s;
+  flex-shrink: 0;
+}
+.logo:hover {
+  opacity: 1;
+  background: rgba(230,191,51,0.07);
+}
+
+.ring {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: conic-gradient(
+    from -30deg,
+    #3a2004  0deg,
+    #6a4008  28deg,
+    #c8982a  58deg,
+    #f4d458  86deg,
+    #fff8c0  102deg,
+    #fce870  118deg,
+    #d4a030  148deg,
+    #7a5010  178deg,
+    #3a2004  210deg,
+    #1a0900  252deg,
+    #3a2004  302deg,
+    #6a4008  334deg,
+    #3a2004  360deg
+  );
+  mask: radial-gradient(circle at center, transparent 37%, black 39%);
+  -webkit-mask: radial-gradient(circle at center, transparent 37%, black 39%);
+  filter: drop-shadow(0 0 6px rgba(230,191,51,0.65));
+  flex-shrink: 0;
+}
+
+.name {
+  font-family: var(--font-title);
+  font-size: 0.68rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--color-gold-dim);
+  transition: color 0.18s;
+  white-space: nowrap;
+}
+.logo:hover .name {
+  color: var(--color-gold);
+}

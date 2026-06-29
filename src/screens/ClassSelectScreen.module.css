@@ -1,5 +1,6 @@
 /* ── Root ─────────────────────────────────────────────────────────────────── */
 .root {
+  position: relative;
   height: 100vh;
   overflow: hidden;
   background:
@@ -11,6 +12,14 @@
   flex-direction: column;
   align-items: center;
   padding: 28px 24px 20px;
+}
+
+/* ── Home logo corner ────────────────────────────────────────────────────── */
+.homeLogoWrap {
+  position: absolute;
+  top: 12px;
+  left: 14px;
+  z-index: 20;
 }
 
 /* ── Header ──────────────────────────────────────────────────────────────── */

@@ -2,6 +2,7 @@ import { useNavigate } from 'react-router-dom'
 import { useGameStore } from '../store/gameStore'
 import { LOCATION_DEFINITIONS } from '../data/locations'
 import { useT } from '../i18n'
+import HomeLogo from '../components/HomeLogo'
 import s from './RunCompleteScreen.module.css'
 
 const LOC_MAP = Object.fromEntries(LOCATION_DEFINITIONS.map(l => [l.id, l]))
@@ -16,6 +17,7 @@ export default function RunCompleteScreen() {
 
   return (
     <div className={s.root}>
+      <div className={s.homeLogoWrap}><HomeLogo /></div>
       <h1 className={s.title}>{t.ui.run_complete_title}</h1>
       <p className={s.subtitle}>{locDisplayName} — {t.ui.location_cleared}</p>
 

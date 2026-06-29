@@ -4,10 +4,11 @@
   height: 100vh;
   overflow: hidden;
   background:
-    radial-gradient(ellipse 70% 55% at 10% 20%, rgba(90,20,140,0.28) 0%, transparent 70%),
-    radial-gradient(ellipse 55% 45% at 85% 75%, rgba(20,50,160,0.22) 0%, transparent 70%),
-    radial-gradient(ellipse 40% 35% at 55% 10%, rgba(150,30,90,0.18) 0%, transparent 70%),
-    #0a0818;
+    radial-gradient(ellipse 75% 65% at 50% 55%, rgba(75,18,130,0.60) 0%, transparent 60%),
+    radial-gradient(ellipse 55% 50% at 12% 18%, rgba(100,22,155,0.38) 0%, transparent 65%),
+    radial-gradient(ellipse 50% 45% at 88% 78%, rgba(22,48,168,0.30) 0%, transparent 65%),
+    radial-gradient(ellipse 38% 32% at 60% 12%, rgba(155,32,88,0.22) 0%, transparent 65%),
+    #060412;
 }
 
 /* ── Main layout ───────────────────────────────────────────────────────────── */

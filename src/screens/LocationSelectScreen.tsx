@@ -5,6 +5,7 @@ import { LOCATION_DEFINITIONS, getUnlockedLocationIds, SIZE_LABEL, SIZE_COLOUR }
 import type { LocationDef } from '../data/locations'
 import { LOCATION_THEMES } from '../data/locationThemes'
 import LocationMap from '../components/LocationMap'
+import HomeLogo from '../components/HomeLogo'
 import ActionBar from '../components/layout/ActionBar'
 import { useT } from '../i18n'
 import s from './LocationSelectScreen.module.css'
@@ -61,11 +62,14 @@ export default function LocationSelectScreen() {
 
       {/* ── Top overlay bar ── */}
       <div className={s.topBar}>
+        <HomeLogo />
         <span className={s.worldTitle}>{t.ui.world_map_title}</span>
-        <span className={s.progress}>
-          {store.completed_locations.length} / {LOCATION_DEFINITIONS.length} {t.ui.locations_visited}
-        </span>
-        <ActionBar />
+        <div className={s.topRight}>
+          <span className={s.progress}>
+            {store.completed_locations.length} / {LOCATION_DEFINITIONS.length} {t.ui.locations_visited}
+          </span>
+          <ActionBar />
+        </div>
       </div>
 
       {/* ── Info panel (bottom-right) ── */}

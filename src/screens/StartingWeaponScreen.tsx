@@ -6,6 +6,7 @@ import { WEAPON_CLASSES } from '../data/generators/weaponClasses'
 import { LEVEL_MULT } from '../data/weapons'
 import type { WeaponClass, WeaponInstance } from '../types/game'
 import WeaponSprite from '../components/icons/WeaponSprite'
+import HomeLogo from '../components/HomeLogo'
 import s from './StartingWeaponScreen.module.css'
 
 // One candidate class from each weight tier — always obviously different
@@ -53,6 +54,7 @@ export default function StartingWeaponScreen() {
 
   return (
     <div className={s.root}>
+      <div className={s.homeLogoWrap}><HomeLogo /></div>
       <div className={s.header}>
         <h1 className={s.title}>Choose Your Weapon</h1>
         <p className={s.subtitle}>Your weapon defines your creative identity for this journey</p>

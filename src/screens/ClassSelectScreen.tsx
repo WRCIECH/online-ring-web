@@ -6,6 +6,7 @@ import type { StatKey } from '../types/game'
 import { useT } from '../i18n'
 import WeaponIcon from '../components/WeaponIcon'
 import ClassSymbol from '../components/ClassSymbol'
+import HomeLogo from '../components/HomeLogo'
 import s from './ClassSelectScreen.module.css'
 
 const CORE_STATS:    StatKey[] = ['VIG', 'END']
@@ -88,6 +89,7 @@ export default function ClassSelectScreen() {
 
   return (
     <div className={s.root}>
+      <div className={s.homeLogoWrap}><HomeLogo /></div>
 
       {/* ── Header ───────────────────────────────────────────────── */}
       <div className={s.header}>
