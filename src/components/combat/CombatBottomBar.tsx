@@ -7,13 +7,13 @@ import s from './CombatBottomBar.module.css'
 
 interface Props {
   equippedWeaponIds: string[]
-  activeWeaponId:    string
+  activeWeaponId?:   string
   weaponLevels:      Record<string, number>
   playerEstus:       number
   canAct:            boolean
-  onSwitchWeapon:    (weaponId: string, weaponLevel: number) => void
-  onEstus:           () => void
-  onAbandon:         () => void
+  onSwitchWeapon?:   (weaponId: string, weaponLevel: number) => void
+  onEstus?:          () => void
+  onAbandon?:        () => void
 }
 
 export default function CombatBottomBar({
@@ -35,8 +35,8 @@ export default function CombatBottomBar({
           <button
             key={wid}
             className={[s.slot, s.weaponSlot, isActive ? s.weaponActive : ''].join(' ')}
-            disabled={!canAct}
-            onClick={() => !isActive && onSwitchWeapon(wid, level)}
+            disabled={!canAct || !onSwitchWeapon}
+            onClick={() => !isActive && onSwitchWeapon?.(wid, level)}
             onMouseEnter={() => setTipFor(wid)}
             onMouseLeave={() => setTipFor(null)}
           >
@@ -58,7 +58,7 @@ export default function CombatBottomBar({
                   {t.weapons[weapon.weapon_class]?.name ?? weapon.weapon_class.replace(/_/g, ' ')}
                   {weapon.rarity ? ` · ${weapon.rarity}` : ''} · Lv {level}
                 </div>
-                {!isActive && <div className={s.tipHint}>Click to switch weapon</div>}
+                {!isActive && canAct && onSwitchWeapon && <div className={s.tipHint}>Click to switch weapon</div>}
               </div>
             )}
           </button>
@@ -70,7 +70,7 @@ export default function CombatBottomBar({
       {/* Estus flask */}
       <button
         className={[s.slot, s.estusSlot, playerEstus <= 0 ? s.slotDepleted : ''].join(' ')}
-        disabled={!canAct || playerEstus <= 0}
+        disabled={!canAct || !onEstus || playerEstus <= 0}
         onClick={onEstus}
         onMouseEnter={() => setShowEstusTip(true)}
         onMouseLeave={() => setShowEstusTip(false)}
@@ -88,9 +88,11 @@ export default function CombatBottomBar({
         )}
       </button>
 
-      <button className={s.abandonBtn} onClick={onAbandon}>
-        Abandon workflow
-      </button>
+      {onAbandon && (
+        <button className={s.abandonBtn} onClick={onAbandon}>
+          Abandon workflow
+        </button>
+      )}
     </div>
   )
 }

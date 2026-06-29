@@ -3,8 +3,9 @@ import { useNavigate } from 'react-router-dom'
 import { useGameStore, selectRunRemainingSeconds } from '../store/gameStore'
 import { ENEMIES } from '../data/enemies'
 import type { LocationData } from '../types/game'
-import RunHeader from '../components/layout/RunHeader'
+import RunHeader        from '../components/layout/RunHeader'
 import ContentOverlay   from '../components/overlays/ContentOverlay'
+import CombatBottomBar  from '../components/combat/CombatBottomBar'
 import { useT } from '../i18n'
 import { MIN_PIPELINE_TO_FIGHT } from '../data/constants'
 import s from './RunMapScreen.module.css'
@@ -75,6 +76,12 @@ export default function RunMapScreen() {
 
   const seq     = store.run_location_sequence
   const current = store.run_current_index
+
+  const mapWeapons = store.weapon_instances.filter(w =>
+    store.content_items.some(c => !c.completed && c.attached_weapon_id === w.instance_id)
+  )
+  const mapWeaponIds = mapWeapons.map(w => w.instance_id)
+  const [activeMapWeaponId, setActiveMapWeaponId] = useState(() => mapWeapons[0]?.instance_id ?? '')
 
   useEffect(() => {
     if (!store.run_active) navigate('/')
@@ -471,7 +478,19 @@ export default function RunMapScreen() {
         </div>
       )}
 
-      {showContent   && <ContentOverlay   onClose={() => setShowContent(false)} canAdd={true} />}
+      {showContent && <ContentOverlay onClose={() => setShowContent(false)} canAdd={true} />}
+
+      <div style={{ marginTop: 'auto' }}>
+        <CombatBottomBar
+          equippedWeaponIds={mapWeaponIds}
+          activeWeaponId={activeMapWeaponId}
+          weaponLevels={store.weapon_level}
+          playerEstus={store.run_estus_count}
+          canAct={true}
+          onSwitchWeapon={(id) => setActiveMapWeaponId(id)}
+          onEstus={() => store.drinkEstus()}
+        />
+      </div>
 
       {/* Run expired banner */}
       {selectRunRemainingSeconds(store as Parameters<typeof selectRunRemainingSeconds>[0]) <= 0 && (
