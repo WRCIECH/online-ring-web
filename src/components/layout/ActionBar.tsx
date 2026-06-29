@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { createPortal } from 'react-dom'
 import CharacterOverlay from '../overlays/CharacterOverlay'
 import ContentOverlay   from '../overlays/ContentOverlay'
 import EquipOverlay     from '../overlays/EquipOverlay'
@@ -53,10 +54,10 @@ export default function ActionBar({ canLevel = true, canAddContent = true }: Pro
           </svg>
         </button>
       </div>
-      {showStats     && <CharacterOverlay onClose={() => setShowStats(false)}    canLevel={canLevel} />}
-      {showContent   && <ContentOverlay   onClose={() => setShowContent(false)}  canAdd={canAddContent} />}
-      {showEquip     && <EquipOverlay     onClose={() => setShowEquip(false)} />}
-      {showAnalytics && <AnalyticsOverlay onClose={() => setShowAnalytics(false)} />}
+      {showStats     && createPortal(<CharacterOverlay onClose={() => setShowStats(false)}    canLevel={canLevel} />, document.body)}
+      {showContent   && createPortal(<ContentOverlay   onClose={() => setShowContent(false)}  canAdd={canAddContent} />, document.body)}
+      {showEquip     && createPortal(<EquipOverlay     onClose={() => setShowEquip(false)} />, document.body)}
+      {showAnalytics && createPortal(<AnalyticsOverlay onClose={() => setShowAnalytics(false)} />, document.body)}
     </>
   )
 }

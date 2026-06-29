@@ -1,11 +1,11 @@
-import { useReducer, useEffect, useCallback, useState, useMemo } from 'react'
+import { useReducer, useEffect, useCallback, useState, useMemo, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { combatReducer, initCombatState, getReachableTiles, previewMove, formatMultiplierPct, ABANDON_PENALTY } from '../engine/combat'
 import { useGameStore } from '../store/gameStore'
 import { ENEMIES } from '../data/enemies'
 import { WEAPONS } from '../data/weapons'
 import { playSound } from '../engine/sound'
-import type { WeaponInstance, WeaponRarity, MoveType } from '../types/game'
+import type { WeaponInstance, WeaponRarity, MoveType, WorkflowGraph } from '../types/game'
 import { rollWeapon } from '../data/generators/weaponGenerator'
 import { generateWorkflow } from '../data/generators/workflowGenerator'
 import RunHeader    from '../components/layout/RunHeader'
@@ -102,9 +102,46 @@ export default function CombatScreen() {
   const wClass  = weapon?.weapon_class ?? initialWeaponClass
   const wRarity = weapon?.rarity       ?? initialWeaponRarity
 
+  // Per-weapon workflow cache: preserves progress when the player switches away and back
+  const weaponWorkflows = useRef<Record<string, WorkflowGraph>>({
+    [initialWeaponId]: state.workflow,
+  })
+  // Keep the cache current as tiles are completed for the active weapon
+  const stateRef = useRef(state)
+  stateRef.current = state
+
   const handleSwitchWeapon = useCallback((weaponId: string, weaponLevel: number) => {
+    const cur = stateRef.current
+    if (weaponId === cur.equippedWeaponId) return
+
+    // Save current weapon's in-progress workflow before leaving
+    weaponWorkflows.current[cur.equippedWeaponId] = cur.workflow
+
     dispatch({ type: 'SWITCH_WEAPON', weaponId, weaponLevel })
-  }, [])
+
+    // Restore saved workflow or generate a fresh one for a weapon seen for the first time
+    const saved = weaponWorkflows.current[weaponId]
+    if (saved) {
+      dispatch({ type: 'SWITCH_WORKFLOW', workflow: saved, isRemaster: false })
+    } else {
+      const newWeapon   = WEAPONS[weaponId] as WeaponInstance | undefined
+      const newClass    = newWeapon?.weapon_class ?? 'straight_swords'
+      const newRarity   = newWeapon?.rarity       ?? 'common'
+      const isBoss      = loc?.sublocation_type === 'boss'
+      const newWorkflow = generateWorkflow(newClass, newRarity, isBoss, newWeapon?.rolled_draws)
+      weaponWorkflows.current[weaponId] = newWorkflow
+      dispatch({ type: 'SWITCH_WORKFLOW', workflow: newWorkflow, isRemaster: false })
+    }
+
+    // Switch active content to whichever item is attached to the new weapon
+    const contentForWeapon = store.content_items.find(
+      c => !c.completed && c.attached_weapon_id === weaponId
+    )
+    if (contentForWeapon) {
+      setSelectedContentId(contentForWeapon.id)
+      store.setActiveContentId(contentForWeapon.id)
+    }
+  }, [loc, store])
 
   // ── Sound effects on phase change ─────────────────────────────────────────
   useEffect(() => {
