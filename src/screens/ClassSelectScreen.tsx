@@ -17,8 +17,13 @@ const STAT_COLOUR: Partial<Record<StatKey, string>> = {
   PARASOCIAL: '#cc44aa', FRICTION: '#cc5522', INSIGHT: '#aa44cc',
 }
 
-interface Tip { node: React.ReactNode; x: number; y: number }
+function getAccent(cls: (typeof CLASS_DEFINITIONS)[0]): string {
+  const highStat = ALL_STAT_KEYS.reduce((best, k) =>
+    cls.startingStats[k] > cls.startingStats[best] ? k : best, 'VIG' as StatKey)
+  return STAT_COLOUR[highStat] ?? '#ccaa22'
+}
 
+interface Tip { node: React.ReactNode; x: number; y: number }
 const N = CLASS_DEFINITIONS.length
 
 export default function ClassSelectScreen() {
@@ -52,149 +57,147 @@ export default function ClassSelectScreen() {
   }
 
   const activeCls = CLASS_DEFINITIONS[activeIndex]
-  const highStat  = ALL_STAT_KEYS.reduce((best, k) =>
-    activeCls.startingStats[k] > activeCls.startingStats[best] ? k : best, 'VIG' as StatKey)
-  const accent = STAT_COLOUR[highStat] ?? '#ccaa22'
+  const accent    = getAccent(activeCls)
 
   const visible = ([-2, -1, 0, 1, 2] as const).map(offset => ({
     cls: CLASS_DEFINITIONS[(activeIndex + offset + N) % N],
     offset,
   }))
 
+  const weaponTip = (
+    <>
+      <div className={s.tipTitle}>{t.weapons[activeCls.weaponClass]?.name ?? activeCls.weaponClass}</div>
+      <div className={s.tipBody}>{t.weapons[activeCls.weaponClass]?.description}</div>
+    </>
+  )
+
+  function statTip(k: StatKey) {
+    return (
+      <>
+        <div className={s.tipTitle}>{(t.ui as Record<string,string>)[`stat_${k}`] ?? k}</div>
+        <div className={s.tipBody}>{(t.ui as Record<string,string>)[`stat_${k}_desc`]}</div>
+      </>
+    )
+  }
+
   return (
     <div className={s.root}>
+
+      {/* ── Header ───────────────────────────────────────────────── */}
       <div className={s.header}>
         <h1 className={s.title}>{t.ui.choose_class_title}</h1>
         <p className={s.subtitle}>{t.ui.choose_class_sub}</p>
       </div>
 
-      <div className={s.carousel}>
-        <button className={s.navBtn} onClick={prev} aria-label="Previous class">‹</button>
+      {/* ── Main: carousel + stats panel ─────────────────────────── */}
+      <div className={s.main}>
 
-        <div className={s.track}>
-          {visible.map(({ cls, offset }) => {
-            const abs   = Math.abs(offset)
-            const clsName = t.classes[cls.id]?.name ?? cls.name
-            const clsDesc = t.classes[cls.id]?.description ?? cls.description
-            const wEntry  = t.weapons[cls.weaponClass]
+        {/* Carousel column */}
+        <div className={s.carouselSection}>
+          <div className={s.carousel}>
+            <button className={s.navBtn} onClick={prev} aria-label="Previous class">‹</button>
 
-            const cardClass = abs === 0 ? s.cardCenter : abs === 1 ? s.cardNear : s.cardFar
+            <div className={s.track}>
+              {visible.map(({ cls, offset }) => {
+                const abs       = Math.abs(offset)
+                const cardAccent = getAccent(cls)
+                const clsName   = t.classes[cls.id]?.name ?? cls.name
+                const clsDesc   = t.classes[cls.id]?.description ?? cls.description
+                const cardCls   = abs === 0 ? s.cardCenter : abs === 1 ? s.cardNear : s.cardFar
 
-            if (abs === 2) {
-              return (
-                <button
-                  key={`${offset}-${cls.id}`}
-                  className={[s.card, cardClass].join(' ')}
-                  onClick={() => setActiveIndex((activeIndex + offset + N) % N)}
-                  style={{ '--accent': STAT_COLOUR[ALL_STAT_KEYS.reduce((b, k) => cls.startingStats[k] > cls.startingStats[b] ? k : b, 'VIG' as StatKey)] ?? '#ccaa22' } as React.CSSProperties}
-                >
-                  <div className={s.accentBar} />
-                  <div className={s.cardBody}>
-                    <div className={s.className}>{clsName}</div>
-                  </div>
-                </button>
-              )
-            }
-
-            if (abs === 1) {
-              return (
-                <button
-                  key={`${offset}-${cls.id}`}
-                  className={[s.card, cardClass].join(' ')}
-                  onClick={() => setActiveIndex((activeIndex + offset + N) % N)}
-                  style={{ '--accent': STAT_COLOUR[ALL_STAT_KEYS.reduce((b, k) => cls.startingStats[k] > cls.startingStats[b] ? k : b, 'VIG' as StatKey)] ?? '#ccaa22' } as React.CSSProperties}
-                >
-                  <div className={s.accentBar} />
-                  <div className={s.cardBody}>
-                    <div className={s.className}>{clsName}</div>
-                    <div className={s.weaponIconWrapSide}>
-                      <WeaponIcon weaponClass={cls.weaponClass} className={s.weaponIcon} />
+                return (
+                  <div
+                    key={`${offset}-${cls.id}`}
+                    className={[s.card, cardCls].join(' ')}
+                    style={{ '--accent': cardAccent } as React.CSSProperties}
+                    onClick={abs > 0 ? () => setActiveIndex((activeIndex + offset + N) % N) : undefined}
+                    role={abs > 0 ? 'button' : undefined}
+                    tabIndex={abs > 0 ? 0 : undefined}
+                  >
+                    <div className={s.cardArt}>
+                      <div className={s.cardArtGlow} />
+                    </div>
+                    <div className={s.cardFooter}>
+                      <div className={s.cardName}>{clsName}</div>
+                      {abs === 0 && <div className={s.cardDesc}>{clsDesc}</div>}
                     </div>
                   </div>
-                </button>
-              )
-            }
+                )
+              })}
+            </div>
 
-            // Centre card — full detail
-            const weaponTip = (
-              <>
-                <div className={s.tipTitle}>{wEntry?.name ?? cls.weaponClass}</div>
-                <div className={s.tipBody}>{wEntry?.description}</div>
-              </>
-            )
-            function statTip(k: StatKey) {
-              return (
-                <>
-                  <div className={s.tipTitle}>{t.ui[`stat_${k}`] ?? k}</div>
-                  <div className={s.tipBody}>{t.ui[`stat_${k}_desc`]}</div>
-                </>
-              )
-            }
+            <button className={s.navBtn} onClick={next} aria-label="Next class">›</button>
+          </div>
 
-            return (
-              <div
-                key={`${offset}-${cls.id}`}
-                className={[s.card, cardClass].join(' ')}
-                style={{ '--accent': accent } as React.CSSProperties}
-              >
-                <div className={s.accentBar} style={{ background: accent }} />
-                <div className={s.cardBody}>
-                  <div className={s.classHeader}>
-                    <div className={s.className}>{clsName}</div>
-                    <div
-                      className={s.weaponIconWrap}
-                      onMouseEnter={e => showTip(e, weaponTip)}
-                      onMouseLeave={hideTip}
-                    >
-                      <WeaponIcon weaponClass={cls.weaponClass} className={s.weaponIcon} />
-                    </div>
-                  </div>
-                  <div className={s.classDesc}>{clsDesc}</div>
-                  <div className={s.statsWrap}>
-                    <div className={s.statsCoreRow}>
-                      {CORE_STATS.map(k => (
-                        <div
-                          key={k}
-                          className={[s.statCell, cls.startingStats[k] >= 14 ? s.statHigh : cls.startingStats[k] >= 11 ? s.statMid : ''].join(' ')}
-                          onMouseEnter={e => showTip(e, statTip(k))}
-                          onMouseLeave={hideTip}
-                        >
-                          <span className={s.statKey}>{k}</span>
-                          <span className={s.statVal}>{cls.startingStats[k]}</span>
-                        </div>
-                      ))}
-                    </div>
-                    <div className={s.statsContentGrid}>
-                      {CONTENT_STATS.map(k => (
-                        <div
-                          key={k}
-                          className={[s.statCell, cls.startingStats[k] >= 14 ? s.statHigh : cls.startingStats[k] >= 11 ? s.statMid : ''].join(' ')}
-                          onMouseEnter={e => showTip(e, statTip(k))}
-                          onMouseLeave={hideTip}
-                        >
-                          <span className={s.statKey}>{k}</span>
-                          <span className={s.statVal}>{cls.startingStats[k]}</span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )
-          })}
+          {/* Dot indicators */}
+          <div className={s.dots}>
+            {CLASS_DEFINITIONS.map((_, i) => (
+              <button
+                key={i}
+                className={i === activeIndex ? s.dotActive : s.dot}
+                onClick={() => setActiveIndex(i)}
+                aria-label={CLASS_DEFINITIONS[i].name}
+              />
+            ))}
+          </div>
         </div>
 
-        <button className={s.navBtn} onClick={next} aria-label="Next class">›</button>
+        {/* Stats panel */}
+        <aside className={s.statsPanel} style={{ '--accent': accent } as React.CSSProperties}>
+          <div className={s.spClassName}>{t.classes[activeCls.id]?.name ?? activeCls.name}</div>
+          <p className={s.spDesc}>{t.classes[activeCls.id]?.description ?? activeCls.description}</p>
+
+          <div className={s.spSection}>Starting Stats</div>
+          <div className={s.spStats}>
+            {ALL_STAT_KEYS.map(k => (
+              <div
+                key={k}
+                className={s.spStatRow}
+                onMouseEnter={e => showTip(e, statTip(k))}
+                onMouseLeave={hideTip}
+              >
+                <span className={s.spStatKey}>{k}</span>
+                <div className={s.spBar}>
+                  <div
+                    className={s.spBarFill}
+                    style={{ width: `${Math.max(0, (activeCls.startingStats[k] - 8) / 8 * 100)}%` }}
+                  />
+                </div>
+                <span className={s.spStatVal}>{activeCls.startingStats[k]}</span>
+              </div>
+            ))}
+          </div>
+
+          <div className={s.spSection}>Starting Equipment</div>
+          <div
+            className={s.spWeapon}
+            onMouseEnter={e => showTip(e, weaponTip)}
+            onMouseLeave={hideTip}
+          >
+            <div className={s.spWeaponIcon}>
+              <WeaponIcon weaponClass={activeCls.weaponClass} className={s.spWeaponIconImg} />
+            </div>
+            <div className={s.spWeaponName}>
+              {t.weapons[activeCls.weaponClass]?.name ?? activeCls.weaponClass}
+            </div>
+          </div>
+        </aside>
       </div>
 
-      <div className={s.counter}>
-        {activeIndex + 1} / {N}
-      </div>
-
-      <div className={s.footer}>
-        <button className={s.btnConfirm} onClick={handleConfirm}>
+      {/* ── Bottom bar ───────────────────────────────────────────── */}
+      <div className={s.bottomBar}>
+        <div className={s.bottomLeft}>
+          <div className={s.bottomTagline}>Every Path Creates a Story</div>
+          <div className={s.bottomSub}>Choose wisely.</div>
+        </div>
+        <button
+          className={s.btnConfirm}
+          onClick={handleConfirm}
+          style={{ '--accent': accent } as React.CSSProperties}
+        >
           {t.ui.btn_begin_as} {t.classes[activeCls.id]?.name ?? activeCls.name}
         </button>
+        <div />
       </div>
 
       {tip && (
