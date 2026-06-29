@@ -70,8 +70,9 @@
 
 .track {
   display: flex;
-  align-items: stretch;
-  gap: 6px;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
   flex: 1;
   min-height: 0;
 }
@@ -79,27 +80,32 @@
 /* ── Nav buttons ─────────────────────────────────────────────────────────── */
 .navBtn {
   flex-shrink: 0;
-  font-size: 1.5rem;
-  width: 36px;
+  font-size: 1.6rem;
+  width: 34px;
+  height: 44px;
   padding: 0;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(255,255,255,0.04);
-  border: 1px solid rgba(255,255,255,0.10);
-  color: var(--color-text-dim);
+  background: rgba(230,191,51,0.06);
+  border: 1px solid var(--color-gold-dim);
+  color: var(--color-gold-dim);
   border-radius: var(--radius);
   cursor: pointer;
-  transition: background 0.14s, color 0.14s;
-  align-self: stretch;
+  transition: background 0.14s, color 0.14s, box-shadow 0.14s;
+  align-self: center;
 }
 .navBtn:hover {
-  background: rgba(255,255,255,0.09);
-  color: var(--color-text);
+  background: rgba(230,191,51,0.14);
+  color: var(--color-gold);
+  box-shadow: var(--glow-gold);
 }
 
 /* ── Cards ────────────────────────────────────────────────────────────────── */
 .card {
+  flex: 0 0 auto;
+  width: 32%;
+  aspect-ratio: 9 / 14;
   border-radius: var(--radius);
   display: flex;
   flex-direction: column;
@@ -111,33 +117,20 @@
 }
 
 .cardCenter {
-  flex: 0 0 34%;
   opacity: 1;
   transform: scale(1);
   cursor: default;
-  border-color: var(--accent, var(--color-gold-dim));
-  box-shadow: 0 0 28px color-mix(in srgb, var(--accent, var(--color-gold)) 25%, transparent);
+  border-color: var(--color-gold-dim);
+  box-shadow: 0 0 28px rgba(230,191,51,0.25);
 }
 
 .cardNear {
-  flex: 0 0 18%;
-  opacity: 0.50;
-  transform: scale(0.96) translateY(4px);
+  opacity: 0.52;
+  transform: scale(0.76);
   cursor: pointer;
 }
 .cardNear:hover {
-  opacity: 0.70;
-  border-color: color-mix(in srgb, var(--accent, var(--color-gold-dim)) 55%, var(--color-border));
-}
-
-.cardFar {
-  flex: 0 0 8%;
-  opacity: 0.16;
-  transform: scale(0.90) translateY(8px);
-  cursor: pointer;
-}
-.cardFar:hover {
-  opacity: 0.30;
+  opacity: 0.72;
 }
 
 /* ── Card art ────────────────────────────────────────────────────────────── */
@@ -161,34 +154,42 @@
       transparent 55%);
 }
 
-/* ── Card footer ─────────────────────────────────────────────────────────── */
-.cardFooter {
-  padding: 10px 12px;
-  background: rgba(0,0,0,0.50);
-  border-top: 1px solid rgba(255,255,255,0.06);
+/* ── Card top header ─────────────────────────────────────────────────────── */
+.cardTop {
+  padding: 12px 14px 11px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
   flex-shrink: 0;
+  background: rgba(0,0,0,0.40);
+  border-bottom: 1px solid rgba(255,255,255,0.06);
 }
 
-.cardName {
-  font-size: 0.80rem;
-  font-weight: 600;
-  color: var(--color-text);
-  letter-spacing: 0.07em;
+.cardTopName {
+  font-family: var(--font-title);
+  font-size: 1.0rem;
+  font-weight: 500;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
+  color: var(--color-gold);
+  text-shadow: 0 0 14px rgba(230,191,51,0.35);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
-.cardDesc {
-  font-size: 0.67rem;
-  color: var(--color-text-dim);
-  line-height: 1.45;
-  margin-top: 4px;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
+.cardTopWeapon {
+  width: 18px;
+  height: 34px;
+  flex-shrink: 0;
+}
+
+.cardTopWeaponImg {
+  width: 100%;
+  height: 100%;
+  color: var(--color-gold-dim);
+  opacity: 0.70;
 }
 
 /* ── Dot navigation ──────────────────────────────────────────────────────── */
@@ -265,10 +266,10 @@
   font-size: 0.58rem;
   letter-spacing: 0.20em;
   text-transform: uppercase;
-  color: var(--color-accent-dim);
+  color: rgba(230,191,51,0.58);
   margin-top: 8px;
   padding-bottom: 5px;
-  border-bottom: 1px solid var(--color-sep);
+  border-bottom: 1px solid rgba(230,191,51,0.18);
 }
 
 .spStats {
@@ -347,19 +348,8 @@
 .bottomBar {
   width: 100%;
   max-width: 1240px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 20px;
-  padding-top: 14px;
+  padding-top: 10px;
   flex-shrink: 0;
-}
-
-.bottomLeft {
-  min-width: 180px;
-  display: flex;
-  flex-direction: column;
-  gap: 3px;
 }
 
 .bottomTagline {
@@ -374,23 +364,7 @@
   font-family: var(--font-meta);
   font-size: 0.57rem;
   color: rgba(185,162,105,0.32);
-}
-
-.bottomRight {
-  min-width: 180px;
-  text-align: right;
-  font-family: var(--font-meta);
-  font-size: 0.65rem;
-  color: var(--color-text-dim);
-}
-
-.hintKey {
-  color: rgba(185,162,105,0.65);
-}
-
-.hintSep {
-  opacity: 0.40;
-  margin: 0 3px;
+  margin-top: 2px;
 }
 
 /* ── Confirm button ──────────────────────────────────────────────────────── */
@@ -398,15 +372,14 @@
   font-size: 0.88rem;
   letter-spacing: 0.14em;
   text-transform: uppercase;
-  padding: 13px 44px;
+  padding: 13px 24px;
+  width: 100%;
   background: rgba(230,191,51,0.07);
   border: 1px solid rgba(230,191,51,0.38);
   color: rgba(230,191,51,0.88);
   border-radius: var(--radius);
   cursor: pointer;
   transition: background 0.2s, box-shadow 0.2s, border-color 0.2s;
-  white-space: nowrap;
-  flex-shrink: 0;
 }
 .btnConfirm:hover {
   background: rgba(230,191,51,0.15);

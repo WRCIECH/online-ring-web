@@ -59,7 +59,7 @@ export default function ClassSelectScreen() {
   const activeCls = CLASS_DEFINITIONS[activeIndex]
   const accent    = getAccent(activeCls)
 
-  const visible = ([-2, -1, 0, 1, 2] as const).map(offset => ({
+  const visible = ([-1, 0, 1] as const).map(offset => ({
     cls: CLASS_DEFINITIONS[(activeIndex + offset + N) % N],
     offset,
   }))
@@ -103,7 +103,7 @@ export default function ClassSelectScreen() {
                 const cardAccent = getAccent(cls)
                 const clsName   = t.classes[cls.id]?.name ?? cls.name
                 const clsDesc   = t.classes[cls.id]?.description ?? cls.description
-                const cardCls   = abs === 0 ? s.cardCenter : abs === 1 ? s.cardNear : s.cardFar
+                const cardCls   = abs === 0 ? s.cardCenter : s.cardNear
 
                 return (
                   <div
@@ -114,12 +114,16 @@ export default function ClassSelectScreen() {
                     role={abs > 0 ? 'button' : undefined}
                     tabIndex={abs > 0 ? 0 : undefined}
                   >
+                    <div className={s.cardTop}>
+                      <div className={s.cardTopName}>{clsName}</div>
+                      {abs === 0 && (
+                        <div className={s.cardTopWeapon}>
+                          <WeaponIcon weaponClass={cls.weaponClass} className={s.cardTopWeaponImg} />
+                        </div>
+                      )}
+                    </div>
                     <div className={s.cardArt}>
                       <div className={s.cardArtGlow} />
-                    </div>
-                    <div className={s.cardFooter}>
-                      <div className={s.cardName}>{clsName}</div>
-                      {abs === 0 && <div className={s.cardDesc}>{clsDesc}</div>}
                     </div>
                   </div>
                 )
@@ -140,6 +144,14 @@ export default function ClassSelectScreen() {
               />
             ))}
           </div>
+
+          <button
+            className={s.btnConfirm}
+            onClick={handleConfirm}
+            style={{ '--accent': accent } as React.CSSProperties}
+          >
+            {t.ui.btn_begin_as} {t.classes[activeCls.id]?.name ?? activeCls.name}
+          </button>
         </div>
 
         {/* Stats panel */}
@@ -186,18 +198,8 @@ export default function ClassSelectScreen() {
 
       {/* ── Bottom bar ───────────────────────────────────────────── */}
       <div className={s.bottomBar}>
-        <div className={s.bottomLeft}>
-          <div className={s.bottomTagline}>Every Path Creates a Story</div>
-          <div className={s.bottomSub}>Choose wisely.</div>
-        </div>
-        <button
-          className={s.btnConfirm}
-          onClick={handleConfirm}
-          style={{ '--accent': accent } as React.CSSProperties}
-        >
-          {t.ui.btn_begin_as} {t.classes[activeCls.id]?.name ?? activeCls.name}
-        </button>
-        <div />
+        <div className={s.bottomTagline}>Every Path Creates a Story</div>
+        <div className={s.bottomSub}>Choose wisely.</div>
       </div>
 
       {tip && (
