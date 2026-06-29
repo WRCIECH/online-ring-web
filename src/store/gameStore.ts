@@ -202,7 +202,7 @@ function initialState(): GameState {
   return {
     stats: { ...DEFAULT_STATS },
     player_class: '',
-    total_levels_spent: 0,
+    total_levels_spent: 1,
     runes: 0, lost_runes: 0, lost_rune_location: '', lost_rune_node_index: -1,
     owned_weapons: [startWeapon.instance_id],
     weapon_instances: [startWeapon],
@@ -444,7 +444,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
     set({
       player_class: classId,
       stats: { ...cls.startingStats },
-      total_levels_spent: 0,
+      total_levels_spent: 1,
       runes: 0, lost_runes: 0, lost_rune_location: '', lost_rune_node_index: -1,
       owned_weapons: [w.instance_id],
       weapon_instances: [w],

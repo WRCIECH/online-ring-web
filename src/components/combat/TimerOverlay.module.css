@@ -302,9 +302,8 @@
 }
 
 .badge {
-  font-size: 0.65rem;
-  letter-spacing: 0.07em;
-  text-transform: uppercase;
+  font-size: 0.585rem;
+  letter-spacing: 0.04em;
   padding: 2px 8px;
   border-radius: 999px;
   background: rgba(255,255,255,0.04);
@@ -320,7 +319,6 @@
 }
 
 .badgeInactive {
-  opacity: 0.4;
 }
 
 /* Transparent full-screen backdrop — closes dropdown on outside click */

@@ -97,14 +97,20 @@ export default function TimerOverlay({ state, dispatch, contentName }: Props) {
             )}
             {pendingTile && pendingMove && (
               <div className={s.badgeRow} style={{ marginTop: 6 }}>
-                {previewMove(state, pendingTile, pendingMove).multipliers.map(m => (
-                  <span
-                    key={m.key}
-                    className={[s.badge, m.active ? s.badgeActive : s.badgeInactive].join(' ')}
-                  >
-                    {t.ui[`mult_${m.key}`] ?? m.key} {formatMultiplierPct(m.value)}
-                  </span>
-                ))}
+                {previewMove(state, pendingTile, pendingMove).multipliers.map(m => {
+                  const label = (t.ui as Record<string, string>)[`mult_${m.key}`] ?? m.key
+                  const desc  = (t.ui as Record<string, string>)[`mult_${m.key}_desc`]
+                  return (
+                    <span
+                      key={m.key}
+                      className={[s.badge, m.active ? s.badgeActive : s.badgeInactive].join(' ')}
+                      style={desc ? { cursor: 'help' } : undefined}
+                    >
+                      {label} {formatMultiplierPct(m.value)}
+                      {desc && <span className={s.badgeTip}>{desc}</span>}
+                    </span>
+                  )
+                })}
               </div>
             )}
           </div>

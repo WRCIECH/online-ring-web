@@ -318,7 +318,8 @@ export default function CombatScreen() {
         metaParts: [
           { text: `⚔ ${preview.damage}`, color: '#cc6644' },
           ...preview.multipliers.filter(m => m.active).map(m => ({
-            text: `${t.ui[`mult_${m.key}`] ?? m.key} ${formatMultiplierPct(m.value)}`,
+            text:    `${(t.ui as Record<string,string>)[`mult_${m.key}`] ?? m.key} ${formatMultiplierPct(m.value)}`,
+            tooltip: (t.ui as Record<string,string>)[`mult_${m.key}_desc`],
           })),
         ],
         colorVar: def.colorVar,

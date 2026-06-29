@@ -38,7 +38,7 @@
   transform: translate(-50%, -100%);
   margin-top: -8px;
   z-index: 32;
-  pointer-events: none;
+  pointer-events: auto;
   background: var(--color-bg-panel);
   border: 1px solid var(--color-border);
   border-radius: var(--radius);
@@ -67,9 +67,31 @@
 
 .tooltipMeta {
   display: flex;
-  gap: 10px;
+  flex-wrap: wrap;
+  gap: 6px 10px;
   font-size: 0.75rem;
   color: var(--color-text-dim);
+}
+
+.metaHoverable {
+  cursor: help;
+  border-bottom: 1px dashed rgba(185, 162, 105, 0.35);
+  transition: color 0.12s, border-color 0.12s;
+}
+.metaHoverable:hover {
+  color: var(--color-gold-text);
+  border-bottom-color: rgba(185, 162, 105, 0.70);
+}
+
+.metaDesc {
+  margin-top: 7px;
+  padding-top: 7px;
+  border-top: 1px solid rgba(255, 255, 255, 0.07);
+  font-size: 0.72rem;
+  color: var(--color-text-dim);
+  line-height: 1.45;
+  max-width: 240px;
+  white-space: normal;
 }
 
 @keyframes radialSpread {

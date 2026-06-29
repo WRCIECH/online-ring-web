@@ -1,11 +1,11 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import s from './MoveRadialMenu.module.css'
 
 export interface RadialMoveItem {
   id: string
   label: string
   sublabel?: string
-  metaParts: Array<{ text: string; color?: string }>
+  metaParts: Array<{ text: string; color?: string; tooltip?: string }>
   colorVar: string
   tx: number
   ty: number
@@ -21,6 +21,10 @@ interface Props {
 
 export default function MoveRadialMenu({ x, y, items, onClose }: Props) {
   const [hoveredId, setHoveredId] = useState<string | null>(null)
+  const [activeDesc, setActiveDesc] = useState<string | null>(null)
+  const hideTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const descTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+
   const hoveredItem = hoveredId ? items.find(it => it.id === hoveredId) ?? null : null
 
   useEffect(() => {
@@ -28,6 +32,33 @@ export default function MoveRadialMenu({ x, y, items, onClose }: Props) {
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
   }, [onClose])
+
+  function showTooltip(id: string) {
+    if (hideTimer.current) clearTimeout(hideTimer.current)
+    setHoveredId(id)
+  }
+
+  function scheduleHide() {
+    hideTimer.current = setTimeout(() => {
+      setHoveredId(null)
+      setActiveDesc(null)
+    }, 80)
+  }
+
+  function cancelHide() {
+    if (hideTimer.current) clearTimeout(hideTimer.current)
+  }
+
+  function handleMetaEnter(tooltip: string | undefined) {
+    if (!tooltip) return
+    if (descTimer.current) clearTimeout(descTimer.current)
+    descTimer.current = setTimeout(() => setActiveDesc(tooltip), 100)
+  }
+
+  function handleMetaLeave() {
+    if (descTimer.current) clearTimeout(descTimer.current)
+    setActiveDesc(null)
+  }
 
   return (
     <>
@@ -45,8 +76,8 @@ export default function MoveRadialMenu({ x, y, items, onClose }: Props) {
             '--ty': `${item.ty}px`,
             animationDelay: `${i * 22}ms`,
           } as React.CSSProperties}
-          onMouseEnter={() => setHoveredId(item.id)}
-          onMouseLeave={() => setHoveredId(null)}
+          onMouseEnter={() => showTooltip(item.id)}
+          onMouseLeave={scheduleHide}
           onClick={e => { e.stopPropagation(); item.onSelect(); onClose() }}
         >
           {item.label[0]}
@@ -58,6 +89,8 @@ export default function MoveRadialMenu({ x, y, items, onClose }: Props) {
           className={s.tooltip}
           style={{ top: y + hoveredItem.ty - 36, left: x + hoveredItem.tx }}
           aria-hidden="true"
+          onMouseEnter={cancelHide}
+          onMouseLeave={scheduleHide}
         >
           <div className={s.tooltipName}>
             {hoveredItem.label}
@@ -65,9 +98,20 @@ export default function MoveRadialMenu({ x, y, items, onClose }: Props) {
           </div>
           <div className={s.tooltipMeta}>
             {hoveredItem.metaParts.map((p, i) => (
-              <span key={i} style={p.color ? { color: p.color } : undefined}>{p.text}</span>
+              <span
+                key={i}
+                style={p.color ? { color: p.color } : undefined}
+                className={p.tooltip ? s.metaHoverable : undefined}
+                onMouseEnter={() => handleMetaEnter(p.tooltip)}
+                onMouseLeave={handleMetaLeave}
+              >
+                {p.text}
+              </span>
             ))}
           </div>
+          {activeDesc && (
+            <div className={s.metaDesc}>{activeDesc}</div>
+          )}
         </div>
       )}
     </>
