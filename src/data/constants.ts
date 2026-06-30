@@ -35,6 +35,9 @@ export const FLOW_GAP_COLD_MINS  = 240
 /** Damage bonus on top of the time-ratio scaling for choosing Heavy. */
 export const HEAVY_TIME_BONUS = 1.15
 
+/** Base enemy damage per minute of task time (before weapon and stat scaling). */
+export const DMG_PER_MIN = 3
+
 // ── Combat — stagger ─────────────────────────────────────────────────────────
 
 /** Duration of the stagger pause between phases in ms. */

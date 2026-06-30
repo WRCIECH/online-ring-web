@@ -1,6 +1,7 @@
 import { useState, useCallback } from 'react'
-import { useGameStore } from '../../store/gameStore'
-import { WEAPONS, statLevelCost, GRADE_MULT, LEVEL_MULT } from '../../data/weapons'
+import { useGameStore, calcMaxHp } from '../../store/gameStore'
+import { WEAPONS, statLevelCost, LEVEL_MULT, calcWeaponScaledDamage } from '../../data/weapons'
+import { DMG_PER_MIN, HEAVY_TIME_BONUS } from '../../data/constants'
 import type { StatKey, WeaponInstance, Grade, Stats, WeaponRarity } from '../../types/game'
 import { useT, localizeWeaponName } from '../../i18n'
 import WeaponSprite from '../icons/WeaponSprite'
@@ -15,14 +16,6 @@ const RARITY_COLOURS: Record<WeaponRarity, string> = {
 }
 
 interface Tip { title: string; body: string; x: number; y: number }
-
-function statScalingBonus(weapon: WeaponInstance, stats: Stats): number {
-  let bonus = 0
-  for (const [stat, grade] of Object.entries(weapon.scaling) as [StatKey, Grade][]) {
-    bonus += Math.max(0, (stats[stat] ?? 8) - 8) * (GRADE_MULT[grade] ?? 0)
-  }
-  return bonus
-}
 
 export default function CharacterOverlay({ onClose, canLevel = true }: Props) {
   const store = useGameStore()
@@ -51,15 +44,32 @@ export default function CharacterOverlay({ onClose, canLevel = true }: Props) {
     { ...store.stats }
   )
 
+  // ── Player resource preview ──────────────────────────────────────────────
+  const curMaxHp  = calcMaxHp(store.stats.VIG)
+  const prevMaxHp = calcMaxHp(pendingStats.VIG)
+  const hpUp      = prevMaxHp > curMaxHp
+  const vigPending = (pending.VIG ?? 0) > 0
+
+  const curSlots  = store.stats.END
+  const prevSlots = pendingStats.END
+  const slotsUp   = prevSlots > curSlots
+  const endPending = (pending.END ?? 0) > 0
+
   // ── Weapon preview ───────────────────────────────────────────────────────
   const weaponIds  = store.owned_weapons
   const safeIdx    = Math.min(previewWeaponIdx, Math.max(0, weaponIds.length - 1))
   const pwId       = weaponIds[safeIdx] ?? null
   const pw         = pwId ? (WEAPONS[pwId] as WeaponInstance | undefined) : undefined
   const pwLevel    = pwId ? (store.weapon_level[pwId] ?? 0) : 0
-  const curBonus   = pw ? statScalingBonus(pw, store.stats) : 0
-  const prevBonus  = pw ? statScalingBonus(pw, pendingStats) : 0
-  const bonusUp    = prevBonus > curBonus
+  // Reference: Research stage (5 min light / 15 min heavy) — common first tile
+  const REF_LIGHT_BASE  = (300 / 60) * DMG_PER_MIN
+  const REF_HEAVY_BASE  = (900 / 60) * DMG_PER_MIN * HEAVY_TIME_BONUS
+
+  const curLight   = pw ? calcWeaponScaledDamage(REF_LIGHT_BASE,  pw, pwLevel, store.stats)  : 0
+  const prevLight  = pw ? calcWeaponScaledDamage(REF_LIGHT_BASE,  pw, pwLevel, pendingStats) : 0
+  const curHeavy   = pw ? calcWeaponScaledDamage(REF_HEAVY_BASE,  pw, pwLevel, store.stats)  : 0
+  const prevHeavy  = pw ? calcWeaponScaledDamage(REF_HEAVY_BASE,  pw, pwLevel, pendingStats) : 0
+  const dmgUp      = prevLight > curLight || prevHeavy > curHeavy
 
   // ── Handlers ─────────────────────────────────────────────────────────────
   function handlePlus(stat: StatKey) {
@@ -181,8 +191,43 @@ export default function CharacterOverlay({ onClose, canLevel = true }: Props) {
             </div>
           </div>
 
-          {/* RIGHT: weapon preview ──────────────────────────────────── */}
+          {/* RIGHT: two sections ────────────────────────────────────── */}
           <div className={s.rightCol}>
+
+            {/* ── Upper: player resources ───────────────────────────── */}
+            <div className={s.resourceSection}>
+              <div className={s.sectionTitle}>{t.ui.lv_player_resources}</div>
+
+              <div className={s.resourceRow}>
+                <span className={s.resourceLabel}>{t.ui.lv_attr_hp}</span>
+                <span className={s.resourceValue}>
+                  {vigPending ? (
+                    <>
+                      <span className={s.valBase}>{curMaxHp}</span>
+                      <span className={s.valArrow}> → </span>
+                      <span className={[s.valPending, hpUp ? s.valUp : ''].join(' ')}>{prevMaxHp}{hpUp ? ' ↑' : ''}</span>
+                    </>
+                  ) : curMaxHp}
+                </span>
+              </div>
+
+              <div className={s.resourceRow}>
+                <span className={s.resourceLabel}>{t.ui.lv_attr_slots}</span>
+                <span className={s.resourceValue}>
+                  {endPending ? (
+                    <>
+                      <span className={s.valBase}>{curSlots}</span>
+                      <span className={s.valArrow}> → </span>
+                      <span className={[s.valPending, slotsUp ? s.valUp : ''].join(' ')}>{prevSlots}{slotsUp ? ' ↑' : ''}</span>
+                    </>
+                  ) : curSlots}
+                </span>
+              </div>
+            </div>
+
+            <hr className={s.sep} />
+
+            {/* ── Lower: weapon preview ─────────────────────────────── */}
             {weaponIds.length > 0 && (
               <div className={s.weaponTabs}>
                 {weaponIds.map((wid, i) => {
@@ -242,16 +287,23 @@ export default function CharacterOverlay({ onClose, canLevel = true }: Props) {
                         <span>{t.ui.lv_col_preview}</span>
                       </div>
                       <div className={s.previewDataRow}>
-                        <span className={s.previewLabel}>{t.ui.lv_scaling_bonus}</span>
-                        <span className={s.previewCurrent}>+{(curBonus * 100).toFixed(1)}%</span>
-                        <span className={[s.previewAfter, bonusUp ? s.previewUp : ''].join(' ')}>
-                          +{(prevBonus * 100).toFixed(1)}%{bonusUp ? ' ↑' : ''}
+                        <span className={s.previewLabel}>{t.ui.lv_damage_light}</span>
+                        <span className={s.previewCurrent}>{curLight}</span>
+                        <span className={[s.previewAfter, prevLight > curLight ? s.previewUp : ''].join(' ')}>
+                          {prevLight}{prevLight > curLight ? ' ↑' : ''}
+                        </span>
+                      </div>
+                      <div className={s.previewDataRow}>
+                        <span className={s.previewLabel}>{t.ui.lv_damage_heavy}</span>
+                        <span className={s.previewCurrent}>{curHeavy}</span>
+                        <span className={[s.previewAfter, prevHeavy > curHeavy ? s.previewUp : ''].join(' ')}>
+                          {prevHeavy}{prevHeavy > curHeavy ? ' ↑' : ''}
                         </span>
                       </div>
                     </div>
 
                     <div className={s.previewNote}>
-                      Bonus applies per point above stat 8
+                      {t.ui.lv_damage_note}
                     </div>
                   </>
                 ) : (

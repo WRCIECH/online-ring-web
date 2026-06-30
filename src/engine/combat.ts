@@ -6,7 +6,7 @@ import { LOCATION_THEMES } from '../data/locationThemes'
 import { WEAPONS, calcWeaponScaledDamage } from '../data/weapons'
 import {
   REPEAT_PENALTY_PER_RETRY, REPEAT_PENALTY_MAX, REPEAT_DAMAGE_PENALTY, SACRIFICE_MULT,
-  HEAVY_TIME_BONUS,
+  HEAVY_TIME_BONUS, DMG_PER_MIN,
 } from '../data/constants'
 
 export interface LogEntry { id: number; text: string; color?: string }
@@ -66,7 +66,6 @@ export type CombatAction =
 // ── Constants ─────────────────────────────────────────────────────────────
 
 const FAIL_DAMAGE_PER_MIN = 4   // HP damage per minute of tile time on failure
-const DMG_PER_MIN = 3           // enemy damage per minute of task time (base rate)
 
 const AFFINITY_MULTS: Record<keyof MobAffinities, number> = {
   love:    2.0,
