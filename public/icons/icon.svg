@@ -1,43 +1,45 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256">
   <defs>
-    <filter id="glow" x="-40%" y="-40%" width="180%" height="180%">
-      <feGaussianBlur in="SourceGraphic" stdDeviation="4" result="blur"/>
-      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
-    </filter>
-    <filter id="softglow" x="-60%" y="-60%" width="220%" height="220%">
-      <feGaussianBlur in="SourceGraphic" stdDeviation="12" result="blur"/>
+    <!--
+      Off-centre radial gradient: bright highlight at ~2 o'clock (upper-right),
+      dark at lower-left — approximates the CSS conic-gradient metallic sweep.
+    -->
+    <radialGradient id="ring-shine" cx="68%" cy="28%" r="65%" gradientUnits="objectBoundingBox">
+      <stop offset="0%"   stop-color="#fff8c0"/>
+      <stop offset="14%"  stop-color="#fce870"/>
+      <stop offset="30%"  stop-color="#f4d458"/>
+      <stop offset="50%"  stop-color="#c8982a"/>
+      <stop offset="68%"  stop-color="#6a4008"/>
+      <stop offset="84%"  stop-color="#3a2004"/>
+      <stop offset="100%" stop-color="#1a0900"/>
+    </radialGradient>
+
+    <filter id="glow" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur in="SourceGraphic" stdDeviation="6" result="blur"/>
       <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
     </filter>
   </defs>
 
   <!-- Background -->
-  <rect width="256" height="256" rx="38" fill="#100d16"/>
+  <rect width="256" height="256" rx="40" fill="#161228"/>
 
-  <!-- Ambient ring glow -->
-  <circle cx="128" cy="128" r="88" fill="none" stroke="#e6bf33" stroke-width="22" opacity="0.07"/>
+  <!-- Soft ambient glow behind the ring -->
+  <circle cx="128" cy="128" r="99" fill="none"
+          stroke="#d4a030" stroke-width="22" stroke-opacity="0.15"
+          filter="url(#glow)"/>
 
-  <!-- Hexagram connection lines (network / online topology) -->
-  <line x1="216" y1="128" x2="40"  y2="128" stroke="#7a5fd0" stroke-width="1.5" opacity="0.45"/>
-  <line x1="172" y1="204" x2="84"  y2="52"  stroke="#7a5fd0" stroke-width="1.5" opacity="0.45"/>
-  <line x1="84"  y1="204" x2="172" y2="52"  stroke="#7a5fd0" stroke-width="1.5" opacity="0.45"/>
-
-  <!-- Main golden ring -->
-  <circle cx="128" cy="128" r="88" fill="none" stroke="#e6bf33" stroke-width="5.5" filter="url(#glow)"/>
-
-  <!-- Six nodes at 60° intervals -->
-  <circle cx="216" cy="128" r="6.5" fill="#e6bf33" filter="url(#glow)"/>
-  <circle cx="172" cy="204" r="6.5" fill="#e6bf33" filter="url(#glow)"/>
-  <circle cx="84"  cy="204" r="6.5" fill="#e6bf33" filter="url(#glow)"/>
-  <circle cx="40"  cy="128" r="6.5" fill="#e6bf33" filter="url(#glow)"/>
-  <circle cx="84"  cy="52"  r="6.5" fill="#e6bf33" filter="url(#glow)"/>
-  <circle cx="172" cy="52"  r="6.5" fill="#e6bf33" filter="url(#glow)"/>
-
-  <!-- Centre point -->
-  <circle cx="128" cy="128" r="10"  fill="#e6bf33" opacity="0.15" filter="url(#softglow)"/>
-  <circle cx="128" cy="128" r="4.5" fill="#fffbe8"/>
-
-  <!-- Online status dot (upper-right corner) -->
-  <circle cx="210" cy="46" r="11" fill="#0f1a10"/>
-  <circle cx="210" cy="46" r="8"  fill="#3db84a" filter="url(#glow)"/>
-  <circle cx="210" cy="46" r="4"  fill="#7ef08a"/>
+  <!--
+    Ring shape: outer circle r=106 minus inner hole r=63.
+    Uses evenodd fill rule so the inner path cuts out the centre.
+    Both arcs must be present and wound opposite to each other for evenodd to work.
+  -->
+  <path fill-rule="evenodd" fill="url(#ring-shine)"
+    d="
+      M 128 22
+      A 106 106 0 1 1 127.99 22
+      Z
+      M 128 65
+      A 63 63 0 1 0 127.99 65
+      Z
+    "/>
 </svg>
