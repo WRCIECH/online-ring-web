@@ -1,8 +1,9 @@
 import { useMemo, useState, useEffect, useRef } from 'react'
-import type { WeaponInstance, AtomicStage } from '../../types/game'
-import { describeWeaponPattern, DRAW_LABEL_KEY, VALUE_BUCKET, type PatternNode } from '../../data/weaponStructure'
+import type { WeaponInstance, ContentProductType } from '../../types/game'
+import { describeWeaponPattern, DRAW_LABEL_KEY, VALUE_BUCKET, type PatternNode, type DrawNode } from '../../data/weaponStructure'
 import { spiralLayout, type SpiralPos } from '../../engine/spiralLayout'
 import { drawEdge, drawTile } from '../../engine/workflowRenderer'
+import { WEAPON_CLASSES } from '../../data/generators/weaponClasses'
 import { useT, type TranslationBundle } from '../../i18n'
 import s from './WeaponStructurePreview.module.css'
 
@@ -11,13 +12,12 @@ interface Props { weapon: WeaponInstance }
 interface FlatItem { id: string; node: PatternNode }
 interface Edge { from: string; to: string }
 
-const NODE_SIZE  = 18   // tile size in the compact preview (vs TILE=28 in combat)
-const DRAW_SIZE  = 10   // gold square for unresolved draw nodes
-const LANE_GAP   = 34
-const SPIRAL_R0  = 20
-const SPIRAL_DR  = 26
+const NODE_SIZE     = 18
+const LANE_GAP      = 34
+const SPIRAL_R0     = 20
+const SPIRAL_DR     = 26
 const SPIRAL_DTHETA = 1.15
-const PAD        = 14
+const PAD           = 14
 
 function fmtMin(secs: number): string {
   return `${Math.round(secs / 60)}m`
@@ -56,6 +56,310 @@ function buildSpiralGraph(nodes: PatternNode[]): { layers: FlatItem[][]; edges: 
   return { layers, edges }
 }
 
+// ── Draw node icons ───────────────────────────────────────────────────────────
+
+const FORMAT_BG: Partial<Record<ContentProductType, string>> = {
+  Plaintext:          '#1e2f58',
+  StructuredText:     '#1e2f58',
+  IllustratedText:    '#1e2f58',
+  SingleGraphic:      '#153d35',
+  Carousel:           '#153d35',
+  Infographic:        '#153d35',
+  RawAudio:           '#300f52',
+  ProducedAudio:      '#300f52',
+  ARollVideo:         '#4a1208',
+  SlideshowVideo:     '#4a1208',
+  Screencast:         '#4a1208',
+  CinematicVideo:     '#4a1208',
+  MotionGraphics:     '#4a1208',
+  LiveStream:         '#3d2e00',
+  MultimediaPage:     '#3d2e00',
+  BranchingNarrative: '#3d2e00',
+  AssetPack:          '#3d2e00',
+  CurationFeed:       '#3d2e00',
+  CommunitySpace:     '#3d2e00',
+  InteractiveApp:     '#3d2e00',
+  _blank:             '#202020',
+}
+
+const ICON_C = 'rgba(220,210,255,0.88)'
+
+function drawFormatIcon(
+  ctx: CanvasRenderingContext2D,
+  cx: number, cy: number,
+  size: number,
+  value: ContentProductType,
+): void {
+  const sc = size / 18
+  ctx.strokeStyle = ICON_C
+  ctx.fillStyle   = ICON_C
+  ctx.lineWidth   = 1 * sc
+
+  switch (value) {
+    // ── Text ──────────────────────────────────────────────────────────────
+    case 'Plaintext':
+      for (const dy of [-3, 0, 3]) {
+        ctx.beginPath(); ctx.moveTo(cx - 5*sc, cy + dy*sc); ctx.lineTo(cx + 5*sc, cy + dy*sc); ctx.stroke()
+      }
+      break
+
+    case 'StructuredText':
+      for (const dy of [-3, 0, 3]) {
+        ctx.beginPath(); ctx.arc(cx - 4.5*sc, cy + dy*sc, 0.8*sc, 0, Math.PI * 2); ctx.fill()
+        ctx.beginPath(); ctx.moveTo(cx - 2.5*sc, cy + dy*sc); ctx.lineTo(cx + 5*sc, cy + dy*sc); ctx.stroke()
+      }
+      break
+
+    case 'IllustratedText':
+      ctx.strokeRect(cx - 4*sc, cy - 5*sc, 8*sc, 4.5*sc)
+      ctx.beginPath(); ctx.moveTo(cx - 5*sc, cy + 1*sc); ctx.lineTo(cx + 5*sc, cy + 1*sc); ctx.stroke()
+      ctx.beginPath(); ctx.moveTo(cx - 5*sc, cy + 4*sc); ctx.lineTo(cx + 3*sc, cy + 4*sc); ctx.stroke()
+      break
+
+    // ── Visual ────────────────────────────────────────────────────────────
+    case 'SingleGraphic':
+      ctx.strokeRect(cx - 5*sc, cy - 5*sc, 10*sc, 10*sc)
+      ctx.beginPath()
+      ctx.moveTo(cx - 3*sc, cy + 3*sc)
+      ctx.lineTo(cx, cy - 2*sc)
+      ctx.lineTo(cx + 3*sc, cy + 3*sc)
+      ctx.stroke()
+      break
+
+    case 'Carousel':
+      ctx.strokeRect(cx - 4*sc, cy - 4*sc, 8*sc, 6*sc)
+      ctx.beginPath()
+      ctx.moveTo(cx - 3*sc, cy + 3*sc)
+      ctx.lineTo(cx + 5*sc, cy + 3*sc)
+      ctx.lineTo(cx + 5*sc, cy - 3*sc)
+      ctx.stroke()
+      break
+
+    case 'Infographic':
+      for (let i = 0; i < 3; i++) {
+        const h = (2.5 + i * 1.8) * sc
+        const bx = cx + (i - 1) * 3.5 * sc
+        ctx.fillRect(bx - 1.2*sc, cy + 5*sc - h, 2.4*sc, h)
+      }
+      break
+
+    // ── Audio ─────────────────────────────────────────────────────────────
+    case 'RawAudio': {
+      const wPts = [-5, 0, -3, -4, -1, 4, 1, -4, 3, 4, 5, 0]
+      ctx.beginPath()
+      ctx.moveTo(cx + wPts[0]*sc, cy + wPts[1]*sc)
+      for (let i = 2; i < wPts.length; i += 2) ctx.lineTo(cx + wPts[i]*sc, cy + wPts[i+1]*sc)
+      ctx.stroke()
+      break
+    }
+
+    case 'ProducedAudio':
+      ctx.beginPath(); ctx.arc(cx, cy, 5*sc, Math.PI, 0, false); ctx.stroke()
+      ctx.fillRect(cx - 5.5*sc, cy - 2*sc, 2*sc, 4*sc)
+      ctx.fillRect(cx + 3.5*sc, cy - 2*sc, 2*sc, 4*sc)
+      break
+
+    // ── Video ─────────────────────────────────────────────────────────────
+    case 'ARollVideo':
+      ctx.beginPath()
+      ctx.moveTo(cx - 3.5*sc, cy - 5*sc)
+      ctx.lineTo(cx + 5*sc,   cy)
+      ctx.lineTo(cx - 3.5*sc, cy + 5*sc)
+      ctx.closePath(); ctx.fill()
+      break
+
+    case 'SlideshowVideo':
+      for (const dy of [-3.5, 0, 3.5]) ctx.strokeRect(cx - 4*sc, cy + dy*sc - 1.5*sc, 7*sc, 3*sc)
+      ctx.beginPath()
+      ctx.moveTo(cx + 4.5*sc, cy - 2*sc)
+      ctx.lineTo(cx + 6*sc,   cy)
+      ctx.lineTo(cx + 4.5*sc, cy + 2*sc)
+      ctx.stroke()
+      break
+
+    case 'Screencast':
+      ctx.strokeRect(cx - 5*sc, cy - 4.5*sc, 10*sc, 7*sc)
+      ctx.beginPath()
+      ctx.moveTo(cx, cy + 2.5*sc)
+      ctx.lineTo(cx, cy + 4.5*sc)
+      ctx.moveTo(cx - 2*sc, cy + 4.5*sc)
+      ctx.lineTo(cx + 2*sc, cy + 4.5*sc)
+      ctx.stroke()
+      break
+
+    case 'CinematicVideo':
+      ctx.strokeRect(cx - 5*sc, cy - 4*sc, 10*sc, 8*sc)
+      for (const dx of [-3, 0, 3]) {
+        ctx.fillRect(cx + dx*sc - 1*sc, cy - 5.5*sc, 2*sc, 1.5*sc)
+        ctx.fillRect(cx + dx*sc - 1*sc, cy + 4*sc, 2*sc, 1.5*sc)
+      }
+      break
+
+    case 'MotionGraphics':
+      for (let a = 0; a < Math.PI * 2; a += Math.PI / 2) {
+        ctx.beginPath()
+        ctx.moveTo(cx + Math.cos(a)*1.5*sc, cy + Math.sin(a)*1.5*sc)
+        ctx.lineTo(cx + Math.cos(a)*5*sc,   cy + Math.sin(a)*5*sc)
+        ctx.stroke()
+      }
+      for (let a = Math.PI / 4; a < Math.PI * 2; a += Math.PI / 2) {
+        ctx.beginPath()
+        ctx.moveTo(cx + Math.cos(a)*1*sc, cy + Math.sin(a)*1*sc)
+        ctx.lineTo(cx + Math.cos(a)*3*sc, cy + Math.sin(a)*3*sc)
+        ctx.stroke()
+      }
+      break
+
+    // ── Hybrid/Interactive ────────────────────────────────────────────────
+    case 'LiveStream':
+      ctx.beginPath(); ctx.moveTo(cx, cy - 5*sc); ctx.lineTo(cx, cy + 3*sc); ctx.stroke()
+      for (const r of [2.5, 4.5]) {
+        ctx.beginPath(); ctx.arc(cx, cy - 2*sc, r*sc, -Math.PI*0.75, -Math.PI*0.25); ctx.stroke()
+        ctx.beginPath(); ctx.arc(cx, cy - 2*sc, r*sc,  Math.PI*0.25,  Math.PI*0.75); ctx.stroke()
+      }
+      break
+
+    case 'MultimediaPage':
+      for (let r = 0; r < 2; r++) for (let c = 0; c < 2; c++) {
+        ctx.strokeRect(cx + (c - 1)*5*sc, cy + (r - 1)*5*sc, 3.5*sc, 3.5*sc)
+      }
+      break
+
+    case 'BranchingNarrative':
+      ctx.beginPath()
+      ctx.moveTo(cx, cy - 5*sc)
+      ctx.lineTo(cx, cy)
+      ctx.lineTo(cx - 4*sc, cy + 5*sc)
+      ctx.moveTo(cx, cy)
+      ctx.lineTo(cx + 4*sc, cy + 5*sc)
+      ctx.stroke()
+      break
+
+    case 'AssetPack':
+      ctx.strokeRect(cx - 4*sc, cy - 1*sc, 8*sc, 5.5*sc)
+      ctx.beginPath()
+      ctx.moveTo(cx, cy - 5*sc)
+      ctx.lineTo(cx, cy - 0.5*sc)
+      ctx.moveTo(cx - 2.5*sc, cy - 3*sc)
+      ctx.lineTo(cx, cy - 0.5*sc)
+      ctx.lineTo(cx + 2.5*sc, cy - 3*sc)
+      ctx.stroke()
+      break
+
+    case 'CurationFeed':
+      ctx.beginPath()
+      ctx.moveTo(cx - 5*sc, cy - 5*sc)
+      ctx.lineTo(cx + 5*sc, cy - 5*sc)
+      ctx.lineTo(cx + 2*sc, cy + 0.5*sc)
+      ctx.lineTo(cx + 2*sc, cy + 5*sc)
+      ctx.lineTo(cx - 2*sc, cy + 5*sc)
+      ctx.lineTo(cx - 2*sc, cy + 0.5*sc)
+      ctx.closePath()
+      ctx.stroke()
+      break
+
+    case 'CommunitySpace':
+      ctx.beginPath(); ctx.arc(cx - 2.5*sc, cy, 3.5*sc, 0, Math.PI * 2); ctx.stroke()
+      ctx.beginPath(); ctx.arc(cx + 2.5*sc, cy, 3.5*sc, 0, Math.PI * 2); ctx.stroke()
+      break
+
+    case 'InteractiveApp':
+      ctx.beginPath()
+      ctx.moveTo(cx,       cy - 5.5*sc)
+      ctx.lineTo(cx + 5.5*sc, cy)
+      ctx.lineTo(cx,       cy + 5.5*sc)
+      ctx.lineTo(cx - 5.5*sc, cy)
+      ctx.closePath()
+      ctx.stroke()
+      break
+
+    case '_blank':
+      ctx.font = `bold ${Math.round(10*sc)}px sans-serif`
+      ctx.textAlign    = 'center'
+      ctx.textBaseline = 'middle'
+      ctx.fillText('?', cx, cy)
+      break
+  }
+}
+
+function drawDrawNode(
+  ctx: CanvasRenderingContext2D,
+  cx: number, cy: number,
+  size: number,
+  node: DrawNode,
+): void {
+  const half = size / 2
+  const rx   = Math.round(size * 0.33)
+  const sc   = size / 18
+
+  let bg = '#2a2a3a'
+  if (node.label === 'format')         bg = FORMAT_BG[node.value as ContentProductType] ?? '#2a2a3a'
+  else if (node.label === 'transformation') bg = '#122a22'
+  else if (node.label === 'style')     bg = '#1e1848'
+  else if (node.label === 'emotion')   bg = '#3a0e1e'
+
+  ctx.beginPath()
+  ctx.roundRect(cx - half, cy - half, size, size, rx)
+  ctx.fillStyle = bg
+  ctx.fill()
+  ctx.strokeStyle = 'rgba(180,170,220,0.3)'
+  ctx.lineWidth   = 1
+  ctx.stroke()
+
+  ctx.save()
+  ctx.lineWidth = 1 * sc
+
+  if (node.label === 'format') {
+    drawFormatIcon(ctx, cx, cy, size, node.value as ContentProductType)
+
+  } else if (node.label === 'transformation') {
+    ctx.strokeStyle = 'rgba(100,210,170,0.9)'
+    ctx.fillStyle   = 'rgba(100,210,170,0.9)'
+    const r = 4 * sc
+    ctx.beginPath()
+    ctx.arc(cx, cy, r, -Math.PI * 0.15, Math.PI * 1.5, false)
+    ctx.stroke()
+    // arrowhead at the open end
+    const tipAngle = -Math.PI * 0.15
+    const tx = cx + Math.cos(tipAngle) * r
+    const ty = cy + Math.sin(tipAngle) * r
+    ctx.beginPath()
+    ctx.moveTo(tx - 2*sc, ty - 2*sc)
+    ctx.lineTo(tx + 1.5*sc, ty)
+    ctx.lineTo(tx, ty + 2.5*sc)
+    ctx.fill()
+
+  } else if (node.label === 'style') {
+    ctx.strokeStyle = 'rgba(150,140,240,0.9)'
+    ctx.fillStyle   = 'rgba(150,140,240,0.9)'
+    // diagonal pen stroke
+    ctx.beginPath()
+    ctx.moveTo(cx - 4*sc, cy + 4*sc)
+    ctx.lineTo(cx + 3*sc, cy - 3*sc)
+    ctx.stroke()
+    // nib diamond
+    ctx.beginPath()
+    ctx.moveTo(cx + 3*sc, cy - 3*sc)
+    ctx.lineTo(cx + 1*sc, cy - 6*sc)
+    ctx.lineTo(cx + 5.5*sc, cy - 5*sc)
+    ctx.closePath()
+    ctx.fill()
+
+  } else if (node.label === 'emotion') {
+    ctx.strokeStyle = 'rgba(230,100,130,0.9)'
+    const hx = cx, hy = cy + 1 * sc
+    ctx.beginPath()
+    ctx.moveTo(hx, hy + 4.5*sc)
+    ctx.bezierCurveTo(hx - 6*sc, hy + 1*sc,  hx - 6*sc, hy - 4*sc, hx, hy - 1.5*sc)
+    ctx.bezierCurveTo(hx + 6*sc, hy - 4*sc,  hx + 6*sc, hy + 1*sc, hx, hy + 4.5*sc)
+    ctx.stroke()
+  }
+
+  ctx.restore()
+}
+
+// ── Tooltip ───────────────────────────────────────────────────────────────────
+
 function tooltipText(node: PatternNode, t: TranslationBundle): { title: string; sub?: string } {
   if (node.kind === 'phase') {
     const countLabel = node.min === node.max ? `×${node.min}` : `×${node.min}–${node.max}`
@@ -72,11 +376,19 @@ function tooltipText(node: PatternNode, t: TranslationBundle): { title: string; 
   return { title: '' }
 }
 
+// ── Component ─────────────────────────────────────────────────────────────────
+
 export default function WeaponStructurePreview({ weapon }: Props) {
   const t = useT()
   const canvasRef = useRef<HTMLCanvasElement>(null)
 
-  const nodes = useMemo(() => describeWeaponPattern(weapon), [weapon])
+  const [rawPage, setRawPage] = useState(0)
+  const maxPage = weapon.rolled_draws
+    ? WEAPON_CLASSES[weapon.weapon_class].remaster_steps
+    : 0
+  const page = Math.min(rawPage, maxPage)
+
+  const nodes = useMemo(() => describeWeaponPattern(weapon, page), [weapon, page])
   const { layers, edges } = useMemo(() => buildSpiralGraph(nodes), [nodes])
 
   const centers = useMemo(() => {
@@ -86,12 +398,11 @@ export default function WeaponStructurePreview({ weapon }: Props) {
     })
   }, [layers])
 
-  // Flat item list for hit-testing
   const flatItems = useMemo(() => layers.flat(), [layers])
 
   const bounds = useMemo(() => {
     let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity
-    const half = Math.max(NODE_SIZE, DRAW_SIZE) / 2
+    const half = NODE_SIZE / 2
     for (const c of centers.values()) {
       minX = Math.min(minX, c.x - half)
       minY = Math.min(minY, c.y - half)
@@ -118,10 +429,9 @@ export default function WeaponStructurePreview({ weapon }: Props) {
     ctx.scale(dpr, dpr)
     ctx.clearRect(0, 0, bounds.width, bounds.height)
 
-    const ox = -bounds.minX   // canvas origin offset
+    const ox = -bounds.minX
     const oy = -bounds.minY
 
-    // Edges
     for (const e of edges) {
       const a = centers.get(e.from)
       const b = centers.get(e.to)
@@ -129,25 +439,15 @@ export default function WeaponStructurePreview({ weapon }: Props) {
       drawEdge(ctx, a.x + ox, a.y + oy, b.x + ox, b.y + oy, false)
     }
 
-    // Nodes
     for (const item of flatItems) {
       const c: SpiralPos | undefined = centers.get(item.id)
       if (!c) continue
       const cx = c.x + ox
       const cy = c.y + oy
-
       if (item.node.kind === 'phase') {
-        drawTile(ctx, cx - NODE_SIZE / 2, cy - NODE_SIZE / 2, item.node.stage as AtomicStage, 'normal', NODE_SIZE)
+        drawTile(ctx, cx - NODE_SIZE / 2, cy - NODE_SIZE / 2, item.node.stage, 'normal', NODE_SIZE)
       } else if (item.node.kind === 'draw') {
-        // Gold square for unresolved random-draw steps
-        const half = DRAW_SIZE / 2
-        ctx.beginPath()
-        ctx.roundRect(cx - half, cy - half, DRAW_SIZE, DRAW_SIZE, 3)
-        ctx.fillStyle   = 'rgba(200,165,50,0.85)'
-        ctx.fill()
-        ctx.strokeStyle = 'rgba(200,165,50,0.5)'
-        ctx.lineWidth   = 1
-        ctx.stroke()
+        drawDrawNode(ctx, cx, cy, NODE_SIZE, item.node)
       }
     }
   }, [bounds, centers, edges, flatItems])
@@ -156,14 +456,14 @@ export default function WeaponStructurePreview({ weapon }: Props) {
 
   function handleMouseMove(e: React.MouseEvent<HTMLCanvasElement>) {
     if (!bounds || !canvasRef.current) return
-    const rect  = canvasRef.current.getBoundingClientRect()
-    const sx    = bounds.width  / rect.width
-    const sy    = bounds.height / rect.height
-    const mx    = (e.clientX - rect.left)  * sx + bounds.minX
-    const my    = (e.clientY - rect.top)   * sy + bounds.minY
+    const rect = canvasRef.current.getBoundingClientRect()
+    const sx   = bounds.width  / rect.width
+    const sy   = bounds.height / rect.height
+    const mx   = (e.clientX - rect.left) * sx + bounds.minX
+    const my   = (e.clientY - rect.top)  * sy + bounds.minY
 
     let nearest: PatternNode | null = null
-    let bestDist = 12  // pixel threshold for hit
+    let bestDist = 12
     for (const item of flatItems) {
       const c = centers.get(item.id)
       if (!c) continue
@@ -178,6 +478,23 @@ export default function WeaponStructurePreview({ weapon }: Props) {
 
   return (
     <div className={s.wrap}>
+      {maxPage > 0 && (
+        <div className={s.nav}>
+          <button
+            className={s.navBtn}
+            disabled={page === 0}
+            onClick={() => setRawPage(p => Math.max(0, p - 1))}
+          >‹</button>
+          <span className={s.navLabel}>
+            {page === 0 ? t.ui.remaster_state_primary : `${t.ui.remaster_state_label} ${page}`}
+          </span>
+          <button
+            className={s.navBtn}
+            disabled={page === maxPage}
+            onClick={() => setRawPage(p => Math.min(maxPage, p + 1))}
+          >›</button>
+        </div>
+      )}
       <canvas
         ref={canvasRef}
         style={{ display: 'block', width: bounds.width, height: bounds.height, maxWidth: '100%' }}

@@ -59,12 +59,12 @@ export const VALUE_BUCKET: Record<DrawNode['label'], keyof TranslationBundle['co
 // drawStyle/drawEmotion that didn't trigger) — an empty class-level pool
 // no longer disables a draw, it just means any value of that kind is
 // equally likely (see rollSlotValue in patternSlots.ts).
-export function describeWeaponPattern(weapon: WeaponInstance): PatternNode[] {
+export function describeWeaponPattern(weapon: WeaponInstance, stateIndex = 0): PatternNode[] {
   const cls = WEAPON_CLASSES[weapon.weapon_class]
   const steps = WEAPON_PATTERNS[weapon.weapon_class]
   const counters: Record<SlotKind, number> = { format: 0, transformation: 0, style: 0, emotion: 0 }
   return steps
-    .map(step => describeStep(step, cls, weapon, counters))
+    .map(step => describeStep(step, cls, weapon, counters, stateIndex))
     .filter((n): n is PatternNode => n != null)
 }
 
@@ -73,6 +73,7 @@ function describeStep(
   cls: WeaponClassDef,
   weapon: WeaponInstance,
   counters: Record<SlotKind, number>,
+  stateIndex: number,
 ): PatternNode | null {
   switch (step.kind) {
     case 'phase': {
@@ -85,29 +86,29 @@ function describeStep(
     }
     case 'drawFormat': {
       const occ = counters.format++
-      const value = weapon.rolled_draws?.format[occ]?.[0] ?? null
+      const value = weapon.rolled_draws?.format[occ]?.[stateIndex] ?? null
       return value === null ? null : { kind: 'draw', label: 'format', value }
     }
     case 'drawTransformation': {
       const occ = counters.transformation++
-      const value = weapon.rolled_draws?.transformation[occ]?.[0] ?? null
+      const value = weapon.rolled_draws?.transformation[occ]?.[stateIndex] ?? null
       return value === null ? null : { kind: 'draw', label: 'transformation', value }
     }
     case 'drawStyle': {
       const occ = counters.style++
-      const value = weapon.rolled_draws?.style[occ]?.[0] ?? null
+      const value = weapon.rolled_draws?.style[occ]?.[stateIndex] ?? null
       return value === null ? null : { kind: 'draw', label: 'style', value }
     }
     case 'drawEmotion': {
       const occ = counters.emotion++
-      const value = weapon.rolled_draws?.emotion[occ]?.[0] ?? null
+      const value = weapon.rolled_draws?.emotion[occ]?.[stateIndex] ?? null
       return value === null ? null : { kind: 'draw', label: 'emotion', value }
     }
     case 'branch':
       return {
         kind: 'branch',
         paths: step.paths.map(path =>
-          path.map(s => describeStep(s, cls, weapon, counters)).filter((n): n is PatternNode => n !== null)
+          path.map(s => describeStep(s, cls, weapon, counters, stateIndex)).filter((n): n is PatternNode => n !== null)
         ),
       }
     case 'eitherOr': {
@@ -119,7 +120,7 @@ function describeStep(
       for (const opt of step.options) {
         const kind = drawKindOf(opt.step)!
         const occ = counters[kind]++
-        const value = weapon.rolled_draws?.[kind][occ]?.[0] ?? null
+        const value = weapon.rolled_draws?.[kind][occ]?.[stateIndex] ?? null
         if (value !== null) result = { kind: 'draw', label: kind, value }
       }
       return result

@@ -8,7 +8,6 @@ import type { WeaponInstance, WeaponRarity } from '../../types/game'
 import { useT, localizeWeaponName } from '../../i18n'
 import WeaponSprite from '../icons/WeaponSprite'
 import WeaponStructurePreview from './WeaponStructurePreview'
-import RemasterPreviewCarousel from './RemasterPreviewCarousel'
 import s from './EquipOverlay.module.css'
 
 interface Props {
@@ -83,8 +82,6 @@ export default function EquipOverlay({ onClose }: Props) {
         <div className={s.weaponDesc}>{t.weapons[weapon.weapon_class]?.description ?? classDef.description}</div>
 
         <WeaponStructurePreview weapon={weapon} />
-
-        <RemasterPreviewCarousel weapon={weapon} />
 
         <div className={s.statsRow}>
           <span className={s.statChip}>+{((LEVEL_MULT[weapon.rarity] ?? 0.03) * 100).toFixed(0)}% {t.ui.stat_dmg_per_level}</span>
