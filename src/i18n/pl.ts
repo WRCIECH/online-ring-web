@@ -254,6 +254,7 @@ const pl: TranslationBundle = {
     btn_detach:             'Odłącz',
     btn_sell_weapon:        'Sprzedaj',
     btn_sell_confirm:       'Potwierdź sprzedaż?',
+    btn_sell_blocked:       'Odepnij treści, aby sprzedać',
     btn_equipment:          'Ekwipunek',
     equipment_title:        'EKWIPUNEK',
     equip_no_weapons:       'Nie posiadasz jeszcze żadnej broni.',

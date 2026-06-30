@@ -253,6 +253,7 @@ const en: TranslationBundle = {
     btn_detach:             'Detach',
     btn_sell_weapon:        'Sell',
     btn_sell_confirm:       'Confirm sell?',
+    btn_sell_blocked:       'Detach content to sell',
     btn_equipment:          'Equipment',
     equipment_title:        'EQUIPMENT',
     equip_no_weapons:       'No weapons owned yet.',

@@ -98,12 +98,14 @@ export default function EquipOverlay({ onClose }: Props) {
         )}
 
         {store.owned_weapons.length > 1 && (
-          <button
-            className={confirmSellId === wid ? s.btnSellConfirm : s.btnSell}
-            onClick={() => handleSell(wid)}
-          >
-            {confirmSellId === wid ? t.ui.btn_sell_confirm : `${t.ui.btn_sell_weapon} (${WEAPON_SELL_PRICE} ✦)`}
-          </button>
+          attached.length > 0
+            ? <button className={s.btnSellBlocked} disabled>{t.ui.btn_sell_blocked}</button>
+            : <button
+                className={confirmSellId === wid ? s.btnSellConfirm : s.btnSell}
+                onClick={() => handleSell(wid)}
+              >
+                {confirmSellId === wid ? t.ui.btn_sell_confirm : `${t.ui.btn_sell_weapon} (${WEAPON_SELL_PRICE} ✦)`}
+              </button>
         )}
 
         <div className={s.contentToggleRow}>
