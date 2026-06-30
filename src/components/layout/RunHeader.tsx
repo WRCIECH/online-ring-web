@@ -10,6 +10,7 @@ const LOC_MAP = Object.fromEntries(LOCATION_DEFINITIONS.map(l => [l.id, l]))
 interface Props {
   hp: number; maxHp: number
   canAddContent?: boolean   // false during active combat task timer
+  canLevel?: boolean        // false during combat
 }
 
 function fmtTime(secs: number): string {
@@ -20,7 +21,7 @@ function fmtTime(secs: number): string {
   return `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(sc).padStart(2,'0')}`
 }
 
-export default function RunHeader({ hp, maxHp, canAddContent = true }: Props) {
+export default function RunHeader({ hp, maxHp, canAddContent = true, canLevel = true }: Props) {
   const store = useGameStore()
   const [remaining, setRemaining] = useState(() =>
     selectRunRemainingSeconds(store as Parameters<typeof selectRunRemainingSeconds>[0])
@@ -60,7 +61,7 @@ export default function RunHeader({ hp, maxHp, canAddContent = true }: Props) {
       </div>
 
       {/* Right: action buttons */}
-      <ActionBar canLevel={false} canAddContent={canAddContent} />
+      <ActionBar canLevel={canLevel} canAddContent={canAddContent} />
     </header>
   )
 }

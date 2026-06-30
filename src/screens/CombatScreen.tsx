@@ -339,6 +339,7 @@ export default function CombatScreen() {
       <RunHeader
         hp={state.playerHp} maxHp={state.playerMaxHp}
         canAddContent={state.phase !== 'STEP_TIMER'}
+        canLevel={false}
       />
 
       {selectedContent && (
