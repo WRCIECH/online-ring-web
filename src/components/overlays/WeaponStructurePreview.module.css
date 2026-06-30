@@ -5,31 +5,6 @@
   padding: 4px 0 8px;
 }
 
-.svg {
-  display: block;
-  width: 100%;
-  max-width: 320px;
-  max-height: 240px;
-}
-
-.edge {
-  stroke: rgba(255,255,255,0.18);
-  stroke-width: 1;
-}
-
-.markerPhase {
-  stroke: rgba(0,0,0,0.4);
-  stroke-width: 1;
-  cursor: pointer;
-}
-
-.markerDraw {
-  fill: var(--color-gold-dim);
-  stroke: rgba(0,0,0,0.3);
-  stroke-width: 1;
-  cursor: pointer;
-}
-
 .tooltip {
   position: fixed;
   z-index: 50;

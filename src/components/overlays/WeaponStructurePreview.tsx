@@ -1,35 +1,28 @@
-import { useMemo, useState } from 'react'
-import type { WeaponInstance } from '../../types/game'
+import { useMemo, useState, useEffect, useRef } from 'react'
+import type { WeaponInstance, AtomicStage } from '../../types/game'
 import { describeWeaponPattern, DRAW_LABEL_KEY, VALUE_BUCKET, type PatternNode } from '../../data/weaponStructure'
-import { STAGE_COLOR } from '../../data/tileBadges'
 import { spiralLayout, type SpiralPos } from '../../engine/spiralLayout'
+import { drawEdge, drawTile } from '../../engine/workflowRenderer'
 import { useT, type TranslationBundle } from '../../i18n'
 import s from './WeaponStructurePreview.module.css'
 
-interface Props {
-  weapon: WeaponInstance
-}
+interface Props { weapon: WeaponInstance }
 
 interface FlatItem { id: string; node: PatternNode }
 interface Edge { from: string; to: string }
 
-const MARKER_R_PHASE = 8
-const MARKER_R_DRAW   = 5
-const LANE_GAP        = 34
-const SPIRAL_R0       = 20
-const SPIRAL_DR       = 26
-const SPIRAL_DTHETA   = 1.15
-const PAD             = 14
+const NODE_SIZE  = 18   // tile size in the compact preview (vs TILE=28 in combat)
+const DRAW_SIZE  = 10   // gold square for unresolved draw nodes
+const LANE_GAP   = 34
+const SPIRAL_R0  = 20
+const SPIRAL_DR  = 26
+const SPIRAL_DTHETA = 1.15
+const PAD        = 14
 
 function fmtMin(secs: number): string {
   return `${Math.round(secs / 60)}m`
 }
 
-// Flattens the (possibly branching) pattern tree into spiral "layers" — one
-// step per top-level node, except a branch which consumes as many steps as
-// its longest path and spreads each path across a lane within those steps.
-// Edges fan out from the previous step to every lane a branch opens, and
-// fan back in from every lane's last item to whatever node follows.
 function buildSpiralGraph(nodes: PatternNode[]): { layers: FlatItem[][]; edges: Edge[] } {
   const layers: FlatItem[][] = []
   const edges: Edge[] = []
@@ -81,6 +74,8 @@ function tooltipText(node: PatternNode, t: TranslationBundle): { title: string; 
 
 export default function WeaponStructurePreview({ weapon }: Props) {
   const t = useT()
+  const canvasRef = useRef<HTMLCanvasElement>(null)
+
   const nodes = useMemo(() => describeWeaponPattern(weapon), [weapon])
   const { layers, edges } = useMemo(() => buildSpiralGraph(nodes), [nodes])
 
@@ -91,67 +86,104 @@ export default function WeaponStructurePreview({ weapon }: Props) {
     })
   }, [layers])
 
+  // Flat item list for hit-testing
+  const flatItems = useMemo(() => layers.flat(), [layers])
+
   const bounds = useMemo(() => {
     let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity
+    const half = Math.max(NODE_SIZE, DRAW_SIZE) / 2
     for (const c of centers.values()) {
-      minX = Math.min(minX, c.x - MARKER_R_PHASE)
-      minY = Math.min(minY, c.y - MARKER_R_PHASE)
-      maxX = Math.max(maxX, c.x + MARKER_R_PHASE)
-      maxY = Math.max(maxY, c.y + MARKER_R_PHASE)
+      minX = Math.min(minX, c.x - half)
+      minY = Math.min(minY, c.y - half)
+      maxX = Math.max(maxX, c.x + half)
+      maxY = Math.max(maxY, c.y + half)
     }
     if (!Number.isFinite(minX)) return null
     return {
       minX: minX - PAD, minY: minY - PAD,
-      width: maxX - minX + PAD * 2, height: maxY - minY + PAD * 2,
+      width:  maxX - minX + PAD * 2,
+      height: maxY - minY + PAD * 2,
     }
   }, [centers])
 
+  useEffect(() => {
+    const canvas = canvasRef.current
+    if (!canvas || !bounds) return
+    const ctx = canvas.getContext('2d')
+    if (!ctx) return
+
+    const dpr = window.devicePixelRatio || 1
+    canvas.width  = bounds.width  * dpr
+    canvas.height = bounds.height * dpr
+    ctx.scale(dpr, dpr)
+    ctx.clearRect(0, 0, bounds.width, bounds.height)
+
+    const ox = -bounds.minX   // canvas origin offset
+    const oy = -bounds.minY
+
+    // Edges
+    for (const e of edges) {
+      const a = centers.get(e.from)
+      const b = centers.get(e.to)
+      if (!a || !b) continue
+      drawEdge(ctx, a.x + ox, a.y + oy, b.x + ox, b.y + oy, false)
+    }
+
+    // Nodes
+    for (const item of flatItems) {
+      const c: SpiralPos | undefined = centers.get(item.id)
+      if (!c) continue
+      const cx = c.x + ox
+      const cy = c.y + oy
+
+      if (item.node.kind === 'phase') {
+        drawTile(ctx, cx - NODE_SIZE / 2, cy - NODE_SIZE / 2, item.node.stage as AtomicStage, 'normal', NODE_SIZE)
+      } else if (item.node.kind === 'draw') {
+        // Gold square for unresolved random-draw steps
+        const half = DRAW_SIZE / 2
+        ctx.beginPath()
+        ctx.roundRect(cx - half, cy - half, DRAW_SIZE, DRAW_SIZE, 3)
+        ctx.fillStyle   = 'rgba(200,165,50,0.85)'
+        ctx.fill()
+        ctx.strokeStyle = 'rgba(200,165,50,0.5)'
+        ctx.lineWidth   = 1
+        ctx.stroke()
+      }
+    }
+  }, [bounds, centers, edges, flatItems])
+
   const [hover, setHover] = useState<{ node: PatternNode; x: number; y: number } | null>(null)
 
-  function showHover(node: PatternNode) {
-    return (e: React.MouseEvent) => setHover({ node, x: e.clientX + 14, y: e.clientY - 10 })
+  function handleMouseMove(e: React.MouseEvent<HTMLCanvasElement>) {
+    if (!bounds || !canvasRef.current) return
+    const rect  = canvasRef.current.getBoundingClientRect()
+    const sx    = bounds.width  / rect.width
+    const sy    = bounds.height / rect.height
+    const mx    = (e.clientX - rect.left)  * sx + bounds.minX
+    const my    = (e.clientY - rect.top)   * sy + bounds.minY
+
+    let nearest: PatternNode | null = null
+    let bestDist = 12  // pixel threshold for hit
+    for (const item of flatItems) {
+      const c = centers.get(item.id)
+      if (!c) continue
+      const d = Math.hypot(mx - c.x, my - c.y)
+      if (d < bestDist) { bestDist = d; nearest = item.node }
+    }
+    if (nearest) setHover({ node: nearest, x: e.clientX + 14, y: e.clientY - 10 })
+    else setHover(null)
   }
 
   if (!bounds) return null
 
   return (
     <div className={s.wrap}>
-      <svg
-        viewBox={`${bounds.minX} ${bounds.minY} ${bounds.width} ${bounds.height}`}
-        className={s.svg}
-        style={{ aspectRatio: `${bounds.width} / ${bounds.height}` }}
-      >
-        {edges.map((e, i) => {
-          const a = centers.get(e.from)
-          const b = centers.get(e.to)
-          if (!a || !b) return null
-          return <line key={i} x1={a.x} y1={a.y} x2={b.x} y2={b.y} className={s.edge} />
-        })}
-        {layers.flatMap(layer => layer.map(item => {
-          const c: SpiralPos | undefined = centers.get(item.id)
-          if (!c) return null
-          const node = item.node
-          if (node.kind === 'phase') {
-            return (
-              <circle
-                key={item.id} cx={c.x} cy={c.y} r={MARKER_R_PHASE}
-                className={s.markerPhase} style={{ fill: STAGE_COLOR[node.stage] ?? '#666' }}
-                onMouseEnter={showHover(node)} onMouseMove={showHover(node)} onMouseLeave={() => setHover(null)}
-              />
-            )
-          }
-          if (node.kind === 'draw') {
-            return (
-              <circle
-                key={item.id} cx={c.x} cy={c.y} r={MARKER_R_DRAW}
-                className={s.markerDraw}
-                onMouseEnter={showHover(node)} onMouseMove={showHover(node)} onMouseLeave={() => setHover(null)}
-              />
-            )
-          }
-          return null
-        }))}
-      </svg>
+      <canvas
+        ref={canvasRef}
+        style={{ display: 'block', width: bounds.width, height: bounds.height, maxWidth: '100%' }}
+        onMouseMove={handleMouseMove}
+        onMouseLeave={() => setHover(null)}
+      />
       {hover && (() => {
         const { title, sub } = tooltipText(hover.node, t)
         return (

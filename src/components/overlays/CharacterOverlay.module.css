@@ -257,6 +257,39 @@
 
 .btnDim { opacity: 0.30; cursor: not-allowed; }
 
+/* ── Player resource section (upper right) ─────────────────────────────── */
+
+.resourceSection {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.resourceRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 4px 4px;
+}
+
+.resourceLabel {
+  font-size: 0.78rem;
+  color: var(--color-text-dim);
+}
+
+.resourceValue {
+  font-family: var(--font-numbers);
+  font-size: 0.88rem;
+  color: var(--color-text);
+  font-variant-numeric: tabular-nums;
+  display: flex;
+  align-items: baseline;
+  gap: 2px;
+}
+
+.valUp { color: var(--color-accent); font-weight: 600; }
+
 /* ── Weapon tabs ───────────────────────────────────────────────────────── */
 
 .weaponTabs {

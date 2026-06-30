@@ -1,8 +1,9 @@
 import { useEffect, useLayoutEffect, useRef, useMemo, useState, useCallback } from 'react'
-import type { WorkflowGraph, WorkflowTile, AtomicStage, SublocationType } from '../../types/game'
+import type { WorkflowGraph, WorkflowTile, SublocationType } from '../../types/game'
 import { getReachableTiles, REPEAT_DAMAGE_PENALTY } from '../../engine/combat'
-import { getTileBadges, computeEffectiveTags, STAGE_COLOR } from '../../data/tileBadges'
+import { getTileBadges, computeEffectiveTags } from '../../data/tileBadges'
 import { spiralLayout } from '../../engine/spiralLayout'
+import { drawEdge, drawTile, TILE, type TileState } from '../../engine/workflowRenderer'
 import EnemyCenterpiece from './EnemyCenterpiece'
 import { useT } from '../../i18n'
 import s from './WorkflowCanvas.module.css'
@@ -25,8 +26,6 @@ interface Props {
 }
 
 // ── Layout constants ──────────────────────────────────────────────────────
-const TILE    = 28
-const TILE_RX = 8
 const H_GAP   = 8    // gap between tiles sharing a spiral step (branch lanes)
 const PAD     = 20
 const MIN_W   = 100
@@ -39,15 +38,6 @@ const SPIRAL_R0     = 125
 const SPIRAL_DR     = 9
 const SPIRAL_DTHETA = 0.65
 const MOB_FOOTPRINT_R = 100
-
-const TILE_LABEL: Record<AtomicStage, string> = {
-  Research: 'Research',
-  Plan:     'Plan',
-  Produce:  'Produce',
-  Refine:   'Refine',
-  Publish:  'Publish',
-  Promote:  'Promote',
-}
 
 function fmtTime(secs: number): string {
   const m = Math.floor(secs / 60)
@@ -143,119 +133,28 @@ function render(
     const from = positions.get(e.from)
     const to   = positions.get(e.to)
     if (!from || !to) continue
-
     const fromTile = graph.tiles.find(t => t.id === e.from)
     const toTile   = graph.tiles.find(t => t.id === e.to)
-    const isActive = !!fromTile?.is_completed && !toTile?.is_completed
-
-    const x1 = from.x + TILE / 2,  y1 = from.y + TILE / 2
-    const x2 = to.x   + TILE / 2,  y2 = to.y   + TILE / 2
-    const dx = x2 - x1, dy = y2 - y1
-    const dist = Math.hypot(dx, dy) || 1
-    const nx = -dy / dist, ny = dx / dist   // unit perpendicular (left-hand)
-    const bow = Math.min(32, dist * 0.24)
-    const cx1 = (x1 + x2) / 2 - nx * bow   // negate → bows outward from mob center
-    const cy1 = (y1 + y2) / 2 - ny * bow
-
-    ctx.beginPath()
-    ctx.strokeStyle = isActive ? 'rgba(200,170,60,0.88)' : 'rgba(80,90,200,0.55)'
-    ctx.lineWidth   = isActive ? 2.5 : 1.5
-    ctx.setLineDash(isActive ? [] : [5, 7])
-    ctx.moveTo(x1, y1)
-    ctx.quadraticCurveTo(cx1, cy1, x2, y2)
-    ctx.stroke()
-    ctx.setLineDash([])
+    drawEdge(
+      ctx,
+      from.x + TILE / 2, from.y + TILE / 2,
+      to.x   + TILE / 2, to.y   + TILE / 2,
+      !!fromTile?.is_completed && !toTile?.is_completed,
+    )
   }
 
   // Tiles
   for (const tile of graph.tiles) {
     const p = positions.get(tile.id)
     if (!p) continue
-
-    const done       = tile.is_completed
-    const isSelected = tile.id === selectedTileId
-    const isReach    = reachable.has(tile.id)
-    const locked     = !done && !isReach
-
-    // Background
-    ctx.beginPath()
-    ctx.roundRect(p.x, p.y, TILE, TILE, TILE_RX)
-    ctx.fillStyle = done ? '#171624' : locked ? '#0f0e1c' : STAGE_COLOR[tile.type] ?? '#333355'
-    ctx.fill()
-
-    // Border
-    let bc = 'rgba(60,55,130,0.55)', bw = 1
-    if (isSelected) { bc = '#4a9eff';               bw = 2.5 }
-    else if (isReach) { bc = 'rgba(110,175,255,0.9)'; bw = 2   }
-    else if (done)    { bc = 'rgba(48,92,52,0.75)';   bw = 1.5 }
-
-    ctx.beginPath()
-    ctx.roundRect(p.x, p.y, TILE, TILE, TILE_RX)
-    ctx.strokeStyle = bc
-    ctx.lineWidth   = bw
-    ctx.stroke()
-
-    // Reachable / selected glow
-    if (isSelected) {
-      ctx.save()
-      ctx.shadowColor = 'rgba(74,158,255,0.6)'
-      ctx.shadowBlur  = 16
-      ctx.beginPath()
-      ctx.roundRect(p.x, p.y, TILE, TILE, TILE_RX)
-      ctx.strokeStyle = 'rgba(74,158,255,0.35)'
-      ctx.lineWidth   = 1
-      ctx.stroke()
-      ctx.restore()
-    } else if (isReach) {
-      ctx.save()
-      ctx.shadowColor = 'rgba(100,170,255,0.4)'
-      ctx.shadowBlur  = 12
-      ctx.beginPath()
-      ctx.roundRect(p.x, p.y, TILE, TILE, TILE_RX)
-      ctx.strokeStyle = 'rgba(100,170,255,0.25)'
-      ctx.lineWidth   = 1
-      ctx.stroke()
-      ctx.restore()
-    }
-
-    // Center content
-    ctx.textAlign    = 'center'
-    ctx.textBaseline = 'middle'
-    const cx = p.x + TILE / 2
-    const cy = p.y + TILE / 2
-
-    if (done) {
-      ctx.fillStyle = '#3d8845'
-      ctx.font      = 'bold 13px sans-serif'
-      ctx.fillText('✓', cx, cy)
-    } else if (locked) {
-      // Padlock — shackle arc + body rect
-      ctx.strokeStyle = 'rgba(105,98,170,0.88)'
-      ctx.lineWidth   = 1.5
-      ctx.beginPath()
-      ctx.arc(cx, cy - 4, 4, Math.PI, 0, false)
-      ctx.stroke()
-      ctx.beginPath()
-      ctx.roundRect(cx - 5, cy - 1, 10, 7, 2)
-      ctx.fillStyle   = 'rgba(62,58,128,0.82)'
-      ctx.fill()
-      ctx.strokeStyle = 'rgba(105,98,170,0.82)'
-      ctx.lineWidth   = 1
-      ctx.stroke()
-    } else {
-      ctx.fillStyle = '#c8c0d8'
-      ctx.font      = 'bold 11px sans-serif'
-      ctx.fillText((TILE_LABEL[tile.type] ?? '?')[0], cx, cy)
-    }
-
-    // Repeat badge
-    if (tile.repeat_count > 0) {
-      ctx.fillStyle    = '#666'
-      ctx.font         = '9px monospace'
-      ctx.textAlign    = 'right'
-      ctx.textBaseline = 'top'
-      ctx.fillText(`×${tile.repeat_count}`, p.x + TILE - 3, p.y + 3)
-    }
+    const done  = tile.is_completed
+    const reach = reachable.has(tile.id)
+    let state: TileState
+    if (tile.id === selectedTileId) state = 'selected'
+    else if (done)                   state = 'done'
+    else if (!reach)                 state = 'locked'
+    else                             state = 'reachable'
+    drawTile(ctx, p.x, p.y, tile.type, state, TILE, tile.repeat_count)
   }
 }
 
