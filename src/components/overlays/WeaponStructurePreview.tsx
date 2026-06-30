@@ -1,6 +1,6 @@
 import { useMemo, useState, useEffect, useRef } from 'react'
 import type { WeaponInstance, ContentProductType } from '../../types/game'
-import { describeWeaponPattern, DRAW_LABEL_KEY, VALUE_BUCKET, type PatternNode, type DrawNode } from '../../data/weaponStructure'
+import { describeWeaponPattern, describeRemasterStates, DRAW_LABEL_KEY, VALUE_BUCKET, type PatternNode, type DrawNode } from '../../data/weaponStructure'
 import { spiralLayout, type SpiralPos } from '../../engine/spiralLayout'
 import { drawEdge, drawTile } from '../../engine/workflowRenderer'
 import { WEAPON_CLASSES } from '../../data/generators/weaponClasses'
@@ -287,24 +287,41 @@ function drawDrawNode(
   cx: number, cy: number,
   size: number,
   node: DrawNode,
+  changed = false,
 ): void {
   const half = size / 2
   const rx   = Math.round(size * 0.33)
   const sc   = size / 18
 
   let bg = '#2a2a3a'
-  if (node.label === 'format')         bg = FORMAT_BG[node.value as ContentProductType] ?? '#2a2a3a'
+  if (node.label === 'format')              bg = FORMAT_BG[node.value as ContentProductType] ?? '#2a2a3a'
   else if (node.label === 'transformation') bg = '#122a22'
-  else if (node.label === 'style')     bg = '#1e1848'
-  else if (node.label === 'emotion')   bg = '#3a0e1e'
+  else if (node.label === 'style')          bg = '#1e1848'
+  else if (node.label === 'emotion')        bg = '#3a0e1e'
 
   ctx.beginPath()
   ctx.roundRect(cx - half, cy - half, size, size, rx)
   ctx.fillStyle = bg
   ctx.fill()
-  ctx.strokeStyle = 'rgba(180,170,220,0.3)'
-  ctx.lineWidth   = 1
-  ctx.stroke()
+
+  if (changed) {
+    // golden glow behind the border
+    ctx.save()
+    ctx.shadowColor = 'rgba(220,170,40,0.7)'
+    ctx.shadowBlur  = 6
+    ctx.beginPath()
+    ctx.roundRect(cx - half, cy - half, size, size, rx)
+    ctx.strokeStyle = 'rgba(220,170,40,0.9)'
+    ctx.lineWidth   = 1.5
+    ctx.stroke()
+    ctx.restore()
+  } else {
+    ctx.strokeStyle = 'rgba(180,170,220,0.3)'
+    ctx.lineWidth   = 1
+    ctx.beginPath()
+    ctx.roundRect(cx - half, cy - half, size, size, rx)
+    ctx.stroke()
+  }
 
   ctx.save()
   ctx.lineWidth = 1 * sc
@@ -388,6 +405,16 @@ export default function WeaponStructurePreview({ weapon }: Props) {
     : 0
   const page = Math.min(rawPage, maxPage)
 
+  // Set of "label_occurrenceIndex" strings for draw slots that differ from
+  // the previous remaster state — used to render the golden changed-outline.
+  const changedSlots = useMemo<Set<string>>(() => {
+    if (page === 0) return new Set()
+    const states = describeRemasterStates(weapon)
+    const row = states[page]
+    if (!row) return new Set()
+    return new Set(row.filter(s => s.changed).map(s => `${s.kind}_${s.occurrenceIndex}`))
+  }, [weapon, page])
+
   const nodes = useMemo(() => describeWeaponPattern(weapon, page), [weapon, page])
   const { layers, edges } = useMemo(() => buildSpiralGraph(nodes), [nodes])
 
@@ -447,10 +474,11 @@ export default function WeaponStructurePreview({ weapon }: Props) {
       if (item.node.kind === 'phase') {
         drawTile(ctx, cx - NODE_SIZE / 2, cy - NODE_SIZE / 2, item.node.stage, 'normal', NODE_SIZE)
       } else if (item.node.kind === 'draw') {
-        drawDrawNode(ctx, cx, cy, NODE_SIZE, item.node)
+        const slotKey = `${item.node.label}_${item.node.occurrenceIndex}`
+        drawDrawNode(ctx, cx, cy, NODE_SIZE, item.node, changedSlots.has(slotKey))
       }
     }
-  }, [bounds, centers, edges, flatItems])
+  }, [bounds, centers, edges, flatItems, changedSlots])
 
   const [hover, setHover] = useState<{ node: PatternNode; x: number; y: number } | null>(null)
 

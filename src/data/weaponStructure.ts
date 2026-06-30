@@ -25,6 +25,10 @@ export interface DrawNode {
   // as null — there's nothing to show for a dimension this instance
   // simply doesn't have.
   value: ContentProductType | AtomicOrigin | StyleType | EmotionType
+  // sequential index among all occurrences of the same label kind within
+  // this weapon's pattern — matches the index used by RolledPatternDraws
+  // and describeRemasterStates, so callers can correlate per-slot change flags.
+  occurrenceIndex: number
 }
 
 export interface BranchNode {
@@ -87,22 +91,22 @@ function describeStep(
     case 'drawFormat': {
       const occ = counters.format++
       const value = weapon.rolled_draws?.format[occ]?.[stateIndex] ?? null
-      return value === null ? null : { kind: 'draw', label: 'format', value }
+      return value === null ? null : { kind: 'draw', label: 'format', value, occurrenceIndex: occ }
     }
     case 'drawTransformation': {
       const occ = counters.transformation++
       const value = weapon.rolled_draws?.transformation[occ]?.[stateIndex] ?? null
-      return value === null ? null : { kind: 'draw', label: 'transformation', value }
+      return value === null ? null : { kind: 'draw', label: 'transformation', value, occurrenceIndex: occ }
     }
     case 'drawStyle': {
       const occ = counters.style++
       const value = weapon.rolled_draws?.style[occ]?.[stateIndex] ?? null
-      return value === null ? null : { kind: 'draw', label: 'style', value }
+      return value === null ? null : { kind: 'draw', label: 'style', value, occurrenceIndex: occ }
     }
     case 'drawEmotion': {
       const occ = counters.emotion++
       const value = weapon.rolled_draws?.emotion[occ]?.[stateIndex] ?? null
-      return value === null ? null : { kind: 'draw', label: 'emotion', value }
+      return value === null ? null : { kind: 'draw', label: 'emotion', value, occurrenceIndex: occ }
     }
     case 'branch':
       return {
@@ -121,13 +125,14 @@ function describeStep(
         const kind = drawKindOf(opt.step)!
         const occ = counters[kind]++
         const value = weapon.rolled_draws?.[kind][occ]?.[stateIndex] ?? null
-        if (value !== null) result = { kind: 'draw', label: kind, value }
+        if (value !== null) result = { kind: 'draw', label: kind, value, occurrenceIndex: occ }
       }
       return result
     }
-    case 'fixedDraw':
-      counters[step.slotKind]++
-      return { kind: 'draw', label: step.slotKind, value: step.value }
+    case 'fixedDraw': {
+      const occ = counters[step.slotKind]++
+      return { kind: 'draw', label: step.slotKind, value: step.value, occurrenceIndex: occ }
+    }
   }
 }
 
