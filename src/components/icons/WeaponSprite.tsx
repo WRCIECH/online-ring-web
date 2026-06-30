@@ -1,3 +1,4 @@
+import { memo } from 'react'
 import type { WeaponClass, WeaponRarity } from '../../types/game'
 
 type PoiseWeight = 'light' | 'medium' | 'heavy' | 'colossal'
@@ -232,7 +233,7 @@ export function Blade({ weaponClass, blade, secondary }: { weaponClass: WeaponCl
   }
 }
 
-export default function WeaponSprite({ weaponClass, rarity, poiseWeight, size = 52 }: Props) {
+const WeaponSprite = memo(function WeaponSprite({ weaponClass, rarity, poiseWeight, size = 52 }: Props) {
   const blade     = BLADE[rarity]
   const secondary = SECONDARY[rarity]
   const glow      = GLOW[rarity]
@@ -255,4 +256,6 @@ export default function WeaponSprite({ weaponClass, rarity, poiseWeight, size = 
       </g>
     </svg>
   )
-}
+})
+
+export default WeaponSprite

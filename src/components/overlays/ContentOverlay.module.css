@@ -19,8 +19,6 @@
   max-width: 96vw;
   max-height: 88vh;
   overflow-y: auto;
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
   display: flex;
   flex-direction: column;
   gap: 12px;
