@@ -178,6 +178,18 @@
   flex-shrink: 0;
 }
 
+.nodeProgress {
+  font-size: 0.65rem;
+  color: var(--color-text-dim);
+  white-space: nowrap;
+  flex-shrink: 0;
+  margin-left: 2px;
+}
+
+.nodeProgressDone {
+  color: #55aa66;
+}
+
 .remasterChip {
   font-size: 0.65rem;
   padding: 2px 6px;

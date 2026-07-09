@@ -483,9 +483,18 @@ export const useGameStore = create<GameStore>((set, get) => ({
       if (!s.active_campaign) return s
       const node = s.active_campaign.nodes.find(n => n.id === nodeId)
       if (!node) return s
-      const updated: CampaignNode = node.is_remastering
-        ? { ...node, completed: true, is_remastering: false, remaster_count: (node.remaster_count ?? 0) + 1, last_workflow: workflow }
-        : { ...node, completed: true, last_workflow: workflow }
+      const newCount   = (node.subworkflow_count ?? 0) + 1
+      const required   = node.required_subworkflows ?? 2
+      const nowDone    = newCount >= required
+      const wasRemaste = node.is_remastering ?? false
+      const updated: CampaignNode = {
+        ...node,
+        subworkflow_count: newCount,
+        completed: nowDone,
+        last_workflow: workflow,
+        remaster_count: wasRemaste ? (node.remaster_count ?? 0) + 1 : (node.remaster_count ?? 0),
+        is_remastering: !nowDone,
+      }
       const nodes = s.active_campaign.nodes.map(n => n.id === nodeId ? updated : n)
       const allDone = nodes.every(n => n.completed)
       return {
@@ -593,6 +602,14 @@ export const useGameStore = create<GameStore>((set, get) => ({
     if (!data.past_campaigns)     data.past_campaigns     = []
     // Remove legacy field from old saves
     delete (data as unknown as Record<string, unknown>).content_items
+    // Backfill subworkflow fields on existing nodes
+    if (data.active_campaign) {
+      data.active_campaign.nodes = data.active_campaign.nodes.map((n: CampaignNode) => ({
+        required_subworkflows: 2,
+        subworkflow_count: n.completed ? 2 : 0,
+        ...n,
+      }))
+    }
     if (!data.total_task_time_s) data.total_task_time_s = 0
     if (data.abandon_penalty === undefined) data.abandon_penalty = 0
     if (data.active_workflow  === undefined) data.active_workflow  = null

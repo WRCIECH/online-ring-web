@@ -183,6 +183,8 @@ export interface CampaignNode {
   name: string                  // player-editable content piece title
   parent_id: string | null      // null = root; root is always available
   completed: boolean
+  required_subworkflows: number // 2–5, set at generation; node is done when subworkflow_count reaches this
+  subworkflow_count: number     // how many workflow cycles have been completed so far
   attached_weapon_id?: string
   last_workflow?: WorkflowGraph // snapshot for remaster regeneration
   remaster_count?: number

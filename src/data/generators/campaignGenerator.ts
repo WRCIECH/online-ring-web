@@ -35,7 +35,7 @@ function weightedSample<T>(items: T[], weights: number[]): T {
 export function isNodeAvailable(nodes: CampaignNode[], node: CampaignNode): boolean {
   if (node.parent_id === null) return true
   const parent = nodes.find(n => n.id === node.parent_id)
-  return parent?.completed ?? false
+  return (parent?.subworkflow_count ?? 0) >= 1
 }
 
 export function generateCampaign(classId: string, name = ''): Campaign {
@@ -47,7 +47,18 @@ export function generateCampaign(classId: string, name = ''): Campaign {
   const nodeCount = Math.min(20, baseCount + Math.floor(velocityBonus / 3))
   const maxBranch = depthBonus > 5 ? 2 : 3
 
-  const root: CampaignNode = { id: genId(), name: '', parent_id: null, completed: false }
+  function makeNode(parentId: string | null): CampaignNode {
+    return {
+      id: genId(),
+      name: '',
+      parent_id: parentId,
+      completed: false,
+      required_subworkflows: Math.floor(Math.random() * 4) + 2,
+      subworkflow_count: 0,
+    }
+  }
+
+  const root = makeNode(null)
   const nodes: CampaignNode[] = [root]
 
   while (nodes.length < nodeCount) {
@@ -58,7 +69,7 @@ export function generateCampaign(classId: string, name = ''): Campaign {
     // Bias toward shallower nodes so the tree fans out naturally
     const weights = depths.map(d => maxD - d + 1)
     const parent  = weightedSample(eligible, weights)
-    nodes.push({ id: genId(), name: '', parent_id: parent.id, completed: false })
+    nodes.push(makeNode(parent.id))
   }
 
   return {
