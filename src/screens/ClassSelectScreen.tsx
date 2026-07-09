@@ -210,9 +210,14 @@ export default function ClassSelectScreen() {
               {t.weapons[activeCls.weaponClass]?.name ?? activeCls.weaponClass}
             </div>
           </div>
-
-          <div className={s.spSection}>{t.ui.starting_armor}</div>
-          <div className={s.spWeapon}>
+          <div
+            className={s.spWeapon}
+            onMouseEnter={e => showTip(e, <>
+              <div className={s.tipTitle}>{t.ui.starting_armor}</div>
+              <div className={s.tipBody}>{t.classes[activeCls.id]?.description ?? activeCls.description}</div>
+            </>)}
+            onMouseLeave={hideTip}
+          >
             <div className={s.spWeaponIcon}>
               <ArmorSprite classId={activeCls.id} size={32} />
             </div>

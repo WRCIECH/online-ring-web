@@ -116,9 +116,9 @@ export default function CampaignOverlay({ onClose }: Props) {
             />
           ) : (
             <span
-              className={[s.nodeName, !locked && !node.completed ? s.nodeNameEditable : ''].join(' ')}
-              onClick={() => !locked && !node.completed && handleNodeNameStart(node)}
-              title={!locked && !node.completed ? t.ui.click_to_rename : undefined}
+              className={[s.nodeName, !node.completed ? s.nodeNameEditable : ''].join(' ')}
+              onClick={() => !node.completed && handleNodeNameStart(node)}
+              title={!node.completed ? t.ui.click_to_rename : undefined}
             >
               {node.name || <em className={s.nodeUnnamed}>{t.ui.untitled}</em>}
             </span>
