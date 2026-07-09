@@ -9,6 +9,7 @@ interface Props {
   equippedWeaponIds: string[]
   activeWeaponId?:   string
   weaponLevels:      Record<string, number>
+  weaponNodes?:      Record<string, string[]>
   playerEstus:       number
   canAct:            boolean
   onSwitchWeapon?:   (weaponId: string, weaponLevel: number) => void
@@ -17,7 +18,7 @@ interface Props {
 }
 
 export default function CombatBottomBar({
-  equippedWeaponIds, activeWeaponId, weaponLevels, playerEstus, canAct, onSwitchWeapon, onEstus, onAbandon,
+  equippedWeaponIds, activeWeaponId, weaponLevels, weaponNodes, playerEstus, canAct, onSwitchWeapon, onEstus, onAbandon,
 }: Props) {
   const t = useT()
   const [tipFor, setTipFor] = useState<string | null>(null)
@@ -58,6 +59,13 @@ export default function CombatBottomBar({
                   {t.weapons[weapon.weapon_class]?.name ?? weapon.weapon_class.replace(/_/g, ' ')}
                   {weapon.rarity ? ` · ${weapon.rarity}` : ''} · Lv {level}
                 </div>
+                {weaponNodes?.[wid]?.length ? (
+                  <div className={s.tipNodes}>
+                    {weaponNodes[wid].map((name, i) => (
+                      <span key={i} className={s.tipNode}>{name}</span>
+                    ))}
+                  </div>
+                ) : null}
                 {!isActive && canAct && onSwitchWeapon && <div className={s.tipHint}>Click to switch weapon</div>}
               </div>
             )}

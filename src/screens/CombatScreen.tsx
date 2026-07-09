@@ -362,7 +362,13 @@ export default function CombatScreen() {
       {selectedContent && (
         <div className={s.contentBar}>
           <span className={s.contentBarLabel}>Working on:</span>
-          <span className={s.contentBarTitle}>{selectedContent.name}</span>
+          <span className={s.contentBarTitle}>
+            {selectedContent.name}
+            {' '}
+            <span className={s.contentBarProgress}>
+              ({selectedContent.subworkflow_count ?? 0}/{selectedContent.required_subworkflows ?? 2})
+            </span>
+          </span>
         </div>
       )}
 
@@ -401,6 +407,14 @@ export default function CombatScreen() {
         equippedWeaponIds={weaponsWithContent.map(w => w.instance_id)}
         activeWeaponId={state.equippedWeaponId}
         weaponLevels={store.weapon_level}
+        weaponNodes={Object.fromEntries(
+          weaponsWithContent.map(w => [
+            w.instance_id,
+            campaignNodes
+              .filter(c => c.attached_weapon_id === w.instance_id && !c.completed)
+              .map(c => c.name || 'Untitled'),
+          ])
+        )}
         playerEstus={state.playerEstus}
         canAct={isPlayerTurn}
         onSwitchWeapon={handleSwitchWeapon}

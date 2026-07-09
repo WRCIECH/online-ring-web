@@ -42,6 +42,12 @@
   color: var(--color-accent-dim);
 }
 
+.contentBarProgress {
+  font-size: 0.75rem;
+  color: var(--color-text-dim);
+  font-variant-numeric: tabular-nums;
+}
+
 .canvasWrap {
   flex: 1;
   padding: 16px 20px;
