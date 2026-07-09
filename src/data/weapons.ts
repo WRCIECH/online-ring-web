@@ -10,11 +10,11 @@ export const WEAPONS: Record<string, WeaponInstance> = {}
 
 // Damage bonus per weapon level, by rarity
 export const LEVEL_MULT: Record<WeaponRarity, number> = {
-  common:    0.03,
-  Intellectual:     0.04,
-  rare:      0.05,
-  epic:      0.06,
-  legendary: 0.08,
+  common:       0.08,
+  Intellectual: 0.09,
+  rare:         0.10,
+  epic:         0.12,
+  legendary:    0.15,
 }
 
 export const GRADE_MULT: Record<Grade, number> = {
