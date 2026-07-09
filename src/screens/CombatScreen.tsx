@@ -10,6 +10,7 @@ import { rollWeapon } from '../data/generators/weaponGenerator'
 import { generateWorkflow } from '../data/generators/workflowGenerator'
 import { regenerateWorkflowKeepingStructure } from '../data/generators/remasterGenerator'
 import { WEAPON_CLASSES } from '../data/generators/weaponClasses'
+import { isNodeAvailable } from '../data/generators/campaignGenerator'
 import RunHeader    from '../components/layout/RunHeader'
 import TimerOverlay from '../components/combat/TimerOverlay'
 import CombatLog    from '../components/combat/CombatLog'
@@ -52,7 +53,7 @@ export default function CombatScreen() {
   // ── Weapons available in combat: all that have a campaign node attached ──
   const campaignNodes = store.active_campaign?.nodes ?? []
   const weaponsWithContent = store.weapon_instances.filter(w =>
-    campaignNodes.some(c => !c.completed && c.attached_weapon_id === w.instance_id)
+    campaignNodes.some(c => !c.completed && c.attached_weapon_id === w.instance_id && isNodeAvailable(campaignNodes, c))
   )
 
   // ── Initial weapon (seeds the very first/resumed workflow only) ──────────
