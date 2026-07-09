@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useRef, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useGameStore } from '../store/gameStore'
 import { LOCATION_DEFINITIONS, getUnlockedLocationIds, SIZE_LABEL, SIZE_COLOUR } from '../data/locations'
@@ -22,10 +22,11 @@ export default function LocationSelectScreen() {
   const t          = useT()
   const [hoveredId,  setHoveredId]  = useState<string | null>(null)
   const [selectedId, setSelectedId] = useState<string | null>(null)
-  const [mousePos,   setMousePos]   = useState({ x: 0, y: 0 })
+  const mousePosRef = useRef({ x: 0, y: 0 })
+  const tooltipRef  = useRef<HTMLDivElement>(null)
 
-  const completedSet = new Set(store.completed_locations)
-  const unlockedSet  = getUnlockedLocationIds(store.completed_locations)
+  const completedSet = useMemo(() => new Set(store.completed_locations), [store.completed_locations])
+  const unlockedSet  = useMemo(() => getUnlockedLocationIds(store.completed_locations), [store.completed_locations])
 
   function handleSelect(id: string) {
     setSelectedId(prev => prev === id ? null : id)
@@ -49,7 +50,13 @@ export default function LocationSelectScreen() {
   return (
     <div className={s.root}>
       {/* ── Full-screen map ── */}
-      <div className={s.mapWrap} onMouseMove={e => setMousePos({ x: e.clientX, y: e.clientY })}>
+      <div className={s.mapWrap} onMouseMove={e => {
+          mousePosRef.current = { x: e.clientX, y: e.clientY }
+          if (tooltipRef.current) {
+            tooltipRef.current.style.left = `${e.clientX + 14}px`
+            tooltipRef.current.style.top  = `${e.clientY - 10}px`
+          }
+        }}>
         <LocationMap
           completedSet={completedSet}
           unlockedSet={unlockedSet}
@@ -132,7 +139,11 @@ export default function LocationSelectScreen() {
         </div>
       )}
       {hoveredId && activeLoc && (
-        <div className={s.nameTooltip} style={{ left: mousePos.x + 14, top: mousePos.y - 10 }}>
+        <div
+          ref={tooltipRef}
+          className={s.nameTooltip}
+          style={{ left: mousePosRef.current.x + 14, top: mousePosRef.current.y - 10 }}
+        >
           {activeLoc.displayName}
         </div>
       )}

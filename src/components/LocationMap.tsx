@@ -1,4 +1,4 @@
-import { useMemo } from 'react'
+import { useMemo, memo } from 'react'
 import { Delaunay } from 'd3-delaunay'
 import { LOCATION_DEFINITIONS, SIZE_COLOUR } from '../data/locations'
 import type { LocationSize } from '../data/locations'
@@ -50,14 +50,21 @@ function cellStroke(state: RegionState, size: LocationSize, hov: boolean, sel: b
 
 const JITTER = 42
 
-export default function LocationMap({ completedSet, unlockedSet, hoveredId, selectedId, onHover, onSelect }: Props) {
+function stableJitter(id: string, axis: 0 | 1): number {
+  let h = 0
+  for (let i = 0; i < id.length; i++) h = Math.imul(31, h) + id.charCodeAt(i) | 0
+  h ^= axis * 0x5f3759df
+  return ((h >>> 0) / 0xffffffff - 0.5) * JITTER
+}
+
+const LocationMap = memo(function LocationMapInner({ completedSet, unlockedSet, hoveredId, selectedId, onHover, onSelect }: Props) {
   const cells = useMemo(() => {
     const locs = LOCATION_DEFINITIONS
     const pts: [number, number][] = locs.map(l => {
       const base = LOCATION_SEEDS[l.id]
       return [
-        base.x + (Math.random() - 0.5) * JITTER,
-        base.y + (Math.random() - 0.5) * JITTER,
+        base.x + stableJitter(l.id, 0),
+        base.y + stableJitter(l.id, 1),
       ]
     })
     const delaunay = Delaunay.from(pts)
@@ -130,4 +137,6 @@ export default function LocationMap({ completedSet, unlockedSet, hoveredId, sele
       </g>
     </svg>
   )
-}
+})
+
+export default LocationMap
