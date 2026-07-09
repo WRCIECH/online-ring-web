@@ -605,9 +605,9 @@ export const useGameStore = create<GameStore>((set, get) => ({
     // Backfill subworkflow fields on existing nodes
     if (data.active_campaign) {
       data.active_campaign.nodes = data.active_campaign.nodes.map((n: CampaignNode) => ({
-        required_subworkflows: 2,
-        subworkflow_count: n.completed ? 2 : 0,
         ...n,
+        required_subworkflows: n.required_subworkflows ?? 2,
+        subworkflow_count: n.subworkflow_count ?? (n.completed ? 2 : 0),
       }))
     }
     if (!data.total_task_time_s) data.total_task_time_s = 0
