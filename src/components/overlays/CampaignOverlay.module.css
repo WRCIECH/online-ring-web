@@ -1,0 +1,295 @@
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.72);
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.panel {
+  background: rgba(15, 13, 34, 0.95);
+  border: 1px solid rgba(100, 80, 200, 0.25);
+  border-radius: var(--radius-lg);
+  padding: 24px 30px;
+  width: 580px;
+  max-width: 96vw;
+  max-height: 88vh;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+/* ── Header ────────────────────────────────────────────────────────────── */
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.title {
+  font-size: 0.75rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--color-text-dim);
+}
+
+.btnClose {
+  font-size: 0.8rem;
+  padding: 4px 14px;
+  border-radius: var(--radius);
+}
+
+/* ── Campaign identity row ──────────────────────────────────────────────── */
+
+.campaignHeader {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.campaignInfo {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.campaignName {
+  font-size: 1.05rem;
+  font-weight: 500;
+  color: var(--color-text);
+  cursor: pointer;
+  border-radius: 3px;
+  padding: 2px 4px;
+  transition: background 0.1s;
+}
+
+.campaignName:hover { background: rgba(255,255,255,0.05); }
+
+.campaignProgress {
+  font-size: 0.75rem;
+  color: var(--color-text-dim);
+  letter-spacing: 0.06em;
+}
+
+.campaignInput {
+  font-size: 1.0rem;
+  padding: 4px 8px;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid var(--color-border);
+  border-radius: 3px;
+  color: var(--color-text);
+  width: 100%;
+}
+
+/* ── Sep ───────────────────────────────────────────────────────────────── */
+
+.sep {
+  border: none;
+  border-top: 1px solid var(--color-sep);
+  margin: 0;
+}
+
+/* ── Node tree ─────────────────────────────────────────────────────────── */
+
+.nodeTree {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.nodeRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px 6px 16px;
+  border-radius: var(--radius);
+  min-height: 32px;
+  transition: background 0.1s;
+}
+
+.nodeRow:hover { background: rgba(255,255,255,0.03); }
+
+.nodeCompleted {
+  opacity: 0.55;
+}
+
+.nodeLocked {
+  opacity: 0.4;
+}
+
+.nodeIcon {
+  font-size: 0.75rem;
+  flex-shrink: 0;
+  width: 16px;
+  text-align: center;
+  color: var(--color-text-dim);
+}
+
+.nodeCompleted .nodeIcon { color: #55cc77; }
+
+.nodeName {
+  flex: 1;
+  font-size: 0.88rem;
+  color: var(--color-text);
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  padding: 1px 3px;
+  border-radius: 3px;
+}
+
+.nodeNameEditable {
+  cursor: pointer;
+  transition: background 0.1s;
+}
+
+.nodeNameEditable:hover { background: rgba(255,255,255,0.06); }
+
+.nodeUnnamed {
+  color: var(--color-text-dim);
+  font-style: italic;
+}
+
+.nodeInput {
+  flex: 1;
+  font-size: 0.88rem;
+  padding: 3px 7px;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid var(--color-border);
+  border-radius: 3px;
+  color: var(--color-text);
+  min-width: 0;
+}
+
+.weaponChip {
+  font-size: 0.68rem;
+  padding: 2px 7px;
+  border-radius: 3px;
+  background: rgba(74,158,255,0.1);
+  border: 1px solid rgba(74,158,255,0.25);
+  color: #88aaee;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.remasterChip {
+  font-size: 0.65rem;
+  padding: 2px 6px;
+  border-radius: 3px;
+  background: rgba(200,150,50,0.1);
+  border: 1px solid rgba(200,150,50,0.25);
+  color: #ccaa44;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+/* ── Start new campaign ─────────────────────────────────────────────────── */
+
+.btnStartNewCampaign {
+  align-self: flex-start;
+  font-size: 0.82rem;
+  letter-spacing: 0.06em;
+  padding: 8px 18px;
+  border-radius: var(--radius);
+  background: rgba(80,200,100,0.07);
+  border: 1px dashed rgba(80,200,100,0.3);
+  color: #66cc88;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.btnStartNewCampaign:hover { background: rgba(80,200,100,0.14); }
+
+.newCampaignRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.btnStartNew {
+  font-size: 0.8rem;
+  padding: 6px 14px;
+  border-radius: var(--radius);
+  background: rgba(80,200,100,0.1);
+  border: 1px solid rgba(80,200,100,0.3);
+  color: #66cc88;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.btnCancelDel {
+  font-size: 0.7rem;
+  padding: 3px 7px;
+  border-radius: 3px;
+  background: transparent;
+  border: 1px solid var(--color-sep);
+  color: var(--color-text-dim);
+  cursor: pointer;
+}
+
+/* ── Past campaigns ─────────────────────────────────────────────────────── */
+
+.pastToggle {
+  font-size: 0.78rem;
+  letter-spacing: 0.06em;
+  color: var(--color-text-dim);
+  background: transparent;
+  border: none;
+  padding: 2px 0;
+  cursor: pointer;
+  text-align: left;
+  transition: color 0.1s;
+}
+
+.pastToggle:hover { color: var(--color-text); }
+
+.pastList {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 4px;
+}
+
+.pastItem {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 10px;
+  border-radius: var(--radius);
+  background: rgba(255,255,255,0.02);
+  border: 1px solid var(--color-border);
+  opacity: 0.7;
+}
+
+.pastArmor { flex-shrink: 0; }
+
+.pastName {
+  flex: 1;
+  font-size: 0.85rem;
+  color: var(--color-text);
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.pastProgress {
+  font-size: 0.75rem;
+  color: var(--color-text-dim);
+  flex-shrink: 0;
+}
+
+/* ── Empty state ────────────────────────────────────────────────────────── */
+
+.empty {
+  font-size: 0.82rem;
+  color: var(--color-text-dim);
+  text-align: center;
+  padding: 16px 0;
+}

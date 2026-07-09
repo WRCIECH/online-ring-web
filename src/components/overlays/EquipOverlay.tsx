@@ -31,7 +31,7 @@ export default function EquipOverlay({ onClose }: Props) {
 
   function handleAssign(weaponInstanceId: string, contentId: string) {
     if (!contentId) return
-    store.attachContentToWeapon(contentId, weaponInstanceId)
+    store.attachNodeToWeapon(contentId, weaponInstanceId)
   }
 
   function handleUpgrade(wid: string) {
@@ -59,8 +59,9 @@ export default function EquipOverlay({ onClose }: Props) {
     const classDef = WEAPON_CLASSES[weapon.weapon_class]
     const level    = store.weapon_level[wid] ?? 0
     const slotLoad = selectWeaponSlotLoad(store as Parameters<typeof selectWeaponSlotLoad>[0], wid)
-    const attached = store.content_items.filter(c => !c.completed && c.attached_weapon_id === wid)
-    const assignable = store.content_items.filter(c => !c.completed && !c.attached_weapon_id)
+    const campaignNodes = store.active_campaign?.nodes ?? []
+    const attached = campaignNodes.filter(c => !c.completed && c.attached_weapon_id === wid)
+    const assignable = campaignNodes.filter(c => !c.completed && !c.attached_weapon_id)
     const isExpanded  = !!expandedContent[wid]
 
     return (
@@ -128,7 +129,7 @@ export default function EquipOverlay({ onClose }: Props) {
                 return (
                   <div key={i} className={s.slotRow}>
                     <span className={s.slotItemName}>{item.name || t.ui.untitled}</span>
-                    <button className={s.btnDetach} onClick={() => store.detachContentFromWeapon(item.id)}>
+                    <button className={s.btnDetach} onClick={() => store.detachNodeFromWeapon(item.id)}>
                       {t.ui.btn_detach}
                     </button>
                   </div>

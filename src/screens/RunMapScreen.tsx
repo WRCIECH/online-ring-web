@@ -4,10 +4,9 @@ import { useGameStore, selectRunRemainingSeconds } from '../store/gameStore'
 import { ENEMIES } from '../data/enemies'
 import type { LocationData } from '../types/game'
 import RunHeader        from '../components/layout/RunHeader'
-import ContentOverlay   from '../components/overlays/ContentOverlay'
+import CampaignOverlay from '../components/overlays/CampaignOverlay'
 import CombatBottomBar  from '../components/combat/CombatBottomBar'
 import { useT } from '../i18n'
-import { MIN_PIPELINE_TO_FIGHT } from '../data/constants'
 import s from './RunMapScreen.module.css'
 
 // ── Map geometry ──────────────────────────────────────────────────────────
@@ -70,15 +69,17 @@ export default function RunMapScreen() {
   const [popupPos, setPopupPos]     = useState({ x: 0, y: 0 })
   const [eventNode, setEventNode]   = useState<LocationData | null>(null)
   const [showContent,   setShowContent]   = useState(false)
-  const activeItemCount = store.content_items.filter(c => !c.completed).length
-  const canEnterFight   = activeItemCount >= MIN_PIPELINE_TO_FIGHT
+  const campaignNodes = store.active_campaign?.nodes ?? []
+  const unnamedCount  = campaignNodes.filter(n => !n.name.trim()).length
+  const isFirstFight  = store.run_current_index === 0
+  const canEnterFight = !isFirstFight || unnamedCount === 0
   const expiredRef = useRef(false)
 
   const seq     = store.run_location_sequence
   const current = store.run_current_index
 
   const mapWeapons = store.weapon_instances.filter(w =>
-    store.content_items.some(c => !c.completed && c.attached_weapon_id === w.instance_id)
+    campaignNodes.some(c => !c.completed && c.attached_weapon_id === w.instance_id)
   )
   const mapWeaponIds = mapWeapons.map(w => w.instance_id)
   const [activeMapWeaponId, setActiveMapWeaponId] = useState(() => mapWeapons[0]?.instance_id ?? '')
@@ -430,8 +431,8 @@ export default function RunMapScreen() {
             <div className={s.popupDesc}>{t.enemies[popupLoc.enemy_id]?.description ?? popupEnemy.description}</div>
             {!canEnterFight && (
               <div className={s.pipelineGate}>
-                {t.ui.pipeline_gate_need} {MIN_PIPELINE_TO_FIGHT} {t.ui.pipeline_gate_to_fight}
-                <span className={s.pipelineCount}>({activeItemCount} / {MIN_PIPELINE_TO_FIGHT})</span>
+                {t.ui.campaign_gate_warning}
+                <span className={s.pipelineCount}>({unnamedCount} unnamed)</span>
               </div>
             )}
             <div className={s.popupFooter}>
@@ -441,7 +442,7 @@ export default function RunMapScreen() {
                 </button>
               ) : (
                 <button className={s.btnEnter} onClick={() => setShowContent(true)}>
-                  {t.ui.open_pipeline}
+                  {t.ui.btn_campaigns}
                 </button>
               )}
               <button onClick={() => setPopupIdx(-1)}>{t.ui.btn_close}</button>
@@ -458,8 +459,8 @@ export default function RunMapScreen() {
             <div className={s.eventDesc}>{t.ui.trial_desc}</div>
             {!canEnterFight && (
               <div className={s.pipelineGate}>
-                {t.ui.pipeline_gate_need} {MIN_PIPELINE_TO_FIGHT} {t.ui.pipeline_gate_to_fight}
-                <span className={s.pipelineCount}>({activeItemCount} / {MIN_PIPELINE_TO_FIGHT})</span>
+                {t.ui.campaign_gate_warning}
+                <span className={s.pipelineCount}>({unnamedCount} unnamed)</span>
               </div>
             )}
             <div className={s.eventActions}>
@@ -469,7 +470,7 @@ export default function RunMapScreen() {
                 </button>
               ) : (
                 <button className={s.btnTrial} onClick={() => setShowContent(true)}>
-                  {t.ui.open_pipeline}
+                  {t.ui.btn_campaigns}
                 </button>
               )}
               <button onClick={() => setEventNode(null)}>{t.ui.btn_refuse}</button>
@@ -478,7 +479,7 @@ export default function RunMapScreen() {
         </div>
       )}
 
-      {showContent && <ContentOverlay onClose={() => setShowContent(false)} canAdd={true} />}
+      {showContent && <CampaignOverlay onClose={() => setShowContent(false)} />}
 
       <div style={{ marginTop: 'auto' }}>
         <CombatBottomBar

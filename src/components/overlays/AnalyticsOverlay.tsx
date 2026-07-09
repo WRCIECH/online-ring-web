@@ -35,7 +35,7 @@ export default function AnalyticsOverlay({ onClose }: Props) {
           <div className={s.sectionHeader}>{t.ui.analytics_content_hdr}</div>
           <div className={s.row}>
             <span className={s.label}>{t.ui.analytics_in_progress}</span>
-            <span className={s.value}>{store.content_items.filter(c => !c.completed).length}</span>
+            <span className={s.value}>{(store.active_campaign?.nodes ?? []).filter(c => !c.completed).length}</span>
           </div>
         </section>
 

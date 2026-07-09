@@ -177,19 +177,26 @@ export interface Stats {
   VELOCITY: number; DEPTH: number; PARASOCIAL: number; FRICTION: number; INSIGHT: number
 }
 
-// ── Content pipeline ──────────────────────────────────────────────────────
-export interface ContentItem {
+// ── Content campaign ──────────────────────────────────────────────────────
+export interface CampaignNode {
   id: string
-  name: string
-  notes?: string
-  completed?: boolean
+  name: string                  // player-editable content piece title
+  parent_id: string | null      // null = root; root is always available
+  completed: boolean
+  attached_weapon_id?: string
+  last_workflow?: WorkflowGraph // snapshot for remaster regeneration
   remaster_count?: number
   is_remastering?: boolean
-  attached_weapon_id?: string
-  // Snapshot of the workflow structure last completed for this item — reused
-  // by a remaster pass to keep the same tile shape and only redraw content
-  // type / transformation / style / emotion.
-  last_workflow?: WorkflowGraph
+}
+
+export interface Campaign {
+  id: string
+  name: string                  // player-editable campaign title
+  class_id: string
+  nodes: CampaignNode[]
+  created_at: number
+  completed: boolean
+  completed_at?: number
 }
 
 // ── Game state ────────────────────────────────────────────────────────────
@@ -226,8 +233,9 @@ export interface GameState {
   // Active workflow (persisted across mob fights until all tiles done or abandoned)
   active_workflow: WorkflowGraph | null
   active_content_id: string | null
-  // Content pipeline
-  content_items: ContentItem[]
+  // Content campaign
+  active_campaign: Campaign | null
+  past_campaigns: Campaign[]
   // Analytics
   total_task_time_s: number
   // UI locale

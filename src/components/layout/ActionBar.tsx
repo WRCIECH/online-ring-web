@@ -1,18 +1,17 @@
 import { useState } from 'react'
 import { createPortal } from 'react-dom'
 import CharacterOverlay from '../overlays/CharacterOverlay'
-import ContentOverlay   from '../overlays/ContentOverlay'
+import CampaignOverlay from '../overlays/CampaignOverlay'
 import EquipOverlay     from '../overlays/EquipOverlay'
 import AnalyticsOverlay from '../overlays/AnalyticsOverlay'
 import { useT } from '../../i18n'
 import s from './ActionBar.module.css'
 
 interface Props {
-  canLevel?:      boolean
-  canAddContent?: boolean
+  canLevel?: boolean
 }
 
-export default function ActionBar({ canLevel = true, canAddContent = true }: Props) {
+export default function ActionBar({ canLevel = true }: Props) {
   const t = useT()
   const [showStats,     setShowStats]     = useState(false)
   const [showContent,   setShowContent]   = useState(false)
@@ -29,8 +28,8 @@ export default function ActionBar({ canLevel = true, canAddContent = true }: Pro
             <path d="M4 18c0-3.314 2.686-6 6-6s6 2.686 6 6"/>
           </svg>
         </button>
-        {/* Content pipeline */}
-        <button className={s.btn} data-tooltip={t.ui.btn_pipeline} onClick={() => setShowContent(true)}>
+        {/* Campaigns */}
+        <button className={s.btn} data-tooltip={t.ui.btn_campaigns} onClick={() => setShowContent(true)}>
           <svg viewBox="0 0 20 20" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round">
             <rect x="3" y="3" width="14" height="14" rx="2"/>
             <line x1="7" y1="7" x2="13" y2="7"/>
@@ -55,7 +54,7 @@ export default function ActionBar({ canLevel = true, canAddContent = true }: Pro
         </button>
       </div>
       {showStats     && createPortal(<CharacterOverlay onClose={() => setShowStats(false)}    canLevel={canLevel} />, document.body)}
-      {showContent   && createPortal(<ContentOverlay   onClose={() => setShowContent(false)}  canAdd={canAddContent} />, document.body)}
+      {showContent   && createPortal(<CampaignOverlay  onClose={() => setShowContent(false)} />, document.body)}
       {showEquip     && createPortal(<EquipOverlay     onClose={() => setShowEquip(false)} />, document.body)}
       {showAnalytics && createPortal(<AnalyticsOverlay onClose={() => setShowAnalytics(false)} />, document.body)}
     </>

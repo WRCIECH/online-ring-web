@@ -1,7 +1,7 @@
 import { useReducer, useEffect, useCallback, useState, useMemo, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { combatReducer, initCombatState, getReachableTiles, previewMove, formatMultiplierPct, ABANDON_PENALTY } from '../engine/combat'
-import { useGameStore } from '../store/gameStore'
+import { useGameStore, selectAvailableNodes } from '../store/gameStore'
 import { ENEMIES } from '../data/enemies'
 import { WEAPONS } from '../data/weapons'
 import { playSound } from '../engine/sound'
@@ -47,9 +47,10 @@ export default function CombatScreen() {
 
   const enemyData = loc ? ENEMIES[loc.enemy_id] : null
 
-  // ── Weapons available in combat: all that have content attached ──────────
+  // ── Weapons available in combat: all that have a campaign node attached ──
+  const campaignNodes = store.active_campaign?.nodes ?? []
   const weaponsWithContent = store.weapon_instances.filter(w =>
-    store.content_items.some(c => !c.completed && c.attached_weapon_id === w.instance_id)
+    campaignNodes.some(c => !c.completed && c.attached_weapon_id === w.instance_id)
   )
 
   // ── Initial weapon (seeds the very first/resumed workflow only) ──────────
@@ -59,9 +60,9 @@ export default function CombatScreen() {
   const initialWeaponClass  = initialWeapon?.weapon_class ?? 'straight_swords'
   const initialWeaponRarity = initialWeapon?.rarity        ?? 'common'
 
-  // ── Remaster pass — true if the content being worked on is mid-remaster ──
+  // ── Remaster pass — true if the node being worked on is mid-remaster ────
   const isRemasterPass = !!store.active_content_id
-    && !!store.content_items.find(c => c.id === store.active_content_id)?.is_remastering
+    && !!campaignNodes.find(c => c.id === store.active_content_id)?.is_remastering
 
   // ── Init combat state (stable across renders) ────────────────────────────
   const [state, dispatch] = useReducer(
@@ -137,8 +138,9 @@ export default function CombatScreen() {
       dispatch({ type: 'SWITCH_WORKFLOW', workflow: newWorkflow, isRemaster: false })
     }
 
-    // Switch active content to whichever item is attached to the new weapon
-    const contentForWeapon = store.content_items.find(
+    // Switch active content to whichever node is attached to the new weapon
+    const allNodes = store.active_campaign?.nodes ?? []
+    const contentForWeapon = allNodes.find(
       c => !c.completed && c.attached_weapon_id === weaponId
     )
     if (contentForWeapon) {
@@ -205,10 +207,7 @@ export default function CombatScreen() {
     const allDone = state.workflow.tiles.every(t => t.is_completed)
     if (allDone) {
       if (store.active_content_id) {
-        const remastered = store.content_items.find(c => c.id === store.active_content_id)?.is_remastering
-        store.updateContentItem(store.active_content_id, remastered
-          ? { completed: true, is_remastering: false, remaster_count: (store.content_items.find(c => c.id === store.active_content_id)?.remaster_count ?? 0) + 1, last_workflow: state.workflow }
-          : { completed: true, last_workflow: state.workflow })
+        store.completeCampaignNode(store.active_content_id, state.workflow)
       }
       store.clearActiveWorkflow()
     } else {
@@ -247,20 +246,20 @@ export default function CombatScreen() {
     })
   }, [])
   const [showAbandonConfirm, setShowAbandonConfirm] = useState(false)
-  // If a content item was already locked in the store, skip the picker entirely
+  // If a campaign node was already locked in the store, skip the picker entirely
   const [selectedContentId, setSelectedContentId] = useState<string | null>(
     store.active_content_id ?? null
   )
 
-  const activeContent = store.content_items.filter(c => !c.completed)
+  const activeContent = selectAvailableNodes(store as Parameters<typeof selectAvailableNodes>[0])
   const selectedContent = activeContent.find(c => c.id === selectedContentId) ?? null
 
   const handleSelectContent = (id: string) => {
     setSelectedContentId(id)
     store.setActiveContentId(id)
-    const item = store.content_items.find(c => c.id === id)
+    const item = (store.active_campaign?.nodes ?? []).find(c => c.id === id)
     if (item && !item.attached_weapon_id) {
-      store.attachContentToWeapon(id, state.equippedWeaponId)
+      store.attachNodeToWeapon(id, state.equippedWeaponId)
     }
   }
 
@@ -270,12 +269,12 @@ export default function CombatScreen() {
   const [dismissedForWorkflow, setDismissedForWorkflow] = useState<string | null>(null)
 
   const handleSwitchContent = (id: string) => {
-    if (selectedContentId) store.updateContentItem(selectedContentId, { completed: true })
+    if (selectedContentId) store.completeCampaignNode(selectedContentId, state.workflow)
     setSelectedContentId(id)
     store.setActiveContentId(id)
-    const item = store.content_items.find(c => c.id === id)
+    const item = (store.active_campaign?.nodes ?? []).find(c => c.id === id)
     if (item && !item.attached_weapon_id) {
-      store.attachContentToWeapon(id, state.equippedWeaponId)
+      store.attachNodeToWeapon(id, state.equippedWeaponId)
     }
     const newWorkflow = generateWorkflow(wClass, wRarity, loc?.sublocation_type === 'boss', weapon?.rolled_draws)
     dispatch({ type: 'SWITCH_WORKFLOW', workflow: newWorkflow, isRemaster: false })
@@ -338,7 +337,6 @@ export default function CombatScreen() {
     <div className={s.root}>
       <RunHeader
         hp={state.playerHp} maxHp={state.playerMaxHp}
-        canAddContent={state.phase !== 'STEP_TIMER'}
         canLevel={false}
       />
 

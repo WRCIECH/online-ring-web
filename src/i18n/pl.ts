@@ -346,6 +346,14 @@ const pl: TranslationBundle = {
     analytics_runs:      'Ukończone wyprawy',
     analytics_locations: 'Lokacje',
     btn_pipeline: 'Content',
+    btn_campaigns:            'Kampanie',
+    campaigns_title:          'KAMPANIE',
+    campaign_name_placeholder:'Nazwa kampanii…',
+    campaign_start_new:       'Nowa kampania',
+    campaign_past:            'Poprzednie kampanie',
+    campaign_node_locked:     'Zablokowany',
+    campaign_gate_warning:    'Nazwij wszystkie węzły kampanii zanim zaczniesz walkę.',
+    starting_armor:           'Startowy pancerz',
 
     // EquipOverlay
     equip_title:          '⚙ Workflows',

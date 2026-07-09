@@ -7,6 +7,7 @@ import { useT } from '../i18n'
 import WeaponIcon from '../components/WeaponIcon'
 import ClassSymbol from '../components/ClassSymbol'
 import HomeLogo from '../components/HomeLogo'
+import ArmorSprite from '../components/icons/ArmorSprite'
 import s from './ClassSelectScreen.module.css'
 
 const CORE_STATS:    StatKey[] = ['VIG', 'END']
@@ -207,6 +208,16 @@ export default function ClassSelectScreen() {
             </div>
             <div className={s.spWeaponName}>
               {t.weapons[activeCls.weaponClass]?.name ?? activeCls.weaponClass}
+            </div>
+          </div>
+
+          <div className={s.spSection}>{t.ui.starting_armor}</div>
+          <div className={s.spWeapon}>
+            <div className={s.spWeaponIcon}>
+              <ArmorSprite classId={activeCls.id} size={32} />
+            </div>
+            <div className={s.spWeaponName}>
+              {t.classes[activeCls.id]?.name ?? activeCls.name} Armor
             </div>
           </div>
         </aside>

@@ -351,6 +351,14 @@ const en: TranslationBundle = {
     analytics_runs:      'Completed Runs',
     analytics_locations: 'Locations Cleared',
     btn_pipeline: 'Pipeline',
+    btn_campaigns:            'Campaigns',
+    campaigns_title:          'CAMPAIGNS',
+    campaign_name_placeholder:'Campaign name…',
+    campaign_start_new:       'Start New Campaign',
+    campaign_past:            'Past Campaigns',
+    campaign_node_locked:     'Locked',
+    campaign_gate_warning:    'Name all campaign nodes before your first fight.',
+    starting_armor:           'Starting Armor',
 
     // EquipOverlay
     equip_title:          '⚙ Workflows',
