@@ -106,7 +106,7 @@ export default function CampaignOverlay({ onClose }: Props) {
           style={{ paddingLeft: `${16 + depth * 22}px` }}
         >
           <span className={s.nodeIcon}>
-            {node.completed ? '✓' : locked ? '🔒' : '○'}
+            {node.completed ? '✓' : '○'}
           </span>
 
           {isEditingThis ? (
