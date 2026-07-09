@@ -289,29 +289,18 @@ export default function CombatScreen() {
     if (newItem && !newItem.attached_weapon_id) {
       store.attachNodeToWeapon(id, state.equippedWeaponId)
     }
-    // If the new content node is mid-remaster, regenerate from its snapshot
-    const newIsRemaster = !!(newItem?.is_remastering && newItem.last_workflow)
-    const stateIdx = Math.min((newItem?.remaster_count ?? 0) + 1, WEAPON_CLASSES[wClass]?.remaster_steps ?? 1)
-    const newWorkflow = newIsRemaster && newItem!.last_workflow
-      ? regenerateWorkflowKeepingStructure(newItem!.last_workflow, wClass, weapon?.rolled_draws, stateIdx)
-      : generateWorkflow(wClass, wRarity, loc?.sublocation_type === 'boss', weapon?.rolled_draws)
-    dispatch({ type: 'SWITCH_WORKFLOW', workflow: newWorkflow, isRemaster: newIsRemaster })
+    // Always generate a fresh workflow mid-fight; proper remaster starts at next combat init.
+    const newWorkflow = generateWorkflow(wClass, wRarity, loc?.sublocation_type === 'boss', weapon?.rolled_draws)
+    dispatch({ type: 'SWITCH_WORKFLOW', workflow: newWorkflow, isRemaster: false })
   }
 
   const handleContinueContent = () => {
-    // Count this workflow as a completed subworkflow before moving to the next phase
-    const currentNode = selectedContentId ? campaignNodes.find(n => n.id === selectedContentId) : null
+    // Count this workflow as a completed subworkflow before moving to the next phase.
+    // Use a fresh workflow for the remainder of this fight; the proper remaster is
+    // generated at the START of the next combat via the isRemasterPass init path.
     if (selectedContentId) store.completeCampaignNode(selectedContentId, state.workflow)
-    const wasRemastering   = currentNode?.is_remastering ?? false
-    const newRemasterCount = wasRemastering ? (currentNode?.remaster_count ?? 0) + 1 : (currentNode?.remaster_count ?? 0)
-    const newSubCount      = (currentNode?.subworkflow_count ?? 0) + 1
-    const willRemaster     = newSubCount < (currentNode?.required_subworkflows ?? 2)
-    // state.workflow was just saved as last_workflow inside completeCampaignNode
-    const stateIdx = Math.min(newRemasterCount + 1, WEAPON_CLASSES[wClass]?.remaster_steps ?? 1)
-    const newWorkflow = willRemaster
-      ? regenerateWorkflowKeepingStructure(state.workflow, wClass, weapon?.rolled_draws, stateIdx)
-      : generateWorkflow(wClass, wRarity, loc?.sublocation_type === 'boss', weapon?.rolled_draws)
-    dispatch({ type: 'SWITCH_WORKFLOW', workflow: newWorkflow, isRemaster: willRemaster })
+    const newWorkflow = generateWorkflow(wClass, wRarity, loc?.sublocation_type === 'boss', weapon?.rolled_draws)
+    dispatch({ type: 'SWITCH_WORKFLOW', workflow: newWorkflow, isRemaster: false })
   }
 
   // ── Selected tile (derived) ───────────────────────────────────────────────
