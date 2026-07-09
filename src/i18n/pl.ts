@@ -352,6 +352,7 @@ const pl: TranslationBundle = {
     campaign_start_new:       'Nowa kampania',
     campaign_past:            'Poprzednie kampanie',
     campaign_node_locked:     'Zablokowany',
+    slot_locked_tooltip:      'Zablokowany — ukończ węzeł nadrzędny, aby użyć w walce',
     campaign_gate_warning:    'Nazwij wszystkie węzły kampanii zanim zaczniesz walkę.',
     starting_armor:           'Startowy pancerz',
 

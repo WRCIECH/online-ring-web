@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useGameStore, selectWeaponSlotLoad } from '../../store/gameStore'
+import { isNodeAvailable } from '../../data/generators/campaignGenerator'
 import { WEAPONS, LEVEL_MULT, weaponUpgradeCost } from '../../data/weapons'
 import { WEAPON_CLASSES } from '../../data/generators/weaponClasses'
 import { WEAPON_SELL_PRICE } from '../../data/constants'
@@ -116,12 +117,31 @@ export default function EquipOverlay({ onClose }: Props) {
           <div className={s.slotList}>
             {Array.from({ length: slotLoad.capacity }).map((_, i) => {
               const item = attached[i]
+              if (!item) {
+                return (
+                  <div key={i} className={s.slotRow}>
+                    <span className={s.slotEmptyLabel}>{t.ui.equip_slot_empty}</span>
+                  </div>
+                )
+              }
+              const isLocked = !isNodeAvailable(campaignNodes, item)
+              const parentName = isLocked && item.parent_id
+                ? (campaignNodes.find(n => n.id === item.parent_id)?.name || t.ui.untitled)
+                : null
+              const tooltip = isLocked
+                ? parentName
+                  ? `${t.ui.slot_locked_tooltip}: "${parentName}"`
+                  : t.ui.slot_locked_tooltip
+                : undefined
               return (
                 <div key={i} className={s.slotRow}>
-                  {item
-                    ? <span className={s.slotItemName}>{item.name || t.ui.untitled}</span>
-                    : <span className={s.slotEmptyLabel}>{t.ui.equip_slot_empty}</span>
-                  }
+                  <span
+                    className={[s.slotItemName, isLocked ? s.slotItemLocked : ''].filter(Boolean).join(' ')}
+                    title={tooltip}
+                  >
+                    {isLocked && <span className={s.slotLockIcon}>🔒</span>}
+                    {item.name || t.ui.untitled}
+                  </span>
                 </div>
               )
             })}

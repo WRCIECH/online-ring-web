@@ -364,6 +364,17 @@
   font-style: italic;
 }
 
+.slotItemLocked {
+  opacity: 0.45;
+  color: var(--color-text-dim);
+  cursor: help;
+}
+
+.slotLockIcon {
+  font-size: 0.7rem;
+  margin-right: 4px;
+}
+
 .slotSelect {
   flex: 1;
   font-size: 0.8rem;

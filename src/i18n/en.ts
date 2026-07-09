@@ -357,6 +357,7 @@ const en: TranslationBundle = {
     campaign_start_new:       'Start New Campaign',
     campaign_past:            'Past Campaigns',
     campaign_node_locked:     'Locked',
+    slot_locked_tooltip:      'Locked — complete the parent node first to use in combat',
     campaign_gate_warning:    'Name all campaign nodes before your first fight.',
     starting_armor:           'Starting Armor',
 
