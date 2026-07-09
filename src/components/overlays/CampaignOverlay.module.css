@@ -179,15 +179,18 @@
 }
 
 .nodeProgress {
-  font-size: 0.65rem;
-  color: var(--color-text-dim);
+  font-size: 0.72rem;
+  font-variant-numeric: tabular-nums;
+  color: var(--color-text);
   white-space: nowrap;
   flex-shrink: 0;
-  margin-left: 2px;
+  margin-left: 6px;
+  opacity: 0.7;
 }
 
 .nodeProgressDone {
   color: #55aa66;
+  opacity: 1;
 }
 
 .remasterChip {

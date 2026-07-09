@@ -131,6 +131,10 @@ export default function CampaignOverlay({ onClose }: Props) {
             </span>
           )}
 
+          <span className={[s.nodeProgress, node.completed ? s.nodeProgressDone : ''].filter(Boolean).join(' ')}>
+            {node.subworkflow_count ?? 0}/{node.required_subworkflows ?? 2}
+          </span>
+
           {!node.completed && (
             attachedWeapon ? (
               <div className={s.nodeWeaponRow}>
@@ -153,10 +157,6 @@ export default function CampaignOverlay({ onClose }: Props) {
               </select>
             ) : null
           )}
-
-          <span className={[s.nodeProgress, node.completed ? s.nodeProgressDone : ''].filter(Boolean).join(' ')}>
-            {node.subworkflow_count ?? 0}/{node.required_subworkflows ?? 2}
-          </span>
 
           {node.is_remastering && (
             <span className={s.remasterChip}>↻ remaster</span>
