@@ -189,6 +189,41 @@
   flex-shrink: 0;
 }
 
+/* ── Node weapon assignment ─────────────────────────────────────────────── */
+
+.nodeWeaponRow {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.btnDetachNode {
+  font-size: 0.7rem;
+  line-height: 1;
+  padding: 1px 5px;
+  border-radius: 3px;
+  background: rgba(200,80,80,0.15);
+  border: 1px solid rgba(200,80,80,0.3);
+  color: #cc6666;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+.btnDetachNode:hover { background: rgba(200,80,80,0.28); }
+
+.nodeWeaponSelect {
+  font-size: 0.68rem;
+  padding: 2px 4px;
+  border-radius: 3px;
+  background: rgba(15,13,34,0.9);
+  border: 1px solid rgba(100,80,200,0.3);
+  color: var(--color-text-dim);
+  cursor: pointer;
+  max-width: 140px;
+  flex-shrink: 0;
+}
+.nodeWeaponSelect:focus { outline: none; border-color: rgba(100,80,200,0.6); }
+
 /* ── Start new campaign ─────────────────────────────────────────────────── */
 
 .btnStartNewCampaign {

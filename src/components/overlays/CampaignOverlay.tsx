@@ -1,11 +1,10 @@
 import { useState, useRef, useEffect } from 'react'
-import { useGameStore } from '../../store/gameStore'
+import { useGameStore, selectWeaponSlotLoad, selectEquipLoad } from '../../store/gameStore'
 import { isNodeAvailable } from '../../data/generators/campaignGenerator'
 import type { CampaignNode } from '../../types/game'
-import { WEAPONS } from '../../data/weapons'
 import type { WeaponInstance } from '../../types/game'
 import ArmorSprite from '../icons/ArmorSprite'
-import { useT } from '../../i18n'
+import { useT, localizeWeaponName } from '../../i18n'
 import s from './CampaignOverlay.module.css'
 
 interface Props {
@@ -50,6 +49,14 @@ export default function CampaignOverlay({ onClose }: Props) {
   const nodes = campaign.nodes
   const completedCount = nodes.filter(n => n.completed).length
 
+  const storeTyped = store as Parameters<typeof selectEquipLoad>[0]
+  const globalLoad = selectEquipLoad(storeTyped)
+  const globalFull = globalLoad.used >= globalLoad.capacity
+  const assignableWeapons = store.weapon_instances.filter(wi => {
+    const sl = selectWeaponSlotLoad(storeTyped, wi.instance_id)
+    return sl.used < sl.capacity
+  })
+
   function handleNodeNameStart(node: CampaignNode) {
     setEditingNodeId(node.id)
     setEditingNodeVal(node.name)
@@ -83,8 +90,8 @@ export default function CampaignOverlay({ onClose }: Props) {
     const available = isNodeAvailable(nodes, node)
     const locked = !available && !node.completed
     const isEditingThis = editingNodeId === node.id
-    const attachedWeapon = node.attached_weapon_id
-      ? WEAPONS[node.attached_weapon_id] as WeaponInstance | undefined
+    const attachedWeapon: WeaponInstance | undefined = node.attached_weapon_id
+      ? store.weapon_instances.find(w => w.instance_id === node.attached_weapon_id)
       : undefined
     const children = getChildren(node.id)
 
@@ -124,8 +131,27 @@ export default function CampaignOverlay({ onClose }: Props) {
             </span>
           )}
 
-          {attachedWeapon && !node.completed && (
-            <span className={s.weaponChip}>{attachedWeapon.name}</span>
+          {!node.completed && (
+            attachedWeapon ? (
+              <div className={s.nodeWeaponRow}>
+                <span className={s.weaponChip}>{localizeWeaponName(attachedWeapon, t)}</span>
+                <button
+                  className={s.btnDetachNode}
+                  onClick={() => store.detachNodeFromWeapon(node.id)}
+                >×</button>
+              </div>
+            ) : !globalFull && assignableWeapons.length > 0 ? (
+              <select
+                className={s.nodeWeaponSelect}
+                value=""
+                onChange={e => { if (e.target.value) store.attachNodeToWeapon(node.id, e.target.value) }}
+              >
+                <option value="">{t.ui.equip_slot_assign}</option>
+                {assignableWeapons.map(wi => (
+                  <option key={wi.instance_id} value={wi.instance_id}>{localizeWeaponName(wi, t)}</option>
+                ))}
+              </select>
+            ) : null
           )}
 
           {node.is_remastering && (

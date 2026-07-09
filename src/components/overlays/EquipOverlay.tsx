@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useGameStore, selectWeaponSlotLoad, selectEquipLoad } from '../../store/gameStore'
+import { useGameStore, selectWeaponSlotLoad } from '../../store/gameStore'
 import { WEAPONS, LEVEL_MULT, weaponUpgradeCost } from '../../data/weapons'
 import { WEAPON_CLASSES } from '../../data/generators/weaponClasses'
 import { WEAPON_SELL_PRICE } from '../../data/constants'
@@ -25,14 +25,6 @@ export default function EquipOverlay({ onClose }: Props) {
   const [selectedWeaponId, setSelectedWeaponId] = useState<string | null>(null)
   const [confirmSellId, setConfirmSellId] = useState<string | null>(null)
   const [confirmUpgradeId, setConfirmUpgradeId] = useState<string | null>(null)
-
-  const globalLoad = selectEquipLoad(store as Parameters<typeof selectEquipLoad>[0])
-  const assignFull = globalLoad.used >= globalLoad.capacity
-
-  function handleAssign(weaponInstanceId: string, contentId: string) {
-    if (!contentId) return
-    store.attachNodeToWeapon(contentId, weaponInstanceId)
-  }
 
   function handleUpgrade(wid: string) {
     if (confirmUpgradeId === wid) {
@@ -61,7 +53,6 @@ export default function EquipOverlay({ onClose }: Props) {
     const slotLoad = selectWeaponSlotLoad(store as Parameters<typeof selectWeaponSlotLoad>[0], wid)
     const campaignNodes = store.active_campaign?.nodes ?? []
     const attached = campaignNodes.filter(c => !c.completed && c.attached_weapon_id === wid)
-    const assignable = campaignNodes.filter(c => !c.completed && !c.attached_weapon_id)
     const isExpanded  = !!expandedContent[wid]
 
     return (
@@ -125,35 +116,12 @@ export default function EquipOverlay({ onClose }: Props) {
           <div className={s.slotList}>
             {Array.from({ length: slotLoad.capacity }).map((_, i) => {
               const item = attached[i]
-              if (item) {
-                return (
-                  <div key={i} className={s.slotRow}>
-                    <span className={s.slotItemName}>{item.name || t.ui.untitled}</span>
-                    <button className={s.btnDetach} onClick={() => store.detachNodeFromWeapon(item.id)}>
-                      {t.ui.btn_detach}
-                    </button>
-                  </div>
-                )
-              }
               return (
                 <div key={i} className={s.slotRow}>
-                  {assignFull ? (
-                    <span className={s.slotEmptyLabel}>{t.ui.assign_cap_reached}</span>
-                  ) : (
-                    <>
-                      <select
-                        className={s.slotSelect}
-                        value=""
-                        onChange={e => handleAssign(wid, e.target.value)}
-                      >
-                        <option value="">{t.ui.equip_slot_assign}</option>
-                        {assignable.map(c => (
-                          <option key={c.id} value={c.id}>{c.name || t.ui.untitled}</option>
-                        ))}
-                      </select>
-                      <span className={s.slotEmptyLabel}>{t.ui.equip_slot_empty}</span>
-                    </>
-                  )}
+                  {item
+                    ? <span className={s.slotItemName}>{item.name || t.ui.untitled}</span>
+                    : <span className={s.slotEmptyLabel}>{t.ui.equip_slot_empty}</span>
+                  }
                 </div>
               )
             })}
