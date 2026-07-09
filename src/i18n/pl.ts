@@ -255,8 +255,8 @@ const pl: TranslationBundle = {
     btn_sell_weapon:        'Sprzedaj',
     btn_sell_confirm:       'Potwierdź sprzedaż?',
     btn_sell_blocked:       'Odepnij treści, aby sprzedać',
-    btn_equipment:          'Ekwipunek',
-    equipment_title:        'EKWIPUNEK',
+    btn_equipment:          'Workflows',
+    equipment_title:        'WORKFLOWS',
     equip_no_weapons:       'Nie posiadasz jeszcze żadnej broni.',
     equip_slot_empty:       'Wolny slot',
     equip_slot_assign:      '+ Przypisz treść…',
@@ -334,7 +334,7 @@ const pl: TranslationBundle = {
 
     // RunHeader
     run_prefix:   'Run #',
-    btn_equip:    '⚙ Ekwipunek',
+    btn_equip:    '⚙ Workflows',
     btn_stats:           'Postać',
     btn_analytics:       'Statystyki',
     analytics_title:     'Statystyki',
@@ -348,7 +348,7 @@ const pl: TranslationBundle = {
     btn_pipeline: 'Content',
 
     // EquipOverlay
-    equip_title:          '⚙ Ekwipunek',
+    equip_title:          '⚙ Workflows',
     speed_very_fast:      'Bardzo szybka',
     speed_fast:           'Szybka',
     speed_normal:         'Normalna',
