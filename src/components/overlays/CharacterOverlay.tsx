@@ -69,7 +69,6 @@ export default function CharacterOverlay({ onClose, canLevel = true }: Props) {
   const prevLight  = pw ? calcWeaponScaledDamage(REF_LIGHT_BASE,  pw, pwLevel, pendingStats) : 0
   const curHeavy   = pw ? calcWeaponScaledDamage(REF_HEAVY_BASE,  pw, pwLevel, store.stats)  : 0
   const prevHeavy  = pw ? calcWeaponScaledDamage(REF_HEAVY_BASE,  pw, pwLevel, pendingStats) : 0
-  const dmgUp      = prevLight > curLight || prevHeavy > curHeavy
 
   // ── Handlers ─────────────────────────────────────────────────────────────
   function handlePlus(stat: StatKey) {
