@@ -182,7 +182,8 @@ export interface CampaignNode {
   name: string                  // player-editable content piece title
   completed: boolean            // subworkflow_count >= required_subworkflows
   published: boolean            // user manually marks after completed
-  required_subworkflows: number // 2–5, set at generation
+  content_type: ContentProductType  // assigned at generation; complexity grows with tree depth
+  required_subworkflows: number     // deterministic: max(2, complexity)
   subworkflow_count: number     // how many workflow cycles have been completed so far
   last_workflow?: WorkflowGraph // snapshot for remaster regeneration
   remaster_count?: number

@@ -572,6 +572,10 @@ export const useGameStore = create<GameStore>((set, get) => ({
     // Migration safety
     if (!data.locale)               data.locale               = 'pl'
     if (!data.weapon_campaigns)     data.weapon_campaigns     = {}
+    // Backfill content_type on campaign nodes from older saves
+    for (const c of Object.values(data.weapon_campaigns)) {
+      c.nodes = c.nodes.map(n => ('content_type' in n ? n : { content_type: '_blank' as const, ...n }))
+    }
     if (!data.total_task_time_s)    data.total_task_time_s    = 0
     if (data.abandon_penalty === undefined)  data.abandon_penalty  = 0
     if (data.active_workflow  === undefined) data.active_workflow  = null

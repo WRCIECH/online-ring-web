@@ -320,6 +320,16 @@
   opacity: 1;
 }
 
+.complexityBadge {
+  font-size: 0.6rem;
+  letter-spacing: 0.05em;
+  color: var(--color-accent-dim);
+  opacity: 0.7;
+  white-space: nowrap;
+  flex-shrink: 0;
+  cursor: default;
+}
+
 .remasterChip {
   font-size: 0.65rem;
   padding: 2px 6px;

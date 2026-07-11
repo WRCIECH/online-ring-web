@@ -72,6 +72,7 @@ interface ContentProductDetails {
   displayName: string;
   category: 'Text' | 'Visual' | 'Audio' | 'Video' | 'Hybrid' | 'Exotic';
   description: string;
+  complexity: number;  // 1 (simplest) – 5 (most involved)
 }
 
 /**
@@ -80,26 +81,26 @@ interface ContentProductDetails {
  */
 export class ContentRegistry {
   public static readonly Products: Record<ContentProductType, ContentProductDetails> = {
-    Plaintext: { id: 'Plaintext', displayName: 'Czysty tekst liniowy', category: 'Text', description: 'Surowy strumień świadomości, przemyślenie lub manifest pozbawiony formatowania.' },
-    StructuredText: { id: 'StructuredText', displayName: 'Tekst strukturyzowany', category: 'Text', description: 'Treść sformatowana pod szybką konsumpcję: wypunktowania, nagłówki, tabele.' },
-    IllustratedText: { id: 'IllustratedText', displayName: 'Artykuł ilustrowany', category: 'Text', description: 'Obszerna treść pisana, gdzie statyczne obrazy lub wykresy pełnią rolę wsparcia narracji.' },
-    SingleGraphic: { id: 'SingleGraphic', displayName: 'Pojedyncza grafika', category: 'Visual', description: 'Samodzielny komunikat wizualny: mem, plakat autorski lub pojedyncze zdjęcie.' },
-    Carousel: { id: 'Carousel', displayName: 'Sekwencja grafik (Karuzela)', category: 'Visual', description: 'Seria powiązanych obrazów przeglądanych linearnie bez dźwięku (np. komiks, slajdy).' },
-    Infographic: { id: 'Infographic', displayName: 'Infografika syntezująca', category: 'Visual', description: 'Głęboka fuzja danych liczbowych z architekturą graficzną, opowiadająca zamkniętą historię.' },
-    RawAudio: { id: 'RawAudio', displayName: 'Surowy zapis audio', category: 'Audio', description: 'Rejestracja głosu bez czyszczenia szumów, efektów i muzyki tła. Czysta autentyczność.' },
-    ProducedAudio: { id: 'ProducedAudio', displayName: 'Słuchowisko reżyserowane', category: 'Audio', description: 'Zmontowana ścieżka dźwiękowa: mastering, sound design, efekty i muzyka tła.' },
-    ARollVideo: { id: 'ARollVideo', displayName: 'Rejestracja rzeczywistości (A-Roll)', category: 'Video', description: 'Gadająca głowa lub bezpośrednia relacja z kamery telefonu z prostymi cięciami.' },
-    SlideshowVideo: { id: 'SlideshowVideo', displayName: 'Kompozycja statyczno-dynamiczna', category: 'Video', description: 'Oś audio (lektor) zsynchronizowana z montażem grafik, slajdów lub darmowych klipów stockowych.' },
-    Screencast: { id: 'Screencast', displayName: 'Nagranie interfejsu (Screencast)', category: 'Video', description: 'Przechwycony obraz z ekranu komputera/telefonu z nałożonym komentarzem lub samouczkiem.' },
-    CinematicVideo: { id: 'CinematicVideo', displayName: 'Wideo wielowarstwowe (Cinematic)', category: 'Video', description: 'Skomplikowana struktura: zaawansowany montaż, korekcja barwna, wielokamerowość, reżyseria.' },
-    MotionGraphics: { id: 'MotionGraphics', displayName: 'Animacja cyfrowa (Motion)', category: 'Video', description: 'Obraz wygenerowany w całości cyfrowo (2D/3D). Brak ujęć z realnego świata.' },
-    LiveStream: { id: 'LiveStream', displayName: 'Strumień na żywo (Live)', category: 'Hybrid', description: 'Produkcja i dystrybucja w czasie rzeczywistym. Brak postprodukcji, pełna improwizacja.' },
-    MultimediaPage: { id: 'MultimediaPage', displayName: 'Strona wielomedialna', category: 'Hybrid', description: 'Nieliniowy reportaż internetowy łączący tekst, wideo i interaktywne osie czasu.' },
-    BranchingNarrative: { id: 'BranchingNarrative', displayName: 'Treść drzewiasta', category: 'Hybrid', description: 'Interaktywne wideo lub tekst, gdzie decyzje odbiorcy rozgałęziają fabułę.' },
-    AssetPack: { id: 'AssetPack', displayName: 'Paczka aktywów (Asset Pack)', category: 'Hybrid', description: 'Cyfrowe narzędzia dla innych twórców: presety, sample, szablony systemów, kody źródłowe.' },
-    CurationFeed: { id: 'CurationFeed', displayName: 'Kuracja treści (Agregacja)', category: 'Hybrid', description: 'Autorskie filtrowanie chaosu sieci: bazy linków, prasówki, rankingi cudzych dzieł.' },
-    CommunitySpace: { id: 'CommunitySpace', displayName: 'Przestrzeń społecznościowa', category: 'Hybrid', description: 'Tworzenie architektury relacji – serwery, fora i zamknięte ekosystemy dyskusyjne.' },
-    InteractiveApp: { id: 'InteractiveApp', displayName: 'Aplikacja / Gry / Widgety', category: 'Hybrid', description: 'Pełna nieliniowość kodu. Narzędzia jednofunkcyjne, kalkulatory lub pełnoprawne gry.' },
-    _blank: { id: '_blank', displayName: 'Coś innego (Eksperyment)', category: 'Exotic', description: 'Awangardowa publikacja łamiąca standardowe ramy produkcji i percepcji internetu.' }
+    Plaintext:          { id: 'Plaintext',          displayName: 'Czysty tekst liniowy',                category: 'Text',   complexity: 1, description: 'Surowy strumień świadomości, przemyślenie lub manifest pozbawiony formatowania.' },
+    StructuredText:     { id: 'StructuredText',     displayName: 'Tekst strukturyzowany',               category: 'Text',   complexity: 2, description: 'Treść sformatowana pod szybką konsumpcję: wypunktowania, nagłówki, tabele.' },
+    IllustratedText:    { id: 'IllustratedText',    displayName: 'Artykuł ilustrowany',                 category: 'Text',   complexity: 3, description: 'Obszerna treść pisana, gdzie statyczne obrazy lub wykresy pełnią rolę wsparcia narracji.' },
+    SingleGraphic:      { id: 'SingleGraphic',      displayName: 'Pojedyncza grafika',                  category: 'Visual', complexity: 2, description: 'Samodzielny komunikat wizualny: mem, plakat autorski lub pojedyncze zdjęcie.' },
+    Carousel:           { id: 'Carousel',           displayName: 'Sekwencja grafik (Karuzela)',          category: 'Visual', complexity: 3, description: 'Seria powiązanych obrazów przeglądanych linearnie bez dźwięku (np. komiks, slajdy).' },
+    Infographic:        { id: 'Infographic',        displayName: 'Infografika syntezująca',              category: 'Visual', complexity: 3, description: 'Głęboka fuzja danych liczbowych z architekturą graficzną, opowiadająca zamkniętą historię.' },
+    RawAudio:           { id: 'RawAudio',           displayName: 'Surowy zapis audio',                  category: 'Audio',  complexity: 2, description: 'Rejestracja głosu bez czyszczenia szumów, efektów i muzyki tła. Czysta autentyczność.' },
+    ProducedAudio:      { id: 'ProducedAudio',      displayName: 'Słuchowisko reżyserowane',             category: 'Audio',  complexity: 3, description: 'Zmontowana ścieżka dźwiękowa: mastering, sound design, efekty i muzyka tła.' },
+    ARollVideo:         { id: 'ARollVideo',         displayName: 'Rejestracja rzeczywistości (A-Roll)',  category: 'Video',  complexity: 3, description: 'Gadająca głowa lub bezpośrednia relacja z kamery telefonu z prostymi cięciami.' },
+    SlideshowVideo:     { id: 'SlideshowVideo',     displayName: 'Kompozycja statyczno-dynamiczna',      category: 'Video',  complexity: 3, description: 'Oś audio (lektor) zsynchronizowana z montażem grafik, slajdów lub darmowych klipów stockowych.' },
+    Screencast:         { id: 'Screencast',         displayName: 'Nagranie interfejsu (Screencast)',     category: 'Video',  complexity: 2, description: 'Przechwycony obraz z ekranu komputera/telefonu z nałożonym komentarzem lub samouczkiem.' },
+    CinematicVideo:     { id: 'CinematicVideo',     displayName: 'Wideo wielowarstwowe (Cinematic)',     category: 'Video',  complexity: 4, description: 'Skomplikowana struktura: zaawansowany montaż, korekcja barwna, wielokamerowość, reżyseria.' },
+    MotionGraphics:     { id: 'MotionGraphics',     displayName: 'Animacja cyfrowa (Motion)',            category: 'Video',  complexity: 4, description: 'Obraz wygenerowany w całości cyfrowo (2D/3D). Brak ujęć z realnego świata.' },
+    LiveStream:         { id: 'LiveStream',         displayName: 'Strumień na żywo (Live)',              category: 'Hybrid', complexity: 3, description: 'Produkcja i dystrybucja w czasie rzeczywistym. Brak postprodukcji, pełna improwizacja.' },
+    MultimediaPage:     { id: 'MultimediaPage',     displayName: 'Strona wielomedialna',                 category: 'Hybrid', complexity: 4, description: 'Nieliniowy reportaż internetowy łączący tekst, wideo i interaktywne osie czasu.' },
+    BranchingNarrative: { id: 'BranchingNarrative', displayName: 'Treść drzewiasta',                   category: 'Hybrid', complexity: 5, description: 'Interaktywne wideo lub tekst, gdzie decyzje odbiorcy rozgałęziają fabułę.' },
+    AssetPack:          { id: 'AssetPack',          displayName: 'Paczka aktywów (Asset Pack)',          category: 'Hybrid', complexity: 4, description: 'Cyfrowe narzędzia dla innych twórców: presety, sample, szablony systemów, kody źródłowe.' },
+    CurationFeed:       { id: 'CurationFeed',       displayName: 'Kuracja treści (Agregacja)',           category: 'Hybrid', complexity: 2, description: 'Autorskie filtrowanie chaosu sieci: bazy linków, prasówki, rankingi cudzych dzieł.' },
+    CommunitySpace:     { id: 'CommunitySpace',     displayName: 'Przestrzeń społecznościowa',           category: 'Hybrid', complexity: 4, description: 'Tworzenie architektury relacji – serwery, fora i zamknięte ekosystemy dyskusyjne.' },
+    InteractiveApp:     { id: 'InteractiveApp',     displayName: 'Aplikacja / Gry / Widgety',            category: 'Hybrid', complexity: 5, description: 'Pełna nieliniowość kodu. Narzędzia jednofunkcyjne, kalkulatory lub pełnoprawne gry.' },
+    _blank:             { id: '_blank',             displayName: 'Coś innego (Eksperyment)',             category: 'Exotic', complexity: 1, description: 'Awangardowa publikacja łamiąca standardowe ramy produkcji i percepcji internetu.' }
   };
 }

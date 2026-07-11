@@ -4,6 +4,7 @@ import { isNodeAvailable } from '../../data/generators/campaignGenerator'
 import type { CampaignNode, CampaignEdge, WeaponCampaign, WeaponInstance } from '../../types/game'
 import WeaponIcon from '../WeaponIcon'
 import { useT, localizeWeaponName } from '../../i18n'
+import { ContentRegistry } from '../../data/contentProducts'
 import s from './CampaignOverlay.module.css'
 
 interface Props {
@@ -129,6 +130,16 @@ export default function CampaignOverlay({ onClose }: Props) {
             <span className={[s.nodeProgress, node.completed ? s.nodeProgressDone : ''].filter(Boolean).join(' ')}>
               {node.subworkflow_count ?? 0}/{node.required_subworkflows ?? 2}
             </span>
+
+            {(() => {
+              const product = ContentRegistry.Products[node.content_type ?? '_blank']
+              const c = product?.complexity ?? 1
+              return (
+                <span className={s.complexityBadge} title={product?.displayName ?? ''}>
+                  {'●'.repeat(c) + '○'.repeat(5 - c)}
+                </span>
+              )
+            })()}
 
             {finished && (
               <button

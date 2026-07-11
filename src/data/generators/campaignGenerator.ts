@@ -1,5 +1,6 @@
-import type { CampaignNode, CampaignEdge, WeaponCampaign, AtomicOrigin, StyleType, WeaponInstance } from '../../types/game'
+import type { CampaignNode, CampaignEdge, WeaponCampaign, AtomicOrigin, StyleType, WeaponInstance, ContentProductType } from '../../types/game'
 import { WEAPON_CLASSES } from './weaponClasses'
+import { ContentRegistry } from '../contentProducts'
 
 function genId(): string {
   return 'cn_' + Math.random().toString(36).slice(2, 9)
@@ -56,6 +57,18 @@ const NODE_COUNT_BY_WEIGHT: Record<string, [number, number]> = {
   colossal: [13, 15],
 }
 
+const ALL_PRODUCT_TYPES = Object.keys(ContentRegistry.Products) as ContentProductType[]
+
+function pickForComplexity(pool: ContentProductType[], target: number): ContentProductType {
+  const sorted = [...pool].sort((a, b) =>
+    Math.abs(ContentRegistry.Products[a].complexity - target) -
+    Math.abs(ContentRegistry.Products[b].complexity - target)
+  )
+  const exact = sorted.filter(p => ContentRegistry.Products[p].complexity === target)
+  const candidates = exact.length > 0 ? exact : sorted
+  return candidates[Math.floor(Math.random() * candidates.length)]
+}
+
 export function generateWeaponCampaign(weapon: WeaponInstance): WeaponCampaign {
   const cls = WEAPON_CLASSES[weapon.weapon_class]
   const [minNodes, maxNodes] = NODE_COUNT_BY_WEIGHT[weapon.poise_weight ?? 'medium'] ?? [7, 10]
@@ -67,13 +80,16 @@ export function generateWeaponCampaign(weapon: WeaponInstance): WeaponCampaign {
     ...(cls.styles as StyleType[]),
   ]
 
+  const productPool = cls.supported_products.length > 0 ? cls.supported_products : ALL_PRODUCT_TYPES
+
   function makeNode(): CampaignNode {
     return {
       id: genId(),
       name: '',
       completed: false,
       published: false,
-      required_subworkflows: Math.floor(Math.random() * 4) + 2,
+      content_type: '_blank',
+      required_subworkflows: 2,
       subworkflow_count: 0,
     }
   }
@@ -92,6 +108,15 @@ export function generateWeaponCampaign(weapon: WeaponInstance): WeaponCampaign {
     const child   = makeNode()
     nodes.push(child)
     edges.push({ from_id: parent.id, to_id: child.id, label: drawEdgeLabel(edgePool) })
+  }
+
+  // Second pass: assign content_type and required_subworkflows based on depth
+  const maxDepth = Math.max(...nodes.map(n => nodeDepth(nodes, edges, n.id)), 0)
+  for (const node of nodes) {
+    const depth = nodeDepth(nodes, edges, node.id)
+    const target = maxDepth === 0 ? 1 : Math.round(1 + (depth / maxDepth) * 4)
+    node.content_type = pickForComplexity(productPool, target)
+    node.required_subworkflows = Math.max(2, ContentRegistry.Products[node.content_type].complexity)
   }
 
   return {
