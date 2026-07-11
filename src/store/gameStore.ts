@@ -277,6 +277,7 @@ export interface GameStore extends GameState {
   completeCampaignNode:   (weaponId: string, nodeId: string, workflow: WorkflowGraph) => void
   publishCampaignNode:    (weaponId: string, nodeId: string) => void
   startNodeRemaster:      (weaponId: string, nodeId: string) => void
+  useSuperhitOnNode:      (weaponId: string, nodeId: string) => void
 
   // Learning items
 
@@ -552,6 +553,23 @@ export const useGameStore = create<GameStore>((set, get) => ({
         },
         active_workflow: workflow,
         active_content_id: nodeId,
+      }
+    })
+    get().save()
+  },
+
+  useSuperhitOnNode: (weaponId, nodeId) => {
+    set(s => {
+      const c = s.weapon_campaigns[weaponId]
+      if (!c) return s
+      return {
+        weapon_campaigns: {
+          ...s.weapon_campaigns,
+          [weaponId]: {
+            ...c,
+            nodes: c.nodes.map(n => n.id === nodeId ? { ...n, superhit_used: true } : n),
+          },
+        },
       }
     })
     get().save()

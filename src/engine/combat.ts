@@ -62,6 +62,7 @@ export type CombatAction =
   | { type: 'SWITCH_WORKFLOW'; workflow: WorkflowGraph; isRemaster?: boolean; consistencyStreak?: number }
   | { type: 'SWITCH_WEAPON'; weaponId: string; weaponLevel: number }
   | { type: 'ADD_LOG'; text: string; color?: string }
+  | { type: 'SUPERHIT'; tile: WorkflowTile }
 
 // ── Constants ─────────────────────────────────────────────────────────────
 
@@ -108,7 +109,7 @@ function tileDamageBase(tile: WorkflowTile, move: MoveType): number {
 }
 
 // Damage dealt to enemy when a tile is completed.
-function calcTileDamage(
+export function calcTileDamage(
   tile: WorkflowTile, move: MoveType, weapon: WeaponInstance | undefined,
   weaponLevel: number, stats: Stats,
 ): number {
@@ -432,6 +433,28 @@ export function combatReducer(state: CombatState, action: CombatAction): CombatS
 
     case 'ADD_LOG':
       return log(state, action.text, action.color ?? '#c9a93a')
+
+    case 'SUPERHIT': {
+      const tile    = action.tile
+      const weapon  = WEAPONS[state.equippedWeaponId] as WeaponInstance | undefined
+      const rawDmg  = calcTileDamage(tile, 'Light', weapon, state.weaponLevel, state.playerStats)
+      const damage  = Math.round(rawDmg * 5)
+      const newEnemyHp = Math.max(0, state.enemyHp - damage)
+      let s = log(
+        { ...state, enemyHp: newEnemyHp, selectedTileId: null },
+        `💥 SUPERHIT! ⚔ −${damage} HP (5× light attack)`,
+        '#eecc44'
+      )
+      if (newEnemyHp <= 0) {
+        s = log(
+          { ...s, enemyHp: 0, mobsDefeated: s.mobsDefeated + 1, runesEarned: state.enemyData.rune_reward },
+          `⚔ ${state.enemyData.name} slain! ✦ +${state.enemyData.rune_reward} runes.`,
+          '#55cc77'
+        )
+        return { ...s, phase: 'VICTORY' }
+      }
+      return { ...s, phase: 'PLAYER_TURN' }
+    }
 
     default:
       return state

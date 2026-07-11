@@ -185,6 +185,7 @@ export interface CampaignNode {
   content_type: ContentProductType  // assigned at generation; complexity grows with tree depth
   required_subworkflows: number     // deterministic: max(2, complexity)
   subworkflow_count: number     // how many workflow cycles have been completed so far
+  superhit_used?: boolean       // true once the one-time Superhit has been fired for this node
   last_workflow?: WorkflowGraph // snapshot for remaster regeneration
   remaster_count?: number
   is_remastering?: boolean

@@ -1,6 +1,6 @@
 import { useReducer, useEffect, useCallback, useState, useMemo, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { combatReducer, initCombatState, getReachableTiles, previewMove, formatMultiplierPct, ABANDON_PENALTY } from '../engine/combat'
+import { combatReducer, initCombatState, getReachableTiles, previewMove, formatMultiplierPct, calcTileDamage, ABANDON_PENALTY } from '../engine/combat'
 import { useGameStore, selectAvailableNodes } from '../store/gameStore'
 import { ENEMIES } from '../data/enemies'
 import { WEAPONS } from '../data/weapons'
@@ -272,6 +272,11 @@ export default function CombatScreen() {
   const activeContent = selectAvailableNodes(store as Parameters<typeof selectAvailableNodes>[0], state.equippedWeaponId)
   const selectedContent = activeContent.find(c => c.id === selectedContentId) ?? null
 
+  // Superhit: one charge per published node that hasn't been used yet
+  const superhitSourceNode = store.weapon_campaigns[state.equippedWeaponId]?.nodes
+    .find(n => n.published && !n.superhit_used) ?? null
+  const canSuperhit = superhitSourceNode !== null
+
   const handleSelectContent = (id: string) => {
     setSelectedContentId(id)
     store.setActiveContentId(id)
@@ -321,11 +326,13 @@ export default function CombatScreen() {
 
   const radialItems = useMemo<RadialMoveItem[]>(() => {
     if (!radialPos || !selectedTile) return []
-    const N = MOVE_DEFS.length
-    return MOVE_DEFS.map((def, i) => {
-      const angle   = Math.PI - (i / N) * 2 * Math.PI
+    const items: RadialMoveItem[] = []
+    const allDefs = MOVE_DEFS.length + (canSuperhit ? 1 : 0)
+
+    MOVE_DEFS.forEach((def, i) => {
+      const angle   = Math.PI - (i / allDefs) * 2 * Math.PI
       const preview = previewMove(state, selectedTile, def.move)
-      return {
+      items.push({
         id: def.move,
         label: def.label,
         sublabel: `${fmtMoveTime(preview.duration)} · ${def.desc}`,
@@ -340,9 +347,36 @@ export default function CombatScreen() {
         tx: Math.cos(angle) * RADIAL_RADIUS,
         ty: Math.sin(angle) * RADIAL_RADIUS,
         onSelect: () => dispatch({ type: 'CHOOSE_MOVE', move: def.move }),
-      }
+      })
     })
-  }, [radialPos, selectedTile, state, t])
+
+    if (canSuperhit && superhitSourceNode) {
+      const i     = MOVE_DEFS.length
+      const angle = Math.PI - (i / allDefs) * 2 * Math.PI
+      const superhitDmg = Math.round(
+        calcTileDamage(selectedTile, 'Light', weapon, store.weapon_level[state.equippedWeaponId] ?? 0, store.stats) * 5
+      )
+      items.push({
+        id: 'Superhit',
+        label: 'SUPER',
+        sublabel: `One-time · 5× light · instant`,
+        metaParts: [
+          { text: `⚔ ${superhitDmg}`, color: '#eecc44' },
+          { text: `published: ${superhitSourceNode.name || 'Untitled'}`, color: '#aaaaaa' },
+        ],
+        colorVar: '#eecc44',
+        tx: Math.cos(angle) * RADIAL_RADIUS,
+        ty: Math.sin(angle) * RADIAL_RADIUS,
+        onSelect: () => {
+          dispatch({ type: 'SUPERHIT', tile: selectedTile })
+          store.useSuperhitOnNode(state.equippedWeaponId, superhitSourceNode.id)
+          setRadialPos(null)
+        },
+      })
+    }
+
+    return items
+  }, [radialPos, selectedTile, state, t, canSuperhit, superhitSourceNode, weapon, store])
 
   if (!loc || !enemyData) return null
 
