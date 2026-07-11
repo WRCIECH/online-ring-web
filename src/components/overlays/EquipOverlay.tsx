@@ -1,6 +1,5 @@
 import { useState } from 'react'
-import { useGameStore, selectWeaponSlotLoad } from '../../store/gameStore'
-import { isNodeAvailable } from '../../data/generators/campaignGenerator'
+import { useGameStore } from '../../store/gameStore'
 import { WEAPONS, LEVEL_MULT, weaponUpgradeCost } from '../../data/weapons'
 import { WEAPON_CLASSES } from '../../data/generators/weaponClasses'
 import { WEAPON_SELL_PRICE } from '../../data/constants'
@@ -51,9 +50,7 @@ export default function EquipOverlay({ onClose }: Props) {
     if (!weapon) return null
     const classDef = WEAPON_CLASSES[weapon.weapon_class]
     const level    = store.weapon_level[wid] ?? 0
-    const slotLoad = selectWeaponSlotLoad(store as Parameters<typeof selectWeaponSlotLoad>[0], wid)
-    const campaignNodes = store.active_campaign?.nodes ?? []
-    const attached = campaignNodes.filter(c => !c.completed && c.attached_weapon_id === wid)
+    const campaign = store.weapon_campaigns[wid]
     const isExpanded  = !!expandedContent[wid]
 
     return (
@@ -91,60 +88,46 @@ export default function EquipOverlay({ onClose }: Props) {
         )}
 
         {store.owned_weapons.length > 1 && (
-          attached.length > 0
-            ? <button className={s.btnSellBlocked} disabled>{t.ui.btn_sell_blocked}</button>
-            : <button
-                className={confirmSellId === wid ? s.btnSellConfirm : s.btnSell}
-                onClick={() => handleSell(wid)}
-              >
-                {confirmSellId === wid ? t.ui.btn_sell_confirm : `${t.ui.btn_sell_weapon} (${WEAPON_SELL_PRICE} ✦)`}
-              </button>
+          <button
+            className={confirmSellId === wid ? s.btnSellConfirm : s.btnSell}
+            onClick={() => handleSell(wid)}
+          >
+            {confirmSellId === wid ? t.ui.btn_sell_confirm : `${t.ui.btn_sell_weapon} (${WEAPON_SELL_PRICE} ✦)`}
+          </button>
         )}
 
-        <div className={s.contentToggleRow}>
-          <span className={[s.slotCount, slotLoad.used > slotLoad.capacity ? s.slotOver : ''].join(' ')}>
-            {slotLoad.used} / {slotLoad.capacity}
-          </span>
-          <button
-            className={s.btnToggleContent}
-            onClick={() => setExpandedContent(e => ({ ...e, [wid]: !e[wid] }))}
-          >
-            {isExpanded ? t.ui.equip_hide_content : t.ui.equip_show_content} {isExpanded ? '▲' : '▼'}
-          </button>
-        </div>
+        {campaign && (
+          <div className={s.contentToggleRow}>
+            <span className={s.slotCount}>
+              {campaign.nodes.filter(n => n.published).length}/{campaign.nodes.length} published
+            </span>
+            <button
+              className={s.btnToggleContent}
+              onClick={() => setExpandedContent(e => ({ ...e, [wid]: !e[wid] }))}
+            >
+              {isExpanded ? t.ui.equip_hide_content : t.ui.equip_show_content} {isExpanded ? '▲' : '▼'}
+            </button>
+          </div>
+        )}
 
-        {isExpanded && (
+        {campaign && isExpanded && (
           <div className={s.slotList}>
-            {Array.from({ length: slotLoad.capacity }).map((_, i) => {
-              const item = attached[i]
-              if (!item) {
-                return (
-                  <div key={i} className={s.slotRow}>
-                    <span className={s.slotEmptyLabel}>{t.ui.equip_slot_empty}</span>
-                  </div>
-                )
-              }
-              const isLocked = !isNodeAvailable(campaignNodes, item)
-              const parentName = isLocked && item.parent_id
-                ? (campaignNodes.find(n => n.id === item.parent_id)?.name || t.ui.untitled)
-                : null
-              const tooltip = isLocked
-                ? parentName
-                  ? `${t.ui.slot_locked_tooltip}: "${parentName}"`
-                  : t.ui.slot_locked_tooltip
-                : undefined
-              return (
-                <div key={i} className={s.slotRow}>
-                  <span
-                    className={[s.slotItemName, isLocked ? s.slotItemLocked : ''].filter(Boolean).join(' ')}
-                    title={tooltip}
-                  >
-                    {isLocked && <span className={s.slotLockIcon}>🔒</span>}
-                    {item.name || t.ui.untitled}
-                  </span>
-                </div>
-              )
-            })}
+            {campaign.nodes.slice(0, 5).map((node) => (
+              <div key={node.id} className={s.slotRow}>
+                <span className={[s.slotItemName, !node.completed && !campaign.nodes.find(() => false) ? '' : ''].join(' ')}>
+                  {node.name || <em>{t.ui.untitled}</em>}
+                </span>
+                <span className={s.nodeProgressSmall}>
+                  {node.subworkflow_count}/{node.required_subworkflows}
+                  {node.published ? ' ★' : node.completed ? ' ✓' : ''}
+                </span>
+              </div>
+            ))}
+            {campaign.nodes.length > 5 && (
+              <div className={s.slotRow}>
+                <span className={s.slotEmptyLabel}>+{campaign.nodes.length - 5} more…</span>
+              </div>
+            )}
           </div>
         )}
       </div>

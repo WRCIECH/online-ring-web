@@ -69,18 +69,16 @@ export default function RunMapScreen() {
   const [popupPos, setPopupPos]     = useState({ x: 0, y: 0 })
   const [eventNode, setEventNode]   = useState<LocationData | null>(null)
   const [showContent,   setShowContent]   = useState(false)
-  const campaignNodes = store.active_campaign?.nodes ?? []
-  const unnamedCount  = campaignNodes.filter(n => !n.name.trim()).length
-  const isFirstFight  = store.run_current_index === 0
-  const canEnterFight = !isFirstFight || unnamedCount === 0
+  const canEnterFight = true
   const expiredRef = useRef(false)
 
   const seq     = store.run_location_sequence
   const current = store.run_current_index
 
-  const mapWeapons = store.weapon_instances.filter(w =>
-    campaignNodes.some(c => !c.completed && c.attached_weapon_id === w.instance_id)
-  )
+  const mapWeapons = store.weapon_instances.filter(w => {
+    const c = store.weapon_campaigns[w.instance_id]
+    return c && c.nodes.some(n => !n.completed)
+  })
   const mapWeaponIds = mapWeapons.map(w => w.instance_id)
   const [activeMapWeaponId, setActiveMapWeaponId] = useState(() => mapWeapons[0]?.instance_id ?? '')
 
@@ -358,7 +356,6 @@ export default function RunMapScreen() {
 
   function handleEnterLocation() {
     if (popupIdx < 0) return
-    if (!canEnterFight) { setShowContent(true); return }
     const loc = seq[popupIdx]
     store.setPendingEncounter(loc)
     navigate('/combat')
@@ -366,7 +363,6 @@ export default function RunMapScreen() {
 
   function handleEnterTrial() {
     if (!eventNode) return
-    if (!canEnterFight) { setShowContent(true); return }
     store.setPendingEncounter({ ...eventNode, mult: eventNode.mult * 1.5 })
     setEventNode(null)
     navigate('/combat')
@@ -429,22 +425,10 @@ export default function RunMapScreen() {
             </div>
             <div className={s.popupMult}>×{popupLoc.mult.toFixed(2)} {t.ui.difficulty_label}</div>
             <div className={s.popupDesc}>{t.enemies[popupLoc.enemy_id]?.description ?? popupEnemy.description}</div>
-            {!canEnterFight && (
-              <div className={s.pipelineGate}>
-                {t.ui.campaign_gate_warning}
-                <span className={s.pipelineCount}>({unnamedCount} unnamed)</span>
-              </div>
-            )}
             <div className={s.popupFooter}>
-              {canEnterFight ? (
-                <button className={s.btnEnter} onClick={handleEnterLocation}>
-                  {t.ui.enter_location}
-                </button>
-              ) : (
-                <button className={s.btnEnter} onClick={() => setShowContent(true)}>
-                  {t.ui.btn_campaigns}
-                </button>
-              )}
+              <button className={s.btnEnter} onClick={handleEnterLocation}>
+                {t.ui.enter_location}
+              </button>
               <button onClick={() => setPopupIdx(-1)}>{t.ui.btn_close}</button>
             </div>
           </div>
@@ -457,22 +441,10 @@ export default function RunMapScreen() {
           <div className={s.eventPanel}>
             <div className={`${s.eventTitle} ${s.trialTitle}`}>{t.ui.trial_title}</div>
             <div className={s.eventDesc}>{t.ui.trial_desc}</div>
-            {!canEnterFight && (
-              <div className={s.pipelineGate}>
-                {t.ui.campaign_gate_warning}
-                <span className={s.pipelineCount}>({unnamedCount} unnamed)</span>
-              </div>
-            )}
             <div className={s.eventActions}>
-              {canEnterFight ? (
-                <button className={s.btnTrial} onClick={handleEnterTrial}>
-                  {t.ui.accept_trial}
-                </button>
-              ) : (
-                <button className={s.btnTrial} onClick={() => setShowContent(true)}>
-                  {t.ui.btn_campaigns}
-                </button>
-              )}
+              <button className={s.btnTrial} onClick={handleEnterTrial}>
+                {t.ui.accept_trial}
+              </button>
               <button onClick={() => setEventNode(null)}>{t.ui.btn_refuse}</button>
             </div>
           </div>

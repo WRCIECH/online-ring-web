@@ -1,25 +1,8 @@
-import type { CampaignNode, Campaign } from '../../types/game'
-import { CLASS_DEFINITIONS } from '../classes'
+import type { CampaignNode, CampaignEdge, WeaponCampaign, AtomicOrigin, StyleType, WeaponInstance } from '../../types/game'
+import { WEAPON_CLASSES } from './weaponClasses'
 
 function genId(): string {
   return 'cn_' + Math.random().toString(36).slice(2, 9)
-}
-
-function nodeDepth(nodes: CampaignNode[], node: CampaignNode): number {
-  let depth = 0
-  let curId: string | null = node.parent_id
-  while (curId !== null) {
-    const parent = nodes.find(n => n.id === curId)
-    if (!parent) break
-    curId = parent.parent_id
-    depth++
-    if (depth > 50) break
-  }
-  return depth
-}
-
-function childCount(nodes: CampaignNode[], node: CampaignNode): number {
-  return nodes.filter(n => n.parent_id === node.id).length
 }
 
 function weightedSample<T>(items: T[], weights: number[]): T {
@@ -32,51 +15,89 @@ function weightedSample<T>(items: T[], weights: number[]): T {
   return items[items.length - 1]
 }
 
-export function isNodeAvailable(nodes: CampaignNode[], node: CampaignNode): boolean {
-  if (node.parent_id === null) return true
-  const parent = nodes.find(n => n.id === node.parent_id)
-  return (parent?.subworkflow_count ?? 0) >= 1
+function childCount(edges: CampaignEdge[], nodeId: string): number {
+  return edges.filter(e => e.from_id === nodeId).length
 }
 
-export function generateCampaign(classId: string, name = ''): Campaign {
-  const cls = CLASS_DEFINITIONS.find(c => c.id === classId)
-  const velocityBonus = cls ? Math.max(0, cls.startingStats.VELOCITY - 8) : 0
-  const depthBonus    = cls ? Math.max(0, cls.startingStats.DEPTH    - 8) : 0
+function nodeDepth(nodes: CampaignNode[], edges: CampaignEdge[], nodeId: string): number {
+  let depth = 0
+  let cur = nodeId
+  const visited = new Set<string>()
+  while (true) {
+    if (visited.has(cur)) break
+    visited.add(cur)
+    const parentEdge = edges.find(e => e.to_id === cur)
+    if (!parentEdge) break
+    cur = parentEdge.from_id
+    depth++
+    if (depth > 50) break
+  }
+  return depth
+}
 
-  const baseCount = 8 + Math.floor(Math.random() * 7)   // 8–14
-  const nodeCount = Math.min(20, baseCount + Math.floor(velocityBonus / 3))
-  const maxBranch = depthBonus > 5 ? 2 : 3
+function drawEdgeLabel(
+  pool: (AtomicOrigin | StyleType)[],
+): AtomicOrigin | StyleType | null {
+  if (pool.length === 0) return null
+  if (Math.random() < 0.33) return null
+  return pool[Math.floor(Math.random() * pool.length)]
+}
 
-  function makeNode(parentId: string | null): CampaignNode {
+export function isNodeAvailable(nodes: CampaignNode[], edges: CampaignEdge[], node: CampaignNode): boolean {
+  const incoming = edges.filter(e => e.to_id === node.id)
+  if (incoming.length === 0) return true  // root node
+  return incoming.every(e => nodes.find(n => n.id === e.from_id)?.completed ?? false)
+}
+
+const NODE_COUNT_BY_WEIGHT: Record<string, [number, number]> = {
+  light:    [5, 7],
+  medium:   [7, 10],
+  heavy:    [10, 13],
+  colossal: [13, 15],
+}
+
+export function generateWeaponCampaign(weapon: WeaponInstance): WeaponCampaign {
+  const cls = WEAPON_CLASSES[weapon.weapon_class]
+  const [minNodes, maxNodes] = NODE_COUNT_BY_WEIGHT[weapon.poise_weight ?? 'medium'] ?? [7, 10]
+  const nodeCount = minNodes + Math.floor(Math.random() * (maxNodes - minNodes + 1))
+  const maxBranch = 3
+
+  const edgePool: (AtomicOrigin | StyleType)[] = [
+    ...(cls.allowed_transformations as AtomicOrigin[]),
+    ...(cls.styles as StyleType[]),
+  ]
+
+  function makeNode(): CampaignNode {
     return {
       id: genId(),
       name: '',
-      parent_id: parentId,
       completed: false,
+      published: false,
       required_subworkflows: Math.floor(Math.random() * 4) + 2,
       subworkflow_count: 0,
     }
   }
 
-  const root = makeNode(null)
+  const root = makeNode()
   const nodes: CampaignNode[] = [root]
+  const edges: CampaignEdge[] = []
 
   while (nodes.length < nodeCount) {
-    const eligible = nodes.filter(n => childCount(nodes, n) < maxBranch)
+    const eligible = nodes.filter(n => childCount(edges, n.id) < maxBranch)
     if (!eligible.length) break
-    const depths  = eligible.map(n => nodeDepth(nodes, n))
+    const depths  = eligible.map(n => nodeDepth(nodes, edges, n.id))
     const maxD    = Math.max(...depths)
-    // Bias toward shallower nodes so the tree fans out naturally
     const weights = depths.map(d => maxD - d + 1)
     const parent  = weightedSample(eligible, weights)
-    nodes.push(makeNode(parent.id))
+    const child   = makeNode()
+    nodes.push(child)
+    edges.push({ from_id: parent.id, to_id: child.id, label: drawEdgeLabel(edgePool) })
   }
 
   return {
     id: genId(),
-    name,
-    class_id: classId,
     nodes,
+    edges,
     created_at: Date.now(),
     completed: false,
   }

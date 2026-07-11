@@ -180,24 +180,27 @@ export interface Stats {
 export interface CampaignNode {
   id: string
   name: string                  // player-editable content piece title
-  parent_id: string | null      // null = root; root is always available
-  completed: boolean
-  required_subworkflows: number // 2–5, set at generation; node is done when subworkflow_count reaches this
+  completed: boolean            // subworkflow_count >= required_subworkflows
+  published: boolean            // user manually marks after completed
+  required_subworkflows: number // 2–5, set at generation
   subworkflow_count: number     // how many workflow cycles have been completed so far
-  attached_weapon_id?: string
   last_workflow?: WorkflowGraph // snapshot for remaster regeneration
   remaster_count?: number
   is_remastering?: boolean
 }
 
-export interface Campaign {
+export interface CampaignEdge {
+  from_id: string
+  to_id: string
+  label: AtomicOrigin | StyleType | null  // null = chronological/follows
+}
+
+export interface WeaponCampaign {
   id: string
-  name: string                  // player-editable campaign title
-  class_id: string
   nodes: CampaignNode[]
+  edges: CampaignEdge[]
   created_at: number
-  completed: boolean
-  completed_at?: number
+  completed: boolean            // >= 60% of nodes published
 }
 
 // ── Game state ────────────────────────────────────────────────────────────
@@ -234,9 +237,8 @@ export interface GameState {
   // Active workflow (persisted across mob fights until all tiles done or abandoned)
   active_workflow: WorkflowGraph | null
   active_content_id: string | null
-  // Content campaign
-  active_campaign: Campaign | null
-  past_campaigns: Campaign[]
+  // Content campaigns (per weapon instance)
+  weapon_campaigns: Record<string, WeaponCampaign>
   // Analytics
   total_task_time_s: number
   // UI locale

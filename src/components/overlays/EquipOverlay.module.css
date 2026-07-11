@@ -375,6 +375,13 @@
   margin-right: 4px;
 }
 
+.nodeProgressSmall {
+  font-size: 0.7rem;
+  color: var(--color-text-dim);
+  flex-shrink: 0;
+  font-variant-numeric: tabular-nums;
+}
+
 .slotSelect {
   flex: 1;
   font-size: 0.8rem;

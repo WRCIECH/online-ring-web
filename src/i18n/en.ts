@@ -352,6 +352,11 @@ const en: TranslationBundle = {
     slot_locked_tooltip:      'Locked — complete the parent node first to use in combat',
     campaign_gate_warning:    'Name all campaign nodes before your first fight.',
     starting_armor:           'Starting Armor',
+    btn_generate_campaign:    'Generate Campaign',
+    campaign_done:            'Campaign Complete',
+    node_published:           'Published',
+    edge_label_chronological: '→',
+    btn_publish_node:         'Publish',
 
     // EquipOverlay
     equip_title:          '⚙ Workflows',

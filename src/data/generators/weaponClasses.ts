@@ -22,8 +22,6 @@ export interface WeaponClassDef {
   time_mod: number
   emotions: EmotionType[]
   allowed_transformations: AtomicOrigin[]
-  // Per-weapon cap on simultaneously-attached ContentItems (on top of the
-  // global END-stat cap in gameStore.ts's selectEquipLoad).
   content_slots: number
   // Number of pre-rolled remaster states beyond the primary roll (see
   // RolledPatternDraws in types/game.ts) — defaults by poise_weight.

@@ -13,10 +13,10 @@
   border: 1px solid rgba(100, 80, 200, 0.25);
   border-radius: var(--radius-lg);
   padding: 24px 30px;
-  width: 580px;
+  width: 820px;
   max-width: 96vw;
   max-height: 88vh;
-  overflow-y: auto;
+  overflow: hidden;
   display: flex;
   flex-direction: column;
   gap: 14px;
@@ -28,6 +28,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
+  flex-shrink: 0;
 }
 
 .title {
@@ -43,47 +44,148 @@
   border-radius: var(--radius);
 }
 
-/* ── Campaign identity row ──────────────────────────────────────────────── */
+/* ── Two-panel body ─────────────────────────────────────────────────────── */
 
-.campaignHeader {
+.body {
   display: flex;
-  align-items: center;
-  gap: 14px;
+  gap: 16px;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
 }
 
-.campaignInfo {
-  flex: 1;
+/* ── Left: weapon list ──────────────────────────────────────────────────── */
+
+.weaponList {
   display: flex;
   flex-direction: column;
   gap: 4px;
+  width: 180px;
+  flex-shrink: 0;
+  overflow-y: auto;
+  padding-right: 4px;
 }
 
-.campaignName {
-  font-size: 1.05rem;
-  font-weight: 500;
-  color: var(--color-text);
+.weaponCard {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  border-radius: var(--radius);
+  background: rgba(255,255,255,0.02);
+  border: 1px solid var(--color-border);
   cursor: pointer;
-  border-radius: 3px;
-  padding: 2px 4px;
-  transition: background 0.1s;
+  text-align: left;
+  transition: background 0.1s, border-color 0.1s;
+  width: 100%;
 }
 
-.campaignName:hover { background: rgba(255,255,255,0.05); }
+.weaponCard:hover { background: rgba(255,255,255,0.05); }
+
+.weaponCardSelected {
+  background: rgba(100,80,200,0.12) !important;
+  border-color: rgba(100,80,200,0.4) !important;
+}
+
+.weaponCardIcon {
+  width: 22px;
+  height: 22px;
+  flex-shrink: 0;
+  opacity: 0.75;
+}
+
+.weaponCardName {
+  flex: 1;
+  font-size: 0.78rem;
+  color: var(--color-text);
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.weaponHasCampaign {
+  font-size: 0.65rem;
+  color: #ccaa44;
+  flex-shrink: 0;
+}
+
+.weaponNoCampaign {
+  font-size: 0.75rem;
+  color: var(--color-text-dim);
+  opacity: 0.5;
+  flex-shrink: 0;
+}
+
+/* ── Right: tree pane ───────────────────────────────────────────────────── */
+
+.treePane {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  overflow-y: auto;
+  min-width: 0;
+}
+
+/* ── Generate campaign ──────────────────────────────────────────────────── */
+
+.generateWrap {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 16px 0;
+}
+
+.generateMsg {
+  font-size: 0.82rem;
+  color: var(--color-text-dim);
+}
+
+.btnGenerate {
+  font-size: 0.82rem;
+  letter-spacing: 0.06em;
+  padding: 8px 18px;
+  border-radius: var(--radius);
+  background: rgba(80,200,100,0.07);
+  border: 1px dashed rgba(80,200,100,0.3);
+  color: #66cc88;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.btnGenerate:hover { background: rgba(80,200,100,0.14); }
+
+/* ── Campaign progress bar ──────────────────────────────────────────────── */
 
 .campaignProgress {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+.progressLabel {
   font-size: 0.75rem;
   color: var(--color-text-dim);
   letter-spacing: 0.06em;
 }
 
-.campaignInput {
-  font-size: 1.0rem;
-  padding: 4px 8px;
-  background: rgba(255,255,255,0.06);
-  border: 1px solid var(--color-border);
+.campaignDoneBadge {
+  font-size: 0.68rem;
+  padding: 2px 8px;
   border-radius: 3px;
-  color: var(--color-text);
-  width: 100%;
+  background: rgba(200,170,50,0.12);
+  border: 1px solid rgba(200,170,50,0.3);
+  color: #ccaa44;
+}
+
+.completedHint {
+  font-size: 0.78rem;
+  color: var(--color-text-dim);
+  font-style: italic;
+  padding: 8px 0;
 }
 
 /* ── Sep ───────────────────────────────────────────────────────────────── */
@@ -99,8 +201,36 @@
 .nodeTree {
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 1px;
 }
+
+/* ── Edge connector row ─────────────────────────────────────────────────── */
+
+.edgeRow {
+  display: flex;
+  align-items: center;
+  padding: 1px 10px;
+  margin-left: 10px;
+}
+
+.edgeBadge {
+  font-size: 0.62rem;
+  padding: 1px 6px;
+  border-radius: 3px;
+  background: rgba(100,80,200,0.10);
+  border: 1px solid rgba(100,80,200,0.22);
+  color: rgba(180,160,255,0.7);
+  white-space: nowrap;
+}
+
+.edgeNull {
+  font-size: 0.62rem;
+  color: var(--color-text-dim);
+  opacity: 0.45;
+  padding: 0 4px;
+}
+
+/* ── Node row ───────────────────────────────────────────────────────────── */
 
 .nodeRow {
   display: flex;
@@ -114,12 +244,19 @@
 
 .nodeRow:hover { background: rgba(255,255,255,0.03); }
 
-.nodeCompleted {
-  opacity: 0.55;
+.nodeLocked {
+  opacity: 0.35;
 }
 
-.nodeLocked {
-  opacity: 0.4;
+.nodeFinished {
+  background: rgba(200,170,50,0.06);
+  border: 1px solid rgba(200,170,50,0.2);
+}
+
+.nodeFinished:hover { background: rgba(200,170,50,0.10); }
+
+.nodePublished {
+  opacity: 0.55;
 }
 
 .nodeIcon {
@@ -130,7 +267,8 @@
   color: var(--color-text-dim);
 }
 
-.nodeCompleted .nodeIcon { color: #55cc77; }
+.nodeFinished .nodeIcon { color: #ccaa44; }
+.nodePublished .nodeIcon { color: #55cc77; }
 
 .nodeName {
   flex: 1;
@@ -167,17 +305,6 @@
   min-width: 0;
 }
 
-.weaponChip {
-  font-size: 0.68rem;
-  padding: 2px 7px;
-  border-radius: 3px;
-  background: rgba(74,158,255,0.1);
-  border: 1px solid rgba(74,158,255,0.25);
-  color: #88aaee;
-  white-space: nowrap;
-  flex-shrink: 0;
-}
-
 .nodeProgress {
   font-size: 0.72rem;
   font-variant-numeric: tabular-nums;
@@ -204,134 +331,29 @@
   flex-shrink: 0;
 }
 
-/* ── Node weapon assignment ─────────────────────────────────────────────── */
-
-.nodeWeaponRow {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  flex-shrink: 0;
-}
-
-.btnDetachNode {
-  font-size: 0.7rem;
-  line-height: 1;
-  padding: 1px 5px;
+.btnPublish {
+  font-size: 0.65rem;
+  padding: 2px 8px;
   border-radius: 3px;
-  background: rgba(200,80,80,0.15);
-  border: 1px solid rgba(200,80,80,0.3);
-  color: #cc6666;
-  cursor: pointer;
-  flex-shrink: 0;
-}
-.btnDetachNode:hover { background: rgba(200,80,80,0.28); }
-
-.nodeWeaponSelect {
-  font-size: 0.68rem;
-  padding: 2px 4px;
-  border-radius: 3px;
-  background: rgba(15,13,34,0.9);
-  border: 1px solid rgba(100,80,200,0.3);
-  color: var(--color-text-dim);
-  cursor: pointer;
-  max-width: 140px;
-  flex-shrink: 0;
-}
-.nodeWeaponSelect:focus { outline: none; border-color: rgba(100,80,200,0.6); }
-
-/* ── Start new campaign ─────────────────────────────────────────────────── */
-
-.btnStartNewCampaign {
-  align-self: flex-start;
-  font-size: 0.82rem;
-  letter-spacing: 0.06em;
-  padding: 8px 18px;
-  border-radius: var(--radius);
-  background: rgba(80,200,100,0.07);
-  border: 1px dashed rgba(80,200,100,0.3);
-  color: #66cc88;
-  cursor: pointer;
-  transition: background 0.15s;
-}
-
-.btnStartNewCampaign:hover { background: rgba(80,200,100,0.14); }
-
-.newCampaignRow {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.btnStartNew {
-  font-size: 0.8rem;
-  padding: 6px 14px;
-  border-radius: var(--radius);
-  background: rgba(80,200,100,0.1);
-  border: 1px solid rgba(80,200,100,0.3);
-  color: #66cc88;
+  background: rgba(200,170,50,0.12);
+  border: 1px solid rgba(200,170,50,0.35);
+  color: #ccaa44;
   cursor: pointer;
   white-space: nowrap;
+  flex-shrink: 0;
+  transition: background 0.1s;
 }
 
-.btnCancelDel {
-  font-size: 0.7rem;
-  padding: 3px 7px;
+.btnPublish:hover { background: rgba(200,170,50,0.22); }
+
+.publishedBadge {
+  font-size: 0.62rem;
+  padding: 1px 6px;
   border-radius: 3px;
-  background: transparent;
-  border: 1px solid var(--color-sep);
-  color: var(--color-text-dim);
-  cursor: pointer;
-}
-
-/* ── Past campaigns ─────────────────────────────────────────────────────── */
-
-.pastToggle {
-  font-size: 0.78rem;
-  letter-spacing: 0.06em;
-  color: var(--color-text-dim);
-  background: transparent;
-  border: none;
-  padding: 2px 0;
-  cursor: pointer;
-  text-align: left;
-  transition: color 0.1s;
-}
-
-.pastToggle:hover { color: var(--color-text); }
-
-.pastList {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  margin-top: 4px;
-}
-
-.pastItem {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 6px 10px;
-  border-radius: var(--radius);
-  background: rgba(255,255,255,0.02);
-  border: 1px solid var(--color-border);
-  opacity: 0.7;
-}
-
-.pastArmor { flex-shrink: 0; }
-
-.pastName {
-  flex: 1;
-  font-size: 0.85rem;
-  color: var(--color-text);
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  background: rgba(80,200,100,0.08);
+  border: 1px solid rgba(80,200,100,0.22);
+  color: #55cc77;
   white-space: nowrap;
-}
-
-.pastProgress {
-  font-size: 0.75rem;
-  color: var(--color-text-dim);
   flex-shrink: 0;
 }
 

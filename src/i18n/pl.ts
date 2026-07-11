@@ -347,6 +347,11 @@ const pl: TranslationBundle = {
     slot_locked_tooltip:      'Zablokowany — ukończ węzeł nadrzędny, aby użyć w walce',
     campaign_gate_warning:    'Nazwij wszystkie węzły kampanii zanim zaczniesz walkę.',
     starting_armor:           'Startowy pancerz',
+    btn_generate_campaign:    'Generuj kampanię',
+    campaign_done:            'Kampania ukończona',
+    node_published:           'Opublikowany',
+    edge_label_chronological: '→',
+    btn_publish_node:         'Opublikuj',
 
     // EquipOverlay
     equip_title:          '⚙ Workflows',

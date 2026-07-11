@@ -1,5 +1,5 @@
 import { create } from 'zustand'
-import type { GameState, LocationData, Stats, WeaponInstance, SublocationType, CampaignNode, Locale, WorkflowGraph, LocationTheme } from '../types/game'
+import type { GameState, LocationData, Stats, WeaponInstance, SublocationType, CampaignNode, WeaponCampaign, Locale, WorkflowGraph, LocationTheme } from '../types/game'
 import { ENEMIES } from '../data/enemies'
 import { saveGame, loadGame } from '../engine/save'
 import { registerWeapon, WEAPONS } from '../data/weapons'
@@ -8,7 +8,7 @@ import { rollWeapon } from '../data/generators/weaponGenerator'
 import { WEAPON_CLASSES } from '../data/generators/weaponClasses'
 import { generateRemasterWorkflow, regenerateWorkflowKeepingStructure } from '../data/generators/remasterGenerator'
 import { CLASS_DEFINITIONS } from '../data/classes'
-import { generateCampaign, isNodeAvailable } from '../data/generators/campaignGenerator'
+import { generateWeaponCampaign, isNodeAvailable } from '../data/generators/campaignGenerator'
 import type { LocationDef } from '../data/locations'
 
 function hydrateRegistries(state: GameState): void {
@@ -223,8 +223,7 @@ function initialState(): GameState {
     abandon_penalty: 0,
     active_workflow: null,
     active_content_id: null,
-    active_campaign: null,
-    past_campaigns: [],
+    weapon_campaigns: {},
 
     total_task_time_s: 0,
     locale: 'pl',
@@ -272,14 +271,12 @@ export interface GameStore extends GameState {
   // Class & character init
   initClass: (classId: string) => void
 
-  // Campaign
-  renameCampaignNode:  (nodeId: string, name: string) => void
-  completeCampaignNode:(nodeId: string, workflow: WorkflowGraph) => void
-  attachNodeToWeapon:  (nodeId: string, weaponId: string) => void
-  detachNodeFromWeapon:(nodeId: string) => void
-  startNodeRemaster:   (nodeId: string, weaponId: string) => void
-  startNewCampaign:    (name: string) => void
-  renameCampaign:      (name: string) => void
+  // Campaign (per weapon)
+  assignCampaignToWeapon: (weaponId: string) => void
+  renameCampaignNode:     (weaponId: string, nodeId: string, name: string) => void
+  completeCampaignNode:   (weaponId: string, nodeId: string, workflow: WorkflowGraph) => void
+  publishCampaignNode:    (weaponId: string, nodeId: string) => void
+  startNodeRemaster:      (weaponId: string, nodeId: string) => void
 
   // Learning items
 
@@ -379,18 +376,16 @@ export const useGameStore = create<GameStore>((set, get) => ({
   })),
 
   sellWeapon: (weaponInstanceId) => {
-    set(s => ({
-      owned_weapons:    s.owned_weapons.filter(id => id !== weaponInstanceId),
-      weapon_instances: s.weapon_instances.filter(w => w.instance_id !== weaponInstanceId),
-      weapon_level:     Object.fromEntries(Object.entries(s.weapon_level).filter(([k]) => k !== weaponInstanceId)),
-      active_campaign: s.active_campaign ? {
-        ...s.active_campaign,
-        nodes: s.active_campaign.nodes.map(n =>
-          n.attached_weapon_id === weaponInstanceId ? { ...n, attached_weapon_id: undefined } : n
-        ),
-      } : null,
-      runes: s.runes + WEAPON_SELL_PRICE,
-    }))
+    set(s => {
+      const { [weaponInstanceId]: _dropped, ...remainingCampaigns } = s.weapon_campaigns
+      return {
+        owned_weapons:    s.owned_weapons.filter(id => id !== weaponInstanceId),
+        weapon_instances: s.weapon_instances.filter(w => w.instance_id !== weaponInstanceId),
+        weapon_level:     Object.fromEntries(Object.entries(s.weapon_level).filter(([k]) => k !== weaponInstanceId)),
+        weapon_campaigns: remainingCampaigns,
+        runes: s.runes + WEAPON_SELL_PRICE,
+      }
+    })
     get().save()
   },
 
@@ -447,7 +442,6 @@ export const useGameStore = create<GameStore>((set, get) => ({
     if (!cls) return
     const w = rollWeapon(cls.weaponClass, 'common')
     registerWeapon(w)
-    const campaign = generateCampaign(classId)
     set({
       player_class: classId,
       stats: { ...cls.startingStats },
@@ -457,129 +451,108 @@ export const useGameStore = create<GameStore>((set, get) => ({
       weapon_instances: [w],
       weapon_level: { [w.instance_id]: 0 },
       current_hp: calcMaxHp(cls.startingStats.VIG),
-      active_campaign: campaign,
-      past_campaigns: [],
+      weapon_campaigns: {},
       active_workflow: null,
       active_content_id: null,
     })
     get().save()
   },
 
-  renameCampaignNode: (nodeId, name) => {
+  assignCampaignToWeapon: (weaponId) => {
+    const weapon = get().weapon_instances.find(w => w.instance_id === weaponId)
+    if (!weapon) return
+    const campaign = generateWeaponCampaign(weapon)
+    set(s => ({ weapon_campaigns: { ...s.weapon_campaigns, [weaponId]: campaign } }))
+    get().save()
+  },
+
+  renameCampaignNode: (weaponId, nodeId, name) => {
     set(s => {
-      if (!s.active_campaign) return s
+      const c = s.weapon_campaigns[weaponId]
+      if (!c) return s
       return {
-        active_campaign: {
-          ...s.active_campaign,
-          nodes: s.active_campaign.nodes.map(n => n.id === nodeId ? { ...n, name } : n),
+        weapon_campaigns: {
+          ...s.weapon_campaigns,
+          [weaponId]: { ...c, nodes: c.nodes.map(n => n.id === nodeId ? { ...n, name } : n) },
         },
       }
     })
     get().save()
   },
 
-  completeCampaignNode: (nodeId, workflow) => {
+  completeCampaignNode: (weaponId, nodeId, workflow) => {
     set(s => {
-      if (!s.active_campaign) return s
-      const node = s.active_campaign.nodes.find(n => n.id === nodeId)
+      const c = s.weapon_campaigns[weaponId]
+      if (!c) return s
+      const node = c.nodes.find(n => n.id === nodeId)
       if (!node) return s
       const newCount   = (node.subworkflow_count ?? 0) + 1
       const required   = node.required_subworkflows ?? 2
       const nowDone    = newCount >= required
-      const wasRemaste = node.is_remastering ?? false
+      const wasRemaster = node.is_remastering ?? false
       const updated: CampaignNode = {
         ...node,
         subworkflow_count: newCount,
         completed: nowDone,
         last_workflow: workflow,
-        remaster_count: wasRemaste ? (node.remaster_count ?? 0) + 1 : (node.remaster_count ?? 0),
+        remaster_count: wasRemaster ? (node.remaster_count ?? 0) + 1 : (node.remaster_count ?? 0),
         is_remastering: !nowDone,
       }
-      const nodes = s.active_campaign.nodes.map(n => n.id === nodeId ? updated : n)
-      const allDone = nodes.every(n => n.completed)
+      const nodes = c.nodes.map(n => n.id === nodeId ? updated : n)
+      const publishedCount = nodes.filter(n => n.published).length
+      const campaignDone = publishedCount / nodes.length >= 0.6
       return {
-        active_campaign: {
-          ...s.active_campaign,
-          nodes,
-          completed: allDone,
-          completed_at: allDone ? Date.now() : s.active_campaign.completed_at,
+        weapon_campaigns: {
+          ...s.weapon_campaigns,
+          [weaponId]: { ...c, nodes, completed: campaignDone },
         },
       }
     })
     get().save()
   },
 
-  attachNodeToWeapon: (nodeId, weaponId) => {
-    const s = get()
-    const nodes = s.active_campaign?.nodes ?? []
-    const assigned = nodes.filter(n => !n.completed && !!n.attached_weapon_id).length
-    if (assigned >= s.stats.END) return
+  publishCampaignNode: (weaponId, nodeId) => {
     set(s => {
-      if (!s.active_campaign) return s
+      const c = s.weapon_campaigns[weaponId]
+      if (!c) return s
+      const nodes = c.nodes.map(n => n.id === nodeId ? { ...n, published: true } : n)
+      const publishedCount = nodes.filter(n => n.published).length
+      const campaignDone = publishedCount / nodes.length >= 0.6
       return {
-        active_campaign: {
-          ...s.active_campaign,
-          nodes: s.active_campaign.nodes.map(n => n.id === nodeId ? { ...n, attached_weapon_id: weaponId } : n),
+        weapon_campaigns: {
+          ...s.weapon_campaigns,
+          [weaponId]: { ...c, nodes, completed: campaignDone },
         },
       }
     })
     get().save()
   },
 
-  detachNodeFromWeapon: (nodeId) => {
-    set(s => {
-      if (!s.active_campaign) return s
-      return {
-        active_campaign: {
-          ...s.active_campaign,
-          nodes: s.active_campaign.nodes.map(n => n.id === nodeId ? { ...n, attached_weapon_id: undefined } : n),
-        },
-      }
-    })
-    get().save()
-  },
-
-  startNodeRemaster: (nodeId, weaponId) => {
+  startNodeRemaster: (weaponId, nodeId) => {
     const weapon = WEAPONS[weaponId] as WeaponInstance | undefined
     if (!weapon) return
     const weaponClass = weapon.weapon_class
-    const node = get().active_campaign?.nodes.find(n => n.id === nodeId)
+    const c = get().weapon_campaigns[weaponId]
+    const node = c?.nodes.find(n => n.id === nodeId)
     if (!node) return
     const stateIndex = Math.min((node.remaster_count ?? 0) + 1, WEAPON_CLASSES[weaponClass].remaster_steps)
     const workflow = node.last_workflow
       ? regenerateWorkflowKeepingStructure(node.last_workflow, weaponClass, weapon.rolled_draws, stateIndex)
       : generateRemasterWorkflow(weaponClass, weapon.rolled_draws, stateIndex)
     set(s => {
-      if (!s.active_campaign) return s
+      const campaign = s.weapon_campaigns[weaponId]
+      if (!campaign) return s
       return {
-        active_campaign: {
-          ...s.active_campaign,
-          nodes: s.active_campaign.nodes.map(n => n.id === nodeId ? { ...n, completed: false, is_remastering: true } : n),
+        weapon_campaigns: {
+          ...s.weapon_campaigns,
+          [weaponId]: {
+            ...campaign,
+            nodes: campaign.nodes.map(n => n.id === nodeId ? { ...n, completed: false, is_remastering: true } : n),
+          },
         },
         active_workflow: workflow,
         active_content_id: nodeId,
       }
-    })
-    get().save()
-  },
-
-  startNewCampaign: (name) => {
-    const s = get()
-    if (!s.active_campaign) return
-    const newCampaign = generateCampaign(s.player_class, name)
-    set(prev => ({
-      past_campaigns: [...prev.past_campaigns, { ...prev.active_campaign!, completed: true }],
-      active_campaign: newCampaign,
-      active_workflow: null,
-      active_content_id: null,
-    }))
-    get().save()
-  },
-
-  renameCampaign: (name) => {
-    set(s => {
-      if (!s.active_campaign) return s
-      return { active_campaign: { ...s.active_campaign, name } }
     })
     get().save()
   },
@@ -597,23 +570,16 @@ export const useGameStore = create<GameStore>((set, get) => ({
     const data = loadGame()
     if (!data) return false
     // Migration safety
-    if (!data.locale)             data.locale             = 'pl'
-    if (!data.active_campaign)    data.active_campaign    = null
-    if (!data.past_campaigns)     data.past_campaigns     = []
-    // Remove legacy field from old saves
-    delete (data as unknown as Record<string, unknown>).content_items
-    // Backfill subworkflow fields on existing nodes
-    if (data.active_campaign) {
-      data.active_campaign.nodes = data.active_campaign.nodes.map((n: CampaignNode) => ({
-        ...n,
-        required_subworkflows: n.required_subworkflows ?? 2,
-        subworkflow_count: n.subworkflow_count ?? (n.completed ? 2 : 0),
-      }))
-    }
-    if (!data.total_task_time_s) data.total_task_time_s = 0
-    if (data.abandon_penalty === undefined) data.abandon_penalty = 0
+    if (!data.locale)               data.locale               = 'pl'
+    if (!data.weapon_campaigns)     data.weapon_campaigns     = {}
+    if (!data.total_task_time_s)    data.total_task_time_s    = 0
+    if (data.abandon_penalty === undefined)  data.abandon_penalty  = 0
     if (data.active_workflow  === undefined) data.active_workflow  = null
     if (data.active_content_id === undefined) data.active_content_id = null
+    // Remove legacy fields
+    delete (data as unknown as Record<string, unknown>).content_items
+    delete (data as unknown as Record<string, unknown>).active_campaign
+    delete (data as unknown as Record<string, unknown>).past_campaigns
     hydrateRegistries(data)
     set({ ...data })
     return true
@@ -646,24 +612,8 @@ export const selectEnemyData = (s: GameStore) => {
   return ENEMIES[loc.enemy_id] ?? null
 }
 
-export const selectWeaponSlotLoad = (s: GameStore, weaponInstanceId: string) => {
-  const nodes = s.active_campaign?.nodes ?? []
-  const used = nodes.filter(n => !n.completed && n.attached_weapon_id === weaponInstanceId).length
-  const weapon = WEAPONS[weaponInstanceId] as WeaponInstance | undefined
-  const capacity = weapon ? WEAPON_CLASSES[weapon.weapon_class].content_slots : 0
-  return { used, capacity }
-}
-
-export const selectEquipLoad = (s: GameStore) => {
-  const nodes = s.active_campaign?.nodes ?? []
-  const contentUsed = nodes.filter(n => !n.completed && !!n.attached_weapon_id).length
-  return { used: contentUsed, capacity: s.stats.END }
-}
-
-export const selectActiveNodes = (s: GameStore) =>
-  s.active_campaign?.nodes ?? []
-
-export const selectAvailableNodes = (s: GameStore) => {
-  const nodes = selectActiveNodes(s)
-  return nodes.filter(n => !n.completed && isNodeAvailable(nodes, n))
+export const selectAvailableNodes = (s: GameStore, weaponId: string): CampaignNode[] => {
+  const c = s.weapon_campaigns[weaponId]
+  if (!c) return []
+  return c.nodes.filter(n => !n.completed && isNodeAvailable(c.nodes, c.edges, n))
 }

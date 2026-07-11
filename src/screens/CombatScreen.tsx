@@ -50,11 +50,12 @@ export default function CombatScreen() {
 
   const enemyData = loc ? ENEMIES[loc.enemy_id] : null
 
-  // ── Weapons available in combat: all that have a campaign node attached ──
-  const campaignNodes = store.active_campaign?.nodes ?? []
-  const weaponsWithContent = store.weapon_instances.filter(w =>
-    campaignNodes.some(c => !c.completed && c.attached_weapon_id === w.instance_id && isNodeAvailable(campaignNodes, c))
-  )
+  // ── Weapons available in combat: all that have a campaign with available nodes ──
+  const weaponsWithContent = store.weapon_instances.filter(w => {
+    const c = store.weapon_campaigns[w.instance_id]
+    if (!c) return false
+    return c.nodes.some(n => !n.completed && isNodeAvailable(c.nodes, c.edges, n))
+  })
 
   // ── Initial weapon (seeds the very first/resumed workflow only) ──────────
   const initialWeaponId    = weaponsWithContent[0]?.instance_id ?? store.weapon_instances[0]?.instance_id ?? 'unarmed'
@@ -64,8 +65,9 @@ export default function CombatScreen() {
   const initialWeaponRarity = initialWeapon?.rarity        ?? 'common'
 
   // ── Remaster pass — true if the node being worked on is mid-remaster ────
+  const activeWeaponCampaign = store.weapon_campaigns[initialWeaponId]
   const isRemasterPass = !!store.active_content_id
-    && !!campaignNodes.find(c => c.id === store.active_content_id)?.is_remastering
+    && !!(activeWeaponCampaign?.nodes.find(c => c.id === store.active_content_id)?.is_remastering)
 
   // ── Init combat state (stable across renders) ────────────────────────────
   const [state, dispatch] = useReducer(
@@ -86,7 +88,7 @@ export default function CombatScreen() {
       // Resume persisted workflow, or regenerate remaster, or generate fresh
       const spawnAsBoss = loc.sublocation_type === 'boss'
       const activeNode = store.active_content_id
-        ? campaignNodes.find(c => c.id === store.active_content_id)
+        ? activeWeaponCampaign?.nodes.find(c => c.id === store.active_content_id)
         : undefined
       const workflow = store.active_workflow
         ?? (isRemasterPass && activeNode?.last_workflow
@@ -152,14 +154,16 @@ export default function CombatScreen() {
       dispatch({ type: 'SWITCH_WORKFLOW', workflow: newWorkflow, isRemaster: false })
     }
 
-    // Switch active content to whichever node is attached to the new weapon
-    const allNodes = store.active_campaign?.nodes ?? []
-    const contentForWeapon = allNodes.find(
-      c => !c.completed && c.attached_weapon_id === weaponId
-    )
-    if (contentForWeapon) {
-      setSelectedContentId(contentForWeapon.id)
-      store.setActiveContentId(contentForWeapon.id)
+    // Switch active content to first available node in new weapon's campaign
+    const newCampaign = store.weapon_campaigns[weaponId]
+    if (newCampaign) {
+      const firstAvailable = newCampaign.nodes.find(
+        n => !n.completed && isNodeAvailable(newCampaign.nodes, newCampaign.edges, n)
+      )
+      if (firstAvailable) {
+        setSelectedContentId(firstAvailable.id)
+        store.setActiveContentId(firstAvailable.id)
+      }
     }
   }, [loc, store])
 
@@ -221,7 +225,7 @@ export default function CombatScreen() {
     const allDone = state.workflow.tiles.every(t => t.is_completed)
     if (allDone) {
       if (store.active_content_id) {
-        store.completeCampaignNode(store.active_content_id, state.workflow)
+        store.completeCampaignNode(state.equippedWeaponId, store.active_content_id, state.workflow)
       }
       store.clearActiveWorkflow()
     } else {
@@ -265,16 +269,12 @@ export default function CombatScreen() {
     store.active_content_id ?? null
   )
 
-  const activeContent = selectAvailableNodes(store as Parameters<typeof selectAvailableNodes>[0])
+  const activeContent = selectAvailableNodes(store as Parameters<typeof selectAvailableNodes>[0], state.equippedWeaponId)
   const selectedContent = activeContent.find(c => c.id === selectedContentId) ?? null
 
   const handleSelectContent = (id: string) => {
     setSelectedContentId(id)
     store.setActiveContentId(id)
-    const item = (store.active_campaign?.nodes ?? []).find(c => c.id === id)
-    if (item && !item.attached_weapon_id) {
-      store.attachNodeToWeapon(id, state.equippedWeaponId)
-    }
   }
 
   // ── Workflow exhausted mid-fight: all tiles done, enemy still alive ──────
@@ -283,13 +283,9 @@ export default function CombatScreen() {
   const [dismissedForWorkflow, setDismissedForWorkflow] = useState<string | null>(null)
 
   const handleSwitchContent = (id: string) => {
-    if (selectedContentId) store.completeCampaignNode(selectedContentId, state.workflow)
+    if (selectedContentId) store.completeCampaignNode(state.equippedWeaponId, selectedContentId, state.workflow)
     setSelectedContentId(id)
     store.setActiveContentId(id)
-    const newItem = campaignNodes.find(c => c.id === id)
-    if (newItem && !newItem.attached_weapon_id) {
-      store.attachNodeToWeapon(id, state.equippedWeaponId)
-    }
     // Always generate a fresh workflow mid-fight; proper remaster starts at next combat init.
     const newWorkflow = generateWorkflow(wClass, wRarity, loc?.sublocation_type === 'boss', weapon?.rolled_draws)
     dispatch({ type: 'SWITCH_WORKFLOW', workflow: newWorkflow, isRemaster: false })
@@ -299,7 +295,7 @@ export default function CombatScreen() {
     // Count this workflow as a completed subworkflow before moving to the next phase.
     // Use a fresh workflow for the remainder of this fight; the proper remaster is
     // generated at the START of the next combat via the isRemasterPass init path.
-    if (selectedContentId) store.completeCampaignNode(selectedContentId, state.workflow)
+    if (selectedContentId) store.completeCampaignNode(state.equippedWeaponId, selectedContentId, state.workflow)
     const newWorkflow = generateWorkflow(wClass, wRarity, loc?.sublocation_type === 'boss', weapon?.rolled_draws)
     dispatch({ type: 'SWITCH_WORKFLOW', workflow: newWorkflow, isRemaster: false })
   }
@@ -410,9 +406,9 @@ export default function CombatScreen() {
         weaponNodes={Object.fromEntries(
           weaponsWithContent.map(w => [
             w.instance_id,
-            campaignNodes
-              .filter(c => c.attached_weapon_id === w.instance_id && !c.completed)
-              .map(c => c.name || 'Untitled'),
+            (store.weapon_campaigns[w.instance_id]?.nodes ?? [])
+              .filter(n => !n.completed)
+              .map(n => n.name || 'Untitled'),
           ])
         )}
         playerEstus={state.playerEstus}
