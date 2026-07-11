@@ -102,3 +102,32 @@
   font-style: italic;
   margin-bottom: 8px;
 }
+
+.affinities {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  border-top: 1px solid rgba(255,255,255,0.08);
+  padding-top: 8px;
+}
+
+.affinityRow {
+  display: flex;
+  gap: 8px;
+  align-items: baseline;
+}
+
+.affinityTier {
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+  flex-shrink: 0;
+  min-width: 80px;
+}
+
+.affinityCond {
+  font-size: 0.7rem;
+  color: var(--color-text-dim);
+  line-height: 1.3;
+}

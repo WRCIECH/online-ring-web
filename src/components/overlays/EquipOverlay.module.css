@@ -121,6 +121,40 @@
   transition: background 0.1s, box-shadow 0.1s;
 }
 
+.upgradeTip {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 4px);
+  background: var(--color-bg-panel, #12102a);
+  border: 1px solid rgba(74,100,200,0.3);
+  border-radius: var(--radius);
+  padding: 5px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  z-index: 10;
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+.upgradeTipLabel {
+  font-size: 0.62rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--color-text-dim);
+}
+
+.upgradeTipVal {
+  font-size: 0.82rem;
+  color: var(--color-text);
+  font-variant-numeric: tabular-nums;
+}
+
+.upgradeTipDelta {
+  font-size: 0.72rem;
+  color: var(--color-text-dim);
+}
+
 .btnUpgrade:hover:not(:disabled) {
   background: rgba(74,158,255,0.16);
   box-shadow: var(--glow-accent);

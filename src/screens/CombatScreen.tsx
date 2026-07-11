@@ -416,6 +416,7 @@ export default function CombatScreen() {
               maxHp: state.enemyMaxHp,
               isBoss: state.isBoss,
               sublocationtype: loc.sublocation_type,
+              affinities: enemyData.affinities,
             }}
           />
           {isPlayerTurn && radialPos && radialItems.length > 0 && (

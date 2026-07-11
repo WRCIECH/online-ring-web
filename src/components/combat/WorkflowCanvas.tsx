@@ -1,5 +1,5 @@
 import { useEffect, useLayoutEffect, useRef, useMemo, useState, useCallback } from 'react'
-import type { WorkflowGraph, WorkflowTile, SublocationType } from '../../types/game'
+import type { WorkflowGraph, WorkflowTile, SublocationType, MobAffinities } from '../../types/game'
 import { getReachableTiles, REPEAT_DAMAGE_PENALTY } from '../../engine/combat'
 import { getTileBadges, computeEffectiveTags } from '../../data/tileBadges'
 import { spiralLayout } from '../../engine/spiralLayout'
@@ -16,6 +16,7 @@ export interface EnemyOverlayProps {
   maxHp: number
   isBoss: boolean
   sublocationtype?: SublocationType
+  affinities?: MobAffinities
 }
 
 interface Props {
@@ -344,6 +345,7 @@ export default function WorkflowCanvas({ workflow, selectedTileId, onSelectTile,
             maxHp={enemy.maxHp}
             isBoss={enemy.isBoss}
             sublocationtype={enemy.sublocationtype}
+            affinities={enemy.affinities}
           />
         )}
       </div>

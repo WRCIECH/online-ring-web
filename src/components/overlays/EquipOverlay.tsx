@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useGameStore } from '../../store/gameStore'
-import { WEAPONS, LEVEL_MULT, weaponUpgradeCost } from '../../data/weapons'
+import { WEAPONS, LEVEL_MULT, weaponUpgradeCost, calcWeaponScaledDamage } from '../../data/weapons'
 import { WEAPON_CLASSES } from '../../data/generators/weaponClasses'
 import { WEAPON_SELL_PRICE } from '../../data/constants'
 import { mergeAffixesForDisplay } from '../../data/weaponStructure'
@@ -25,6 +25,7 @@ export default function EquipOverlay({ onClose }: Props) {
   const [selectedWeaponId, setSelectedWeaponId] = useState<string | null>(null)
   const [confirmSellId, setConfirmSellId] = useState<string | null>(null)
   const [confirmUpgradeId, setConfirmUpgradeId] = useState<string | null>(null)
+  const [hoveredUpgradeId, setHoveredUpgradeId] = useState<string | null>(null)
 
   function handleUpgrade(wid: string) {
     if (confirmUpgradeId === wid) {
@@ -185,8 +186,17 @@ export default function EquipOverlay({ onClose }: Props) {
                 const cost       = weaponUpgradeCost(level)
                 const canAfford  = !isMax && store.runes >= cost
                 const isConfirm  = confirmUpgradeId === wid
+                const dmgNow  = isMax ? null : calcWeaponScaledDamage(100, weapon, level,     store.stats)
+                const dmgNext = isMax ? null : calcWeaponScaledDamage(100, weapon, level + 1, store.stats)
+                const isHovered = hoveredUpgradeId === wid
                 return (
-                  <div key={wid} className={s.upgradeRow}>
+                  <div
+                    key={wid}
+                    className={s.upgradeRow}
+                    style={{ position: 'relative' }}
+                    onMouseEnter={() => setHoveredUpgradeId(wid)}
+                    onMouseLeave={() => setHoveredUpgradeId(null)}
+                  >
                     <span className={s.upgradeName}>{localizeWeaponName(weapon, t)}</span>
                     <span className={s.upgradeRarity} style={{ color: RARITY_COLOURS[weapon.rarity] }}>
                       {weapon.rarity.toUpperCase()}
@@ -204,6 +214,19 @@ export default function EquipOverlay({ onClose }: Props) {
                       >
                         {isConfirm ? t.ui.btn_confirm_q : `↑ ${cost.toLocaleString()} ✦`}
                       </button>
+                    )}
+                    {isHovered && !isMax && dmgNow !== null && dmgNext !== null && (
+                      <div className={s.upgradeTip}>
+                        <span className={s.upgradeTipLabel}>Damage multiplier</span>
+                        <span className={s.upgradeTipVal}>
+                          ×{(dmgNow / 100).toFixed(2)}
+                          {' → '}
+                          <span style={{ color: '#88dd99' }}>×{(dmgNext / 100).toFixed(2)}</span>
+                          <span className={s.upgradeTipDelta}>
+                            {' '}(+{Math.round(LEVEL_MULT[weapon.rarity] * 100)}% / level)
+                          </span>
+                        </span>
+                      </div>
                     )}
                   </div>
                 )

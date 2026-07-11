@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { createPortal } from 'react-dom'
-import type { SublocationType } from '../../types/game'
+import type { SublocationType, MobAffinities } from '../../types/game'
 import EnemyDisplay from './EnemyDisplay'
 import s from './EnemyCenterpiece.module.css'
 
@@ -14,6 +14,31 @@ interface Props {
   maxHp: number
   isBoss: boolean
   sublocationtype?: SublocationType
+  affinities?: MobAffinities
+}
+
+const TIER_LABEL: Record<keyof MobAffinities, string> = {
+  love:    'Love ×2.0',
+  like:    'Like ×1.5',
+  dislike: 'Dislike ×0.7',
+  hate:    'Hate ×0.5',
+}
+const TIER_COLOR: Record<keyof MobAffinities, string> = {
+  love:    '#44cc88',
+  like:    '#88cc66',
+  dislike: '#cc9944',
+  hate:    '#cc4444',
+}
+
+function formatConditions(cond: NonNullable<MobAffinities[keyof MobAffinities]>): string {
+  const parts: string[] = [
+    ...(cond.products  ?? []),
+    ...(cond.origins   ?? []),
+    ...(cond.styles    ?? []),
+    ...(cond.emotions  ?? []),
+    ...(cond.stages    ?? []),
+  ]
+  return parts.join(', ')
 }
 
 export default function EnemyCenterpiece(props: Props) {
@@ -52,6 +77,21 @@ export default function EnemyCenterpiece(props: Props) {
       {hoverPos && createPortal(
         <div className={s.tooltip} style={{ left: hoverPos.x, top: hoverPos.y }}>
           <div className={s.desc}>{props.description}</div>
+          {props.affinities && (
+            <div className={s.affinities}>
+              {(Object.entries(props.affinities) as [keyof MobAffinities, NonNullable<MobAffinities[keyof MobAffinities]>][])
+                .filter(([, cond]) => !!cond)
+                .map(([tier, cond]) => (
+                  <div key={tier} className={s.affinityRow}>
+                    <span className={s.affinityTier} style={{ color: TIER_COLOR[tier] }}>
+                      {TIER_LABEL[tier]}
+                    </span>
+                    <span className={s.affinityCond}>{formatConditions(cond)}</span>
+                  </div>
+                ))
+              }
+            </div>
+          )}
         </div>,
         document.body,
       )}
