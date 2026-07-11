@@ -18,8 +18,6 @@ export const STAGE_TIME: Record<AtomicStage, { light: number; heavy: number }> =
   Plan:     { light: 240, heavy: 600 },
   Produce:  { light: 600, heavy: 1800 },
   Refine:   { light: 360, heavy: 900 },
-  Publish:  { light: 180, heavy: 300 },
-  Promote:  { light: 120, heavy: 240 },
 }
 
 // ── Tile name generation ──────────────────────────────────────────────────
@@ -52,19 +50,6 @@ const STAGE_NAMES: Record<AtomicStage, string[]> = {
     'Refine clarity and flow',
     'Polish the language',
     'Edit for concision and impact',
-  ],
-  Publish: [
-    'Finalise and format for publishing',
-    'Put it out — commit to publishing',
-    'Prepare the final version',
-    'Review before hitting publish',
-  ],
-  Promote: [
-    'Share it across your channels',
-    'Write the announcement post',
-    "Tell your audience it's live",
-    'Cross-post to other platforms',
-    'Pin it and spread the word',
   ],
 }
 
@@ -341,11 +326,7 @@ export function generateWorkflow(
 
   if (isBoss) {
     const last = tiles[tiles.length - 1]
-    if (last.type === 'Publish' || last.type === 'Promote') {
-      last.name = `${last.type} — break the curse`
-    } else {
-      console.warn(`Boss workflow for ${weaponClass} ends in ${last.type}, not Publish/Promote`)
-    }
+    last.name = `${last.type} — break the curse`
   }
 
   return {

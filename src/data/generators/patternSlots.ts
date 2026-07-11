@@ -121,8 +121,7 @@ const ALL_CONTENT_PRODUCTS: ContentProductType[] = [
 // unremixed" sentinel (always forced separately in rollPatternDraws) and
 // shouldn't turn up as a wildcard remix target at states 1+.
 const ALL_TRANSFORMATIONS_EXCEPT_NEW: AtomicOrigin[] = [
-  'Compression', 'Expansion', 'Recycled', 'Remastered', 'Revamped', 'Reboot',
-  'ZoomIn', 'ZoomOut', 'AudienceAlter', 'Commentary', 'Similar', 'Opposite',
+  'Compression', 'Expansion', 'ZoomIn', 'ZoomOut', 'Similar', 'Opposite',
 ]
 const ALL_STYLE_TYPES: StyleType[] = [
   'Minimalism', 'Shock', 'Narration', 'Segmentation', 'Fast', 'Passion', 'Intellectual', 'ProblemSolving', 'Estetic', 'Interactive', 'Cliffhanger',

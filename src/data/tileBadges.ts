@@ -10,8 +10,6 @@ export const STAGE_COLOR: Record<AtomicStage, string> = {
   Plan:     '#335566',
   Produce:  '#664422',
   Refine:   '#445533',
-  Publish:  '#556622',
-  Promote:  '#663355',
 }
 
 export interface TileBadge {

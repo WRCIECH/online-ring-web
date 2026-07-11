@@ -95,7 +95,7 @@ export const WEAPON_CLASSES: Record<WeaponClass, WeaponClassDef> = {
 
     supported_products: ['Plaintext', 'StructuredText', 'IllustratedText', 'Carousel', 'RawAudio', 'ProducedAudio', 'ARollVideo', 'SlideshowVideo', 'CinematicVideo', 'MotionGraphics', 'LiveStream'],
     styles: ['Shock', 'Narration', 'Segmentation', 'Fast', 'Passion', 'Cliffhanger'],
-    emotions: ['Viral', 'Wow', 'Humor', 'Polarization', 'Envy', 'Controversion', 'Drama', 'Fear', 'Rumor'],
+    emotions: [],
     allowed_transformations: [],
   },
   spears: {
@@ -109,7 +109,7 @@ export const WEAPON_CLASSES: Record<WeaponClass, WeaponClassDef> = {
     supported_products: [],
     styles: [],
     emotions: [],
-    allowed_transformations: ['Compression', 'Expansion', 'ZoomIn', 'ZoomOut', 'AudienceAlter', 'Commentary', 'Opposite'],
+    allowed_transformations: ['Compression', 'Expansion', 'ZoomIn', 'ZoomOut', 'Opposite'],
   },
   axes: {
     id: 'axes', name: 'Axe', description: 'Editing and compression of existing content.',
@@ -134,7 +134,7 @@ export const WEAPON_CLASSES: Record<WeaponClass, WeaponClassDef> = {
 
     supported_products: ['Plaintext', 'SingleGraphic', 'Carousel', 'RawAudio', 'ARollVideo', 'LiveStream', 'CurationFeed', 'CommunitySpace'],
     styles: [],
-    emotions: ['Comfort', 'Parasocial', 'Rumor', 'Drama'],
+    emotions: [],
     allowed_transformations: [],
   },
   fists: {
@@ -200,7 +200,7 @@ export const WEAPON_CLASSES: Record<WeaponClass, WeaponClassDef> = {
     supported_products: [],
     styles: [],
     emotions: [],
-    allowed_transformations: ['Expansion', 'ZoomIn', 'ZoomOut', 'AudienceAlter', 'Commentary', 'Similar', 'Opposite'],
+    allowed_transformations: ['Expansion', 'ZoomIn', 'ZoomOut', 'Similar', 'Opposite'],
   },
   curved_greatswords: {
     id: 'curved_greatswords', name: 'Curved Greatsword', description: 'Epic series and narrative sagas.',
@@ -213,7 +213,7 @@ export const WEAPON_CLASSES: Record<WeaponClass, WeaponClassDef> = {
     supported_products: [],
     styles: [],
     emotions: [],
-    allowed_transformations: ['Compression', 'ZoomIn', 'ZoomOut', 'AudienceAlter', 'Commentary', 'Similar', 'Opposite'],
+    allowed_transformations: ['Compression', 'ZoomIn', 'ZoomOut', 'Similar', 'Opposite'],
   },
   twinblades: {
     id: 'twinblades', name: 'Twinblade', description: 'Multi-platform cross-posting.',
@@ -238,7 +238,7 @@ export const WEAPON_CLASSES: Record<WeaponClass, WeaponClassDef> = {
 
     supported_products: ['Plaintext', 'StructuredText', 'IllustratedText', 'Carousel', 'RawAudio', 'ProducedAudio', 'ARollVideo', 'SlideshowVideo', 'CinematicVideo', 'MotionGraphics', 'LiveStream'],
     styles: ['Shock', 'Narration', 'Segmentation', 'Fast', 'Passion', 'Cliffhanger'],
-    emotions: ['Viral', 'Wow', 'Humor', 'Polarization', 'Envy', 'Controversion', 'Drama', 'Fear', 'Rumor'],
+    emotions: [],
     allowed_transformations: [],
   },
   great_axes: {
@@ -291,7 +291,7 @@ export const WEAPON_CLASSES: Record<WeaponClass, WeaponClassDef> = {
     supported_products: [],
     styles: [],
     emotions: [],
-    allowed_transformations: ['Compression', 'Expansion', 'AudienceAlter', 'Commentary', 'Similar', 'Opposite'],
+    allowed_transformations: ['Compression', 'Expansion', 'Similar', 'Opposite'],
   },
   halberds: {
     id: 'halberds', name: 'Halberd', description: 'Hybrid research and opinion.',
@@ -303,7 +303,7 @@ export const WEAPON_CLASSES: Record<WeaponClass, WeaponClassDef> = {
 
     supported_products: ['StructuredText', 'IllustratedText', 'Infographic', 'SlideshowVideo', 'Screencast', 'MultimediaPage', 'AssetPack', 'CurationFeed', 'InteractiveApp', '_blank'],
     styles: ['Minimalism', 'Segmentation', 'Intellectual', 'Intellectual', 'Intellectual', 'ProblemSolving', 'ProblemSolving'],
-    emotions: ['Wow', 'Hope', 'Controversion'],
+    emotions: [],
     allowed_transformations: [],
   },
   reapers: {
@@ -356,7 +356,7 @@ export const WEAPON_CLASSES: Record<WeaponClass, WeaponClassDef> = {
     supported_products: [],
     styles: [],
     emotions: [],
-    allowed_transformations: ['Compression', 'Expansion', 'ZoomIn', 'ZoomOut', 'AudienceAlter', 'Commentary', 'Similar'],
+    allowed_transformations: ['Compression', 'Expansion', 'ZoomIn', 'ZoomOut', 'Similar'],
   },
   ballistas: {
     id: 'ballistas', name: 'Ballista', description: 'Major product launches.',
@@ -381,7 +381,7 @@ export const WEAPON_CLASSES: Record<WeaponClass, WeaponClassDef> = {
 
     supported_products: ['Plaintext', 'SingleGraphic', 'Carousel', 'RawAudio', 'ARollVideo', 'CinematicVideo', 'LiveStream', 'CommunitySpace'],
     styles: ['Shock', 'Narration', 'Fast', 'Passion', 'Cliffhanger'],
-    emotions: ['Viral', 'Wow', 'Humor', 'Fomo', 'Polarization', 'Envy', 'Controversion', 'Drama'],
+    emotions: [],
     allowed_transformations: [],
   },
 }

@@ -25,11 +25,10 @@ export type WeaponClass =
   | 'greatbows' | 'crossbows' | 'ballistas' | 'torches'
 
 // ── Content creation dimensions (kept for tile generation & stamps) ────────
-export type AtomicStage = 'Research' | 'Plan' | 'Produce' | 'Refine' | 'Publish' | 'Promote'
+export type AtomicStage = 'Research' | 'Plan' | 'Produce' | 'Refine'
 export type AtomicOrigin =
-  | 'New' | 'Compression' | 'Expansion' | 'Recycled' | 'Remastered'
-  | 'Revamped' | 'Reboot' | 'ZoomIn' | 'ZoomOut' | 'AudienceAlter' | 'Commentary'
-  | 'Similar' | 'Opposite'
+  | 'New' | 'Compression' | 'Expansion'
+  | 'ZoomIn' | 'ZoomOut' | 'Similar' | 'Opposite'
 export type AtomicTime = 'Micro' | 'Short' | 'Medium' | 'Long' | 'Deep'
 
 import type { ContentProductType } from '../data/contentProducts'

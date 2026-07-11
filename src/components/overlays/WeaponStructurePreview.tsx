@@ -336,70 +336,6 @@ function drawTransformationIcon(
       }
       break
 
-    case 'Recycled': {
-      // recycling symbol: 3 curved arrows 120° apart
-      const r = 3.8 * sc
-      for (let i = 0; i < 3; i++) {
-        const a0 = (i / 3) * Math.PI * 2 - Math.PI / 2
-        const a1 = a0 + Math.PI * 0.55
-        ctx.beginPath()
-        ctx.arc(cx, cy, r, a0, a1, false)
-        ctx.stroke()
-        // arrowhead
-        const ax = cx + Math.cos(a1) * r, ay = cy + Math.sin(a1) * r
-        const tx = ax + Math.cos(a1 + Math.PI / 2) * 2.5 * sc
-        const ty = ay + Math.sin(a1 + Math.PI / 2) * 2.5 * sc
-        ctx.beginPath()
-        ctx.moveTo(ax, ay)
-        ctx.lineTo(tx - Math.cos(a1)*1.5*sc, ty - Math.sin(a1)*1.5*sc)
-        ctx.lineTo(tx + Math.cos(a1)*1.5*sc, ty + Math.sin(a1)*1.5*sc)
-        ctx.fill()
-      }
-      break
-    }
-
-    case 'Remastered': {
-      // single circular arc + arrowhead (upgrade spin)
-      const r = 4 * sc
-      ctx.beginPath()
-      ctx.arc(cx, cy, r, -Math.PI * 0.15, Math.PI * 1.6, false)
-      ctx.stroke()
-      const ta = Math.PI * 1.6
-      const tx = cx + Math.cos(ta)*r, ty = cy + Math.sin(ta)*r
-      ctx.beginPath()
-      ctx.moveTo(tx - 2.5*sc, ty - 1*sc)
-      ctx.lineTo(tx + 1*sc, ty + 2.5*sc)
-      ctx.lineTo(tx + 1.5*sc, ty - 1.5*sc)
-      ctx.fill()
-      break
-    }
-
-    case 'Revamped': {
-      // wrench: diagonal bar + round knob
-      ctx.lineWidth = 1.8 * sc
-      ctx.beginPath()
-      ctx.moveTo(cx - 3.5*sc, cy + 3.5*sc)
-      ctx.lineTo(cx + 2*sc, cy - 2*sc)
-      ctx.stroke()
-      ctx.lineWidth = 1 * sc
-      ctx.beginPath()
-      ctx.arc(cx + 3.5*sc, cy - 3.5*sc, 2.5*sc, 0, Math.PI * 2)
-      ctx.stroke()
-      break
-    }
-
-    case 'Reboot': {
-      // power symbol: circle arc + vertical tick at top
-      ctx.beginPath()
-      ctx.arc(cx, cy, 4.5*sc, Math.PI * 0.2, Math.PI * 1.8, false)
-      ctx.stroke()
-      ctx.beginPath()
-      ctx.moveTo(cx, cy - 2.5*sc)
-      ctx.lineTo(cx, cy - 5.5*sc)
-      ctx.stroke()
-      break
-    }
-
     case 'ZoomIn': {
       // magnifying glass + tiny +
       const r = 3.2*sc
@@ -427,39 +363,6 @@ function drawTransformationIcon(
       ctx.lineWidth = 1.5*sc
       ctx.beginPath()
       ctx.moveTo(cx - 2.8*sc, cy - 1*sc); ctx.lineTo(cx + 0.8*sc, cy - 1*sc)
-      ctx.stroke()
-      break
-    }
-
-    case 'AudienceAlter':
-      // person head circle + arrow pointing at it
-      ctx.beginPath(); ctx.arc(cx - 1*sc, cy - 2*sc, 2.5*sc, 0, Math.PI * 2); ctx.stroke()
-      // body arc
-      ctx.beginPath()
-      ctx.arc(cx - 1*sc, cy + 6*sc, 4*sc, -Math.PI * 0.8, -Math.PI * 0.2, false)
-      ctx.stroke()
-      // arrow from right
-      ctx.beginPath()
-      ctx.moveTo(cx + 6*sc, cy)
-      ctx.lineTo(cx + 2.5*sc, cy)
-      ctx.stroke()
-      ctx.beginPath()
-      ctx.moveTo(cx + 4*sc, cy - 2*sc)
-      ctx.lineTo(cx + 2.5*sc, cy)
-      ctx.lineTo(cx + 4*sc, cy + 2*sc)
-      ctx.fill()
-      break
-
-    case 'Commentary': {
-      // speech bubble: rounded rect + triangular tail
-      const bx = cx - 4.5*sc, by = cy - 5*sc, bw = 9*sc, bh = 7*sc
-      ctx.beginPath()
-      ctx.roundRect(bx, by, bw, bh, 2*sc)
-      ctx.stroke()
-      ctx.beginPath()
-      ctx.moveTo(cx - 2.5*sc, cy + 2*sc)
-      ctx.lineTo(cx - 4.5*sc, cy + 4*sc)
-      ctx.lineTo(cx, cy + 2*sc)
       ctx.stroke()
       break
     }

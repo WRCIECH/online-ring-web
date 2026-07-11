@@ -14,7 +14,7 @@ export const ENEMIES: Record<string, Enemy> = {
     affinities: {
       love:    { stages: ['Research', 'Plan'] },
       like:    { products: ['CurationFeed'], emotions: ['Comfort'] },
-      dislike: { stages: ['Refine', 'Publish'] },
+      dislike: { stages: ['Refine'] },
       hate:    { origins: ['New'], stages: ['Produce'] },
     },
   },
@@ -25,7 +25,7 @@ export const ENEMIES: Record<string, Enemy> = {
     drops: [{ id: 'weapon', first_kill_chance: 1.0, repeat_chance: 0.0 }],
     affinities: {
       love:    { emotions: ['Polarization', 'Drama'] },
-      like:    { origins: ['Commentary'], styles: ['Shock'] },
+      like:    { styles: ['Shock'] },
       dislike: { emotions: ['Comfort', 'Hope'] },
       hate:    { styles: ['ProblemSolving'], emotions: ['Parasocial'] },
     },
@@ -39,8 +39,8 @@ export const ENEMIES: Record<string, Enemy> = {
     affinities: {
       love:    { origins: ['New'], stages: ['Research', 'Plan'] },
       like:    { products: ['Plaintext'], emotions: ['Fear'] },
-      dislike: { origins: ['Commentary', 'Recycled'], stages: ['Refine'] },
-      hate:    { origins: ['Revamped'], styles: ['Shock'], stages: ['Produce'] },
+      dislike: { stages: ['Refine'] },
+      hate:    { styles: ['Shock'], stages: ['Produce'] },
     },
   },
 
@@ -55,7 +55,7 @@ export const ENEMIES: Record<string, Enemy> = {
       love:    { stages: ['Produce'], emotions: ['Fear'] },
       like:    { products: ['Plaintext', 'RawAudio'] },
       dislike: { styles: ['Passion'], emotions: ['Wow'] },
-      hate:    { stages: ['Promote'], emotions: ['Humor', 'Hope'] },
+      hate:    { emotions: ['Humor', 'Hope'] },
     },
   },
 
@@ -66,7 +66,7 @@ export const ENEMIES: Record<string, Enemy> = {
     affinities: {
       love:    { emotions: ['Envy', 'Fomo'] },
       like:    { products: ['Carousel', 'SingleGraphic'] },
-      dislike: { origins: ['Reboot', 'Opposite'] },
+      dislike: { origins: ['Opposite'] },
       hate:    { styles: ['Minimalism'], emotions: ['Parasocial'] },
     },
   },
@@ -76,9 +76,7 @@ export const ENEMIES: Record<string, Enemy> = {
     max_hp: 85, rune_reward: 130, is_boss: false,
     drops: [{ id: 'weapon', first_kill_chance: 0.70, repeat_chance: 0.25 }],
     affinities: {
-      love:    { stages: ['Publish', 'Promote'] },
       like:    { styles: ['Cliffhanger'], emotions: ['Fear'] },
-      dislike: { origins: ['AudienceAlter', 'Commentary'] },
       hate:    { styles: ['Shock'], stages: ['Produce'] },
     },
   },
@@ -93,7 +91,6 @@ export const ENEMIES: Record<string, Enemy> = {
       love:    { stages: ['Refine'] },
       like:    { products: ['CinematicVideo', 'StructuredText'] },
       dislike: { products: ['Plaintext', 'RawAudio'] },
-      hate:    { stages: ['Publish', 'Promote'] },
     },
   },
 
@@ -107,7 +104,7 @@ export const ENEMIES: Record<string, Enemy> = {
     drops: [{ id: 'weapon', first_kill_chance: 0.72, repeat_chance: 0.28 }],
     affinities: {
       love:    { products: ['ARollVideo', 'LiveStream'], styles: ['Shock', 'Fast'] },
-      like:    { origins: ['Revamped', 'Compression'], emotions: ['Viral', 'Controversion'] },
+      like:    { origins: ['Compression'], emotions: ['Viral', 'Controversion'] },
       dislike: { products: ['Plaintext', 'MultimediaPage'], origins: ['New', 'ZoomOut'] },
       hate:    { products: ['InteractiveApp', 'BranchingNarrative'], styles: ['Intellectual'], stages: ['Research', 'Plan'] },
     },
@@ -122,8 +119,8 @@ export const ENEMIES: Record<string, Enemy> = {
     affinities: {
       love:    { products: ['StructuredText', 'CurationFeed'], stages: ['Research'] },
       like:    { products: ['AssetPack', 'Infographic'], styles: ['Segmentation'], emotions: ['Wow'] },
-      dislike: { products: ['Plaintext', 'RawAudio'], origins: ['New', 'Reboot'] },
-      hate:    { products: ['InteractiveApp', 'LiveStream'], styles: ['Interactive'], stages: ['Produce', 'Publish'] },
+      dislike: { products: ['Plaintext', 'RawAudio'], origins: ['New'] },
+      hate:    { products: ['InteractiveApp', 'LiveStream'], styles: ['Interactive'], stages: ['Produce'] },
     },
   },
 
@@ -134,10 +131,10 @@ export const ENEMIES: Record<string, Enemy> = {
     boss_name: 'Inkwizytor Struktury',
     drops: [{ id: 'weapon', first_kill_chance: 0.68, repeat_chance: 0.24 }],
     affinities: {
-      love:    { products: ['StructuredText', 'Screencast'], origins: ['Revamped'] },
+      love:    { products: ['StructuredText', 'Screencast'] },
       like:    { products: ['IllustratedText', 'ProducedAudio'], stages: ['Plan', 'Refine'] },
-      dislike: { origins: ['AudienceAlter', 'Commentary'], emotions: ['Humor'] },
-      hate:    { products: ['_blank', 'MultimediaPage'], origins: ['Reboot', 'Opposite'], styles: ['Passion'] },
+      dislike: { emotions: ['Humor'] },
+      hate:    { products: ['_blank', 'MultimediaPage'], origins: ['Opposite'], styles: ['Passion'] },
     },
   },
 
@@ -162,10 +159,10 @@ export const ENEMIES: Record<string, Enemy> = {
     boss_name: 'Kapitan Słomianego Zapału',
     drops: [{ id: 'weapon', first_kill_chance: 0.50, repeat_chance: 0.16 }],
     affinities: {
-      love:    { origins: ['Reboot', 'Recycled'], stages: ['Plan', 'Produce'] },
-      like:    { products: ['_blank'], origins: ['AudienceAlter'], emotions: ['Rumor'] },
+      love:    { stages: ['Plan', 'Produce'] },
+      like:    { products: ['_blank'], emotions: ['Rumor'] },
       dislike: { products: ['CinematicVideo', 'InteractiveApp'], stages: ['Refine'] },
-      hate:    { origins: ['Similar'], styles: ['Narration'], stages: ['Publish', 'Promote'] },
+      hate:    { origins: ['Similar'], styles: ['Narration'] },
     },
   },
 
@@ -177,7 +174,7 @@ export const ENEMIES: Record<string, Enemy> = {
     drops: [{ id: 'weapon', first_kill_chance: 0.78, repeat_chance: 0.30 }],
     affinities: {
       love:    { styles: ['Cliffhanger', 'Shock'], emotions: ['Drama', 'Polarization'] },
-      like:    { products: ['Carousel', 'SingleGraphic'], origins: ['Compression', 'Commentary'] },
+      like:    { products: ['Carousel', 'SingleGraphic'], origins: ['Compression'] },
       dislike: { products: ['StructuredText'], styles: ['ProblemSolving'] },
       hate:    { products: ['MultimediaPage', 'AssetPack'], styles: ['Intellectual'], emotions: ['Hope'] },
     },
@@ -283,7 +280,7 @@ export const ENEMIES: Record<string, Enemy> = {
     drops: [{ id: 'weapon', first_kill_chance: 0.62, repeat_chance: 0.20 }],
     affinities: {
       love:    { emotions: ['Controversion', 'Polarization'] },
-      like:    { origins: ['Opposite', 'Commentary'] },
+      like:    { origins: ['Opposite'] },
       dislike: { emotions: ['Hope'] },
       hate:    { styles: ['Cliffhanger'] },
     },
