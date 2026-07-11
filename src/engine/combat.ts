@@ -7,6 +7,8 @@ import { WEAPONS, calcWeaponScaledDamage } from '../data/weapons'
 import {
   REPEAT_PENALTY_PER_RETRY, REPEAT_PENALTY_MAX, REPEAT_DAMAGE_PENALTY, SACRIFICE_MULT,
   HEAVY_TIME_BONUS, DMG_PER_MIN,
+  FLOW_GAP_HOT_MINS, FLOW_GAP_WARM_MINS, FLOW_GAP_COLD_MINS,
+  FLOW_MULT_HOT, FLOW_MULT_WARM, FLOW_MULT_COLD, FLOW_MULT_DEAD,
 } from '../data/constants'
 
 export interface LogEntry { id: number; text: string; color?: string }
@@ -43,6 +45,8 @@ export interface CombatState {
   timerExpired: boolean
   // Rune reward — set once, from the defeated enemy's rune_reward, on VICTORY
   runesEarned: number
+  // Flow bonus (time since last fight)
+  flowMult: number
   // Location theme bonus
   locationTheme?: LocationTheme
   // Log
@@ -185,7 +189,7 @@ export function previewMove(state: CombatState, tile: WorkflowTile, move: MoveTy
   const finisherMult   = wouldFinishAll ? 3.0 : 1.0
   const damage         = Math.round(
     repeatDamage * (1 - repeatPenalty) * (1 - state.incomingPenalty)
-      * consistencyMult * remasterMult * affinityMult * themeBonus * finisherMult
+      * consistencyMult * remasterMult * affinityMult * themeBonus * finisherMult * state.flowMult
   )
   const multipliers: DamageMultiplier[] = [
     { key: 'heavyBonus',    value: HEAVY_TIME_BONUS,          active: move === 'Heavy' },
@@ -197,8 +201,19 @@ export function previewMove(state: CombatState, tile: WorkflowTile, move: MoveTy
     { key: 'streak',        value: consistencyMult,           active: state.consistencyStreak > 0 },
     { key: 'remaster',      value: 1.2,                       active: state.isRemasterPass },
     { key: 'finisher',      value: 3.0,                       active: wouldFinishAll },
+    { key: 'flow',          value: state.flowMult,            active: state.flowMult !== 1.0 },
   ]
   return { duration, damage, multipliers }
+}
+
+// Returns the flow-state damage multiplier based on gap since last fight end.
+export function calcFlowMult(lastFightEndedAt: number | undefined): number {
+  if (!lastFightEndedAt) return 1.0
+  const gapMins = (Date.now() - lastFightEndedAt) / 60000
+  if (gapMins < FLOW_GAP_HOT_MINS)  return FLOW_MULT_HOT
+  if (gapMins < FLOW_GAP_WARM_MINS) return FLOW_MULT_WARM
+  if (gapMins < FLOW_GAP_COLD_MINS) return FLOW_MULT_COLD
+  return FLOW_MULT_DEAD
 }
 
 // ── Init ──────────────────────────────────────────────────────────────────
@@ -217,6 +232,7 @@ export function initCombatState(
   isRemasterPass = false,
   spawnAsBoss = false,
   locationTheme?: LocationTheme,
+  flowMult = 1.0,
 ): CombatState {
   // Derive boss version when the encounter is a boss slot but the enemy entry
   // is a regular mob — scale HP ×2 and swap in the boss display name.
@@ -242,6 +258,7 @@ export function initCombatState(
     stepTimer: 0, stepTotal: 1,
     stepStarted: false, timerExpired: false,
     runesEarned: 0,
+    flowMult,
     locationTheme,
     log: [], logId: 0,
   }
@@ -252,6 +269,10 @@ export function initCombatState(
   }
   if (isBoss) {
     state = log(state, '⚡ Boss encounter — this enemy has 2× HP.', '#cc4488')
+  }
+  if (flowMult > 1.0) {
+    const tier = flowMult >= FLOW_MULT_HOT ? 'HOT' : 'WARM'
+    state = log(state, `⚡ Flow ${tier}: +${Math.round((flowMult - 1) * 100)}% damage from consecutive fights.`, '#44ccff')
   }
   return state
 }
@@ -348,7 +369,7 @@ export function combatReducer(state: CombatState, action: CombatAction): CombatS
       const repeatDamage  = isRepeat ? Math.round(rawDamage * (1 - REPEAT_DAMAGE_PENALTY)) : rawDamage
       const damage        = Math.round(
         repeatDamage * (1 - repeatPenalty) * (1 - state.incomingPenalty)
-          * consistencyMult * remasterMult * affinityMult * themeBonus * finisherMult
+          * consistencyMult * remasterMult * affinityMult * themeBonus * finisherMult * state.flowMult
       )
       const newEnemyHp    = Math.max(0, state.enemyHp - damage)
 

@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { useGameStore, selectRunRemainingSeconds } from '../store/gameStore'
 import { ENEMIES } from '../data/enemies'
 import type { LocationData } from '../types/game'
+import { FLOW_GAP_HOT_MINS, FLOW_GAP_WARM_MINS, FLOW_MULT_HOT, FLOW_MULT_WARM } from '../data/constants'
 import RunHeader        from '../components/layout/RunHeader'
 import CampaignOverlay from '../components/overlays/CampaignOverlay'
 import CombatBottomBar  from '../components/combat/CombatBottomBar'
@@ -53,6 +54,33 @@ function withAlpha(rgba: string, a: number) {
   return rgba.replace(/[\d.]+\)$/, `${a.toFixed(2)})`)
 }
 
+function fmtCountdown(secs: number): string {
+  const m = Math.floor(secs / 60)
+  const sc = secs % 60
+  return `${m}:${sc.toString().padStart(2, '0')}`
+}
+
+interface FlowBannerState {
+  tier: 'HOT' | 'WARM'
+  mult: number
+  secsRemaining: number
+  totalSecs: number
+}
+
+function getFlowBannerState(lastFightEndedAt: number | undefined): FlowBannerState | null {
+  if (!lastFightEndedAt) return null
+  const gapMins = (Date.now() - lastFightEndedAt) / 60000
+  if (gapMins < FLOW_GAP_HOT_MINS) {
+    const secsRemaining = Math.ceil((FLOW_GAP_HOT_MINS - gapMins) * 60)
+    return { tier: 'HOT', mult: FLOW_MULT_HOT, secsRemaining, totalSecs: FLOW_GAP_HOT_MINS * 60 }
+  }
+  if (gapMins < FLOW_GAP_WARM_MINS) {
+    const secsRemaining = Math.ceil((FLOW_GAP_WARM_MINS - gapMins) * 60)
+    return { tier: 'WARM', mult: FLOW_MULT_WARM, secsRemaining, totalSecs: (FLOW_GAP_WARM_MINS - FLOW_GAP_HOT_MINS) * 60 }
+  }
+  return null
+}
+
 export default function RunMapScreen() {
   const navigate   = useNavigate()
   const store      = useGameStore()
@@ -69,6 +97,7 @@ export default function RunMapScreen() {
   const [popupPos, setPopupPos]     = useState({ x: 0, y: 0 })
   const [eventNode, setEventNode]   = useState<LocationData | null>(null)
   const [showContent,   setShowContent]   = useState(false)
+  const [, setTick] = useState(0)
   const canEnterFight = true
   const expiredRef = useRef(false)
 
@@ -98,6 +127,11 @@ export default function RunMapScreen() {
     }, 1000)
     return () => clearInterval(id)
   }, [store, navigate])
+
+  useEffect(() => {
+    const id = setInterval(() => setTick(t => t + 1), 1000)
+    return () => clearInterval(id)
+  }, [])
 
   useEffect(() => {
     nodes.current = buildNodes(seq.length)
@@ -391,6 +425,28 @@ export default function RunMapScreen() {
         style={{ cursor: hoverIdx === current ? 'pointer' : 'default' }}
       />
 
+
+      {/* Flow bonus countdown banner */}
+      {(() => {
+        const flow = getFlowBannerState(store.last_fight_ended_at)
+        if (!flow) return null
+        const pct = Math.min(100, (flow.secsRemaining / flow.totalSecs) * 100)
+        const isHot = flow.tier === 'HOT'
+        return (
+          <div className={`${s.flowBanner} ${isHot ? s.flowBannerHot : s.flowBannerWarm}`}>
+            <span className={`${s.flowBannerLabel} ${isHot ? s.flowBannerLabelHot : s.flowBannerLabelWarm}`}>
+              ⚡ FLOW ×{flow.mult.toFixed(1)}
+            </span>
+            <div className={s.flowBannerBar}>
+              <div
+                className={isHot ? s.flowBannerFillHot : s.flowBannerFillWarm}
+                style={{ width: `${pct}%` }}
+              />
+            </div>
+            <span className={s.flowBannerCountdown}>{fmtCountdown(flow.secsRemaining)}</span>
+          </div>
+        )
+      })()}
 
       {/* Hover tooltip */}
       {hoverIdx >= 0 && hoverIdx !== current && hoverLoc && hoverEnemy && (

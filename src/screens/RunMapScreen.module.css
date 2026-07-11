@@ -240,3 +240,53 @@
   min-width: 36px;
   text-align: right;
 }
+
+/* ── Flow bonus timer ─────────────────────────────────────────────────────── */
+.flowBanner {
+  position: fixed;
+  top: 52px;
+  right: 16px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 12px;
+  border-radius: var(--radius);
+  z-index: 8;
+  pointer-events: none;
+}
+
+.flowBannerHot {
+  background: rgba(255, 200, 40, 0.10);
+  border: 1px solid rgba(255, 200, 40, 0.40);
+}
+
+.flowBannerWarm {
+  background: rgba(100, 200, 255, 0.08);
+  border: 1px solid rgba(100, 200, 255, 0.30);
+}
+
+.flowBannerLabel {
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+}
+
+.flowBannerLabelHot  { color: #ffcc44; }
+.flowBannerLabelWarm { color: #88ddff; }
+
+.flowBannerCountdown {
+  font-size: 0.72rem;
+  font-variant-numeric: tabular-nums;
+  color: var(--color-text-dim);
+}
+
+.flowBannerBar {
+  width: 80px;
+  height: 3px;
+  background: rgba(255,255,255,0.08);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.flowBannerFillHot  { height: 100%; background: #ffcc44; border-radius: 2px; transition: width 1s linear; }
+.flowBannerFillWarm { height: 100%; background: #88ddff; border-radius: 2px; transition: width 1s linear; }

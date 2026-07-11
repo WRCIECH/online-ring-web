@@ -312,6 +312,7 @@ const en: TranslationBundle = {
     mult_streak:        'Consistency streak',
     mult_remaster:      'Remaster bonus',
     mult_finisher:      'Finishing blow',
+    mult_flow:          'Flow state',
 
     mult_heavyBonus_desc:    'Heavy moves demand longer focus — the higher time threshold rewards you with a damage bonus.',
     mult_repeatFlat_desc:    'Flat penalty for repeating the same tile in a single fight.',
@@ -322,6 +323,7 @@ const en: TranslationBundle = {
     mult_streak_desc:        'Bonus grows with each consecutive tile completed without skipping or abandoning.',
     mult_remaster_desc:      'You are reworking existing content — the experienced craft translates into greater damage.',
     mult_finisher_desc:      'This is the last tile in the current workflow — a finishing blow deals triple damage.',
+    mult_flow_desc:          'Bonus from fighting consecutive battles without a long break — rewards staying in the creative flow.',
 
     // Weapon structure preview (EquipOverlay)
     draw_format:         'Format',

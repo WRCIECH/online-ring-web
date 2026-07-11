@@ -281,6 +281,9 @@ export interface GameStore extends GameState {
 
   // Learning items
 
+  // Flow bonus (consecutive fights)
+  recordFightEnd: () => void
+
   // Analytics
   addTaskTime: (seconds: number) => void
 
@@ -579,6 +582,8 @@ export const useGameStore = create<GameStore>((set, get) => ({
     set(s => ({ total_task_time_s: (s.total_task_time_s ?? 0) + seconds }))
     get().save()
   },
+
+  recordFightEnd: () => { set({ last_fight_ended_at: Date.now() }); get().save() },
 
   setLocale: (locale) => { set({ locale }); get().save() },
 

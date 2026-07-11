@@ -1,6 +1,6 @@
 import { useReducer, useEffect, useCallback, useState, useMemo, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { combatReducer, initCombatState, getReachableTiles, previewMove, formatMultiplierPct, calcTileDamage, ABANDON_PENALTY } from '../engine/combat'
+import { combatReducer, initCombatState, getReachableTiles, previewMove, formatMultiplierPct, calcTileDamage, calcFlowMult, ABANDON_PENALTY } from '../engine/combat'
 import { useGameStore, selectAvailableNodes } from '../store/gameStore'
 import { ENEMIES } from '../data/enemies'
 import { WEAPONS } from '../data/weapons'
@@ -69,6 +69,9 @@ export default function CombatScreen() {
   const isRemasterPass = !!store.active_content_id
     && !!(activeWeaponCampaign?.nodes.find(c => c.id === store.active_content_id)?.is_remastering)
 
+  // ── Flow bonus — computed once at fight init from last fight end time ────
+  const initialFlowMult = calcFlowMult(store.last_fight_ended_at)
+
   // ── Init combat state (stable across renders) ────────────────────────────
   const [state, dispatch] = useReducer(
     combatReducer,
@@ -110,6 +113,7 @@ export default function CombatScreen() {
         isRemasterPass,
         spawnAsBoss,
         loc.locationTheme,
+        initialFlowMult,
       )
     }
   )
@@ -221,6 +225,7 @@ export default function CombatScreen() {
     store.clearAbandonPenalty()
     lootItems?.forEach(item => store.addWeaponInstance(item.instance))
     store.addDefeatedEnemy(loc.enemy_id)
+    store.recordFightEnd()
     // Persist or clear workflow
     const allDone = state.workflow.tiles.every(t => t.is_completed)
     if (allDone) {
@@ -399,6 +404,11 @@ export default function CombatScreen() {
               ({selectedContent.subworkflow_count ?? 0}/{selectedContent.required_subworkflows ?? 2})
             </span>
           </span>
+          {state.flowMult > 1.0 && (
+            <span className={state.flowMult >= 1.5 ? s.flowBadgeHot : s.flowBadgeWarm}>
+              ⚡ FLOW ×{state.flowMult.toFixed(1)}
+            </span>
+          )}
         </div>
       )}
 

@@ -307,6 +307,7 @@ const pl: TranslationBundle = {
     mult_streak:        'Seria konsekwencji',
     mult_remaster:      'Bonus za przeróbkę',
     mult_finisher:      'Cios finiszujący',
+    mult_flow:          'Stan flow',
 
     mult_heavyBonus_desc:    'Ruch Heavy wymaga dłuższego skupienia — nagradza wyższy próg czasu bonusem do obrażeń.',
     mult_repeatFlat_desc:    'Stałe zmniejszenie za powtórzenie tego samego kafelka w walce.',
@@ -317,6 +318,7 @@ const pl: TranslationBundle = {
     mult_streak_desc:        'Bonus rośnie z każdym kolejnym ukończonym kafelkiem bez pomijania ani rezygnacji.',
     mult_remaster_desc:      'Przerabiasz istniejącą treść — doświadczony warsztat przekłada się na większe obrażenia.',
     mult_finisher_desc:      'To ostatni kafelka w bieżącym przepływie — cios finiszujący zadaje potrojone obrażenia.',
+    mult_flow_desc:          'Bonus za kolejne walki bez długiej przerwy — nagradza pozostanie w kreatywnym flow.',
 
     // Podgląd struktury broni (EquipOverlay)
     draw_format:         'Format',

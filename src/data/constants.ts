@@ -27,6 +27,11 @@ export const FLOW_GAP_HOT_MINS   = 15
 export const FLOW_GAP_WARM_MINS  = 60
 export const FLOW_GAP_COLD_MINS  = 240
 
+export const FLOW_MULT_HOT  = 1.5   // < 15 min since last fight: +50% dmg
+export const FLOW_MULT_WARM = 1.2   // < 60 min: +20% dmg
+export const FLOW_MULT_COLD = 1.0   // < 240 min: no change
+export const FLOW_MULT_DEAD = 1.0   // ≥ 240 min: no change
+
 // ── Combat — Heavy attack damage ─────────────────────────────────────────────
 // Heavy damage scales with the tile's actual time_heavy (not a flat multiple of
 // time_light) — a stage taking 3x as long as its Light version deals ~3x the

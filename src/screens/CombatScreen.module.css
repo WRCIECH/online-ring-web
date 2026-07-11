@@ -48,6 +48,32 @@
   font-variant-numeric: tabular-nums;
 }
 
+.flowBadgeHot {
+  margin-left: auto;
+  font-size: 0.7rem;
+  letter-spacing: 0.08em;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 3px;
+  background: rgba(255, 200, 40, 0.12);
+  border: 1px solid rgba(255, 200, 40, 0.45);
+  color: #ffcc44;
+  white-space: nowrap;
+}
+
+.flowBadgeWarm {
+  margin-left: auto;
+  font-size: 0.7rem;
+  letter-spacing: 0.08em;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 3px;
+  background: rgba(100, 200, 255, 0.10);
+  border: 1px solid rgba(100, 200, 255, 0.35);
+  color: #88ddff;
+  white-space: nowrap;
+}
+
 .canvasWrap {
   flex: 1;
   padding: 16px 20px;

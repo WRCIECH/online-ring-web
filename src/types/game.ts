@@ -243,6 +243,7 @@ export interface GameState {
   weapon_campaigns: Record<string, WeaponCampaign>
   // Analytics
   total_task_time_s: number
+  last_fight_ended_at?: number   // epoch ms; updated on fight VICTORY, used to compute flow mult
   // UI locale
   locale: Locale
 }
