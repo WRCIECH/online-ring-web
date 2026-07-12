@@ -520,7 +520,7 @@ const pl: TranslationBundle = {
     click_to_switch:      'Kliknij, aby przełączyć',
     estus_flask:          'Kolba Estus',
     estus_remaining:      'pozostało',
-    estus_heal:           'Leczy 40% HP',
+    estus_heal:           'Leczy 200 HP',
     estus_label:          'Estus',
 
     // Locations overlay

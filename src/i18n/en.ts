@@ -526,7 +526,7 @@ const en: TranslationBundle = {
     click_to_switch:      'Click to switch',
     estus_flask:          'Estus Flask',
     estus_remaining:      'remaining',
-    estus_heal:           'Heals 40% HP',
+    estus_heal:           'Heals 200 HP',
     estus_label:          'Estus',
 
     // Locations overlay

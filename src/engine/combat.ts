@@ -10,6 +10,7 @@ import {
   FLOW_GAP_HOT_MINS, FLOW_GAP_WARM_MINS, FLOW_GAP_COLD_MINS,
   FLOW_MULT_HOT, FLOW_MULT_WARM, FLOW_MULT_COLD, FLOW_MULT_DEAD,
   CAMPAIGN_PENALTY_BASE, END_MITIGATION_PER_POINT, CAMPAIGN_PENALTY_CAP,
+  ESTUS_HEAL_HP,
 } from '../data/constants'
 
 export interface LogEntry { id: number; text: string; color?: string }
@@ -434,7 +435,7 @@ export function combatReducer(state: CombatState, action: CombatAction): CombatS
 
     case 'USE_ESTUS': {
       if (state.playerEstus <= 0) return state
-      const heal  = Math.floor(state.playerMaxHp * 0.40)
+      const heal  = ESTUS_HEAL_HP
       const newHp = Math.min(state.playerMaxHp, state.playerHp + heal)
       return log(
         { ...state, playerHp: newHp, playerEstus: state.playerEstus - 1 },

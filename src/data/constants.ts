@@ -20,8 +20,8 @@ export const ARTICLE_EQUIP_WEIGHT = 1.0
 
 // ── Healing ──────────────────────────────────────────────────────────────────
 
-/** Fraction of max HP restored by using an estus flask. */
-export const ESTUS_HEAL_FRACTION = 0.40
+/** Flat HP restored by using an estus flask. */
+export const ESTUS_HEAL_HP = 200
 
 export const FLOW_GAP_HOT_MINS   = 15
 export const FLOW_GAP_WARM_MINS  = 60

@@ -3,7 +3,7 @@ import type { GameState, LocationData, Stats, WeaponInstance, SublocationType, C
 import { ENEMIES } from '../data/enemies'
 import { saveGame, loadGame } from '../engine/save'
 import { registerWeapon, WEAPONS } from '../data/weapons'
-import { RUN_DURATION_SECONDS, RUN_ESTUS_MAX, ESTUS_HEAL_FRACTION, statLevelCost, weaponUpgradeCost, WEAPON_SELL_PRICE } from '../data/constants'
+import { RUN_DURATION_SECONDS, RUN_ESTUS_MAX, ESTUS_HEAL_HP, statLevelCost, weaponUpgradeCost, WEAPON_SELL_PRICE } from '../data/constants'
 import { rollWeapon } from '../data/generators/weaponGenerator'
 import { WEAPON_CLASSES } from '../data/generators/weaponClasses'
 import { generateRemasterWorkflow, regenerateWorkflowKeepingStructure } from '../data/generators/remasterGenerator'
@@ -357,7 +357,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
   drinkEstus: () => {
     const s = get()
     if (s.run_estus_count <= 0) return false
-    const healAmount = Math.floor(calcMaxHp(s.stats.VIG) * ESTUS_HEAL_FRACTION)
+    const healAmount = ESTUS_HEAL_HP
     set(prev => ({
       run_estus_count: prev.run_estus_count - 1,
       current_hp:      Math.min(calcMaxHp(prev.stats.VIG), prev.current_hp + healAmount),
