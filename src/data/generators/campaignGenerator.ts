@@ -20,7 +20,7 @@ function childCount(edges: CampaignEdge[], nodeId: string): number {
   return edges.filter(e => e.from_id === nodeId).length
 }
 
-function nodeDepth(nodes: CampaignNode[], edges: CampaignEdge[], nodeId: string): number {
+function nodeDepth(_nodes: CampaignNode[], edges: CampaignEdge[], nodeId: string): number {
   let depth = 0
   let cur = nodeId
   const visited = new Set<string>()

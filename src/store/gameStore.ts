@@ -1,5 +1,5 @@
 import { create } from 'zustand'
-import type { GameState, LocationData, Stats, WeaponInstance, SublocationType, CampaignNode, WeaponCampaign, Locale, WorkflowGraph, LocationTheme } from '../types/game'
+import type { GameState, LocationData, Stats, WeaponInstance, SublocationType, CampaignNode, Locale, WorkflowGraph, LocationTheme } from '../types/game'
 import { ENEMIES } from '../data/enemies'
 import { saveGame, loadGame } from '../engine/save'
 import { registerWeapon, WEAPONS } from '../data/weapons'
@@ -597,7 +597,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
     if (!data.weapon_campaigns)     data.weapon_campaigns     = {}
     // Backfill content_type on campaign nodes from older saves
     for (const c of Object.values(data.weapon_campaigns)) {
-      c.nodes = c.nodes.map(n => ('content_type' in n ? n : { content_type: '_blank' as const, ...n }))
+      c.nodes = c.nodes.map(n => ('content_type' in n ? n : { content_type: '_blank' as const, ...(n as object) }))
     }
     if (!data.total_task_time_s)    data.total_task_time_s    = 0
     if (data.abandon_penalty === undefined)  data.abandon_penalty  = 0

@@ -98,7 +98,6 @@ export default function RunMapScreen() {
   const [eventNode, setEventNode]   = useState<LocationData | null>(null)
   const [showContent,   setShowContent]   = useState(false)
   const [, setTick] = useState(0)
-  const canEnterFight = true
   const expiredRef = useRef(false)
 
   const seq     = store.run_location_sequence
