@@ -124,7 +124,7 @@
   display: flex;
   flex-direction: column;
   gap: 10px;
-  overflow-y: auto;
+  overflow: auto;
   min-width: 0;
 }
 
@@ -205,66 +205,22 @@
   margin: 0;
 }
 
-/* ── Node tree ─────────────────────────────────────────────────────────── */
+/* ── SVG node card (foreignObject content) ──────────────────────────────── */
 
-.nodeTree {
-  display: flex;
-  flex-direction: column;
-  gap: 0;
-}
-
-/* ── Tree structure: vertical line + horizontal connectors ───────────────── */
-
-/* Container for all children of a node — the left border is the vertical line */
-.childrenGroup {
-  margin-left: 11px;
-  padding-left: 0;
-  border-left: 1px solid rgba(100, 80, 200, 0.25);
-}
-
-/* Each item inside childrenGroup */
-.treeItem {
-  /* no extra layout needed */
-}
-
-/* Wrapper that holds the horizontal connector + nodeRow in one flex row */
-.nodeWithConnector {
+.svgNodeCard {
   display: flex;
   align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  height: 100%;
+  box-sizing: border-box;
+  border-radius: 6px;
+  border: 1px solid rgba(100, 80, 200, 0.22);
+  background: rgba(15, 13, 34, 0.95);
+  overflow: hidden;
 }
 
-/* The horizontal branch line from the vertical line to the node */
-.hLine {
-  width: 14px;
-  flex-shrink: 0;
-  height: 1px;
-  background: rgba(100, 80, 200, 0.25);
-}
-
-/* ── Edge label row (sits above the nodeWithConnector) ──────────────────── */
-
-.edgeRow {
-  display: flex;
-  align-items: center;
-  padding: 2px 4px 2px 20px;   /* 14px hLine + 6px nodeRow gap ≈ 20px indent */
-}
-
-.edgeBadge {
-  font-size: 0.62rem;
-  padding: 1px 6px;
-  border-radius: 3px;
-  background: rgba(100,80,200,0.10);
-  border: 1px solid rgba(100,80,200,0.22);
-  color: rgba(180,160,255,0.7);
-  white-space: nowrap;
-}
-
-.edgeNull {
-  font-size: 0.62rem;
-  color: var(--color-text-dim);
-  opacity: 0.45;
-  padding: 0 4px;
-}
+.svgNodeCard:hover { background: rgba(255, 255, 255, 0.03); }
 
 /* ── Node row ───────────────────────────────────────────────────────────── */
 
