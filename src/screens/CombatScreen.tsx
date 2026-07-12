@@ -1,6 +1,6 @@
 import { useReducer, useEffect, useCallback, useState, useMemo, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { combatReducer, initCombatState, getReachableTiles, previewMove, formatMultiplierPct, calcTileDamage, calcFlowMult, ABANDON_PENALTY } from '../engine/combat'
+import { combatReducer, initCombatState, getReachableTiles, previewMove, formatMultiplierPct, calcTileDamage, calcFlowMult, calcCampaignOverloadMult, ABANDON_PENALTY } from '../engine/combat'
 import { useGameStore, selectAvailableNodes } from '../store/gameStore'
 import { ENEMIES } from '../data/enemies'
 import { WEAPONS } from '../data/weapons'
@@ -104,6 +104,11 @@ export default function CombatScreen() {
             )
           : generateWorkflow(initialWeaponClass, initialWeaponRarity, spawnAsBoss, initialWeapon?.rolled_draws))
 
+      const activeCampaignCount = store.owned_weapons.filter(
+        wid => store.weapon_campaigns[wid] && !store.weapon_campaigns[wid].completed
+      ).length
+      const campaignOverloadMult = calcCampaignOverloadMult(activeCampaignCount, store.stats.END)
+
       return initCombatState(
         workflow, enemyData, loc.enemy_id,
         initialWeaponId, initialWeaponLevel,
@@ -115,6 +120,7 @@ export default function CombatScreen() {
         spawnAsBoss,
         loc.locationTheme,
         initialFlowMult,
+        campaignOverloadMult,
       )
     }
   )

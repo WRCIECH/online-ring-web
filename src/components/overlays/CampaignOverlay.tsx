@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'react'
 import { useGameStore } from '../../store/gameStore'
 import { isNodeAvailable } from '../../data/generators/campaignGenerator'
+import { calcCampaignOverloadMult } from '../../engine/combat'
 import type { CampaignNode, CampaignEdge, WeaponCampaign, WeaponInstance } from '../../types/game'
 import WeaponIcon from '../WeaponIcon'
 import { useT, localizeWeaponName } from '../../i18n'
@@ -209,6 +210,10 @@ export default function CampaignOverlay({ onClose }: Props) {
               const targetPublished = Math.ceil(nodes.length * 0.6)
               const needMore       = Math.max(0, targetPublished - publishedCount)
               const weaponId = selectedWeapon.instance_id
+              const activeCampaignCount = store.owned_weapons.filter(
+                wid => store.weapon_campaigns[wid] && !store.weapon_campaigns[wid].completed
+              ).length
+              const overloadMult = calcCampaignOverloadMult(activeCampaignCount, store.stats.END)
 
               // Compute SVG layout
               const positions = computePositions(roots.map(r => r.id), childrenMap)
@@ -241,6 +246,15 @@ export default function CampaignOverlay({ onClose }: Props) {
                         {(t.ui as Record<string, string>).campaign_done ?? 'Campaign Complete'}
                       </span>
                     )}
+                    {overloadMult < 1.0 ? (
+                      <span className={s.overloadWarning}>
+                        ⚠ {activeCampaignCount} active · END {store.stats.END} → −{Math.round((1 - overloadMult) * 100)}% dmg
+                      </span>
+                    ) : activeCampaignCount > 1 ? (
+                      <span className={s.overloadOk}>
+                        {activeCampaignCount} active · END {store.stats.END} → no penalty
+                      </span>
+                    ) : null}
                   </div>
 
                   <svg

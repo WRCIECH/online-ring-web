@@ -233,6 +233,21 @@
   white-space: nowrap;
 }
 
+.overloadWarning {
+  font-size: 0.68rem;
+  padding: 2px 8px;
+  border-radius: 3px;
+  background: rgba(220,100,50,0.10);
+  border: 1px solid rgba(220,100,50,0.28);
+  color: #dd8866;
+}
+
+.overloadOk {
+  font-size: 0.68rem;
+  color: var(--color-text-dim);
+  opacity: 0.6;
+}
+
 .completedHint {
   font-size: 0.78rem;
   color: var(--color-text-dim);

@@ -9,6 +9,7 @@ import {
   HEAVY_TIME_BONUS, DMG_PER_MIN,
   FLOW_GAP_HOT_MINS, FLOW_GAP_WARM_MINS, FLOW_GAP_COLD_MINS,
   FLOW_MULT_HOT, FLOW_MULT_WARM, FLOW_MULT_COLD, FLOW_MULT_DEAD,
+  CAMPAIGN_PENALTY_BASE, END_MITIGATION_PER_POINT, CAMPAIGN_PENALTY_CAP,
 } from '../data/constants'
 
 export interface LogEntry { id: number; text: string; color?: string }
@@ -26,7 +27,8 @@ export interface CombatState {
   equippedWeaponId: string
   weaponLevel: number
   playerStats: Stats
-  incomingPenalty: number   // from prior abandon; 0.0 = none
+  incomingPenalty: number       // from prior abandon; 0.0 = none
+  campaignOverloadMult: number  // damage multiplier from active campaign count vs END
   consistencyStreak: number   // consecutive completions without switching weapon/content; resets on either
   isRemasterPass: boolean     // true while working a remaster-originated workflow
   // Enemy
@@ -189,19 +191,21 @@ export function previewMove(state: CombatState, tile: WorkflowTile, move: MoveTy
   const finisherMult   = wouldFinishAll ? 3.0 : 1.0
   const damage         = Math.round(
     repeatDamage * (1 - repeatPenalty) * (1 - state.incomingPenalty)
+      * state.campaignOverloadMult
       * consistencyMult * remasterMult * affinityMult * themeBonus * finisherMult * state.flowMult
   )
   const multipliers: DamageMultiplier[] = [
-    { key: 'heavyBonus',    value: HEAVY_TIME_BONUS,          active: move === 'Heavy' },
-    { key: 'repeatFlat',    value: 1 - REPEAT_DAMAGE_PENALTY, active: isRepeat },
-    { key: 'repeatScaling', value: 1 - repeatPenalty,         active: repeatPenalty > 0 },
-    { key: 'abandon',       value: 1 - state.incomingPenalty, active: state.incomingPenalty > 0 },
-    { key: 'affinity',      value: affinityMult,              active: affinityMult !== 1.0 },
-    { key: 'theme',         value: themeBonus,                active: themeBonus !== 1.0 },
-    { key: 'streak',        value: consistencyMult,           active: state.consistencyStreak > 0 },
-    { key: 'remaster',      value: 1.2,                       active: state.isRemasterPass },
-    { key: 'finisher',      value: 3.0,                       active: wouldFinishAll },
-    { key: 'flow',          value: state.flowMult,            active: state.flowMult !== 1.0 },
+    { key: 'heavyBonus',        value: HEAVY_TIME_BONUS,               active: move === 'Heavy' },
+    { key: 'repeatFlat',        value: 1 - REPEAT_DAMAGE_PENALTY,      active: isRepeat },
+    { key: 'repeatScaling',     value: 1 - repeatPenalty,              active: repeatPenalty > 0 },
+    { key: 'abandon',           value: 1 - state.incomingPenalty,      active: state.incomingPenalty > 0 },
+    { key: 'campaignOverload',  value: state.campaignOverloadMult,     active: state.campaignOverloadMult < 1.0 },
+    { key: 'affinity',          value: affinityMult,                   active: affinityMult !== 1.0 },
+    { key: 'theme',             value: themeBonus,                     active: themeBonus !== 1.0 },
+    { key: 'streak',            value: consistencyMult,                active: state.consistencyStreak > 0 },
+    { key: 'remaster',          value: 1.2,                            active: state.isRemasterPass },
+    { key: 'finisher',          value: 3.0,                            active: wouldFinishAll },
+    { key: 'flow',              value: state.flowMult,                 active: state.flowMult !== 1.0 },
   ]
   return { duration, damage, multipliers }
 }
@@ -214,6 +218,13 @@ export function calcFlowMult(lastFightEndedAt: number | undefined): number {
   if (gapMins < FLOW_GAP_WARM_MINS) return FLOW_MULT_WARM
   if (gapMins < FLOW_GAP_COLD_MINS) return FLOW_MULT_COLD
   return FLOW_MULT_DEAD
+}
+
+export function calcCampaignOverloadMult(activeCampaigns: number, endurance: number): number {
+  const excess = Math.max(0, activeCampaigns - 1)
+  if (excess === 0) return 1.0
+  const penaltyPerSlot = Math.max(0, CAMPAIGN_PENALTY_BASE - endurance * END_MITIGATION_PER_POINT)
+  return 1 - Math.min(CAMPAIGN_PENALTY_CAP, excess * penaltyPerSlot)
 }
 
 // ── Init ──────────────────────────────────────────────────────────────────
@@ -233,6 +244,7 @@ export function initCombatState(
   spawnAsBoss = false,
   locationTheme?: LocationTheme,
   flowMult = 1.0,
+  campaignOverloadMult = 1.0,
 ): CombatState {
   // Derive boss version when the encounter is a boss slot but the enemy entry
   // is a regular mob — scale HP ×2 and swap in the boss display name.
@@ -249,6 +261,7 @@ export function initCombatState(
     playerEstus,
     equippedWeaponId, weaponLevel, playerStats,
     incomingPenalty,
+    campaignOverloadMult,
     consistencyStreak: 0, isRemasterPass,
     enemyData: effectiveEnemy, isBoss,
     enemyHp: effectiveEnemy.max_hp, enemyMaxHp: effectiveEnemy.max_hp,
@@ -266,6 +279,9 @@ export function initCombatState(
   state = log(state, effectiveEnemy.description, '#7a7570')
   if (incomingPenalty > 0) {
     state = log(state, `⚠ Abandon penalty active: −${Math.round(incomingPenalty * 100)}% damage.`, '#cc6622')
+  }
+  if (campaignOverloadMult < 1.0) {
+    state = log(state, `⚠ Campaign overload: −${Math.round((1 - campaignOverloadMult) * 100)}% damage.`, '#cc6622')
   }
   if (isBoss) {
     state = log(state, '⚡ Boss encounter — this enemy has 2× HP.', '#cc4488')
@@ -369,6 +385,7 @@ export function combatReducer(state: CombatState, action: CombatAction): CombatS
       const repeatDamage  = isRepeat ? Math.round(rawDamage * (1 - REPEAT_DAMAGE_PENALTY)) : rawDamage
       const damage        = Math.round(
         repeatDamage * (1 - repeatPenalty) * (1 - state.incomingPenalty)
+          * state.campaignOverloadMult
           * consistencyMult * remasterMult * affinityMult * themeBonus * finisherMult * state.flowMult
       )
       const newEnemyHp    = Math.max(0, state.enemyHp - damage)

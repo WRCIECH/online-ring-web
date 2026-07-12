@@ -32,6 +32,15 @@ export const FLOW_MULT_WARM = 1.2   // < 60 min: +20% dmg
 export const FLOW_MULT_COLD = 1.0   // < 240 min: no change
 export const FLOW_MULT_DEAD = 1.0   // ≥ 240 min: no change
 
+// ── Campaign overload (END stat mechanic) ───────────────────────────────────
+
+/** Damage lost per excess active campaign (beyond the first free one). */
+export const CAMPAIGN_PENALTY_BASE = 0.15
+/** Fraction of penalty mitigated per point of END. */
+export const END_MITIGATION_PER_POINT = 0.005
+/** Maximum total campaign overload penalty (80% damage loss). */
+export const CAMPAIGN_PENALTY_CAP = 0.80
+
 // ── Combat — Heavy attack damage ─────────────────────────────────────────────
 // Heavy damage scales with the tile's actual time_heavy (not a flat multiple of
 // time_light) — a stage taking 3x as long as its Light version deals ~3x the
