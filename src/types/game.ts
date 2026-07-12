@@ -9,6 +9,8 @@ export type MoveType = 'Light' | 'Heavy'
 export type StyleType =
   | 'Minimalism' | 'Shock' | 'Narration' | 'Segmentation' | 'Fast'
   | 'Passion' | 'Intellectual' | 'ProblemSolving' | 'Estetic' | 'Interactive' | 'Cliffhanger'
+  | 'Viral' | 'Controversy' | 'Comfort' | 'Drama' | 'Humor'
+  | 'Parasocial' | 'Wow' | 'Hope' | 'Fear' | 'Desire'
 
 export type EmotionType =
   | 'Viral' | 'Polarization' | 'Envy' | 'Controversion' | 'Comfort'

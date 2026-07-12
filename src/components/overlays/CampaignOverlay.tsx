@@ -34,6 +34,16 @@ const LABEL_DISPLAY: Record<string, string> = {
   Estetic:       'Esthetic',
   Interactive:   'Interactive',
   Cliffhanger:   'Cliffhanger',
+  Viral:         'Viral',
+  Controversy:   'Controversy',
+  Comfort:       'Comfort',
+  Drama:         'Drama',
+  Humor:         'Humor',
+  Parasocial:    'Parasocial',
+  Wow:           'Wow',
+  Hope:          'Hope',
+  Fear:          'Fear',
+  Desire:        'Desire',
 }
 
 const LABEL_TOOLTIP: Record<string, string> = {
@@ -55,6 +65,16 @@ const LABEL_TOOLTIP: Record<string, string> = {
   Estetic:       'Esthetic — prioritises visual or sensory appeal and craft.',
   Interactive:   'Interactive — invites audience participation or response.',
   Cliffhanger:   'Cliffhanger — ends with unresolved tension to keep the audience coming back.',
+  Viral:         'Viral — content engineered to spread rapidly; brainrot, memes, trend-chasing.',
+  Controversy:   'Controversy — polarising takes, hot-button topics, provocation that splits audiences.',
+  Comfort:       'Comfort — soothing, reassuring content; relaxation and wholesome familiarity.',
+  Drama:         'Drama — conflict, call-outs, cancel culture, interpersonal tension.',
+  Humor:         'Humor — comedy, satire, roasts, and irony.',
+  Parasocial:    'Parasocial — intimacy and bond-building with the audience.',
+  Wow:           'Wow — jaw-dropping facts, stunning visuals, education-as-spectacle.',
+  Hope:          'Hope — inspirational, wholesome, motivational framing.',
+  Fear:          'Fear — anxiety, doomscrolling, worst-case scenarios.',
+  Desire:        'Desire — FOMO, urgency, scarcity, aspiration.',
 }
 
 const FOLLOWS_TOOLTIP = 'Follows — this piece continues naturally from its parent in sequence or as a direct consequence. No specific transformation was applied.'

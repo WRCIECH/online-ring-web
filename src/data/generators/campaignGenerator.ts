@@ -50,7 +50,7 @@ export function isNodeAvailable(nodes: CampaignNode[], edges: CampaignEdge[], no
 }
 
 const ALL_ATOMIC_ORIGINS: AtomicOrigin[] = ['New', 'Compression', 'Expansion', 'ZoomIn', 'ZoomOut', 'Similar', 'Opposite']
-const ALL_STYLE_TYPES: StyleType[]    = ['Minimalism', 'Shock', 'Narration', 'Segmentation', 'Fast', 'Passion', 'Intellectual', 'ProblemSolving', 'Estetic', 'Interactive', 'Cliffhanger']
+const ALL_STYLE_TYPES: StyleType[]    = ['Minimalism', 'Shock', 'Narration', 'Segmentation', 'Fast', 'Passion', 'Intellectual', 'ProblemSolving', 'Estetic', 'Interactive', 'Cliffhanger', 'Viral', 'Controversy', 'Comfort', 'Drama', 'Humor', 'Parasocial', 'Wow', 'Hope', 'Fear', 'Desire']
 const GLOBAL_EDGE_POOL: (AtomicOrigin | StyleType)[] = [...ALL_ATOMIC_ORIGINS, ...ALL_STYLE_TYPES]
 
 const NODE_COUNT_BY_WEIGHT: Record<string, [number, number]> = {
