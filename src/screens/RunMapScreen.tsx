@@ -91,8 +91,11 @@ export default function RunMapScreen() {
   const dashOffRef = useRef(0)
   const drawRef    = useRef<(off: number) => void>(() => {})
 
+  const hoverIdxRef                  = useRef(-1)
   const [hoverIdx, setHoverIdx]     = useState(-1)
   const [tooltipPos, setTooltipPos] = useState({ x: 0, y: 0 })
+  const bgCanvasRef                  = useRef<HTMLCanvasElement | null>(null)
+  const canvasRectRef                = useRef<DOMRect | null>(null)
   const [popupIdx, setPopupIdx]     = useState(-1)
   const [popupPos, setPopupPos]     = useState({ x: 0, y: 0 })
   const [eventNode, setEventNode]   = useState<LocationData | null>(null)
@@ -136,20 +139,16 @@ export default function RunMapScreen() {
     nodes.current = buildNodes(seq.length)
   }, [seq.length])
 
-  const draw = useCallback((dashOffset: number) => {
-    const canvas = canvasRef.current
-    if (!canvas) return
-    const ctx = canvas.getContext('2d')!
-    ctx.clearRect(0, 0, canvas.width, canvas.height)
-
-    // ── Layer 1: Deep gradient base ──────────────────────────────────────
+  // Paint static background once; blit each frame instead of redrawing.
+  useEffect(() => {
+    const bg = document.createElement('canvas')
+    bg.width = 1200; bg.height = 800
+    const ctx = bg.getContext('2d')!
     const bgGrad = ctx.createRadialGradient(CX, CY, 0, CX, CY, 700)
     bgGrad.addColorStop(0, '#16102e')
     bgGrad.addColorStop(1, '#0a0818')
     ctx.fillStyle = bgGrad
     ctx.fillRect(0, 0, 1200, 800)
-
-    // ── Layer 2: Nebula blobs ─────────────────────────────────────────────
     NEBULAS.forEach(({ cx, cy, r, col: [rc, gc, bc], a }) => {
       const g = ctx.createRadialGradient(cx, cy, 0, cx, cy, r)
       g.addColorStop(0,   `rgba(${rc},${gc},${bc},${a})`)
@@ -158,8 +157,6 @@ export default function RunMapScreen() {
       ctx.fillStyle = g
       ctx.fillRect(0, 0, 1200, 800)
     })
-
-    // ── Layer 3: Stars ────────────────────────────────────────────────────
     STARS.forEach(star => {
       if (star.glow) {
         ctx.save()
@@ -176,18 +173,30 @@ export default function RunMapScreen() {
         ctx.fillStyle = `rgba(200,225,255,${star.a})`
         ctx.fill()
       }
-    })
-
-    // ── Layer 4: Corner vignettes ─────────────────────────────────────────
-    const corners = [[0,0],[1200,0],[0,800],[1200,800]] as const
-    corners.forEach(([cx, cy]) => {
+    });
+    ([[0,0],[1200,0],[0,800],[1200,800]] as const).forEach(([cx, cy]) => {
       const g = ctx.createRadialGradient(cx, cy, 0, cx, cy, 340)
       g.addColorStop(0, 'rgba(8,5,20,0.60)')
       g.addColorStop(1, 'transparent')
       ctx.fillStyle = g
       ctx.fillRect(0, 0, 1200, 800)
     })
+    bgCanvasRef.current = bg
+  }, [])
 
+  const draw = useCallback((dashOffset: number) => {
+    const canvas = canvasRef.current
+    if (!canvas) return
+    const ctx = canvas.getContext('2d')!
+
+    // ── Blit pre-rendered static background ──────────────────────────────
+    if (bgCanvasRef.current) {
+      ctx.drawImage(bgCanvasRef.current, 0, 0)
+    } else {
+      ctx.clearRect(0, 0, canvas.width, canvas.height)
+    }
+
+    const hoverIdx = hoverIdxRef.current  // read ref — no closure dep on state
     const ns = nodes.current
     if (ns.length === 0) return
 
@@ -258,13 +267,13 @@ export default function RunMapScreen() {
 
       const r = active ? NODE_R + 3 : NODE_R
 
-      // Outer soft glow ring
+      // Outer soft glow ring (shadow only for active/hovered — expensive per node)
+      const needGlow = active || i === hoverIdx
       ctx.save()
-      ctx.shadowBlur  = 22
-      ctx.shadowColor = glowColor
+      if (needGlow) { ctx.shadowBlur = 22; ctx.shadowColor = glowColor }
       ctx.beginPath()
       ctx.arc(n.x, n.y, r + 3, 0, Math.PI * 2)
-      ctx.strokeStyle = withAlpha(glowColor, 0.7)
+      ctx.strokeStyle = withAlpha(glowColor, needGlow ? 0.7 : 0.35)
       ctx.lineWidth   = 1.5
       ctx.stroke()
       ctx.restore()
@@ -335,7 +344,7 @@ export default function RunMapScreen() {
       ctx.textBaseline = 'middle'
       ctx.fillText(symbol, n.x, n.y)
     })
-  }, [seq, current, hoverIdx])
+  }, [seq, current])
 
   // Keep drawRef current so RAF always calls latest version
   useEffect(() => {
@@ -353,22 +362,40 @@ export default function RunMapScreen() {
     return () => cancelAnimationFrame(rafRef.current)
   }, [])
 
+  // ── Native passive mousemove — bypasses React synthetic event overhead ──
+  useEffect(() => {
+    const canvas = canvasRef.current
+    if (!canvas) return
+    canvasRectRef.current = canvas.getBoundingClientRect()
+    const onResize = () => { canvasRectRef.current = canvas.getBoundingClientRect() }
+    window.addEventListener('resize', onResize)
+    const onMove = (e: MouseEvent) => {
+      const rect = canvasRectRef.current!
+      const x = (e.clientX - rect.left) * (1200 / rect.width)
+      const y = (e.clientY - rect.top)  * (800  / rect.height)
+      const idx = getNodeAt(x, y, nodes.current)
+      if (idx !== hoverIdxRef.current) {
+        hoverIdxRef.current = idx
+        setHoverIdx(idx)
+        if (idx >= 0) setTooltipPos({ x: e.clientX + 14, y: e.clientY - 10 })
+      }
+    }
+    canvas.addEventListener('mousemove', onMove, { passive: true })
+    return () => {
+      canvas.removeEventListener('mousemove', onMove)
+      window.removeEventListener('resize', onResize)
+    }
+  }, [])
+
   // ── Input ────────────────────────────────────────────────────────────────
   function canvasCoords(e: React.MouseEvent<HTMLCanvasElement>) {
-    const rect = canvasRef.current!.getBoundingClientRect()
+    const rect = canvasRectRef.current ?? canvasRef.current!.getBoundingClientRect()
     const scaleX = 1200 / rect.width
     const scaleY = 800  / rect.height
     return { x: (e.clientX - rect.left) * scaleX, y: (e.clientY - rect.top) * scaleY }
   }
 
-  function handleMouseMove(e: React.MouseEvent<HTMLCanvasElement>) {
-    const { x, y } = canvasCoords(e)
-    const idx = getNodeAt(x, y, nodes.current)
-    setHoverIdx(idx)
-    if (idx >= 0) setTooltipPos({ x: e.clientX + 14, y: e.clientY - 10 })
-  }
-
-  function handleMouseLeave() { setHoverIdx(-1) }
+  function handleMouseLeave() { hoverIdxRef.current = -1; setHoverIdx(-1) }
 
   function handleClick(e: React.MouseEvent<HTMLCanvasElement>) {
     const { x, y } = canvasCoords(e)
@@ -418,7 +445,6 @@ export default function RunMapScreen() {
         className={s.canvas}
         width={1200}
         height={800}
-        onMouseMove={handleMouseMove}
         onMouseLeave={handleMouseLeave}
         onClick={handleClick}
         style={{ cursor: hoverIdx === current ? 'pointer' : 'default' }}
