@@ -426,17 +426,60 @@ export default function CombatScreen() {
               )}
               {currentCampaign?.campaign_name && <span className={s.contentBarSep}>·</span>}
               <span className={s.contentBarTitle}>{selectedContent.name}</span>
-              {state.flowMult > 1.0 && (
-                <span className={state.flowMult >= 1.5 ? s.flowBadgeHot : s.flowBadgeWarm}>
-                  ⚡ FLOW ×{state.flowMult.toFixed(1)}
-                </span>
-              )}
             </div>
             {edgeLabelText && (
               <div className={s.contentBarRow2}>
                 <span className={s.contentBarRelation}>↳ {edgeLabelText}</span>
               </div>
             )}
+          </div>
+        )
+      })()}
+
+      {(() => {
+        const tui = t.ui as Record<string, string>
+        const streakMult = 1.0 + Math.min(0.5, 0.05 * state.consistencyStreak)
+        const badges = [
+          state.flowMult > 1.0 && {
+            key: 'flow',
+            label: `⚡ ${tui.mult_flow} ×${state.flowMult.toFixed(1)}`,
+            cls: state.flowMult >= 1.5 ? s.badgeHot : s.badgeWarm,
+            tooltip: tui.mult_flow_desc,
+          },
+          state.isRemasterPass && {
+            key: 'remaster',
+            label: `★ ${tui.mult_remaster} ×1.2`,
+            cls: s.badgeRemaster,
+            tooltip: tui.mult_remaster_desc,
+          },
+          state.consistencyStreak > 0 && {
+            key: 'streak',
+            label: `🔥 ${tui.mult_streak} ×${streakMult.toFixed(2)}`,
+            cls: s.badgeStreak,
+            tooltip: `${tui.mult_streak_desc} (${tui.mult_streak}: ${state.consistencyStreak})`,
+          },
+          state.campaignOverloadMult < 1.0 && {
+            key: 'overload',
+            label: `⚠ ${tui.mult_campaignOverload} −${Math.round((1 - state.campaignOverloadMult) * 100)}%`,
+            cls: s.badgeDebuff,
+            tooltip: tui.mult_campaignOverload_desc,
+          },
+          state.incomingPenalty > 0 && {
+            key: 'abandon',
+            label: `↓ ${tui.mult_abandon} −${Math.round(state.incomingPenalty * 100)}%`,
+            cls: s.badgeDebuff,
+            tooltip: tui.mult_abandon_desc,
+          },
+        ].filter(Boolean) as Array<{ key: string; label: string; cls: string; tooltip: string }>
+
+        if (badges.length === 0) return null
+        return (
+          <div className={s.buffBar}>
+            {badges.map(b => (
+              <span key={b.key} className={`${s.buff} ${b.cls}`} data-tooltip={b.tooltip}>
+                {b.label}
+              </span>
+            ))}
           </div>
         )
       })()}

@@ -72,8 +72,90 @@
   letter-spacing: 0.04em;
 }
 
+/* ── Buff / debuff badge bar ──────────────────────────────────────────────── */
+
+.buffBar {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 5px;
+  padding: 4px 18px;
+  flex-shrink: 0;
+  background: rgba(10, 8, 24, 0.60);
+  border-bottom: 1px solid rgba(74, 100, 200, 0.10);
+}
+
+.buff {
+  position: relative;
+  font-size: 0.68rem;
+  letter-spacing: 0.06em;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 3px;
+  white-space: nowrap;
+  cursor: default;
+}
+
+/* Tooltip via data-tooltip attribute */
+.buff::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  bottom: calc(100% + 6px);
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(14, 12, 32, 0.97);
+  border: 1px solid rgba(100, 80, 200, 0.35);
+  border-radius: 6px;
+  padding: 7px 11px;
+  font-size: 0.72rem;
+  font-weight: 400;
+  color: rgba(210, 200, 255, 0.9);
+  white-space: normal;
+  max-width: 260px;
+  width: max-content;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.12s;
+  z-index: 60;
+  line-height: 1.55;
+  letter-spacing: 0.01em;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+}
+
+.buff:hover::after { opacity: 1; }
+
+.badgeHot {
+  background: rgba(255, 200, 40, 0.12);
+  border: 1px solid rgba(255, 200, 40, 0.45);
+  color: #ffcc44;
+}
+
+.badgeWarm {
+  background: rgba(100, 200, 255, 0.10);
+  border: 1px solid rgba(100, 200, 255, 0.35);
+  color: #88ddff;
+}
+
+.badgeRemaster {
+  background: rgba(140, 90, 255, 0.10);
+  border: 1px solid rgba(140, 90, 255, 0.35);
+  color: #aa88ff;
+}
+
+.badgeStreak {
+  background: rgba(80, 200, 120, 0.10);
+  border: 1px solid rgba(80, 200, 120, 0.35);
+  color: #66cc88;
+}
+
+.badgeDebuff {
+  background: rgba(220, 80, 50, 0.10);
+  border: 1px solid rgba(220, 80, 50, 0.30);
+  color: #dd7755;
+}
+
+/* Legacy — kept for any remaining references */
 .flowBadgeHot {
-  margin-left: auto;
   font-size: 0.7rem;
   letter-spacing: 0.08em;
   font-weight: 600;
@@ -86,7 +168,6 @@
 }
 
 .flowBadgeWarm {
-  margin-left: auto;
   font-size: 0.7rem;
   letter-spacing: 0.08em;
   font-weight: 600;
