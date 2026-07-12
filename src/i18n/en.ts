@@ -359,7 +359,6 @@ const en: TranslationBundle = {
     btn_pipeline: 'Pipeline',
     btn_campaigns:            'Campaigns',
     campaigns_title:          'CAMPAIGNS',
-    campaign_name_placeholder:'Campaign name…',
     campaign_start_new:       'Start New Campaign',
     campaign_past:            'Past Campaigns',
     campaign_node_locked:     'Locked',

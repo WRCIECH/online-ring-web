@@ -354,7 +354,6 @@ const pl: TranslationBundle = {
     btn_pipeline: 'Content',
     btn_campaigns:            'Kampanie',
     campaigns_title:          'KAMPANIE',
-    campaign_name_placeholder:'Nazwa kampanii…',
     campaign_start_new:       'Nowa kampania',
     campaign_past:            'Poprzednie kampanie',
     campaign_node_locked:     'Zablokowany',
