@@ -408,17 +408,38 @@ export default function CombatScreen() {
         canLevel={false}
       />
 
-      {selectedContent && (
-        <div className={s.contentBar}>
-          <span className={s.contentBarLabel}>Working on:</span>
-          <span className={s.contentBarTitle}>{selectedContent.name}</span>
-          {state.flowMult > 1.0 && (
-            <span className={state.flowMult >= 1.5 ? s.flowBadgeHot : s.flowBadgeWarm}>
-              ⚡ FLOW ×{state.flowMult.toFixed(1)}
-            </span>
-          )}
-        </div>
-      )}
+      {selectedContent && (() => {
+        const currentCampaign = store.weapon_campaigns[state.equippedWeaponId]
+        const parentEdge = currentCampaign?.edges.find(e => e.to_id === selectedContentId)
+        const edgeLabel = parentEdge?.label ?? null
+        const edgeLabelText = edgeLabel
+          ? ((t.content.style as Record<string, { badge_label: string }>)[edgeLabel]?.badge_label
+            ?? (t.content.origin as Record<string, { badge_label: string }>)[edgeLabel]?.badge_label
+            ?? edgeLabel)
+          : null
+        return (
+          <div className={s.contentBar}>
+            <div className={s.contentBarRow1}>
+              <span className={s.contentBarLabel}>{t.ui.working_on}</span>
+              {currentCampaign?.campaign_name && (
+                <span className={s.contentBarCampaign}>{currentCampaign.campaign_name}</span>
+              )}
+              {currentCampaign?.campaign_name && <span className={s.contentBarSep}>·</span>}
+              <span className={s.contentBarTitle}>{selectedContent.name}</span>
+              {state.flowMult > 1.0 && (
+                <span className={state.flowMult >= 1.5 ? s.flowBadgeHot : s.flowBadgeWarm}>
+                  ⚡ FLOW ×{state.flowMult.toFixed(1)}
+                </span>
+              )}
+            </div>
+            {edgeLabelText && (
+              <div className={s.contentBarRow2}>
+                <span className={s.contentBarRelation}>↳ {edgeLabelText}</span>
+              </div>
+            )}
+          </div>
+        )
+      })()}
 
       <div className={s.main}>
         <div className={s.canvasWrap}>

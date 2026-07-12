@@ -22,12 +22,25 @@
 
 .contentBar {
   display: flex;
-  align-items: center;
-  gap: 8px;
+  flex-direction: column;
+  gap: 1px;
   padding: 5px 18px;
   border-bottom: 1px solid rgba(74, 100, 200, 0.18);
   flex-shrink: 0;
   background: rgba(10, 8, 24, 0.88);
+}
+
+.contentBarRow1 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.contentBarRow2 {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding-left: 2px;
 }
 
 .contentBarLabel {
@@ -37,9 +50,26 @@
   color: var(--color-text-dim);
 }
 
+.contentBarCampaign {
+  font-size: 0.78rem;
+  color: rgba(180, 160, 255, 0.55);
+}
+
+.contentBarSep {
+  font-size: 0.68rem;
+  color: var(--color-text-dim);
+  opacity: 0.4;
+}
+
 .contentBarTitle {
   font-size: 0.85rem;
   color: var(--color-accent-dim);
+}
+
+.contentBarRelation {
+  font-size: 0.68rem;
+  color: rgba(160, 140, 220, 0.5);
+  letter-spacing: 0.04em;
 }
 
 .flowBadgeHot {
