@@ -224,6 +224,7 @@ function initialState(): GameState {
     active_workflow: null,
     active_content_id: null,
     weapon_campaigns: {},
+    campaign_library: [],
 
     total_task_time_s: 0,
     locale: 'pl',
@@ -272,12 +273,14 @@ export interface GameStore extends GameState {
   initClass: (classId: string) => void
 
   // Campaign (per weapon)
-  assignCampaignToWeapon: (weaponId: string) => void
-  renameCampaignNode:     (weaponId: string, nodeId: string, name: string) => void
-  completeCampaignNode:   (weaponId: string, nodeId: string, workflow: WorkflowGraph) => void
-  publishCampaignNode:    (weaponId: string, nodeId: string) => void
-  startNodeRemaster:      (weaponId: string, nodeId: string) => void
-  useSuperhitOnNode:      (weaponId: string, nodeId: string) => void
+  assignCampaignToWeapon:       (weaponId: string) => void
+  renameCampaignNode:           (weaponId: string, nodeId: string, name: string) => void
+  completeCampaignNode:         (weaponId: string, nodeId: string, workflow: WorkflowGraph) => void
+  publishCampaignNode:          (weaponId: string, nodeId: string) => void
+  startNodeRemaster:            (weaponId: string, nodeId: string) => void
+  useSuperhitOnNode:            (weaponId: string, nodeId: string) => void
+  renameCampaign:               (weaponId: string, name: string) => void
+  applyLibraryCampaignToWeapon: (campaignId: string, weaponId: string) => void
 
   // Learning items
 
@@ -518,13 +521,34 @@ export const useGameStore = create<GameStore>((set, get) => ({
       const nodes = c.nodes.map(n => n.id === nodeId ? { ...n, published: true } : n)
       const publishedCount = nodes.filter(n => n.published).length
       const campaignDone = publishedCount / nodes.length >= 0.6
+      const updatedCampaign = { ...c, nodes, completed: campaignDone }
+      const library = campaignDone
+        ? [...s.campaign_library.filter(lc => lc.id !== updatedCampaign.id), updatedCampaign]
+        : s.campaign_library
       return {
-        weapon_campaigns: {
-          ...s.weapon_campaigns,
-          [weaponId]: { ...c, nodes, completed: campaignDone },
-        },
+        weapon_campaigns: { ...s.weapon_campaigns, [weaponId]: updatedCampaign },
+        campaign_library: library,
       }
     })
+    get().save()
+  },
+
+  renameCampaign: (weaponId, name) => {
+    set(s => {
+      const c = s.weapon_campaigns[weaponId]
+      if (!c) return s
+      return { weapon_campaigns: { ...s.weapon_campaigns, [weaponId]: { ...c, campaign_name: name } } }
+    })
+    get().save()
+  },
+
+  applyLibraryCampaignToWeapon: (campaignId, weaponId) => {
+    const libraryEntry = get().campaign_library.find(c => c.id === campaignId)
+    const weapon = get().weapon_instances.find(w => w.instance_id === weaponId)
+    if (!libraryEntry || !weapon) return
+    const fresh = generateWeaponCampaign(weapon)
+    fresh.campaign_name = libraryEntry.campaign_name
+    set(s => ({ weapon_campaigns: { ...s.weapon_campaigns, [weaponId]: fresh } }))
     get().save()
   },
 
@@ -591,6 +615,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
     // Migration safety
     if (!data.locale)               data.locale               = 'pl'
     if (!data.weapon_campaigns)     data.weapon_campaigns     = {}
+    if (!data.campaign_library)     data.campaign_library     = []
     if (!data.total_task_time_s)    data.total_task_time_s    = 0
     if (data.abandon_penalty === undefined)  data.abandon_penalty  = 0
     if (data.active_workflow  === undefined) data.active_workflow  = null

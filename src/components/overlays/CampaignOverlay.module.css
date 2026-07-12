@@ -173,6 +173,102 @@
 
 .btnGenerate:hover { background: rgba(80,200,100,0.14); }
 
+/* ── Campaign name ──────────────────────────────────────────────────────── */
+
+.campaignNameRow {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  margin-bottom: 6px;
+}
+
+.campaignNameInput {
+  flex: 1;
+  font-size: 0.92rem;
+  padding: 3px 7px;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid var(--color-border);
+  border-radius: 3px;
+  color: var(--color-text);
+  min-width: 0;
+}
+
+.campaignNameSet {
+  font-size: 0.92rem;
+  color: var(--color-text);
+  cursor: pointer;
+  padding: 2px 4px;
+  border-radius: 3px;
+  transition: background 0.1s;
+}
+
+.campaignNameSet:hover { background: rgba(255,255,255,0.06); }
+
+.campaignNameEmpty {
+  font-size: 0.88rem;
+  color: var(--color-text-dim);
+  font-style: italic;
+  cursor: pointer;
+  padding: 2px 4px;
+  border-radius: 3px;
+  transition: background 0.1s;
+}
+
+.campaignNameEmpty:hover { background: rgba(255,255,255,0.04); }
+
+/* ── Campaign library ───────────────────────────────────────────────────── */
+
+.librarySection {
+  margin-top: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.libraryTitle {
+  font-size: 0.72rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--color-text-dim);
+  margin-bottom: 4px;
+}
+
+.libraryEntry {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 7px 10px;
+  border-radius: var(--radius);
+  background: rgba(255,255,255,0.02);
+  border: 1px dashed rgba(100,80,200,0.2);
+  cursor: pointer;
+  text-align: left;
+  transition: background 0.1s, border-color 0.1s;
+}
+
+.libraryEntry:hover {
+  background: rgba(100,80,200,0.07);
+  border-color: rgba(100,80,200,0.35);
+}
+
+.libraryEntryName {
+  flex: 1;
+  font-size: 0.84rem;
+  color: var(--color-text);
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.libraryEntryMeta {
+  font-size: 0.72rem;
+  color: var(--color-text-dim);
+  flex-shrink: 0;
+  margin-left: 8px;
+}
+
 /* ── Campaign progress bar ──────────────────────────────────────────────── */
 
 .campaignProgress {

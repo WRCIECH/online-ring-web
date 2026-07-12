@@ -152,10 +152,14 @@ export default function CampaignOverlay({ onClose }: Props) {
   const [editingNodeId, setEditingNodeId] = useState<string | null>(null)
   const [editingNodeVal, setEditingNodeVal] = useState('')
   const [edgeTooltip, setEdgeTooltip] = useState<{ text: string; x: number; y: number } | null>(null)
+  const [editingCampaignName, setEditingCampaignName] = useState(false)
+  const [campaignNameVal, setCampaignNameVal] = useState('')
   const nodeInputRef = useRef<HTMLInputElement>(null)
+  const campaignNameInputRef = useRef<HTMLInputElement>(null)
   const treePaneRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => { if (editingNodeId) nodeInputRef.current?.focus() }, [editingNodeId])
+  useEffect(() => { if (editingCampaignName) campaignNameInputRef.current?.focus() }, [editingCampaignName])
 
   const selectedWeapon = selectedWeaponId
     ? store.weapon_instances.find(w => w.instance_id === selectedWeaponId)
@@ -169,6 +173,12 @@ export default function CampaignOverlay({ onClose }: Props) {
     if (name) store.renameCampaignNode(weaponId, nodeId, name)
     setEditingNodeId(null)
     setEditingNodeVal('')
+  }
+
+  function handleCampaignNameSave(weaponId: string) {
+    const name = campaignNameVal.trim()
+    if (name) store.renameCampaign(weaponId, name)
+    setEditingCampaignName(false)
   }
 
   const weapons = store.weapon_instances
@@ -220,6 +230,25 @@ export default function CampaignOverlay({ onClose }: Props) {
                 >
                   + {(t.ui as Record<string, string>).btn_generate_campaign ?? 'Generate Campaign'}
                 </button>
+                {store.campaign_library.length > 0 && (
+                  <div className={s.librarySection}>
+                    <div className={s.libraryTitle}>
+                      {(t.ui as Record<string, string>).campaign_library_title ?? 'Use a completed campaign'}
+                    </div>
+                    {store.campaign_library.map(lc => (
+                      <button
+                        key={lc.id}
+                        className={s.libraryEntry}
+                        onClick={() => store.applyLibraryCampaignToWeapon(lc.id, selectedWeapon.instance_id)}
+                      >
+                        <span className={s.libraryEntryName}>
+                          {lc.campaign_name || ((t.ui as Record<string, string>).campaign_unnamed ?? 'Unnamed Campaign')}
+                        </span>
+                        <span className={s.libraryEntryMeta}>{lc.nodes.length} nodes</span>
+                      </button>
+                    ))}
+                  </div>
+                )}
               </div>
             ) : (() => {
               const { nodes, edges } = campaign
@@ -247,6 +276,28 @@ export default function CampaignOverlay({ onClose }: Props) {
 
               return (
                 <>
+                  <div className={s.campaignNameRow}>
+                    {editingCampaignName ? (
+                      <input
+                        ref={campaignNameInputRef}
+                        className={s.campaignNameInput}
+                        value={campaignNameVal}
+                        onChange={e => setCampaignNameVal(e.target.value)}
+                        onBlur={() => handleCampaignNameSave(weaponId)}
+                        onKeyDown={e => {
+                          if (e.key === 'Enter') handleCampaignNameSave(weaponId)
+                          if (e.key === 'Escape') setEditingCampaignName(false)
+                        }}
+                      />
+                    ) : (
+                      <span
+                        className={campaign.campaign_name ? s.campaignNameSet : s.campaignNameEmpty}
+                        onClick={() => { setCampaignNameVal(campaign.campaign_name ?? ''); setEditingCampaignName(true) }}
+                      >
+                        {campaign.campaign_name || ((t.ui as Record<string, string>).campaign_name_placeholder ?? 'Name this campaign…')}
+                      </span>
+                    )}
+                  </div>
                   <div className={s.campaignProgress}>
                     <span className={s.progressLabel}>
                       {publishedCount}/{nodes.length} {(t.ui as Record<string, string>).node_published ?? 'published'}

@@ -202,6 +202,7 @@ export interface WeaponCampaign {
   edges: CampaignEdge[]
   created_at: number
   completed: boolean            // >= 60% of nodes published
+  campaign_name?: string        // player-editable title
 }
 
 // ── Game state ────────────────────────────────────────────────────────────
@@ -240,6 +241,8 @@ export interface GameState {
   active_content_id: string | null
   // Content campaigns (per weapon instance)
   weapon_campaigns: Record<string, WeaponCampaign>
+  // Completed campaigns saved for re-use across weapons
+  campaign_library: WeaponCampaign[]
   // Analytics
   total_task_time_s: number
   last_fight_ended_at?: number   // epoch ms; updated on fight VICTORY, used to compute flow mult
