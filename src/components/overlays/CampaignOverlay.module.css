@@ -13,8 +13,7 @@
   border: 1px solid rgba(100, 80, 200, 0.25);
   border-radius: var(--radius-lg);
   padding: 24px 30px;
-  width: 820px;
-  max-width: 96vw;
+  width: min(1440px, 96vw);
   max-height: 88vh;
   overflow: hidden;
   display: flex;
@@ -126,6 +125,23 @@
   gap: 10px;
   overflow: auto;
   min-width: 0;
+  position: relative;
+}
+
+.edgeTooltip {
+  position: absolute;
+  pointer-events: none;
+  z-index: 10;
+  background: rgba(18, 16, 40, 0.97);
+  border: 1px solid rgba(100, 80, 200, 0.35);
+  border-radius: 6px;
+  padding: 8px 12px;
+  font-size: 0.78rem;
+  color: rgba(210, 200, 255, 0.92);
+  max-width: 280px;
+  line-height: 1.5;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+  white-space: normal;
 }
 
 /* ── Generate campaign ──────────────────────────────────────────────────── */
@@ -181,13 +197,40 @@
   color: #ccaa44;
 }
 
-.unnamedWarning {
+.namingProgress {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.namingLabel {
   font-size: 0.68rem;
-  padding: 2px 8px;
-  border-radius: 3px;
-  background: rgba(220,100,50,0.10);
-  border: 1px solid rgba(220,100,50,0.28);
+  color: var(--color-text-dim);
+  opacity: 0.7;
+  white-space: nowrap;
+}
+
+.namingBar {
+  width: 72px;
+  height: 4px;
+  border-radius: 2px;
+  background: rgba(255,255,255,0.07);
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.namingBarFill {
+  display: block;
+  height: 100%;
+  border-radius: 2px;
+  background: rgba(220,100,50,0.60);
+  transition: width 0.3s;
+}
+
+.namingCount {
+  font-size: 0.68rem;
   color: #dd8866;
+  white-space: nowrap;
 }
 
 .completedHint {
@@ -239,7 +282,8 @@
 .nodeRow:hover { background: rgba(255,255,255,0.03); }
 
 .nodeLocked {
-  opacity: 0.35;
+  opacity: 0.55;
+  border-color: rgba(100, 80, 200, 0.10) !important;
 }
 
 .nodeFinished {
@@ -297,31 +341,6 @@
   border-radius: 3px;
   color: var(--color-text);
   min-width: 0;
-}
-
-.nodeProgress {
-  font-size: 0.72rem;
-  font-variant-numeric: tabular-nums;
-  color: var(--color-text);
-  white-space: nowrap;
-  flex-shrink: 0;
-  margin-left: 6px;
-  opacity: 0.7;
-}
-
-.nodeProgressDone {
-  color: #55aa66;
-  opacity: 1;
-}
-
-.complexityBadge {
-  font-size: 0.6rem;
-  letter-spacing: 0.05em;
-  color: var(--color-accent-dim);
-  opacity: 0.7;
-  white-space: nowrap;
-  flex-shrink: 0;
-  cursor: default;
 }
 
 .remasterChip {

@@ -180,11 +180,8 @@ export interface Stats {
 export interface CampaignNode {
   id: string
   name: string                  // player-editable content piece title
-  completed: boolean            // subworkflow_count >= required_subworkflows
+  completed: boolean            // marked done after one workflow cycle
   published: boolean            // user manually marks after completed
-  content_type: ContentProductType  // assigned at generation; complexity grows with tree depth
-  required_subworkflows: number     // deterministic: max(2, complexity)
-  subworkflow_count: number     // how many workflow cycles have been completed so far
   superhit_used?: boolean       // true once the one-time Superhit has been fired for this node
   last_workflow?: WorkflowGraph // snapshot for remaster regeneration
   remaster_count?: number

@@ -351,7 +351,10 @@ const pl: TranslationBundle = {
     starting_armor:           'Startowy pancerz',
     btn_generate_campaign:    'Generuj kampanię',
     campaign_done:            'Kampania ukończona',
-    node_published:           'Opublikowany',
+    campaign_name_all:        'Nadaj nazwy wszystkim treściom',
+    campaign_named_of:        'nazwanych',
+    campaign_more_to_finish:  'więcej do ukończenia',
+    node_published:           'opublikowanych',
     edge_label_chronological: '→',
     btn_publish_node:         'Opublikuj',
 

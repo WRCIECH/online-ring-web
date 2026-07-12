@@ -4,12 +4,59 @@ import { isNodeAvailable } from '../../data/generators/campaignGenerator'
 import type { CampaignNode, CampaignEdge, WeaponCampaign, WeaponInstance } from '../../types/game'
 import WeaponIcon from '../WeaponIcon'
 import { useT, localizeWeaponName } from '../../i18n'
-import { ContentRegistry } from '../../data/contentProducts'
 import s from './CampaignOverlay.module.css'
 
 interface Props {
   onClose: () => void
 }
+
+// ── Edge label display names and tooltips ───────────────────────────────────
+
+const LABEL_DISPLAY: Record<string, string> = {
+  // AtomicOrigin
+  New:           'New',
+  Compression:   'Compression',
+  Expansion:     'Expansion',
+  ZoomIn:        'Zoom In',
+  ZoomOut:       'Zoom Out',
+  Similar:       'Similar',
+  Opposite:      'Opposite',
+  // StyleType
+  Minimalism:    'Minimalism',
+  Shock:         'Shock',
+  Narration:     'Narration',
+  Segmentation:  'Segmentation',
+  Fast:          'Fast',
+  Passion:       'Passion',
+  Intellectual:  'Intellectual',
+  ProblemSolving: 'Problem Solving',
+  Estetic:       'Esthetic',
+  Interactive:   'Interactive',
+  Cliffhanger:   'Cliffhanger',
+}
+
+const LABEL_TOOLTIP: Record<string, string> = {
+  New:           'New — fresh angle on the topic, not derived from previous content.',
+  Compression:   'Compression — distils and summarises the parent into a denser form.',
+  Expansion:     'Expansion — takes one idea from the parent and develops it in depth.',
+  ZoomIn:        'Zoom In — narrows focus to a specific detail or sub-topic of the parent.',
+  ZoomOut:       'Zoom Out — widens scope to place the parent in a broader context.',
+  Similar:       'Similar — parallel piece on a related topic using the same structure.',
+  Opposite:      'Opposite — argues the counter-position or explores the antithesis of the parent.',
+  Minimalism:    'Minimalism — stripped-down style with only what is essential.',
+  Shock:         'Shock — provocative, attention-grabbing framing designed to surprise.',
+  Narration:     'Narration — story-driven, narrative format.',
+  Segmentation:  'Segmentation — broken into distinct parts, lists, or sections.',
+  Fast:          'Fast — quick, punchy delivery for short attention spans.',
+  Passion:       'Passion — emotionally driven, enthusiastic tone.',
+  Intellectual:  'Intellectual — analytical, data-driven, in-depth reasoning.',
+  ProblemSolving: 'Problem Solving — structured around identifying and resolving a specific problem.',
+  Estetic:       'Esthetic — prioritises visual or sensory appeal and craft.',
+  Interactive:   'Interactive — invites audience participation or response.',
+  Cliffhanger:   'Cliffhanger — ends with unresolved tension to keep the audience coming back.',
+}
+
+const FOLLOWS_TOOLTIP = 'Follows — this piece continues naturally from its parent in sequence or as a direct consequence. No specific transformation was applied.'
 
 // ── SVG tree layout constants ────────────────────────────────────────────────
 
@@ -83,7 +130,9 @@ export default function CampaignOverlay({ onClose }: Props) {
   )
   const [editingNodeId, setEditingNodeId] = useState<string | null>(null)
   const [editingNodeVal, setEditingNodeVal] = useState('')
+  const [edgeTooltip, setEdgeTooltip] = useState<{ text: string; x: number; y: number } | null>(null)
   const nodeInputRef = useRef<HTMLInputElement>(null)
+  const treePaneRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => { if (editingNodeId) nodeInputRef.current?.focus() }, [editingNodeId])
 
@@ -131,7 +180,12 @@ export default function CampaignOverlay({ onClose }: Props) {
           </div>
 
           {/* Right: campaign tree */}
-          <div className={s.treePane}>
+          <div ref={treePaneRef} className={s.treePane}>
+            {edgeTooltip && (
+              <div className={s.edgeTooltip} style={{ left: edgeTooltip.x + 14, top: edgeTooltip.y - 8 }}>
+                {edgeTooltip.text}
+              </div>
+            )}
             {!selectedWeapon ? (
               <div className={s.empty}>Select a weapon.</div>
             ) : !campaign ? (
@@ -150,9 +204,10 @@ export default function CampaignOverlay({ onClose }: Props) {
               const { nodes, edges } = campaign
               const childrenMap = buildChildrenMap(edges)
               const roots = getRoots(nodes, edges)
-              const publishedCount = nodes.filter(n => n.published).length
-              const pct = nodes.length > 0 ? Math.round(publishedCount / nodes.length * 100) : 0
-              const unnamedCount = nodes.filter(n => !n.completed && !n.name.trim()).length
+              const publishedCount  = nodes.filter(n => n.published).length
+              const namedCount     = nodes.filter(n => n.name.trim()).length
+              const targetPublished = Math.ceil(nodes.length * 0.6)
+              const needMore       = Math.max(0, targetPublished - publishedCount)
               const weaponId = selectedWeapon.instance_id
 
               // Compute SVG layout
@@ -169,11 +224,16 @@ export default function CampaignOverlay({ onClose }: Props) {
                 <>
                   <div className={s.campaignProgress}>
                     <span className={s.progressLabel}>
-                      {publishedCount}/{nodes.length} {(t.ui as Record<string, string>).node_published ?? 'published'} ({pct}%)
+                      {publishedCount}/{nodes.length} {(t.ui as Record<string, string>).node_published ?? 'published'}
+                      {!campaign.completed && needMore > 0 && ` · ${needMore} ${(t.ui as Record<string, string>).campaign_more_to_finish ?? 'more to finish'}`}
                     </span>
-                    {unnamedCount > 0 && (
-                      <span className={s.unnamedWarning}>
-                        {unnamedCount} unnamed — click to name
+                    {namedCount < nodes.length && (
+                      <span className={s.namingProgress}>
+                        <span className={s.namingLabel}>{(t.ui as Record<string, string>).campaign_named_of ?? 'named'}</span>
+                        <span className={s.namingBar}>
+                          <span className={s.namingBarFill} style={{ width: `${(namedCount / nodes.length) * 100}%` }} />
+                        </span>
+                        <span className={s.namingCount}>{namedCount}/{nodes.length}</span>
                       </span>
                     )}
                     {campaign.completed && (
@@ -201,29 +261,45 @@ export default function CampaignOverlay({ onClose }: Props) {
                       const lx = (x1 + x2) / 2
                       const ly = (y1 + y2) / 2
                       const d = `M ${x1} ${y1} C ${x1} ${my} ${x2} ${my} ${x2} ${y2}`
-                      const labelText = edge.label ?? null
-                      const labelW = labelText ? labelText.length * 6.2 + 14 : 0
+                      const displayText = edge.label == null ? 'Follows' : (LABEL_DISPLAY[edge.label] ?? edge.label)
+                      const tooltip     = edge.label == null ? FOLLOWS_TOOLTIP : (LABEL_TOOLTIP[edge.label] ?? edge.label)
+                      const labelW = displayText.length * 6.2 + 14
                       return (
                         <g key={`${edge.from_id}-${edge.to_id}`}>
                           <path d={d} fill="none" stroke="rgba(100,80,200,0.28)" strokeWidth={1.5} />
-                          {labelText && (
-                            <>
-                              <rect
-                                x={lx - labelW / 2} y={ly - 10}
-                                width={labelW} height={20} rx={4}
-                                fill="rgba(100,80,200,0.11)" stroke="rgba(100,80,200,0.24)" strokeWidth={1}
-                              />
-                              <text
-                                x={lx} y={ly + 4}
-                                textAnchor="middle"
-                                fontSize={10}
-                                fontFamily="system-ui,sans-serif"
-                                fill="rgba(180,160,255,0.88)"
-                              >
-                                {labelText}
-                              </text>
-                            </>
-                          )}
+                          <g
+                            style={{ cursor: 'default' }}
+                            onMouseEnter={e => {
+                              const pane = treePaneRef.current
+                              if (!pane) return
+                              const r = pane.getBoundingClientRect()
+                              setEdgeTooltip({ text: tooltip, x: e.clientX - r.left, y: e.clientY - r.top })
+                            }}
+                            onMouseMove={e => {
+                              const pane = treePaneRef.current
+                              if (!pane) return
+                              const r = pane.getBoundingClientRect()
+                              setEdgeTooltip(prev => prev ? { ...prev, x: e.clientX - r.left, y: e.clientY - r.top } : prev)
+                            }}
+                            onMouseLeave={() => setEdgeTooltip(null)}
+                          >
+                            <rect
+                              x={lx - labelW / 2} y={ly - 10}
+                              width={labelW} height={20} rx={4}
+                              fill="rgba(100,80,200,0.11)"
+                              stroke="rgba(100,80,200,0.24)"
+                              strokeWidth={1}
+                            />
+                            <text
+                              x={lx} y={ly + 4}
+                              textAnchor="middle"
+                              fontSize={10}
+                              fontFamily="system-ui,sans-serif"
+                              fill="rgba(180,160,255,0.88)"
+                            >
+                              {displayText}
+                            </text>
+                          </g>
                         </g>
                       )
                     })}
@@ -237,8 +313,6 @@ export default function CampaignOverlay({ onClose }: Props) {
                       const finished = node.completed && !node.published
                       const isEditingThis = editingNodeId === node.id
                       const canEdit = !node.completed
-                      const product = ContentRegistry.Products[node.content_type ?? '_blank']
-                      const complexity = product?.complexity ?? 1
 
                       return (
                         <foreignObject key={node.id} x={pos.x} y={pos.y} width={NODE_W} height={NODE_H} style={{ overflow: 'visible' }} pointerEvents="all">
@@ -285,14 +359,6 @@ export default function CampaignOverlay({ onClose }: Props) {
                                 }
                               </span>
                             )}
-
-                            <span className={[s.nodeProgress, node.completed ? s.nodeProgressDone : ''].filter(Boolean).join(' ')}>
-                              {node.subworkflow_count ?? 0}/{node.required_subworkflows ?? 2}
-                            </span>
-
-                            <span className={s.complexityBadge} title={product?.displayName ?? ''}>
-                              {'●'.repeat(complexity) + '○'.repeat(5 - complexity)}
-                            </span>
 
                             {finished && (
                               <button

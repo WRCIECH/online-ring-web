@@ -356,7 +356,10 @@ const en: TranslationBundle = {
     starting_armor:           'Starting Armor',
     btn_generate_campaign:    'Generate Campaign',
     campaign_done:            'Campaign Complete',
-    node_published:           'Published',
+    campaign_name_all:        'Name all content',
+    campaign_named_of:        'named',
+    campaign_more_to_finish:  'more to finish',
+    node_published:           'published',
     edge_label_chronological: '→',
     btn_publish_node:         'Publish',
 

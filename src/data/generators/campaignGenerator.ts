@@ -1,6 +1,5 @@
-import type { CampaignNode, CampaignEdge, WeaponCampaign, AtomicOrigin, StyleType, WeaponInstance, ContentProductType } from '../../types/game'
+import type { CampaignNode, CampaignEdge, WeaponCampaign, AtomicOrigin, StyleType, WeaponInstance } from '../../types/game'
 import { WEAPON_CLASSES } from './weaponClasses'
-import { ContentRegistry } from '../contentProducts'
 
 function genId(): string {
   return 'cn_' + Math.random().toString(36).slice(2, 9)
@@ -50,23 +49,15 @@ export function isNodeAvailable(nodes: CampaignNode[], edges: CampaignEdge[], no
   return incoming.every(e => nodes.find(n => n.id === e.from_id)?.completed ?? false)
 }
 
+const ALL_ATOMIC_ORIGINS: AtomicOrigin[] = ['New', 'Compression', 'Expansion', 'ZoomIn', 'ZoomOut', 'Similar', 'Opposite']
+const ALL_STYLE_TYPES: StyleType[]    = ['Minimalism', 'Shock', 'Narration', 'Segmentation', 'Fast', 'Passion', 'Intellectual', 'ProblemSolving', 'Estetic', 'Interactive', 'Cliffhanger']
+const GLOBAL_EDGE_POOL: (AtomicOrigin | StyleType)[] = [...ALL_ATOMIC_ORIGINS, ...ALL_STYLE_TYPES]
+
 const NODE_COUNT_BY_WEIGHT: Record<string, [number, number]> = {
   light:    [5, 7],
   medium:   [7, 10],
   heavy:    [10, 13],
   colossal: [13, 15],
-}
-
-const ALL_PRODUCT_TYPES = Object.keys(ContentRegistry.Products) as ContentProductType[]
-
-function pickForComplexity(pool: ContentProductType[], target: number): ContentProductType {
-  const sorted = [...pool].sort((a, b) =>
-    Math.abs(ContentRegistry.Products[a].complexity - target) -
-    Math.abs(ContentRegistry.Products[b].complexity - target)
-  )
-  const exact = sorted.filter(p => ContentRegistry.Products[p].complexity === target)
-  const candidates = exact.length > 0 ? exact : sorted
-  return candidates[Math.floor(Math.random() * candidates.length)]
 }
 
 export function generateWeaponCampaign(weapon: WeaponInstance): WeaponCampaign {
@@ -75,23 +66,14 @@ export function generateWeaponCampaign(weapon: WeaponInstance): WeaponCampaign {
   const nodeCount = minNodes + Math.floor(Math.random() * (maxNodes - minNodes + 1))
   const maxBranch = 3
 
-  const edgePool: (AtomicOrigin | StyleType)[] = [
+  const classPool: (AtomicOrigin | StyleType)[] = [
     ...(cls.allowed_transformations as AtomicOrigin[]),
     ...(cls.styles as StyleType[]),
   ]
-
-  const productPool = cls.supported_products.length > 0 ? cls.supported_products : ALL_PRODUCT_TYPES
+  const edgePool = classPool.length > 0 ? classPool : GLOBAL_EDGE_POOL
 
   function makeNode(): CampaignNode {
-    return {
-      id: genId(),
-      name: '',
-      completed: false,
-      published: false,
-      content_type: '_blank',
-      required_subworkflows: 2,
-      subworkflow_count: 0,
-    }
+    return { id: genId(), name: '', completed: false, published: false }
   }
 
   const root = makeNode()
@@ -108,15 +90,6 @@ export function generateWeaponCampaign(weapon: WeaponInstance): WeaponCampaign {
     const child   = makeNode()
     nodes.push(child)
     edges.push({ from_id: parent.id, to_id: child.id, label: drawEdgeLabel(edgePool) })
-  }
-
-  // Second pass: assign content_type and required_subworkflows based on depth
-  const maxDepth = Math.max(...nodes.map(n => nodeDepth(nodes, edges, n.id)), 0)
-  for (const node of nodes) {
-    const depth = nodeDepth(nodes, edges, node.id)
-    const target = maxDepth === 0 ? 1 : Math.round(1 + (depth / maxDepth) * 4)
-    node.content_type = pickForComplexity(productPool, target)
-    node.required_subworkflows = Math.max(2, ContentRegistry.Products[node.content_type].complexity)
   }
 
   return {

@@ -42,12 +42,6 @@
   color: var(--color-accent-dim);
 }
 
-.contentBarProgress {
-  font-size: 0.75rem;
-  color: var(--color-text-dim);
-  font-variant-numeric: tabular-nums;
-}
-
 .flowBadgeHot {
   margin-left: auto;
   font-size: 0.7rem;

@@ -50,11 +50,12 @@ export default function CombatScreen() {
 
   const enemyData = loc ? ENEMIES[loc.enemy_id] : null
 
-  // ── Weapons available in combat: all that have a campaign with available nodes ──
+  // ── Weapons available in combat: campaign exists AND all available nodes are named ──
   const weaponsWithContent = store.weapon_instances.filter(w => {
     const c = store.weapon_campaigns[w.instance_id]
     if (!c) return false
-    return c.nodes.some(n => !n.completed && isNodeAvailable(c.nodes, c.edges, n))
+    const available = c.nodes.filter(n => !n.completed && isNodeAvailable(c.nodes, c.edges, n))
+    return available.length > 0 && available.every(n => n.name.trim() !== '')
   })
 
   // ── Initial weapon (seeds the very first/resumed workflow only) ──────────
@@ -277,8 +278,8 @@ export default function CombatScreen() {
   const activeContent = selectAvailableNodes(store as Parameters<typeof selectAvailableNodes>[0], state.equippedWeaponId)
   const selectedContent = activeContent.find(c => c.id === selectedContentId) ?? null
 
-  // True when there are available nodes but all are unnamed (filtered out of activeContent)
-  const hasUnnamedAvailable = activeContent.length === 0 && (() => {
+  // True when any available node for the current weapon is unnamed — blocks combat
+  const hasUnnamedAvailable = (() => {
     const c = store.weapon_campaigns[state.equippedWeaponId]
     if (!c) return false
     return c.nodes.some(n => !n.completed && !n.name.trim() && isNodeAvailable(c.nodes, c.edges, n))
@@ -404,13 +405,7 @@ export default function CombatScreen() {
       {selectedContent && (
         <div className={s.contentBar}>
           <span className={s.contentBarLabel}>Working on:</span>
-          <span className={s.contentBarTitle}>
-            {selectedContent.name}
-            {' '}
-            <span className={s.contentBarProgress}>
-              ({selectedContent.subworkflow_count ?? 0}/{selectedContent.required_subworkflows ?? 2})
-            </span>
-          </span>
+          <span className={s.contentBarTitle}>{selectedContent.name}</span>
           {state.flowMult > 1.0 && (
             <span className={state.flowMult >= 1.5 ? s.flowBadgeHot : s.flowBadgeWarm}>
               ⚡ FLOW ×{state.flowMult.toFixed(1)}
@@ -477,13 +472,19 @@ export default function CombatScreen() {
             <div className={s.endTitle} style={{ fontSize: '1.3rem', color: 'var(--color-gold)' }}>
               What are you working on?
             </div>
-            {activeContent.length === 0 ? (
+            {hasUnnamedAvailable ? (
               <>
                 <div className={s.endSub}>
-                  {hasUnnamedAvailable
-                    ? 'Your content pieces need names before you can fight. Open the Content panel (⚙ Workflows) and click any item to name it.'
-                    : 'No active content items. Go to the Content panel and add a piece to work on before fighting.'
-                  }
+                  Some content pieces are unnamed. Open the Content panel (⚙ Workflows) and click each item to name it before fighting.
+                </div>
+                <button className={s.endBtn} onClick={() => navigate('/map')}>
+                  ← Back to map
+                </button>
+              </>
+            ) : activeContent.length === 0 ? (
+              <>
+                <div className={s.endSub}>
+                  No active content items. Go to the Content panel and add a piece to work on before fighting.
                 </div>
                 <button className={s.endBtn} onClick={() => navigate('/map')}>
                   ← Back to map

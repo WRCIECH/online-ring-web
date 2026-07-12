@@ -327,6 +327,60 @@
   color: var(--color-accent-dim);
 }
 
+.sequenceWrap {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 8px 0;
+  border-top: 1px solid var(--color-sep);
+}
+
+.sequenceRow {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-wrap: wrap;
+}
+
+.seqStateLabel {
+  font-size: 0.65rem;
+  color: var(--color-text-dim);
+  opacity: 0.6;
+  width: 28px;
+  flex-shrink: 0;
+}
+
+.seqChip {
+  font-size: 0.68rem;
+  padding: 2px 6px;
+  border-radius: 3px;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.08);
+  color: var(--color-text);
+  white-space: nowrap;
+}
+
+.seqChipChanged {
+  background: rgba(200,170,50,0.10);
+  border-color: rgba(200,170,50,0.30);
+  color: #ccaa44;
+}
+
+.seqArrow {
+  font-size: 0.65rem;
+  color: var(--color-text-dim);
+  opacity: 0.4;
+}
+
+.seqSteps {
+  font-size: 0.65rem;
+  color: var(--color-text-dim);
+  opacity: 0.5;
+  padding-top: 4px;
+  border-top: 1px solid rgba(255,255,255,0.04);
+  margin-top: 2px;
+}
+
 .affixList {
   display: flex;
   flex-wrap: wrap;

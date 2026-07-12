@@ -490,17 +490,13 @@ export const useGameStore = create<GameStore>((set, get) => ({
       if (!c) return s
       const node = c.nodes.find(n => n.id === nodeId)
       if (!node) return s
-      const newCount   = (node.subworkflow_count ?? 0) + 1
-      const required   = node.required_subworkflows ?? 2
-      const nowDone    = newCount >= required
       const wasRemaster = node.is_remastering ?? false
       const updated: CampaignNode = {
         ...node,
-        subworkflow_count: newCount,
-        completed: nowDone,
+        completed: true,
         last_workflow: workflow,
         remaster_count: wasRemaster ? (node.remaster_count ?? 0) + 1 : (node.remaster_count ?? 0),
-        is_remastering: !nowDone,
+        is_remastering: false,
       }
       const nodes = c.nodes.map(n => n.id === nodeId ? updated : n)
       const publishedCount = nodes.filter(n => n.published).length
@@ -595,10 +591,6 @@ export const useGameStore = create<GameStore>((set, get) => ({
     // Migration safety
     if (!data.locale)               data.locale               = 'pl'
     if (!data.weapon_campaigns)     data.weapon_campaigns     = {}
-    // Backfill content_type on campaign nodes from older saves
-    for (const c of Object.values(data.weapon_campaigns)) {
-      c.nodes = c.nodes.map(n => ('content_type' in n ? n : { content_type: '_blank' as const, ...(n as object) } as CampaignNode))
-    }
     if (!data.total_task_time_s)    data.total_task_time_s    = 0
     if (data.abandon_penalty === undefined)  data.abandon_penalty  = 0
     if (data.active_workflow  === undefined) data.active_workflow  = null

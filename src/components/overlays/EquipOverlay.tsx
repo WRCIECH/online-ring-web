@@ -3,11 +3,13 @@ import { useGameStore } from '../../store/gameStore'
 import { WEAPONS, LEVEL_MULT, weaponUpgradeCost, calcWeaponScaledDamage } from '../../data/weapons'
 import { WEAPON_CLASSES } from '../../data/generators/weaponClasses'
 import { WEAPON_SELL_PRICE } from '../../data/constants'
-import { mergeAffixesForDisplay } from '../../data/weaponStructure'
+import { mergeAffixesForDisplay, describeRemasterStates, VALUE_BUCKET } from '../../data/weaponStructure'
+import type { RemasterSlotView } from '../../data/weaponStructure'
+import { WEAPON_PATTERNS } from '../../data/generators/weaponPatterns'
+import type { PatternStep } from '../../data/generators/weaponPatterns'
 import type { WeaponInstance, WeaponRarity } from '../../types/game'
 import { useT, localizeWeaponName } from '../../i18n'
 import WeaponSprite from '../icons/WeaponSprite'
-import WeaponStructurePreview from './WeaponStructurePreview'
 import s from './EquipOverlay.module.css'
 
 interface Props {
@@ -46,6 +48,63 @@ export default function EquipOverlay({ onClose }: Props) {
     }
   }
 
+  function WorkflowSequence({ weapon }: { weapon: WeaponInstance }) {
+    const states = describeRemasterStates(weapon)
+    if (!states.length) return null
+
+    function badgeLabel(slot: RemasterSlotView): string {
+      if (!slot.value) return ''
+      const bucket = t.content[VALUE_BUCKET[slot.kind as keyof typeof VALUE_BUCKET]] as Record<string, { badge_label: string }>
+      return bucket[slot.value]?.badge_label ?? slot.value
+    }
+
+    function collectPhases(steps: PatternStep[]): Record<string, number> {
+      const acc: Record<string, number> = {}
+      for (const step of steps) {
+        if (step.kind === 'phase') {
+          acc[step.stage] = (acc[step.stage] ?? 0) + step.min
+        } else if (step.kind === 'branch') {
+          const sub = collectPhases(step.paths[0] ?? [])
+          for (const [k, v] of Object.entries(sub)) acc[k] = (acc[k] ?? 0) + v
+        }
+      }
+      return acc
+    }
+
+    const pattern = WEAPON_PATTERNS[weapon.weapon_class] ?? []
+    const phaseTotals = collectPhases(pattern)
+    const phaseOrder = ['Research', 'Plan', 'Produce', 'Refine'] as const
+    const stepsLabel = phaseOrder
+      .filter(stage => phaseTotals[stage])
+      .map(stage => `${phaseTotals[stage]} ${stage}`)
+      .join(' · ')
+
+    return (
+      <div className={s.sequenceWrap}>
+        {states.map((row, stateIdx) => {
+          const chips = stateIdx === 0
+            ? row.filter(slot => slot.kind === 'format' && slot.value !== null)
+            : row.filter(slot => slot.changed && slot.value !== null)
+          if (!chips.length) return null
+          return (
+            <div key={stateIdx} className={s.sequenceRow}>
+              <span className={s.seqStateLabel}>{stateIdx === 0 ? 'Base' : `R${stateIdx}`}</span>
+              {chips.map((slot, i) => (
+                <span key={`${slot.kind}_${slot.occurrenceIndex}`} style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                  {i > 0 && <span className={s.seqArrow}>→</span>}
+                  <span className={[s.seqChip, slot.changed ? s.seqChipChanged : ''].filter(Boolean).join(' ')}>
+                    {badgeLabel(slot)}
+                  </span>
+                </span>
+              ))}
+            </div>
+          )
+        })}
+        {stepsLabel && <div className={s.seqSteps}>{stepsLabel}</div>}
+      </div>
+    )
+  }
+
   function renderWeapon(wid: string) {
     const weapon = WEAPONS[wid] as WeaponInstance | undefined
     if (!weapon) return null
@@ -72,7 +131,7 @@ export default function EquipOverlay({ onClose }: Props) {
 
         <div className={s.weaponDesc}>{t.weapons[weapon.weapon_class]?.description ?? classDef.description}</div>
 
-        <WeaponStructurePreview weapon={weapon} />
+        <WorkflowSequence weapon={weapon} />
 
         <div className={s.statsRow}>
           <span className={s.statChip}>+{((LEVEL_MULT[weapon.rarity] ?? 0.03) * 100).toFixed(0)}% {t.ui.stat_dmg_per_level}</span>
@@ -119,8 +178,7 @@ export default function EquipOverlay({ onClose }: Props) {
                   {node.name || <em>{t.ui.untitled}</em>}
                 </span>
                 <span className={s.nodeProgressSmall}>
-                  {node.subworkflow_count}/{node.required_subworkflows}
-                  {node.published ? ' ★' : node.completed ? ' ✓' : ''}
+                  {node.published ? '★' : node.completed ? '✓' : '○'}
                 </span>
               </div>
             ))}
