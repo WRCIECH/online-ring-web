@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { createPortal } from 'react-dom'
 import type { SublocationType, MobAffinities } from '../../types/game'
 import EnemyDisplay from './EnemyDisplay'
+import { useT } from '../../i18n'
 import s from './EnemyCenterpiece.module.css'
 
 interface Props {
@@ -30,30 +31,37 @@ const TIER_COLOR: Record<keyof MobAffinities, string> = {
   hate:    '#cc4444',
 }
 
-function formatConditions(cond: NonNullable<MobAffinities[keyof MobAffinities]>): string {
-  const parts: string[] = [
-    ...(cond.products  ?? []),
-    ...(cond.origins   ?? []),
-    ...(cond.styles    ?? []),
-    ...(cond.emotions  ?? []),
-    ...(cond.stages    ?? []),
-  ]
-  return parts.join(', ')
-}
-
 export default function EnemyCenterpiece(props: Props) {
   const [hoverPos, setHoverPos] = useState<{ x: number; y: number } | null>(null)
+  const t = useT()
   const hpPct = Math.max(0, props.maxHp > 0 ? (props.hp / props.maxHp) * 100 : 0)
+
+  function labelFor(key: string): string {
+    return (t.content.product as Record<string, { badge_label: string }>)[key]?.badge_label
+      ?? (t.content.style   as Record<string, { badge_label: string }>)[key]?.badge_label
+      ?? (t.content.origin  as Record<string, { badge_label: string }>)[key]?.badge_label
+      ?? key
+  }
+
+  function formatConditions(cond: NonNullable<MobAffinities[keyof MobAffinities]>): string {
+    return [
+      ...(cond.products ?? []),
+      ...(cond.origins  ?? []),
+      ...(cond.styles   ?? []),
+      ...(cond.emotions ?? []),
+      ...(cond.stages   ?? []),
+    ].map(labelFor).join(', ')
+  }
+
+  const hoverHandlers = {
+    onMouseEnter: (e: React.MouseEvent) => setHoverPos({ x: e.clientX + 16, y: e.clientY - 8 }),
+    onMouseMove:  (e: React.MouseEvent) => setHoverPos({ x: e.clientX + 16, y: e.clientY - 8 }),
+    onMouseLeave: () => setHoverPos(null),
+  }
 
   return (
     <div className={s.wrap} style={{ left: props.x, top: props.y }}>
-      {/* pointer-events: auto only on the small info strip; sprite area passes clicks through */}
-      <div
-        className={s.info}
-        onMouseEnter={e => setHoverPos({ x: e.clientX + 16, y: e.clientY - 8 })}
-        onMouseMove={e => setHoverPos({ x: e.clientX + 16, y: e.clientY - 8 })}
-        onMouseLeave={() => setHoverPos(null)}
-      >
+      <div className={s.info} {...hoverHandlers}>
         <div className={s.nameRow}>
           <span className={s.name}>{props.name}</span>
           {props.isBoss && <span className={s.bossBadge}>Boss</span>}
@@ -65,7 +73,7 @@ export default function EnemyCenterpiece(props: Props) {
           <span className={s.hpText}>{props.hp} / {props.maxHp}</span>
         </div>
       </div>
-      <div className={s.sprite}>
+      <div className={s.sprite} {...hoverHandlers}>
         <EnemyDisplay
           enemyId={props.enemyId}
           hp={props.hp}

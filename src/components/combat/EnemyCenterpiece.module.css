@@ -82,6 +82,7 @@
 
 .sprite {
   width: 190px;
+  pointer-events: auto;
 }
 
 .tooltip {
