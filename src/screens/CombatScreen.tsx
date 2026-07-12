@@ -277,6 +277,13 @@ export default function CombatScreen() {
   const activeContent = selectAvailableNodes(store as Parameters<typeof selectAvailableNodes>[0], state.equippedWeaponId)
   const selectedContent = activeContent.find(c => c.id === selectedContentId) ?? null
 
+  // True when there are available nodes but all are unnamed (filtered out of activeContent)
+  const hasUnnamedAvailable = activeContent.length === 0 && (() => {
+    const c = store.weapon_campaigns[state.equippedWeaponId]
+    if (!c) return false
+    return c.nodes.some(n => !n.completed && !n.name.trim() && isNodeAvailable(c.nodes, c.edges, n))
+  })()
+
   // Superhit: one charge per published node that hasn't been used yet
   const superhitSourceNode = store.weapon_campaigns[state.equippedWeaponId]?.nodes
     .find(n => n.published && !n.superhit_used) ?? null
@@ -473,7 +480,10 @@ export default function CombatScreen() {
             {activeContent.length === 0 ? (
               <>
                 <div className={s.endSub}>
-                  No active content items. Go to the Content panel and add a piece to work on before fighting.
+                  {hasUnnamedAvailable
+                    ? 'Your content pieces need names before you can fight. Open the Content panel (⚙ Workflows) and click any item to name it.'
+                    : 'No active content items. Go to the Content panel and add a piece to work on before fighting.'
+                  }
                 </div>
                 <button className={s.endBtn} onClick={() => navigate('/map')}>
                   ← Back to map

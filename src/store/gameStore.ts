@@ -642,5 +642,5 @@ export const selectEnemyData = (s: GameStore) => {
 export const selectAvailableNodes = (s: GameStore, weaponId: string): CampaignNode[] => {
   const c = s.weapon_campaigns[weaponId]
   if (!c) return []
-  return c.nodes.filter(n => !n.completed && isNodeAvailable(c.nodes, c.edges, n))
+  return c.nodes.filter(n => !n.completed && n.name.trim() !== '' && isNodeAvailable(c.nodes, c.edges, n))
 }
