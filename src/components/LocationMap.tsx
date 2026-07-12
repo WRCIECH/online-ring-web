@@ -1,4 +1,4 @@
-import { useMemo, memo } from 'react'
+import { useMemo, memo, useState } from 'react'
 import { Delaunay } from 'd3-delaunay'
 import { LOCATION_DEFINITIONS, SIZE_COLOUR } from '../data/locations'
 import type { LocationSize } from '../data/locations'
@@ -13,11 +13,12 @@ export type RegionState = 'locked' | 'available' | 'completed'
 interface Props {
   completedSet: Set<string>
   unlockedSet:  Set<string>
-  hoveredId:    string | null
   selectedId:   string | null
   onHover:      (id: string | null) => void
   onSelect:     (id: string) => void
 }
+
+interface Cell { id: string; path: string; size: LocationSize }
 
 function hexToRgb(hex: string): [number, number, number] {
   return [parseInt(hex.slice(1,3),16), parseInt(hex.slice(3,5),16), parseInt(hex.slice(5,7),16)]
@@ -47,7 +48,6 @@ function cellStroke(state: RegionState, size: LocationSize, hov: boolean, sel: b
   return `rgba(${r},${g},${b},0.28)`
 }
 
-
 const JITTER = 42
 
 function stableJitter(id: string, axis: 0 | 1): number {
@@ -57,8 +57,35 @@ function stableJitter(id: string, axis: 0 | 1): number {
   return ((h >>> 0) / 0xffffffff - 0.5) * JITTER
 }
 
-const LocationMap = memo(function LocationMapInner({ completedSet, unlockedSet, hoveredId, selectedId, onHover, onSelect }: Props) {
-  const cells = useMemo(() => {
+// Static base layer — only re-renders when completedSet/unlockedSet change (not on hover)
+const StaticCells = memo(function StaticCells({ cells, completedSet, unlockedSet }: {
+  cells: Cell[]
+  completedSet: Set<string>
+  unlockedSet: Set<string>
+}) {
+  return (
+    <g filter="url(#map-organic)" style={{ pointerEvents: 'none' }}>
+      {cells.map(cell => {
+        const state: RegionState = completedSet.has(cell.id) ? 'completed' : unlockedSet.has(cell.id) ? 'available' : 'locked'
+        return (
+          <path
+            key={cell.id}
+            d={cell.path}
+            fill={cellFill(state, cell.size, false, false)}
+            stroke={cellStroke(state, cell.size, false, false)}
+            strokeWidth={0.5}
+            className={s.region}
+          />
+        )
+      })}
+    </g>
+  )
+})
+
+const LocationMap = memo(function LocationMapInner({ completedSet, unlockedSet, selectedId, onHover, onSelect }: Props) {
+  const [hoveredId, setHoveredId] = useState<string | null>(null)
+
+  const cells = useMemo<Cell[]>(() => {
     const locs = LOCATION_DEFINITIONS
     const pts: [number, number][] = locs.map(l => {
       const base = LOCATION_SEEDS[l.id]
@@ -76,52 +103,56 @@ const LocationMap = memo(function LocationMapInner({ completedSet, unlockedSet, 
     }))
   }, [])
 
+  function handleHover(id: string | null) {
+    setHoveredId(id)
+    onHover(id)
+  }
+
   return (
     <svg
       viewBox={`0 0 ${MAP_W} ${MAP_H}`}
       className={s.svg}
       style={{ cursor: 'pointer' }}
       preserveAspectRatio="xMidYMid meet"
-      onMouseLeave={() => onHover(null)}
+      onMouseLeave={() => handleHover(null)}
     >
       <defs>
-        {/* Organic boundary displacement */}
         <filter id="map-organic" x="-4%" y="-4%" width="108%" height="108%" colorInterpolationFilters="linearRGB">
           <feTurbulence type="turbulence" baseFrequency="0.016 0.016" numOctaves="3" seed="17" result="noise"/>
           <feDisplacementMap in="SourceGraphic" in2="noise" scale="8" xChannelSelector="R" yChannelSelector="G"/>
         </filter>
-        {/* Glow for selected / bright hover */}
         <filter id="map-glow" x="-20%" y="-20%" width="140%" height="140%">
           <feGaussianBlur stdDeviation="4" result="blur"/>
           <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
         </filter>
       </defs>
 
-      {/* ── Visual layer: displaced for organic map feel ── */}
-      <g filter="url(#map-organic)" style={{ pointerEvents: 'none' }}>
-        {cells.map(cell => {
-          const state = completedSet.has(cell.id) ? 'completed' : unlockedSet.has(cell.id) ? 'available' : 'locked'
-          const hov = hoveredId  === cell.id
-          const sel = selectedId === cell.id
-          const sw  = sel ? 2 : hov ? 1.5 : 0.5
+      {/* Static base: displacement filter applied once, never re-renders on hover */}
+      <StaticCells cells={cells} completedSet={completedSet} unlockedSet={unlockedSet} />
+
+      {/* Dynamic highlight: no filter, renders only the 0–2 active cells */}
+      <g style={{ pointerEvents: 'none' }}>
+        {cells.filter(c => c.id === hoveredId || c.id === selectedId).map(cell => {
+          const hov   = hoveredId  === cell.id
+          const sel   = selectedId === cell.id
+          const state: RegionState = completedSet.has(cell.id) ? 'completed' : unlockedSet.has(cell.id) ? 'available' : 'locked'
           return (
             <path
               key={cell.id}
               d={cell.path}
               fill={cellFill(state, cell.size, hov, sel)}
               stroke={cellStroke(state, cell.size, hov, sel)}
-              strokeWidth={sw}
+              strokeWidth={sel ? 2 : 1.5}
               filter={sel ? 'url(#map-glow)' : undefined}
-              className={s.region}
             />
           )
         })}
       </g>
 
-      {/* ── Interaction layer: transparent paths at original positions ── */}
+      {/* Interaction layer: transparent paths for hit-testing */}
       <g>
         {cells.map(cell => {
-          const state = completedSet.has(cell.id) ? 'completed' : unlockedSet.has(cell.id) ? 'available' : 'locked'
+          const state: RegionState = completedSet.has(cell.id) ? 'completed' : unlockedSet.has(cell.id) ? 'available' : 'locked'
           return (
             <path
               key={cell.id}
@@ -129,7 +160,7 @@ const LocationMap = memo(function LocationMapInner({ completedSet, unlockedSet, 
               fill="transparent"
               stroke="none"
               style={{ cursor: state !== 'locked' ? 'pointer' : 'default' }}
-              onMouseEnter={() => onHover(cell.id)}
+              onMouseEnter={() => handleHover(cell.id)}
               onClick={() => onSelect(cell.id)}
             />
           )

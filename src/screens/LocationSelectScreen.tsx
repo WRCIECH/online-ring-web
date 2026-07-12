@@ -1,4 +1,4 @@
-import { useState, useRef, useMemo } from 'react'
+import { useState, useRef, useMemo, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useGameStore } from '../store/gameStore'
 import { LOCATION_DEFINITIONS, getUnlockedLocationIds, SIZE_LABEL, SIZE_COLOUR } from '../data/locations'
@@ -28,9 +28,9 @@ export default function LocationSelectScreen() {
   const completedSet = useMemo(() => new Set(store.completed_locations), [store.completed_locations])
   const unlockedSet  = useMemo(() => getUnlockedLocationIds(store.completed_locations), [store.completed_locations])
 
-  function handleSelect(id: string) {
+  const handleSelect = useCallback((id: string) => {
     setSelectedId(prev => prev === id ? null : id)
-  }
+  }, [])
 
   function handleBeginRun(loc: LocationDef) {
     store.startRun(loc)
@@ -60,7 +60,6 @@ export default function LocationSelectScreen() {
         <LocationMap
           completedSet={completedSet}
           unlockedSet={unlockedSet}
-          hoveredId={hoveredId}
           selectedId={selectedId}
           onHover={setHoveredId}
           onSelect={handleSelect}
