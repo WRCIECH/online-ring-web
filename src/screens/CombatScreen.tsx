@@ -1,6 +1,7 @@
 import { useReducer, useEffect, useCallback, useState, useMemo, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { combatReducer, initCombatState, getReachableTiles, previewMove, formatMultiplierPct, calcTileDamage, calcFlowMult, calcCampaignOverloadMult, ABANDON_PENALTY } from '../engine/combat'
+import { FLOW_GAP_HOT_MINS, FLOW_GAP_WARM_MINS } from '../data/constants'
 import { useGameStore, selectAvailableNodes } from '../store/gameStore'
 import { ENEMIES } from '../data/enemies'
 import { WEAPONS } from '../data/weapons'
@@ -281,6 +282,22 @@ export default function CombatScreen() {
     store.active_content_id ?? null
   )
 
+  // Flow countdown — seconds until the current flow tier expires
+  const [flowCountdown, setFlowCountdown] = useState('')
+  useEffect(() => {
+    if (!store.last_fight_ended_at || state.flowMult <= 1.0) { setFlowCountdown(''); return }
+    const targetMins = state.flowMult >= 1.5 ? FLOW_GAP_HOT_MINS : FLOW_GAP_WARM_MINS
+    function tick() {
+      const remainingMs = Math.max(0, targetMins * 60000 - (Date.now() - store.last_fight_ended_at!))
+      const m = Math.floor(remainingMs / 60000)
+      const s = Math.floor((remainingMs % 60000) / 1000)
+      setFlowCountdown(`${m}:${s.toString().padStart(2, '0')}`)
+    }
+    tick()
+    const id = setInterval(tick, 1000)
+    return () => clearInterval(id)
+  }, [store.last_fight_ended_at, state.flowMult])
+
   const activeContent = selectAvailableNodes(store as Parameters<typeof selectAvailableNodes>[0], state.equippedWeaponId)
   const selectedContent = activeContent.find(c => c.id === selectedContentId) ?? null
 
@@ -442,7 +459,7 @@ export default function CombatScreen() {
         const badges = [
           state.flowMult > 1.0 && {
             key: 'flow',
-            label: `⚡ ${tui.mult_flow} ×${state.flowMult.toFixed(1)}`,
+            label: `⚡ ${tui.mult_flow} ×${state.flowMult.toFixed(1)}${flowCountdown ? `  ${flowCountdown}` : ''}`,
             cls: state.flowMult >= 1.5 ? s.badgeHot : s.badgeWarm,
             tooltip: tui.mult_flow_desc,
           },
