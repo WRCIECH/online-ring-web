@@ -38,9 +38,9 @@ function nodeDepth(_nodes: CampaignNode[], edges: CampaignEdge[], nodeId: string
 function drawEdgeLabel(
   pool: (AtomicOrigin | StyleType)[],
 ): AtomicOrigin | StyleType | null {
-  if (pool.length === 0) return null
-  if (Math.random() < 0.33) return null
-  return pool[Math.floor(Math.random() * pool.length)]
+  if (Math.random() < 0.50) return null
+  const effectivePool = pool.length > 0 ? pool : GLOBAL_EDGE_POOL
+  return effectivePool[Math.floor(Math.random() * effectivePool.length)]
 }
 
 export function isNodeAvailable(nodes: CampaignNode[], edges: CampaignEdge[], node: CampaignNode): boolean {
