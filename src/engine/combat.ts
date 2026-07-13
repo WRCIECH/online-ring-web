@@ -30,6 +30,7 @@ export interface CombatState {
   playerStats: Stats
   incomingPenalty: number       // from prior abandon; 0.0 = none
   campaignOverloadMult: number  // damage multiplier from active campaign count vs END
+  campaignDoneMult: number      // 1.0 + 0.05 × done_count of the active campaign
   consistencyStreak: number   // consecutive completions without switching weapon/content; resets on either
   // Enemy
   enemyData: Enemy
@@ -192,7 +193,7 @@ export function previewMove(state: CombatState, tile: WorkflowTile, move: MoveTy
   const finisherMult   = wouldFinishAll ? 3.0 : 1.0
   const damage         = Math.round(
     repeatDamage * (1 - repeatPenalty) * (1 - state.incomingPenalty)
-      * state.campaignOverloadMult
+      * state.campaignOverloadMult * state.campaignDoneMult
       * consistencyMult * affinityMult * themeBonus * finisherMult * state.flowMult
   )
   const multipliers: DamageMultiplier[] = [
@@ -201,6 +202,7 @@ export function previewMove(state: CombatState, tile: WorkflowTile, move: MoveTy
     { key: 'repeatScaling',     value: 1 - repeatPenalty,              active: repeatPenalty > 0 },
     { key: 'abandon',           value: 1 - state.incomingPenalty,      active: state.incomingPenalty > 0 },
     { key: 'campaignOverload',  value: state.campaignOverloadMult,     active: state.campaignOverloadMult < 1.0 },
+    { key: 'campaignDone',      value: state.campaignDoneMult,         active: state.campaignDoneMult > 1.0 },
     { key: 'affinity',          value: affinityMult,                   active: affinityMult !== 1.0 },
     { key: 'theme',             value: themeBonus,                     active: themeBonus !== 1.0 },
     { key: 'streak',            value: consistencyMult,                active: state.consistencyStreak > 0 },
@@ -253,6 +255,7 @@ export function initCombatState(
   locationTheme?: LocationTheme,
   flowMult = 1.0,
   campaignOverloadMult = 1.0,
+  campaignDoneMult = 1.0,
   initialStreak = 0,
 ): CombatState {
   // Derive boss version when the encounter is a boss slot but the enemy entry
@@ -271,6 +274,7 @@ export function initCombatState(
     equippedWeaponId, weaponLevel, playerStats,
     incomingPenalty,
     campaignOverloadMult,
+    campaignDoneMult,
     consistencyStreak: initialStreak,
     enemyData: effectiveEnemy, isBoss,
     enemyHp: effectiveEnemy.max_hp, enemyMaxHp: effectiveEnemy.max_hp,
@@ -291,6 +295,9 @@ export function initCombatState(
   }
   if (campaignOverloadMult < 1.0) {
     state = log(state, `⚠ Campaign overload: −${Math.round((1 - campaignOverloadMult) * 100)}% damage.`, '#cc6622')
+  }
+  if (campaignDoneMult > 1.0) {
+    state = log(state, `⚡ Campaign mastery: +${Math.round((campaignDoneMult - 1) * 100)}% damage.`, '#88dd99')
   }
   if (isBoss) {
     state = log(state, '⚡ Boss encounter — this enemy has 2× HP.', '#cc4488')
@@ -393,7 +400,7 @@ export function combatReducer(state: CombatState, action: CombatAction): CombatS
       const repeatDamage  = isRepeat ? Math.round(rawDamage * (1 - REPEAT_DAMAGE_PENALTY)) : rawDamage
       const damage        = Math.round(
         repeatDamage * (1 - repeatPenalty) * (1 - state.incomingPenalty)
-          * state.campaignOverloadMult
+          * state.campaignOverloadMult * state.campaignDoneMult
           * consistencyMult * affinityMult * themeBonus * finisherMult * state.flowMult
       )
       const newEnemyHp    = Math.max(0, state.enemyHp - damage)

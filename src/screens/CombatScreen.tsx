@@ -103,6 +103,7 @@ export default function CombatScreen() {
         return c && c.activated === true && !c.completed
       }).length
       const campaignOverloadMult = calcCampaignOverloadMult(activeCampaignCount, store.stats.END)
+      const campaignDoneMult = 1.0 + 0.05 * (activeWeaponCampaign?.done_count ?? 0)
 
       const initialStreak = store.active_content_id ? (store.content_streak[store.active_content_id] ?? 0) : 0
 
@@ -117,6 +118,7 @@ export default function CombatScreen() {
         loc.locationTheme,
         initialFlowMult,
         campaignOverloadMult,
+        campaignDoneMult,
         initialStreak,
       )
     }
@@ -485,6 +487,12 @@ export default function CombatScreen() {
             label: `🔥 ${tui.mult_streak} ×${streakMult.toFixed(2)}`,
             cls: s.badgeStreak,
             tooltip: `${tui.mult_streak_desc} (${tui.mult_streak}: ${state.consistencyStreak})`,
+          },
+          state.campaignDoneMult > 1.0 && {
+            key: 'campaignDone',
+            label: `✦ ${tui.mult_campaignDone} +${Math.round((state.campaignDoneMult - 1) * 100)}%`,
+            cls: s.badgeStreak,
+            tooltip: tui.mult_campaignDone_desc,
           },
           state.campaignOverloadMult < 1.0 && {
             key: 'overload',

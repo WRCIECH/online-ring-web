@@ -230,6 +230,7 @@ function initialState(): GameState {
     locale: 'pl',
     rewards: { C: 0, B1: 0, B2: 0, A1: 0, A2: 0, S: 0 },
     reward_names: {},
+    weapon_pending_superhits: {},
   }
 }
 
@@ -289,6 +290,9 @@ export interface GameStore extends GameState {
   activateCampaign:             (weaponId: string) => void
 
   // Learning items
+
+  // Campaign finalization
+  finalizeCampaign: (weaponId: string) => void
 
   // External rewards
   addReward:    (tier: RewardTier) => void
@@ -504,6 +508,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
       workflow_progress: {},
       content_streak: {},
       active_content_id: null,
+      weapon_pending_superhits: {},
     })
     get().save()
   },
@@ -594,6 +599,38 @@ export const useGameStore = create<GameStore>((set, get) => ({
       const c = s.weapon_campaigns[weaponId]
       if (!c) return s
       return { weapon_campaigns: { ...s.weapon_campaigns, [weaponId]: { ...c, activated: true } } }
+    })
+    get().save()
+  },
+
+  finalizeCampaign: (weaponId) => {
+    set(s => {
+      const campaign = s.weapon_campaigns[weaponId]
+      if (!campaign || !campaign.completed) return s
+
+      const carried = campaign.nodes
+        .filter(n => n.published)
+        .reduce((acc, n) => {
+          const base     = n.superhit_used ? 0 : 1
+          const promotes = (n.promote_count ?? 0) - (n.promotes_consumed ?? 0)
+          return acc + base + Math.max(0, promotes)
+        }, 0)
+
+      const newDoneCount = (campaign.done_count ?? 0) + 1
+      const updated = { ...campaign, done_count: newDoneCount }
+
+      const { [weaponId]: _, ...restCampaigns } = s.weapon_campaigns
+      return {
+        weapon_campaigns: restCampaigns,
+        campaign_library: [
+          ...s.campaign_library.filter(c => c.id !== campaign.id),
+          updated,
+        ],
+        weapon_pending_superhits: {
+          ...(s.weapon_pending_superhits ?? {}),
+          [weaponId]: ((s.weapon_pending_superhits ?? {})[weaponId] ?? 0) + carried,
+        },
+      }
     })
     get().save()
   },

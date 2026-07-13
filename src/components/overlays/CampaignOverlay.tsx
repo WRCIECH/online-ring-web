@@ -160,6 +160,7 @@ export default function CampaignOverlay({ onClose }: Props) {
   const [nameVal, setNameVal] = useState('')
   // Activate confirmation
   const [showActivateConfirm, setShowActivateConfirm] = useState(false)
+  const [confirmFinalize, setConfirmFinalize] = useState(false)
   // Weapon actions
   const [confirmSellId,    setConfirmSellId]    = useState<string | null>(null)
   const [confirmUpgradeId, setConfirmUpgradeId] = useState<string | null>(null)
@@ -182,6 +183,7 @@ export default function CampaignOverlay({ onClose }: Props) {
   // Reset transient UI when switching weapons
   useEffect(() => {
     setShowActivateConfirm(false)
+    setConfirmFinalize(false)
     setNameOpen(false)
     setEditingNodeId(null)
     setConfirmSellId(null)
@@ -452,7 +454,37 @@ export default function CampaignOverlay({ onClose }: Props) {
                         {campaign.completed && (
                           <span className={s.campaignDoneBadge}>
                             {(t.ui as Record<string, string>).campaign_done ?? 'Campaign Complete'}
+                            {(campaign.done_count ?? 0) > 0 && (
+                              <span className={s.doneCount}>
+                                {' '}×{campaign.done_count} · +{(campaign.done_count ?? 0) * 5}% {(t.ui as Record<string, string>).campaign_done_bonus ?? 'dmg bonus'}
+                              </span>
+                            )}
                           </span>
+                        )}
+                        {campaign.completed && isActivated && (
+                          confirmFinalize ? (
+                            <div className={s.finalizeConfirm}>
+                              <button
+                                className={s.btnFinalizeConfirm}
+                                onClick={() => {
+                                  store.finalizeCampaign(weaponId)
+                                  setConfirmFinalize(false)
+                                }}
+                              >
+                                {(t.ui as Record<string, string>).btn_finalize_confirm ?? 'Confirm?'}
+                              </button>
+                              <button className={s.btnActivateCancel} onClick={() => setConfirmFinalize(false)}>
+                                {t.ui.btn_cancel ?? 'Cancel'}
+                              </button>
+                            </div>
+                          ) : (
+                            <button
+                              className={s.btnFinalize}
+                              onClick={() => setConfirmFinalize(true)}
+                            >
+                              {(t.ui as Record<string, string>).btn_finalize_campaign ?? 'Mark as Done'}
+                            </button>
+                          )
                         )}
 
                         {/* Activation section */}

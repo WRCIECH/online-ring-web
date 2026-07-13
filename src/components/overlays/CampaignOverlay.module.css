@@ -344,6 +344,42 @@
   color: #ccaa44;
 }
 
+.doneCount {
+  font-size: 0.68rem;
+  color: #88dd99;
+  opacity: 0.85;
+}
+
+.btnFinalize {
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+  padding: 4px 12px;
+  border: 1px solid rgba(136,221,153,0.4);
+  border-radius: 4px;
+  color: #88dd99;
+  background: rgba(136,221,153,0.06);
+  transition: background 0.12s, border-color 0.12s;
+}
+.btnFinalize:hover { background: rgba(136,221,153,0.14); border-color: rgba(136,221,153,0.7); }
+
+.finalizeConfirm {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.btnFinalizeConfirm {
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+  padding: 4px 12px;
+  border: 1px solid rgba(201,169,58,0.6);
+  border-radius: 4px;
+  color: var(--color-gold);
+  background: rgba(201,169,58,0.08);
+  transition: background 0.12s;
+}
+.btnFinalizeConfirm:hover { background: rgba(201,169,58,0.18); }
+
 .namingProgress {
   display: flex;
   align-items: center;

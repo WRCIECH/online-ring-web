@@ -204,6 +204,7 @@ export interface WeaponCampaign {
   completed: boolean            // >= 60% of nodes published
   campaign_name?: string        // player-editable title
   activated?: boolean           // false = draft, true = counts toward overload penalty
+  done_count?: number           // times finalized across all weapons; drives +5%/completion damage mult
 }
 
 // ── Game state ────────────────────────────────────────────────────────────
@@ -256,4 +257,6 @@ export interface GameState {
   // External rewards
   rewards: Record<RewardTier, number>
   reward_names: Partial<Record<RewardTier, string>>
+  // Unconsumed Superhit/promote charges carried over when a campaign is finalized
+  weapon_pending_superhits: Record<string, number>
 }
