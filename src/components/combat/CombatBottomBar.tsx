@@ -98,7 +98,7 @@ export default function CombatBottomBar({
 
       {onAbandon && (
         <button className={s.abandonBtn} onClick={onAbandon}>
-          Abandon workflow
+          Escape Fight
         </button>
       )}
     </div>

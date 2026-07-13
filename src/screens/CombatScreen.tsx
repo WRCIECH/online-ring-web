@@ -641,7 +641,7 @@ export default function CombatScreen() {
       {showAbandonConfirm && (
         <div className={s.endOverlay}>
           <div className={s.endBox}>
-            <div className={`${s.endTitle} ${s.fleedTitle}`}>Abandon Workflow?</div>
+            <div className={`${s.endTitle} ${s.fleedTitle}`}>Escape Fight?</div>
             <ul className={s.abandonList}>
               <li className={s.abandonCon}>✗ Ends this run immediately — same as a defeat.</li>
               <li className={s.abandonCon}>✗ Forfeits all progress and runes earned this fight.</li>
