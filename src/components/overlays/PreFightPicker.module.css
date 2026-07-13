@@ -212,7 +212,6 @@
 
 .badgeResume,
 .badgeContinue,
-.badgeWarn,
 .badgeRemaster {
   font-size: 0.65rem;
   padding: 2px 7px;
@@ -230,12 +229,6 @@
   background: rgba(60,180,100,0.06);
   border: 1px solid rgba(60,180,100,0.20);
   color: #44aa66;
-}
-
-.badgeWarn {
-  background: rgba(220,160,50,0.10);
-  border: 1px solid rgba(220,160,50,0.30);
-  color: #ccaa44;
 }
 
 .badgeRemaster {

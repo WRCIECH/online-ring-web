@@ -55,8 +55,6 @@ export default function PreFightPicker({ loc, onConfirm, onCancel }: Props) {
   const availableNodes = getAvailableNodes(pickerWeaponId)
   const campaign = store.weapon_campaigns[pickerWeaponId]
 
-  const completedTiles = store.active_workflow?.tiles.filter(t => t.is_completed).length ?? 0
-  const totalTiles     = store.active_workflow?.tiles.length ?? 0
 
   const locTypeLabel = loc.sublocation_type === 'boss'  ? (t.ui.badge_boss ?? 'Boss')
                      : loc.sublocation_type === 'elite' ? (t.ui.badge_elite ?? 'Elite')
@@ -123,8 +121,9 @@ export default function PreFightPicker({ loc, onConfirm, onCancel }: Props) {
             ) : (
               availableNodes.map(node => {
                 const isSelected = node.id === pickerContentId
-                const isCurrent  = node.id === store.active_content_id
-                const hasWorkflow = !!store.active_workflow && isCurrent
+                const isCurrent   = node.id === store.active_content_id
+                const nodeWorkflow = store.workflow_progress[node.id]
+                const hasWorkflow  = !!nodeWorkflow
 
                 // Determine parent name via campaign edges
                 const parentEdge = campaign?.edges.find(e => e.to_id === node.id)
@@ -145,17 +144,12 @@ export default function PreFightPicker({ loc, onConfirm, onCancel }: Props) {
                     <div className={s.nodeBadges}>
                       {hasWorkflow && (
                         <span className={s.badgeResume}>
-                          ▶ {t.ui.prefight_badge_resume ?? 'Resume'} {completedTiles}/{totalTiles}
+                          ▶ {t.ui.prefight_badge_resume ?? 'Resume'} {nodeWorkflow.tiles.filter(t => t.is_completed).length}/{nodeWorkflow.tiles.length}
                         </span>
                       )}
                       {isCurrent && !hasWorkflow && (
                         <span className={s.badgeContinue}>
                           ▶ {t.ui.prefight_badge_continue ?? 'Continue'}
-                        </span>
-                      )}
-                      {!isCurrent && store.active_workflow && (
-                        <span className={s.badgeWarn}>
-                          ⚠ {t.ui.prefight_badge_progress_lost ?? 'Progress lost'}
                         </span>
                       )}
                       {node.is_remastering && (

@@ -540,7 +540,6 @@ export default function RunMapScreen() {
           loc={preFightLoc}
           onConfirm={(weaponId, contentId) => {
             store.setPendingWeaponId(weaponId)
-            if (contentId !== store.active_content_id) store.clearActiveWorkflow()
             store.setActiveContentId(contentId)
             store.setPendingEncounter(preFightLoc)
             navigate('/combat')

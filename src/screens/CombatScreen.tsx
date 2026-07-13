@@ -98,7 +98,7 @@ export default function CombatScreen() {
       const activeNode = store.active_content_id
         ? activeWeaponCampaign?.nodes.find(c => c.id === store.active_content_id)
         : undefined
-      const workflow = store.active_workflow
+      const workflow = (store.active_content_id ? store.workflow_progress[store.active_content_id] : undefined)
         ?? (isRemasterPass && activeNode?.last_workflow
           ? regenerateWorkflowKeepingStructure(
               activeNode.last_workflow,

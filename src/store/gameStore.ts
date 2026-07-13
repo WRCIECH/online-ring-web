@@ -221,7 +221,7 @@ function initialState(): GameState {
     run_location_name: '',
     completed_locations: [],
     abandon_penalty: 0,
-    active_workflow: null,
+    workflow_progress: {},
     active_content_id: null,
     pending_weapon_id: null,
     weapon_campaigns: {},
@@ -269,7 +269,7 @@ export interface GameStore extends GameState {
   saveWorkflowProgress: (workflow: WorkflowGraph) => void
   setActiveContentId:   (id: string) => void
   setPendingWeaponId:   (id: string | null) => void
-  clearActiveWorkflow:  () => void
+  clearActiveWorkflow:  () => void    // clears active node's progress + active_content_id
 
   // Class & character init
   initClass: (classId: string) => void
@@ -323,7 +323,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
       run_defeated_enemies: [],
       current_hp: calcMaxHp(get().stats.VIG),
       run_location_name: loc.id,
-      active_workflow: null,
+      workflow_progress: {},
       active_content_id: null,
       pending_weapon_id: null,
       last_fight_ended_at: undefined,
@@ -347,7 +347,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
     get().save()
   },
 
-  endRunFailure: () => { set({ run_active: false, active_workflow: null, active_content_id: null }); get().save() },
+  endRunFailure: () => { set({ run_active: false, active_content_id: null }); get().save() },
 
   setPendingEncounter: (loc) => { set({ pending_encounter: loc }); get().save() },
   setPendingReward:    (id)  => set({ pending_run_reward: id }),
@@ -445,10 +445,23 @@ export const useGameStore = create<GameStore>((set, get) => ({
   setAbandonPenalty:   (v) => { set({ abandon_penalty: v }); get().save() },
   clearAbandonPenalty: ()  => { set({ abandon_penalty: 0 }); get().save() },
 
-  saveWorkflowProgress: (workflow) => { set({ active_workflow: workflow }); get().save() },
+  saveWorkflowProgress: (workflow) => {
+    const id = get().active_content_id
+    if (!id) return
+    set(s => ({ workflow_progress: { ...s.workflow_progress, [id]: workflow } }))
+    get().save()
+  },
   setActiveContentId:   (id)       => { set({ active_content_id: id }); get().save() },
   setPendingWeaponId:   (id)       => { set({ pending_weapon_id: id }); get().save() },
-  clearActiveWorkflow:  ()         => { set({ active_workflow: null, active_content_id: null }); get().save() },
+  clearActiveWorkflow:  () => {
+    const id = get().active_content_id
+    set(s => {
+      if (!id) return { active_content_id: null }
+      const { [id]: _, ...rest } = s.workflow_progress
+      return { workflow_progress: rest, active_content_id: null }
+    })
+    get().save()
+  },
 
   initClass: (classId) => {
     const cls = CLASS_DEFINITIONS.find(c => c.id === classId)
@@ -465,7 +478,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
       weapon_level: { [w.instance_id]: 0 },
       current_hp: calcMaxHp(cls.startingStats.VIG),
       weapon_campaigns: {},
-      active_workflow: null,
+      workflow_progress: {},
       active_content_id: null,
     })
     get().save()
@@ -588,7 +601,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
             nodes: campaign.nodes.map(n => n.id === nodeId ? { ...n, completed: false, is_remastering: true } : n),
           },
         },
-        active_workflow: workflow,
+        workflow_progress: { ...s.workflow_progress, [nodeId]: workflow },
         active_content_id: nodeId,
       }
     })
@@ -637,9 +650,17 @@ export const useGameStore = create<GameStore>((set, get) => ({
     }
     if (!data.total_task_time_s)    data.total_task_time_s    = 0
     if (data.abandon_penalty === undefined)  data.abandon_penalty  = 0
-    if (data.active_workflow  === undefined) data.active_workflow  = null
     if (data.active_content_id === undefined) data.active_content_id = null
     if (data.pending_weapon_id === undefined) data.pending_weapon_id = null
+    // Migrate legacy single active_workflow → per-node workflow_progress
+    if (!data.workflow_progress) {
+      data.workflow_progress = {}
+      const legacy = (data as Record<string, unknown>).active_workflow
+      if (legacy && data.active_content_id) {
+        data.workflow_progress[data.active_content_id] = legacy as WorkflowGraph
+      }
+    }
+    delete (data as Record<string, unknown>).active_workflow
     // Remove legacy fields
     delete (data as unknown as Record<string, unknown>).content_items
     delete (data as unknown as Record<string, unknown>).active_campaign

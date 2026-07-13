@@ -237,8 +237,8 @@ export interface GameState {
   completed_locations: string[]
   // Workflow abandon penalty (0.0 = none, resets after workflow completion)
   abandon_penalty: number
-  // Active workflow (persisted across mob fights until all tiles done or abandoned)
-  active_workflow: WorkflowGraph | null
+  // Per-node saved workflow progress (keyed by CampaignNode id)
+  workflow_progress: Record<string, WorkflowGraph>
   active_content_id: string | null
   // Set by pre-fight picker so CombatScreen boots with the right weapon
   pending_weapon_id: string | null
