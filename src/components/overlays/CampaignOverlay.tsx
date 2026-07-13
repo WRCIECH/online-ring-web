@@ -5,10 +5,6 @@ import { calcCampaignOverloadMult, isCampaignFullyDefined } from '../../engine/c
 import { LEVEL_MULT, weaponUpgradeCost, calcWeaponScaledDamage } from '../../data/weapons'
 import { WEAPON_CLASSES } from '../../data/generators/weaponClasses'
 import { WEAPON_SELL_PRICE } from '../../data/constants'
-import { describeRemasterStates, VALUE_BUCKET } from '../../data/weaponStructure'
-import type { RemasterSlotView } from '../../data/weaponStructure'
-import { WEAPON_PATTERNS } from '../../data/generators/weaponPatterns'
-import type { PatternStep } from '../../data/generators/weaponPatterns'
 import type { CampaignNode, CampaignEdge, WeaponCampaign, WeaponInstance } from '../../types/game'
 import WeaponIcon from '../WeaponIcon'
 import { useT, localizeWeaponName } from '../../i18n'
@@ -147,84 +143,6 @@ function computePositions(
   return pos
 }
 
-// ── WorkflowSequence ─────────────────────────────────────────────────────────
-
-function WorkflowSequence({
-  weapon,
-  activeStageIdx,
-  t,
-}: {
-  weapon: WeaponInstance
-  activeStageIdx: number | null
-  t: ReturnType<typeof useT>
-}) {
-  const states = describeRemasterStates(weapon)
-  if (!states.length) return null
-
-  function badgeLabel(slot: RemasterSlotView): string {
-    if (!slot.value) return ''
-    const bucket = t.content[VALUE_BUCKET[slot.kind as keyof typeof VALUE_BUCKET]] as Record<string, { badge_label: string }>
-    return bucket[slot.value]?.badge_label ?? slot.value
-  }
-
-  function collectPhases(steps: PatternStep[]): Record<string, number> {
-    const acc: Record<string, number> = {}
-    for (const step of steps) {
-      if (step.kind === 'phase') {
-        acc[step.stage] = (acc[step.stage] ?? 0) + step.min
-      } else if (step.kind === 'branch') {
-        const sub = collectPhases(step.paths[0] ?? [])
-        for (const [k, v] of Object.entries(sub)) acc[k] = (acc[k] ?? 0) + v
-      }
-    }
-    return acc
-  }
-
-  const pattern = WEAPON_PATTERNS[weapon.weapon_class] ?? []
-  const phaseTotals = collectPhases(pattern)
-  const phaseOrder = ['Research', 'Plan', 'Produce', 'Refine'] as const
-  const stepsLabel = phaseOrder
-    .filter(stage => phaseTotals[stage])
-    .map(stage => `${phaseTotals[stage]} ${stage}`)
-    .join(' · ')
-
-  const visibleStates = states
-    .map((row, stateIdx) => {
-      const chips = stateIdx === 0
-        ? row.filter(slot => slot.kind === 'format' && slot.value !== null)
-        : row.filter(slot => slot.changed && slot.value !== null)
-      return chips.length ? { stateIdx, chips } : null
-    })
-    .filter(Boolean) as Array<{ stateIdx: number; chips: RemasterSlotView[] }>
-
-  if (!visibleStates.length) return null
-
-  return (
-    <div className={s.sequenceWrap}>
-      {visibleStates.map(({ stateIdx, chips }, groupIdx) => {
-        const isActive = activeStageIdx !== null && stateIdx === activeStageIdx
-        return (
-          <span key={stateIdx} style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
-            {groupIdx > 0 && <span className={s.seqGroupArrow}>→</span>}
-            <span className={[s.sequenceGroup, isActive ? s.seqStateActive : ''].filter(Boolean).join(' ')}>
-              <span className={s.seqStateLabel}>{stateIdx === 0 ? 'Base' : `R${stateIdx}`}</span>
-              {chips.map((slot, i) => (
-                <span key={`${slot.kind}_${slot.occurrenceIndex}`} style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
-                  {i > 0 && <span className={s.seqArrow}>→</span>}
-                  <span className={[s.seqChip, slot.changed ? s.seqChipChanged : ''].filter(Boolean).join(' ')}>
-                    {badgeLabel(slot)}
-                  </span>
-                </span>
-              ))}
-            </span>
-          </span>
-        )
-      })}
-      {stepsLabel && <span className={s.seqSteps}>{stepsLabel}</span>}
-    </div>
-  )
-}
-
 // ── Component ────────────────────────────────────────────────────────────────
 
 export default function CampaignOverlay({ onClose }: Props) {
@@ -286,8 +204,6 @@ export default function CampaignOverlay({ onClose }: Props) {
   const dmgCurrent = selectedWeapon ? calcWeaponScaledDamage(100, selectedWeapon, level, store.stats) : 0
   const dmgNext = (selectedWeapon && !isMax) ? calcWeaponScaledDamage(100, selectedWeapon, level + 1, store.stats) : null
   const classDef = selectedWeapon ? WEAPON_CLASSES[selectedWeapon.weapon_class] : null
-  const activeNodeInCampaign = campaign?.nodes.find(n => n.id === store.active_content_id)
-  const activeStageIdx: number | null = activeNodeInCampaign ? (activeNodeInCampaign.remaster_count ?? 0) : null
   const isConfirmUpgrade = confirmUpgradeId === wid
   const isConfirmSell = confirmSellId === wid
 
@@ -429,7 +345,6 @@ export default function CampaignOverlay({ onClose }: Props) {
                       )}
                     </div>
                   </div>
-                  <WorkflowSequence weapon={selectedWeapon} activeStageIdx={activeStageIdx} t={t} />
                 </div>
 
                 {!campaign ? (
@@ -713,10 +628,6 @@ export default function CampaignOverlay({ onClose }: Props) {
                                   >
                                     {(t.ui as Record<string, string>).btn_publish_node ?? 'Publish'}
                                   </button>
-                                )}
-
-                                {node.is_remastering && !node.completed && (
-                                  <span className={s.remasterChip}>↻ remaster</span>
                                 )}
 
                                 {node.published && (

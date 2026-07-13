@@ -5,8 +5,6 @@ import { saveGame, loadGame } from '../engine/save'
 import { registerWeapon, WEAPONS } from '../data/weapons'
 import { RUN_DURATION_SECONDS, RUN_ESTUS_MAX, ESTUS_HEAL_HP, statLevelCost, weaponUpgradeCost, WEAPON_SELL_PRICE } from '../data/constants'
 import { rollWeapon } from '../data/generators/weaponGenerator'
-import { WEAPON_CLASSES } from '../data/generators/weaponClasses'
-import { generateRemasterWorkflow, regenerateWorkflowKeepingStructure } from '../data/generators/remasterGenerator'
 import { CLASS_DEFINITIONS } from '../data/classes'
 import { generateWeaponCampaign, isNodeAvailable } from '../data/generators/campaignGenerator'
 import type { LocationDef } from '../data/locations'
@@ -282,7 +280,6 @@ export interface GameStore extends GameState {
   renameCampaignNode:           (weaponId: string, nodeId: string, name: string) => void
   completeCampaignNode:         (weaponId: string, nodeId: string, workflow: WorkflowGraph) => void
   publishCampaignNode:          (weaponId: string, nodeId: string) => void
-  startNodeRemaster:            (weaponId: string, nodeId: string) => void
   useSuperhitOnNode:            (weaponId: string, nodeId: string) => void
   promoteNode:                  (weaponId: string, nodeId: string) => void
   renameCampaign:               (weaponId: string, name: string) => void
@@ -525,20 +522,13 @@ export const useGameStore = create<GameStore>((set, get) => ({
     get().save()
   },
 
-  completeCampaignNode: (weaponId, nodeId, workflow) => {
+  completeCampaignNode: (weaponId, nodeId, _workflow) => {
     set(s => {
       const c = s.weapon_campaigns[weaponId]
       if (!c) return s
       const node = c.nodes.find(n => n.id === nodeId)
       if (!node) return s
-      const wasRemaster = node.is_remastering ?? false
-      const updated: CampaignNode = {
-        ...node,
-        completed: true,
-        last_workflow: workflow,
-        remaster_count: wasRemaster ? (node.remaster_count ?? 0) + 1 : (node.remaster_count ?? 0),
-        is_remastering: false,
-      }
+      const updated: CampaignNode = { ...node, completed: true }
       const nodes = c.nodes.map(n => n.id === nodeId ? updated : n)
       const publishedCount = nodes.filter(n => n.published).length
       const campaignDone = publishedCount / nodes.length >= 0.6
@@ -596,35 +586,6 @@ export const useGameStore = create<GameStore>((set, get) => ({
       const c = s.weapon_campaigns[weaponId]
       if (!c) return s
       return { weapon_campaigns: { ...s.weapon_campaigns, [weaponId]: { ...c, activated: true } } }
-    })
-    get().save()
-  },
-
-  startNodeRemaster: (weaponId, nodeId) => {
-    const weapon = WEAPONS[weaponId] as WeaponInstance | undefined
-    if (!weapon) return
-    const weaponClass = weapon.weapon_class
-    const c = get().weapon_campaigns[weaponId]
-    const node = c?.nodes.find(n => n.id === nodeId)
-    if (!node) return
-    const stateIndex = Math.min((node.remaster_count ?? 0) + 1, WEAPON_CLASSES[weaponClass].remaster_steps)
-    const workflow = node.last_workflow
-      ? regenerateWorkflowKeepingStructure(node.last_workflow, weaponClass, weapon.rolled_draws, stateIndex)
-      : generateRemasterWorkflow(weaponClass, weapon.rolled_draws, stateIndex)
-    set(s => {
-      const campaign = s.weapon_campaigns[weaponId]
-      if (!campaign) return s
-      return {
-        weapon_campaigns: {
-          ...s.weapon_campaigns,
-          [weaponId]: {
-            ...campaign,
-            nodes: campaign.nodes.map(n => n.id === nodeId ? { ...n, completed: false, is_remastering: true } : n),
-          },
-        },
-        workflow_progress: { ...s.workflow_progress, [nodeId]: workflow },
-        active_content_id: nodeId,
-      }
     })
     get().save()
   },

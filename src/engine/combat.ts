@@ -31,7 +31,6 @@ export interface CombatState {
   incomingPenalty: number       // from prior abandon; 0.0 = none
   campaignOverloadMult: number  // damage multiplier from active campaign count vs END
   consistencyStreak: number   // consecutive completions without switching weapon/content; resets on either
-  isRemasterPass: boolean     // true while working a remaster-originated workflow
   // Enemy
   enemyData: Enemy
   isBoss: boolean
@@ -66,7 +65,7 @@ export type CombatAction =
   | { type: 'CANCEL_TIMER' }
   | { type: 'USE_ESTUS' }
   | { type: 'ABANDON' }
-  | { type: 'SWITCH_WORKFLOW'; workflow: WorkflowGraph; isRemaster?: boolean; consistencyStreak?: number }
+  | { type: 'SWITCH_WORKFLOW'; workflow: WorkflowGraph; consistencyStreak?: number }
   | { type: 'SWITCH_WEAPON'; weaponId: string; weaponLevel: number }
   | { type: 'ADD_LOG'; text: string; color?: string }
   | { type: 'SUPERHIT'; tile: WorkflowTile }
@@ -182,7 +181,6 @@ export function previewMove(state: CombatState, tile: WorkflowTile, move: MoveTy
   const weapon         = WEAPONS[state.equippedWeaponId] as WeaponInstance | undefined
   const repeatPenalty   = Math.min(REPEAT_PENALTY_MAX, tile.repeat_count * REPEAT_PENALTY_PER_RETRY)
   const consistencyMult  = consistencyMultFor(state.consistencyStreak)
-  const remasterMult     = state.isRemasterPass ? 1.2 : 1.0
   const affinityMult     = calcAffinityMultiplier(tile, state.enemyData)
   const themeBonus       = calcThemeBonus(tile, state.locationTheme)
   const isRepeat       = tile.is_completed
@@ -195,7 +193,7 @@ export function previewMove(state: CombatState, tile: WorkflowTile, move: MoveTy
   const damage         = Math.round(
     repeatDamage * (1 - repeatPenalty) * (1 - state.incomingPenalty)
       * state.campaignOverloadMult
-      * consistencyMult * remasterMult * affinityMult * themeBonus * finisherMult * state.flowMult
+      * consistencyMult * affinityMult * themeBonus * finisherMult * state.flowMult
   )
   const multipliers: DamageMultiplier[] = [
     { key: 'heavyBonus',        value: HEAVY_TIME_BONUS,               active: move === 'Heavy' },
@@ -206,7 +204,6 @@ export function previewMove(state: CombatState, tile: WorkflowTile, move: MoveTy
     { key: 'affinity',          value: affinityMult,                   active: affinityMult !== 1.0 },
     { key: 'theme',             value: themeBonus,                     active: themeBonus !== 1.0 },
     { key: 'streak',            value: consistencyMult,                active: state.consistencyStreak > 0 },
-    { key: 'remaster',          value: 1.2,                            active: state.isRemasterPass },
     { key: 'finisher',          value: 3.0,                            active: wouldFinishAll },
     { key: 'flow',              value: state.flowMult,                 active: state.flowMult !== 1.0 },
   ]
@@ -252,7 +249,6 @@ export function initCombatState(
   playerEstus: number,
   playerStats: Stats,
   incomingPenalty: number,
-  isRemasterPass = false,
   spawnAsBoss = false,
   locationTheme?: LocationTheme,
   flowMult = 1.0,
@@ -275,7 +271,7 @@ export function initCombatState(
     equippedWeaponId, weaponLevel, playerStats,
     incomingPenalty,
     campaignOverloadMult,
-    consistencyStreak: initialStreak, isRemasterPass,
+    consistencyStreak: initialStreak,
     enemyData: effectiveEnemy, isBoss,
     enemyHp: effectiveEnemy.max_hp, enemyMaxHp: effectiveEnemy.max_hp,
     mobsDefeated: 0,
@@ -381,7 +377,6 @@ export function combatReducer(state: CombatState, action: CombatAction): CombatS
       const weapon        = WEAPONS[state.equippedWeaponId] as WeaponInstance | undefined
       const repeatPenalty   = Math.min(REPEAT_PENALTY_MAX, tile.repeat_count * REPEAT_PENALTY_PER_RETRY)
       const consistencyMult = consistencyMultFor(state.consistencyStreak)
-      const remasterMult    = state.isRemasterPass ? 1.2 : 1.0
       const affinityMult    = calcAffinityMultiplier(tile, state.enemyData)
       const themeBonus      = calcThemeBonus(tile, state.locationTheme)
 
@@ -399,7 +394,7 @@ export function combatReducer(state: CombatState, action: CombatAction): CombatS
       const damage        = Math.round(
         repeatDamage * (1 - repeatPenalty) * (1 - state.incomingPenalty)
           * state.campaignOverloadMult
-          * consistencyMult * remasterMult * affinityMult * themeBonus * finisherMult * state.flowMult
+          * consistencyMult * affinityMult * themeBonus * finisherMult * state.flowMult
       )
       const newEnemyHp    = Math.max(0, state.enemyHp - damage)
 
@@ -465,8 +460,7 @@ export function combatReducer(state: CombatState, action: CombatAction): CombatS
       return log(
         { ...state, workflow: action.workflow, currentTileId: action.workflow.start_id,
           selectedTileId: null, pendingTile: null, pendingMove: null,
-          consistencyStreak: action.consistencyStreak ?? 0,
-          isRemasterPass: action.isRemaster ?? false },
+          consistencyStreak: action.consistencyStreak ?? 0 },
         'A new piece of work begins — the fight continues.', '#c9a93a'
       )
     }

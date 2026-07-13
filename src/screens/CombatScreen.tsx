@@ -9,8 +9,6 @@ import { playSound } from '../engine/sound'
 import type { WeaponInstance, WeaponRarity, MoveType, WorkflowGraph } from '../types/game'
 import { rollWeapon } from '../data/generators/weaponGenerator'
 import { generateWorkflow } from '../data/generators/workflowGenerator'
-import { regenerateWorkflowKeepingStructure } from '../data/generators/remasterGenerator'
-import { WEAPON_CLASSES } from '../data/generators/weaponClasses'
 import { isNodeAvailable } from '../data/generators/campaignGenerator'
 import RunHeader    from '../components/layout/RunHeader'
 import TimerOverlay from '../components/combat/TimerOverlay'
@@ -69,10 +67,7 @@ export default function CombatScreen() {
   const initialWeaponClass  = initialWeapon?.weapon_class ?? 'straight_swords'
   const initialWeaponRarity = initialWeapon?.rarity        ?? 'common'
 
-  // ── Remaster pass — true if the node being worked on is mid-remaster ────
   const activeWeaponCampaign = store.weapon_campaigns[initialWeaponId]
-  const isRemasterPass = !!store.active_content_id
-    && !!(activeWeaponCampaign?.nodes.find(c => c.id === store.active_content_id)?.is_remastering)
 
   // ── Flow bonus — computed once at fight init from last fight end time ────
   const initialFlowMult = calcFlowMult(store.last_fight_ended_at)
@@ -93,20 +88,10 @@ export default function CombatScreen() {
           0,
         )
       }
-      // Resume persisted workflow, or regenerate remaster, or generate fresh
+      // Resume persisted workflow or generate fresh
       const spawnAsBoss = loc.sublocation_type === 'boss'
-      const activeNode = store.active_content_id
-        ? activeWeaponCampaign?.nodes.find(c => c.id === store.active_content_id)
-        : undefined
       const workflow = (store.active_content_id ? store.workflow_progress[store.active_content_id] : undefined)
-        ?? (isRemasterPass && activeNode?.last_workflow
-          ? regenerateWorkflowKeepingStructure(
-              activeNode.last_workflow,
-              initialWeaponClass,
-              initialWeapon?.rolled_draws,
-              Math.min((activeNode.remaster_count ?? 0) + 1, WEAPON_CLASSES[initialWeaponClass]?.remaster_steps ?? 1),
-            )
-          : generateWorkflow(initialWeaponClass, initialWeaponRarity, spawnAsBoss, initialWeapon?.rolled_draws))
+        ?? generateWorkflow(initialWeaponClass, initialWeaponRarity, spawnAsBoss, initialWeapon?.rolled_draws)
 
       const activeCampaignCount = store.owned_weapons.filter(wid => {
         const c = store.weapon_campaigns[wid]
@@ -123,7 +108,6 @@ export default function CombatScreen() {
         store.run_estus_count,
         store.stats,
         store.abandon_penalty,
-        isRemasterPass,
         spawnAsBoss,
         loc.locationTheme,
         initialFlowMult,
@@ -162,7 +146,7 @@ export default function CombatScreen() {
     // Restore saved snapshot or generate a fresh workflow for a first-seen weapon
     const saved = weaponWorkflows.current[weaponId]
     if (saved) {
-      dispatch({ type: 'SWITCH_WORKFLOW', workflow: saved.workflow, isRemaster: false, consistencyStreak: saved.streak })
+      dispatch({ type: 'SWITCH_WORKFLOW', workflow: saved.workflow, consistencyStreak: saved.streak })
     } else {
       const newWeapon   = WEAPONS[weaponId] as WeaponInstance | undefined
       const newClass    = newWeapon?.weapon_class ?? 'straight_swords'
@@ -170,7 +154,7 @@ export default function CombatScreen() {
       const isBoss      = loc?.sublocation_type === 'boss'
       const newWorkflow = generateWorkflow(newClass, newRarity, isBoss, newWeapon?.rolled_draws)
       weaponWorkflows.current[weaponId] = { workflow: newWorkflow, streak: 0 }
-      dispatch({ type: 'SWITCH_WORKFLOW', workflow: newWorkflow, isRemaster: false })
+      dispatch({ type: 'SWITCH_WORKFLOW', workflow: newWorkflow })
     }
 
     // Switch active content to first available node in new weapon's campaign
@@ -343,14 +327,12 @@ export default function CombatScreen() {
   }
 
   const handleContinueContent = () => {
-    // Mark this content piece as done and move to a fresh workflow for the rest of the fight.
-    // The proper remaster workflow is generated at the START of the next combat.
     if (selectedContentId) {
       store.completeCampaignNode(state.equippedWeaponId, selectedContentId, state.workflow)
       setSelectedContentId(null)
     }
     const newWorkflow = generateWorkflow(wClass, wRarity, loc?.sublocation_type === 'boss', weapon?.rolled_draws)
-    dispatch({ type: 'SWITCH_WORKFLOW', workflow: newWorkflow, isRemaster: false })
+    dispatch({ type: 'SWITCH_WORKFLOW', workflow: newWorkflow })
   }
 
   // ── Selected tile (derived) ───────────────────────────────────────────────
@@ -480,12 +462,6 @@ export default function CombatScreen() {
             label: `⚡ ${tui.mult_flow} ×${state.flowMult.toFixed(1)}${flowCountdown ? `  ${flowCountdown}` : ''}`,
             cls: state.flowMult >= 1.5 ? s.badgeHot : s.badgeWarm,
             tooltip: tui.mult_flow_desc,
-          },
-          state.isRemasterPass && {
-            key: 'remaster',
-            label: `★ ${tui.mult_remaster} ×1.2`,
-            cls: s.badgeRemaster,
-            tooltip: tui.mult_remaster_desc,
           },
           state.consistencyStreak > 0 && {
             key: 'streak',

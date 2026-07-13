@@ -153,11 +153,6 @@ export default function PreFightPicker({ loc, onConfirm, onCancel }: Props) {
                           ▶ {t.ui.prefight_badge_continue ?? 'Continue'}
                         </span>
                       )}
-                      {node.is_remastering && (
-                        <span className={s.badgeRemaster}>
-                          ↻ {t.ui.prefight_badge_remaster ?? 'Remaster ×1.2'}
-                        </span>
-                      )}
                       {nodeStreak > 0 && (
                         <span className={s.badgeStreak}>
                           {t.ui.prefight_badge_streak ?? 'Streak'} +{nodeStreak * 5}%

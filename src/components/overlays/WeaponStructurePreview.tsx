@@ -1,9 +1,8 @@
 import { useMemo, useState, useEffect, useRef } from 'react'
 import type { WeaponInstance, ContentProductType, AtomicOrigin, StyleType, EmotionType } from '../../types/game'
-import { describeWeaponPattern, describeRemasterStates, DRAW_LABEL_KEY, VALUE_BUCKET, type PatternNode, type DrawNode } from '../../data/weaponStructure'
+import { describeWeaponPattern, DRAW_LABEL_KEY, VALUE_BUCKET, type PatternNode, type DrawNode } from '../../data/weaponStructure'
 import { spiralLayout, type SpiralPos } from '../../engine/spiralLayout'
 import { drawEdge, drawTile } from '../../engine/workflowRenderer'
-import { WEAPON_CLASSES } from '../../data/generators/weaponClasses'
 import { useT, type TranslationBundle } from '../../i18n'
 import s from './WeaponStructurePreview.module.css'
 
@@ -805,23 +804,7 @@ export default function WeaponStructurePreview({ weapon }: Props) {
   const t = useT()
   const canvasRef = useRef<HTMLCanvasElement>(null)
 
-  const [rawPage, setRawPage] = useState(0)
-  const maxPage = weapon.rolled_draws
-    ? WEAPON_CLASSES[weapon.weapon_class].remaster_steps
-    : 0
-  const page = Math.min(rawPage, maxPage)
-
-  // Set of "label_occurrenceIndex" strings for draw slots that differ from
-  // the previous remaster state — used to render the golden changed-outline.
-  const changedSlots = useMemo<Set<string>>(() => {
-    if (page === 0) return new Set()
-    const states = describeRemasterStates(weapon)
-    const row = states[page]
-    if (!row) return new Set()
-    return new Set(row.filter(s => s.changed).map(s => `${s.kind}_${s.occurrenceIndex}`))
-  }, [weapon, page])
-
-  const nodes = useMemo(() => describeWeaponPattern(weapon, page), [weapon, page])
+  const nodes = useMemo(() => describeWeaponPattern(weapon), [weapon])
   const { layers, edges } = useMemo(() => buildSpiralGraph(nodes), [nodes])
 
   const centers = useMemo(() => {
@@ -881,10 +864,10 @@ export default function WeaponStructurePreview({ weapon }: Props) {
         drawTile(ctx, cx - NODE_SIZE / 2, cy - NODE_SIZE / 2, item.node.stage, 'normal', NODE_SIZE)
       } else if (item.node.kind === 'draw') {
         const slotKey = `${item.node.label}_${item.node.occurrenceIndex}`
-        drawDrawNode(ctx, cx, cy, NODE_SIZE, item.node, changedSlots.has(slotKey))
+        drawDrawNode(ctx, cx, cy, NODE_SIZE, item.node, false)
       }
     }
-  }, [bounds, centers, edges, flatItems, changedSlots])
+  }, [bounds, centers, edges, flatItems])
 
   const [hover, setHover] = useState<{ node: PatternNode; x: number; y: number } | null>(null)
 
@@ -912,23 +895,6 @@ export default function WeaponStructurePreview({ weapon }: Props) {
 
   return (
     <div className={s.wrap}>
-      {maxPage > 0 && (
-        <div className={s.nav}>
-          <button
-            className={s.navBtn}
-            disabled={page === 0}
-            onClick={() => setRawPage(p => Math.max(0, p - 1))}
-          >‹</button>
-          <span className={s.navLabel}>
-            {page === 0 ? t.ui.remaster_state_primary : `${t.ui.remaster_state_label} ${page}`}
-          </span>
-          <button
-            className={s.navBtn}
-            disabled={page === maxPage}
-            onClick={() => setRawPage(p => Math.min(maxPage, p + 1))}
-          >›</button>
-        </div>
-      )}
       <canvas
         ref={canvasRef}
         style={{ display: 'block', width: bounds.width, height: bounds.height, maxWidth: '100%' }}

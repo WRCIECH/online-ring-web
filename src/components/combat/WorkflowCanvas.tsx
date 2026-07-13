@@ -181,7 +181,9 @@ export default function WorkflowCanvas({ workflow, selectedTileId, onSelectTile,
 
   const { positions, canvasW, canvasH, center } = useMemo(
     () => layoutGraph(workflow),
-    [workflow.tiles.length, workflow.edges.length],
+    // start_id is a unique tid() per workflow — ensures recompute when a
+    // same-sized workflow replaces the old one (tile IDs change even if counts don't)
+    [workflow.start_id, workflow.tiles.length, workflow.edges.length],
   )
   const reachable = useMemo(() => getReachableTiles(workflow), [workflow])
   const effectiveTags = useMemo(() => computeEffectiveTags(workflow), [workflow])

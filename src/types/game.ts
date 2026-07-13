@@ -89,13 +89,12 @@ export interface Weapon {
 // All draws a weapon instance's pattern can make (Format/Transformation/
 // Style/Emotion/Length), rolled once at weapon-creation time and never
 // re-rolled per fight. Format/Transformation/Style/Emotion each hold a
-// fixed sequence of states per occurrence — state 0 ("primary") is used
-// for normal content, states 1..N for the 1st..Nth remaster of attached
-// content (see WeaponClassDef.remaster_steps). Length has no remaster-state
-// sequence — a single fixed value used everywhere. When a draw occurs once
-// per path inside the same branch() (e.g. halberds' 3 parallel Style
-// draws), its occurrences are redrawn together as one group on the
-// round-robin's turn rather than independently — see patternSlots.ts.
+// 2D array [occurrenceIndex][stateIndex] — only stateIndex 0 is used
+// (the extra stateIndex dimension is kept for save-file backward compat).
+// Length has no per-occurrence sequence — a single fixed value used everywhere.
+// When a draw occurs once per path inside the same branch() (e.g. halberds'
+// 3 parallel Style draws), its occurrences are redrawn together as one group
+// on the round-robin's turn rather than independently — see patternSlots.ts.
 export interface RolledPatternDraws {
   format:         (ContentProductType | null)[][]   // [occurrenceIndex][stateIndex]
   transformation: (AtomicOrigin | null)[][]   // [occurrenceIndex][stateIndex]
@@ -188,9 +187,6 @@ export interface CampaignNode {
   superhit_used?: boolean       // true once the base Superhit charge has been used
   promote_count?: number        // 0–3; each promote adds one extra Superhit charge
   promotes_consumed?: number    // how many promote-charges have been consumed in combat
-  last_workflow?: WorkflowGraph // snapshot for remaster regeneration
-  remaster_count?: number
-  is_remastering?: boolean
 }
 
 export interface CampaignEdge {

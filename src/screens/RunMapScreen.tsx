@@ -130,7 +130,7 @@ export default function RunMapScreen() {
 
   const mapWeapons = store.weapon_instances.filter(w => {
     const c = store.weapon_campaigns[w.instance_id]
-    return c && c.nodes.some(n => !n.completed)
+    return c && c.activated && c.nodes.some(n => !n.completed)
   })
   const mapWeaponIds = mapWeapons.map(w => w.instance_id)
   const [activeMapWeaponId, setActiveMapWeaponId] = useState(() => mapWeapons[0]?.instance_id ?? '')

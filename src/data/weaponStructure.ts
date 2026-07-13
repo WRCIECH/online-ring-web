@@ -4,7 +4,7 @@ import type { PatternStep } from './generators/weaponPatterns'
 import { WEAPON_PATTERNS, drawKindOf } from './generators/weaponPatterns'
 import { WEAPON_CLASSES, type WeaponClassDef } from './generators/weaponClasses'
 import { STAGE_TIME } from './generators/workflowGenerator'
-import { listPatternSlots, type SlotKind } from './generators/patternSlots'
+import { type SlotKind } from './generators/patternSlots'
 
 export interface PhaseNode {
   kind: 'phase'
@@ -134,48 +134,6 @@ function describeStep(
       return { kind: 'draw', label: step.slotKind, value: step.value, occurrenceIndex: occ }
     }
   }
-}
-
-export interface RemasterSlotView {
-  kind: SlotKind
-  occurrenceIndex: number
-  value: ContentProductType | AtomicOrigin | StyleType | EmotionType | null   // null = absent at this state
-  changed: boolean   // differs from this slot's value at the previous state (always false at state 0)
-}
-
-// Describes every pre-rolled remaster state (0 = primary, 1..N = the
-// weapon's pre-rolled remaster targets) for a weapon instance, one row
-// per state, one entry per format/transformation/style/emotion occurrence
-// in that class's pattern. Returns [] when there's nothing to preview: no
-// rolled_draws (legacy weapon instance) or zero such occurrences at all.
-// Unlike describeWeaponPattern, slots with a null value are NOT omitted
-// here — the carousel compares across states, so a stable slot list per
-// page (with explicit "absent" entries) is more legible than one whose
-// shape shifts page to page.
-export function describeRemasterStates(weapon: WeaponInstance): RemasterSlotView[][] {
-  if (!weapon.rolled_draws) return []
-  const cls = WEAPON_CLASSES[weapon.weapon_class]
-  const steps = WEAPON_PATTERNS[weapon.weapon_class]
-  const slots = listPatternSlots(steps)
-  if (slots.length === 0) return []
-
-  const N = cls.remaster_steps
-  const rolled = weapon.rolled_draws
-  const states: RemasterSlotView[][] = []
-  for (let stateIndex = 0; stateIndex <= N; stateIndex++) {
-    const row = slots.map(slot => {
-      const value = rolled[slot.kind][slot.occurrenceIndex]?.[stateIndex] ?? null
-      const prevValue = stateIndex === 0 ? value : (rolled[slot.kind][slot.occurrenceIndex]?.[stateIndex - 1] ?? null)
-      return {
-        kind: slot.kind,
-        occurrenceIndex: slot.occurrenceIndex,
-        value,
-        changed: stateIndex > 0 && value !== prevValue,
-      }
-    })
-    states.push(row)
-  }
-  return states
 }
 
 // `rollAffixes` can independently pick more than one damage affix — they both
