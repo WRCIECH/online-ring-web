@@ -2,6 +2,13 @@ import { useState, useRef, useEffect } from 'react'
 import { useGameStore } from '../../store/gameStore'
 import { isNodeAvailable } from '../../data/generators/campaignGenerator'
 import { calcCampaignOverloadMult, isCampaignFullyDefined } from '../../engine/combat'
+import { LEVEL_MULT, weaponUpgradeCost, calcWeaponScaledDamage } from '../../data/weapons'
+import { WEAPON_CLASSES } from '../../data/generators/weaponClasses'
+import { WEAPON_SELL_PRICE } from '../../data/constants'
+import { describeRemasterStates, VALUE_BUCKET } from '../../data/weaponStructure'
+import type { RemasterSlotView } from '../../data/weaponStructure'
+import { WEAPON_PATTERNS } from '../../data/generators/weaponPatterns'
+import type { PatternStep } from '../../data/generators/weaponPatterns'
 import type { CampaignNode, CampaignEdge, WeaponCampaign, WeaponInstance } from '../../types/game'
 import WeaponIcon from '../WeaponIcon'
 import { useT, localizeWeaponName } from '../../i18n'
@@ -140,6 +147,74 @@ function computePositions(
   return pos
 }
 
+// ── WorkflowSequence ─────────────────────────────────────────────────────────
+
+function WorkflowSequence({
+  weapon,
+  activeStageIdx,
+  t,
+}: {
+  weapon: WeaponInstance
+  activeStageIdx: number | null
+  t: ReturnType<typeof useT>
+}) {
+  const states = describeRemasterStates(weapon)
+  if (!states.length) return null
+
+  function badgeLabel(slot: RemasterSlotView): string {
+    if (!slot.value) return ''
+    const bucket = t.content[VALUE_BUCKET[slot.kind as keyof typeof VALUE_BUCKET]] as Record<string, { badge_label: string }>
+    return bucket[slot.value]?.badge_label ?? slot.value
+  }
+
+  function collectPhases(steps: PatternStep[]): Record<string, number> {
+    const acc: Record<string, number> = {}
+    for (const step of steps) {
+      if (step.kind === 'phase') {
+        acc[step.stage] = (acc[step.stage] ?? 0) + step.min
+      } else if (step.kind === 'branch') {
+        const sub = collectPhases(step.paths[0] ?? [])
+        for (const [k, v] of Object.entries(sub)) acc[k] = (acc[k] ?? 0) + v
+      }
+    }
+    return acc
+  }
+
+  const pattern = WEAPON_PATTERNS[weapon.weapon_class] ?? []
+  const phaseTotals = collectPhases(pattern)
+  const phaseOrder = ['Research', 'Plan', 'Produce', 'Refine'] as const
+  const stepsLabel = phaseOrder
+    .filter(stage => phaseTotals[stage])
+    .map(stage => `${phaseTotals[stage]} ${stage}`)
+    .join(' · ')
+
+  return (
+    <div className={s.sequenceWrap}>
+      {states.map((row, stateIdx) => {
+        const chips = stateIdx === 0
+          ? row.filter(slot => slot.kind === 'format' && slot.value !== null)
+          : row.filter(slot => slot.changed && slot.value !== null)
+        if (!chips.length) return null
+        const isActive = activeStageIdx !== null && stateIdx === activeStageIdx
+        return (
+          <div key={stateIdx} className={[s.sequenceRow, isActive ? s.seqStateActive : ''].filter(Boolean).join(' ')}>
+            <span className={s.seqStateLabel}>{stateIdx === 0 ? 'Base' : `R${stateIdx}`}</span>
+            {chips.map((slot, i) => (
+              <span key={`${slot.kind}_${slot.occurrenceIndex}`} style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                {i > 0 && <span className={s.seqArrow}>→</span>}
+                <span className={[s.seqChip, slot.changed ? s.seqChipChanged : ''].filter(Boolean).join(' ')}>
+                  {badgeLabel(slot)}
+                </span>
+              </span>
+            ))}
+          </div>
+        )
+      })}
+      {stepsLabel && <div className={s.seqSteps}>{stepsLabel}</div>}
+    </div>
+  )
+}
+
 // ── Component ────────────────────────────────────────────────────────────────
 
 export default function CampaignOverlay({ onClose }: Props) {
@@ -157,6 +232,10 @@ export default function CampaignOverlay({ onClose }: Props) {
   const [nameVal, setNameVal] = useState('')
   // Activate confirmation
   const [showActivateConfirm, setShowActivateConfirm] = useState(false)
+  // Weapon actions
+  const [confirmSellId,    setConfirmSellId]    = useState<string | null>(null)
+  const [confirmUpgradeId, setConfirmUpgradeId] = useState<string | null>(null)
+  const [hoveredUpgrade,   setHoveredUpgrade]   = useState(false)
 
   const nodeInputRef = useRef<HTMLInputElement>(null)
   const nameInputRef = useRef<HTMLInputElement>(null)
@@ -177,6 +256,8 @@ export default function CampaignOverlay({ onClose }: Props) {
     setShowActivateConfirm(false)
     setNameOpen(false)
     setEditingNodeId(null)
+    setConfirmSellId(null)
+    setConfirmUpgradeId(null)
   }, [selectedWeaponId])
 
   const selectedWeapon = selectedWeaponId
@@ -185,6 +266,41 @@ export default function CampaignOverlay({ onClose }: Props) {
   const campaign: WeaponCampaign | undefined = selectedWeaponId
     ? store.weapon_campaigns[selectedWeaponId]
     : undefined
+
+  // Weapon action helpers
+  const wid = selectedWeapon?.instance_id ?? ''
+  const level = store.weapon_level[wid] ?? 0
+  const isMax = level >= 10
+  const cost = weaponUpgradeCost(level)
+  const canAfford = !isMax && store.runes >= cost
+  const dmgCurrent = selectedWeapon ? calcWeaponScaledDamage(100, selectedWeapon, level, store.stats) : 0
+  const dmgNext = (selectedWeapon && !isMax) ? calcWeaponScaledDamage(100, selectedWeapon, level + 1, store.stats) : null
+  const classDef = selectedWeapon ? WEAPON_CLASSES[selectedWeapon.weapon_class] : null
+  const activeNodeInCampaign = campaign?.nodes.find(n => n.id === store.active_content_id)
+  const activeStageIdx: number | null = activeNodeInCampaign ? (activeNodeInCampaign.remaster_count ?? 0) : null
+  const isConfirmUpgrade = confirmUpgradeId === wid
+  const isConfirmSell = confirmSellId === wid
+
+  function handleUpgrade() {
+    if (!selectedWeapon) return
+    if (isConfirmUpgrade) {
+      store.upgradeWeapon(wid)
+      setConfirmUpgradeId(null)
+    } else {
+      setConfirmUpgradeId(wid)
+    }
+  }
+
+  function handleSell() {
+    if (!selectedWeapon) return
+    if (isConfirmSell) {
+      store.sellWeapon(wid)
+      setConfirmSellId(null)
+      setSelectedWeaponId(null)
+    } else {
+      setConfirmSellId(wid)
+    }
+  }
 
   function handleNodeNameSave(weaponId: string, nodeId: string) {
     const name = editingNodeVal.trim()
@@ -218,7 +334,7 @@ export default function CampaignOverlay({ onClose }: Props) {
                 key={w.instance_id}
                 weapon={w}
                 t={t}
-                hasCampaign={!!store.weapon_campaigns[w.instance_id]}
+                hasCampaign={store.weapon_campaigns[w.instance_id]?.activated === true}
                 selected={w.instance_id === selectedWeaponId}
                 onClick={() => setSelectedWeaponId(w.instance_id)}
               />
@@ -235,315 +351,385 @@ export default function CampaignOverlay({ onClose }: Props) {
                 {edgeTooltip.text}
               </div>
             )}
+
             {!selectedWeapon ? (
               <div className={s.empty}>Select a weapon.</div>
-            ) : !campaign ? (
-              <div className={s.empty}>Generating…</div>
-            ) : (() => {
-              const { nodes, edges } = campaign
-              const childrenMap = buildChildrenMap(edges)
-              const roots = getRoots(nodes, edges)
-              const publishedCount  = nodes.filter(n => n.published).length
-              const namedCount     = nodes.filter(n => n.name.trim()).length
-              const targetPublished = Math.ceil(nodes.length * 0.6)
-              const needMore       = Math.max(0, targetPublished - publishedCount)
-              const weaponId = selectedWeapon.instance_id
-
-              const activeCampaignCount = store.owned_weapons.filter(wid => {
-                const c = store.weapon_campaigns[wid]
-                return c && c.activated === true && !c.completed
-              }).length
-              const overloadMult = calcCampaignOverloadMult(activeCampaignCount, store.stats.END)
-
-              const isFullyDefined = isCampaignFullyDefined(campaign)
-              const isActivated = campaign.activated === true
-
-              // For activation confirm preview
-              const futureCount = activeCampaignCount + 1
-              const futureOverloadMult = calcCampaignOverloadMult(futureCount, store.stats.END)
-              const futurePenaltyPct = Math.round((1 - futureOverloadMult) * 100)
-
-              // Library suggestions for combobox
-              const libSuggestions = store.campaign_library.filter(lc =>
-                lc.campaign_name && (!nameVal || lc.campaign_name.toLowerCase().includes(nameVal.toLowerCase()))
-              )
-
-              // Compute SVG layout
-              const positions = computePositions(roots.map(r => r.id), childrenMap)
-              let maxX = 0, maxY = 0
-              for (const [, p] of positions) {
-                maxX = Math.max(maxX, p.x + NODE_W)
-                maxY = Math.max(maxY, p.y + NODE_H)
-              }
-              const svgW = maxX + PAD
-              const svgH = maxY + PAD
-
-              return (
-                <>
-                  {/* Campaign name (combobox) */}
-                  <div className={s.campaignNameRow}>
-                    {nameOpen ? (
-                      <div className={s.comboboxWrap}>
-                        <input
-                          ref={nameInputRef}
-                          className={s.comboboxInput}
-                          value={nameVal}
-                          placeholder={(t.ui as Record<string, string>).campaign_name_placeholder ?? 'Name this campaign…'}
-                          onChange={e => setNameVal(e.target.value)}
-                          onBlur={() => saveNameAndClose(weaponId)}
-                          onKeyDown={e => {
-                            if (e.key === 'Enter') saveNameAndClose(weaponId)
-                            if (e.key === 'Escape') setNameOpen(false)
-                          }}
-                        />
-                        {libSuggestions.length > 0 && (
-                          <div className={s.comboboxDropdown}>
-                            {libSuggestions.map(lc => (
-                              <button
-                                key={lc.id}
-                                className={s.comboboxOption}
-                                onMouseDown={e => {
-                                  e.preventDefault()
-                                  saveNameAndClose(weaponId, lc.campaign_name)
-                                }}
-                              >
-                                <span className={s.comboboxOptionName}>{lc.campaign_name}</span>
-                                <span className={s.comboboxOptionMeta}>{lc.nodes.length} nodes</span>
-                              </button>
-                            ))}
+            ) : (
+              <>
+                {/* ── Weapon info strip ── */}
+                <div className={s.weaponInfoStrip}>
+                  <div className={s.weaponInfoTop}>
+                    <div className={s.weaponInfoLeft}>
+                      <span className={s.weaponLevel}>+{level}</span>
+                      <span className={s.statChip}>×{(dmgCurrent / 100).toFixed(2)} dmg</span>
+                      {classDef && <>
+                        <span className={s.statChip}>+{((LEVEL_MULT[selectedWeapon.rarity] ?? 0.03) * 100).toFixed(0)}% / lv</span>
+                        <span className={s.statChip}>×{classDef.base_damage_mult} base</span>
+                      </>}
+                      {Object.entries(selectedWeapon.scaling).map(([stat, grade]) => (
+                        <span key={stat} className={s.scalingChip}>{stat} {grade}</span>
+                      ))}
+                    </div>
+                    <div className={s.weaponInfoActions}>
+                      {/* Upgrade */}
+                      <div
+                        className={s.upgradeWrap}
+                        onMouseEnter={() => setHoveredUpgrade(true)}
+                        onMouseLeave={() => setHoveredUpgrade(false)}
+                      >
+                        {isMax ? (
+                          <span className={s.upgradeMax}>{t.ui.max_tag}</span>
+                        ) : (
+                          <button
+                            className={[
+                              s.btnUpgrade,
+                              isConfirmUpgrade ? s.btnUpgradeConfirm : '',
+                              !canAfford ? s.btnUpgradeDim : '',
+                            ].filter(Boolean).join(' ')}
+                            disabled={!canAfford}
+                            onClick={handleUpgrade}
+                          >
+                            {isConfirmUpgrade ? t.ui.btn_confirm_q : `↑ ${cost.toLocaleString()} ✦`}
+                          </button>
+                        )}
+                        {hoveredUpgrade && !isMax && dmgNext !== null && (
+                          <div className={s.upgradeTip}>
+                            <span className={s.upgradeTipLabel}>Damage multiplier</span>
+                            <span className={s.upgradeTipVal}>
+                              ×{(dmgCurrent / 100).toFixed(2)}
+                              {' → '}
+                              <span style={{ color: '#88dd99' }}>×{(dmgNext / 100).toFixed(2)}</span>
+                              <span className={s.upgradeTipDelta}>
+                                {' '}(+{Math.round((LEVEL_MULT[selectedWeapon.rarity] ?? 0.03) * 100)}% / level)
+                              </span>
+                            </span>
                           </div>
                         )}
                       </div>
-                    ) : (
-                      <span
-                        className={campaign.campaign_name ? s.campaignNameSet : s.campaignNameEmpty}
-                        onClick={() => { setNameVal(campaign.campaign_name ?? ''); setNameOpen(true) }}
-                      >
-                        {campaign.campaign_name || ((t.ui as Record<string, string>).campaign_name_placeholder ?? 'Name this campaign…')}
-                      </span>
-                    )}
+                      {/* Sell */}
+                      {store.weapon_instances.length > 1 && (
+                        <button
+                          className={isConfirmSell ? s.btnSellConfirm : s.btnSell}
+                          onClick={handleSell}
+                        >
+                          {isConfirmSell
+                            ? t.ui.btn_sell_confirm
+                            : `${t.ui.btn_sell_weapon} (${WEAPON_SELL_PRICE} ✦)`}
+                        </button>
+                      )}
+                    </div>
                   </div>
+                  <WorkflowSequence weapon={selectedWeapon} activeStageIdx={activeStageIdx} t={t} />
+                </div>
 
-                  {/* Progress + activation */}
-                  <div className={s.campaignProgress}>
-                    <span className={s.progressLabel}>
-                      {publishedCount}/{nodes.length} {(t.ui as Record<string, string>).node_published ?? 'published'}
-                      {!campaign.completed && needMore > 0 && ` · ${needMore} ${(t.ui as Record<string, string>).campaign_more_to_finish ?? 'more to finish'}`}
-                    </span>
-                    {namedCount < nodes.length && (
-                      <span className={s.namingProgress}>
-                        <span className={s.namingLabel}>{(t.ui as Record<string, string>).campaign_named_of ?? 'named'}</span>
-                        <span className={s.namingBar}>
-                          <span className={s.namingBarFill} style={{ width: `${(namedCount / nodes.length) * 100}%` }} />
-                        </span>
-                        <span className={s.namingCount}>{namedCount}/{nodes.length}</span>
-                      </span>
-                    )}
-                    {campaign.completed && (
-                      <span className={s.campaignDoneBadge}>
-                        {(t.ui as Record<string, string>).campaign_done ?? 'Campaign Complete'}
-                      </span>
-                    )}
+                {!campaign ? (
+                  <div className={s.empty}>Generating…</div>
+                ) : (() => {
+                  const { nodes, edges } = campaign
+                  const childrenMap = buildChildrenMap(edges)
+                  const roots = getRoots(nodes, edges)
+                  const publishedCount  = nodes.filter(n => n.published).length
+                  const namedCount     = nodes.filter(n => n.name.trim()).length
+                  const targetPublished = Math.ceil(nodes.length * 0.6)
+                  const needMore       = Math.max(0, targetPublished - publishedCount)
+                  const weaponId = selectedWeapon.instance_id
 
-                    {/* Activation section */}
-                    {!campaign.completed && !isActivated && (
-                      isFullyDefined ? (
-                        showActivateConfirm ? (
-                          <div className={s.activateConfirm}>
-                            <span className={s.activateConfirmText}>
-                              Will count as #{futureCount} active campaign.
-                              {futurePenaltyPct > 0
-                                ? ` Penalty: −${futurePenaltyPct}% dmg (END ${store.stats.END}).`
-                                : ` No penalty at END ${store.stats.END}.`}
-                            </span>
-                            <div className={s.activateActions}>
-                              <button
-                                className={s.btnActivateConfirm}
-                                onClick={() => { store.activateCampaign(weaponId); setShowActivateConfirm(false) }}
-                              >
-                                Activate
-                              </button>
-                              <button
-                                className={s.btnActivateCancel}
-                                onClick={() => setShowActivateConfirm(false)}
-                              >
-                                Cancel
-                              </button>
-                            </div>
+                  const activeCampaignCount = store.owned_weapons.filter(w => {
+                    const c = store.weapon_campaigns[w]
+                    return c && c.activated === true && !c.completed
+                  }).length
+                  const overloadMult = calcCampaignOverloadMult(activeCampaignCount, store.stats.END)
+
+                  const isFullyDefined = isCampaignFullyDefined(campaign)
+                  const isActivated = campaign.activated === true
+
+                  // For activation confirm preview
+                  const futureCount = activeCampaignCount + 1
+                  const futureOverloadMult = calcCampaignOverloadMult(futureCount, store.stats.END)
+                  const futurePenaltyPct = Math.round((1 - futureOverloadMult) * 100)
+
+                  // Library suggestions for combobox
+                  const libSuggestions = store.campaign_library.filter(lc =>
+                    lc.campaign_name && (!nameVal || lc.campaign_name.toLowerCase().includes(nameVal.toLowerCase()))
+                  )
+
+                  // Compute SVG layout
+                  const positions = computePositions(roots.map(r => r.id), childrenMap)
+                  let maxX = 0, maxY = 0
+                  for (const [, p] of positions) {
+                    maxX = Math.max(maxX, p.x + NODE_W)
+                    maxY = Math.max(maxY, p.y + NODE_H)
+                  }
+                  const svgW = maxX + PAD
+                  const svgH = maxY + PAD
+
+                  return (
+                    <>
+                      {/* Campaign name (combobox) */}
+                      <div className={s.campaignNameRow}>
+                        {nameOpen ? (
+                          <div className={s.comboboxWrap}>
+                            <input
+                              ref={nameInputRef}
+                              className={s.comboboxInput}
+                              value={nameVal}
+                              placeholder={(t.ui as Record<string, string>).campaign_name_placeholder ?? 'Name this campaign…'}
+                              onChange={e => setNameVal(e.target.value)}
+                              onBlur={() => saveNameAndClose(weaponId)}
+                              onKeyDown={e => {
+                                if (e.key === 'Enter') saveNameAndClose(weaponId)
+                                if (e.key === 'Escape') setNameOpen(false)
+                              }}
+                            />
+                            {libSuggestions.length > 0 && (
+                              <div className={s.comboboxDropdown}>
+                                {libSuggestions.map(lc => (
+                                  <button
+                                    key={lc.id}
+                                    className={s.comboboxOption}
+                                    onMouseDown={e => {
+                                      e.preventDefault()
+                                      saveNameAndClose(weaponId, lc.campaign_name)
+                                    }}
+                                  >
+                                    <span className={s.comboboxOptionName}>{lc.campaign_name}</span>
+                                    <span className={s.comboboxOptionMeta}>{lc.nodes.length} nodes</span>
+                                  </button>
+                                ))}
+                              </div>
+                            )}
                           </div>
                         ) : (
-                          <button className={s.btnActivate} onClick={() => setShowActivateConfirm(true)}>
-                            Activate Campaign
-                          </button>
-                        )
-                      ) : (
-                        <span className={s.overloadPending}>
-                          ○ name campaign &amp; all nodes to activate
+                          <span
+                            className={campaign.campaign_name ? s.campaignNameSet : s.campaignNameEmpty}
+                            onClick={() => { setNameVal(campaign.campaign_name ?? ''); setNameOpen(true) }}
+                          >
+                            {campaign.campaign_name || ((t.ui as Record<string, string>).campaign_name_placeholder ?? 'Name this campaign…')}
+                          </span>
+                        )}
+                      </div>
+
+                      {/* Progress + activation */}
+                      <div className={s.campaignProgress}>
+                        <span className={s.progressLabel}>
+                          {publishedCount}/{nodes.length} {(t.ui as Record<string, string>).node_published ?? 'published'}
+                          {!campaign.completed && needMore > 0 && ` · ${needMore} ${(t.ui as Record<string, string>).campaign_more_to_finish ?? 'more to finish'}`}
                         </span>
-                      )
-                    )}
-                    {isActivated && !campaign.completed && overloadMult < 1.0 && (
-                      <span className={s.overloadWarning}>
-                        ⚠ {activeCampaignCount} active · END {store.stats.END} → −{Math.round((1 - overloadMult) * 100)}% dmg
-                      </span>
-                    )}
-                    {isActivated && !campaign.completed && overloadMult >= 1.0 && activeCampaignCount > 1 && (
-                      <span className={s.overloadOk}>
-                        {activeCampaignCount} active · no penalty
-                      </span>
-                    )}
-                  </div>
-
-                  <svg
-                    width={svgW}
-                    height={svgH}
-                    style={{ display: 'block', overflow: 'visible', minWidth: svgW }}
-                  >
-                    {/* Edges first (behind nodes) */}
-                    {edges.map(edge => {
-                      const fp = positions.get(edge.from_id)
-                      const tp = positions.get(edge.to_id)
-                      if (!fp || !tp) return null
-                      const x1 = fp.x + NODE_W / 2
-                      const y1 = fp.y + NODE_H
-                      const x2 = tp.x + NODE_W / 2
-                      const y2 = tp.y
-                      const my = (y1 + y2) / 2
-                      const lx = (x1 + x2) / 2
-                      const ly = (y1 + y2) / 2
-                      const d = `M ${x1} ${y1} C ${x1} ${my} ${x2} ${my} ${x2} ${y2}`
-                      const displayText = edge.label == null ? 'Follows' : (LABEL_DISPLAY[edge.label] ?? edge.label)
-                      const tooltip     = edge.label == null ? FOLLOWS_TOOLTIP : (LABEL_TOOLTIP[edge.label] ?? edge.label)
-                      const labelW = displayText.length * 6.2 + 14
-                      return (
-                        <g key={`${edge.from_id}-${edge.to_id}`}>
-                          <path d={d} fill="none" stroke="rgba(100,80,200,0.28)" strokeWidth={1.5} />
-                          <g
-                            style={{ cursor: 'default' }}
-                            onMouseEnter={e => {
-                              const pane = treePaneRef.current
-                              if (!pane) return
-                              const r = pane.getBoundingClientRect()
-                              setEdgeTooltip({ text: tooltip, x: e.clientX - r.left, y: e.clientY - r.top })
-                            }}
-                            onMouseMove={e => {
-                              const pane = treePaneRef.current
-                              if (!pane) return
-                              const r = pane.getBoundingClientRect()
-                              setEdgeTooltip(prev => prev ? { ...prev, x: e.clientX - r.left, y: e.clientY - r.top } : prev)
-                            }}
-                            onMouseLeave={() => setEdgeTooltip(null)}
-                          >
-                            <rect
-                              x={lx - labelW / 2} y={ly - 10}
-                              width={labelW} height={20} rx={4}
-                              fill="rgba(100,80,200,0.11)"
-                              stroke="rgba(100,80,200,0.24)"
-                              strokeWidth={1}
-                            />
-                            <text
-                              x={lx} y={ly + 4}
-                              textAnchor="middle"
-                              fontSize={10}
-                              fontFamily="system-ui,sans-serif"
-                              fill="rgba(180,160,255,0.88)"
-                            >
-                              {displayText}
-                            </text>
-                          </g>
-                        </g>
-                      )
-                    })}
-
-                    {/* Nodes as foreignObject */}
-                    {nodes.map(node => {
-                      const pos = positions.get(node.id)
-                      if (!pos) return null
-                      const available = isNodeAvailable(nodes, edges, node)
-                      const inactive = !available && !node.completed
-                      const finished = node.completed && !node.published
-                      const isEditingThis = editingNodeId === node.id
-                      const canEdit = !node.completed
-
-                      return (
-                        <foreignObject key={node.id} x={pos.x} y={pos.y} width={NODE_W} height={NODE_H} style={{ overflow: 'visible' }} pointerEvents="all">
-                          <div
-                            className={[
-                              s.svgNodeCard,
-                              inactive       ? s.nodeLocked   : '',
-                              node.published ? s.nodePublished : '',
-                              finished       ? s.nodeFinished  : '',
-                            ].filter(Boolean).join(' ')}
-                          >
-                            <span className={s.nodeIcon}>
-                              {node.published ? '★' : node.completed ? '✓' : inactive ? '○' : '◎'}
+                        {namedCount < nodes.length && (
+                          <span className={s.namingProgress}>
+                            <span className={s.namingLabel}>{(t.ui as Record<string, string>).campaign_named_of ?? 'named'}</span>
+                            <span className={s.namingBar}>
+                              <span className={s.namingBarFill} style={{ width: `${(namedCount / nodes.length) * 100}%` }} />
                             </span>
+                            <span className={s.namingCount}>{namedCount}/{nodes.length}</span>
+                          </span>
+                        )}
+                        {campaign.completed && (
+                          <span className={s.campaignDoneBadge}>
+                            {(t.ui as Record<string, string>).campaign_done ?? 'Campaign Complete'}
+                          </span>
+                        )}
 
-                            {isEditingThis ? (
-                              <input
-                                ref={nodeInputRef}
-                                className={s.nodeInput}
-                                value={editingNodeVal}
-                                onChange={e => setEditingNodeVal(e.target.value)}
-                                onBlur={() => handleNodeNameSave(weaponId, node.id)}
-                                onKeyDown={e => {
-                                  if (e.key === 'Enter') handleNodeNameSave(weaponId, node.id)
-                                  if (e.key === 'Escape') { setEditingNodeId(null); setEditingNodeVal('') }
-                                }}
-                              />
-                            ) : (
-                              <span
-                                className={[s.nodeName, canEdit ? s.nodeNameEditable : ''].join(' ')}
-                                onClick={() => {
-                                  if (canEdit) {
-                                    setEditingNodeId(node.id)
-                                    setEditingNodeVal(node.name)
-                                  }
-                                }}
-                                title={canEdit ? t.ui.click_to_rename : undefined}
-                              >
-                                {node.name
-                                  ? node.name
-                                  : canEdit
-                                    ? <em className={s.nodeUnnamed}>{(t.ui as Record<string,string>).click_to_name ?? 'Click to name…'}</em>
-                                    : <em className={s.nodeUnnamed}>{t.ui.untitled}</em>
-                                }
+                        {/* Activation section */}
+                        {!campaign.completed && !isActivated && (
+                          showActivateConfirm ? (
+                            <div className={s.activateConfirm}>
+                              <span className={s.activateConfirmText}>
+                                Will count as #{futureCount} active campaign.
+                                {futurePenaltyPct > 0
+                                  ? ` Penalty: −${futurePenaltyPct}% dmg (END ${store.stats.END}).`
+                                  : ` No penalty at END ${store.stats.END}.`}
                               </span>
-                            )}
+                              <div className={s.activateActions}>
+                                <button
+                                  className={s.btnActivateConfirm}
+                                  onClick={() => { store.activateCampaign(weaponId); setShowActivateConfirm(false) }}
+                                >
+                                  Activate
+                                </button>
+                                <button
+                                  className={s.btnActivateCancel}
+                                  onClick={() => setShowActivateConfirm(false)}
+                                >
+                                  Cancel
+                                </button>
+                              </div>
+                            </div>
+                          ) : (
+                            <button
+                              className={[s.btnActivate, !isFullyDefined ? s.btnActivateDisabled : ''].filter(Boolean).join(' ')}
+                              disabled={!isFullyDefined}
+                              title={!isFullyDefined ? 'Name the campaign and all nodes first' : undefined}
+                              onClick={() => setShowActivateConfirm(true)}
+                            >
+                              Activate Campaign
+                            </button>
+                          )
+                        )}
+                        {isActivated && !campaign.completed && overloadMult < 1.0 && (
+                          <span className={s.overloadWarning}>
+                            ⚠ {activeCampaignCount} active · END {store.stats.END} → −{Math.round((1 - overloadMult) * 100)}% dmg
+                          </span>
+                        )}
+                        {isActivated && !campaign.completed && overloadMult >= 1.0 && activeCampaignCount > 1 && (
+                          <span className={s.overloadOk}>
+                            {activeCampaignCount} active · no penalty
+                          </span>
+                        )}
+                      </div>
 
-                            {finished && (
-                              <button
-                                className={s.btnPublish}
-                                onClick={() => store.publishCampaignNode(weaponId, node.id)}
-                                title={(t.ui as Record<string, string>).btn_publish_node ?? 'Publish'}
+                      <svg
+                        width={svgW}
+                        height={svgH}
+                        style={{ display: 'block', overflow: 'visible', minWidth: svgW }}
+                      >
+                        {/* Edges first (behind nodes) */}
+                        {edges.map(edge => {
+                          const fp = positions.get(edge.from_id)
+                          const tp = positions.get(edge.to_id)
+                          if (!fp || !tp) return null
+                          const x1 = fp.x + NODE_W / 2
+                          const y1 = fp.y + NODE_H
+                          const x2 = tp.x + NODE_W / 2
+                          const y2 = tp.y
+                          const my = (y1 + y2) / 2
+                          const lx = (x1 + x2) / 2
+                          const ly = (y1 + y2) / 2
+                          const d = `M ${x1} ${y1} C ${x1} ${my} ${x2} ${my} ${x2} ${y2}`
+                          const displayText = edge.label == null ? 'Follows' : (LABEL_DISPLAY[edge.label] ?? edge.label)
+                          const tooltip     = edge.label == null ? FOLLOWS_TOOLTIP : (LABEL_TOOLTIP[edge.label] ?? edge.label)
+                          const labelW = displayText.length * 6.2 + 14
+                          return (
+                            <g key={`${edge.from_id}-${edge.to_id}`}>
+                              <path d={d} fill="none" stroke="rgba(100,80,200,0.28)" strokeWidth={1.5} />
+                              <g
+                                style={{ cursor: 'default' }}
+                                onMouseEnter={e => {
+                                  const pane = treePaneRef.current
+                                  if (!pane) return
+                                  const r = pane.getBoundingClientRect()
+                                  setEdgeTooltip({ text: tooltip, x: e.clientX - r.left, y: e.clientY - r.top })
+                                }}
+                                onMouseMove={e => {
+                                  const pane = treePaneRef.current
+                                  if (!pane) return
+                                  const r = pane.getBoundingClientRect()
+                                  setEdgeTooltip(prev => prev ? { ...prev, x: e.clientX - r.left, y: e.clientY - r.top } : prev)
+                                }}
+                                onMouseLeave={() => setEdgeTooltip(null)}
                               >
-                                {(t.ui as Record<string, string>).btn_publish_node ?? 'Publish'}
-                              </button>
-                            )}
+                                <rect
+                                  x={lx - labelW / 2} y={ly - 10}
+                                  width={labelW} height={20} rx={4}
+                                  fill="rgba(100,80,200,0.11)"
+                                  stroke="rgba(100,80,200,0.24)"
+                                  strokeWidth={1}
+                                />
+                                <text
+                                  x={lx} y={ly + 4}
+                                  textAnchor="middle"
+                                  fontSize={10}
+                                  fontFamily="system-ui,sans-serif"
+                                  fill="rgba(180,160,255,0.88)"
+                                >
+                                  {displayText}
+                                </text>
+                              </g>
+                            </g>
+                          )
+                        })}
 
-                            {node.is_remastering && !node.completed && (
-                              <span className={s.remasterChip}>↻ remaster</span>
-                            )}
+                        {/* Nodes as foreignObject */}
+                        {nodes.map(node => {
+                          const pos = positions.get(node.id)
+                          if (!pos) return null
+                          const available = isNodeAvailable(nodes, edges, node)
+                          const inactive = !available && !node.completed
+                          const finished = node.completed && !node.published
+                          const isEditingThis = editingNodeId === node.id
+                          const canEdit = !node.completed
 
-                            {node.published && (
-                              <span className={s.publishedBadge}>
-                                {(t.ui as Record<string, string>).node_published ?? 'Published'}
-                              </span>
-                            )}
-                          </div>
-                        </foreignObject>
-                      )
-                    })}
-                  </svg>
+                          return (
+                            <foreignObject key={node.id} x={pos.x} y={pos.y} width={NODE_W} height={NODE_H} style={{ overflow: 'visible' }} pointerEvents="all">
+                              <div
+                                className={[
+                                  s.svgNodeCard,
+                                  inactive       ? s.nodeLocked   : '',
+                                  node.published ? s.nodePublished : '',
+                                  finished       ? s.nodeFinished  : '',
+                                ].filter(Boolean).join(' ')}
+                              >
+                                <span className={s.nodeIcon}>
+                                  {node.published ? '★' : node.completed ? '✓' : inactive ? '○' : '◎'}
+                                </span>
 
-                  {campaign.completed && (
-                    <div className={s.completedHint}>
-                      Campaign complete — assign a new campaign to this weapon to continue growing this content tree.
-                    </div>
-                  )}
-                </>
-              )
-            })()}
+                                {isEditingThis ? (
+                                  <input
+                                    ref={nodeInputRef}
+                                    className={s.nodeInput}
+                                    value={editingNodeVal}
+                                    onChange={e => setEditingNodeVal(e.target.value)}
+                                    onBlur={() => handleNodeNameSave(weaponId, node.id)}
+                                    onKeyDown={e => {
+                                      if (e.key === 'Enter') handleNodeNameSave(weaponId, node.id)
+                                      if (e.key === 'Escape') { setEditingNodeId(null); setEditingNodeVal('') }
+                                    }}
+                                  />
+                                ) : (
+                                  <span
+                                    className={[s.nodeName, canEdit ? s.nodeNameEditable : ''].join(' ')}
+                                    onClick={() => {
+                                      if (canEdit) {
+                                        setEditingNodeId(node.id)
+                                        setEditingNodeVal(node.name)
+                                      }
+                                    }}
+                                    title={canEdit ? t.ui.click_to_rename : undefined}
+                                  >
+                                    {node.name
+                                      ? node.name
+                                      : canEdit
+                                        ? <em className={s.nodeUnnamed}>{(t.ui as Record<string,string>).click_to_name ?? 'Click to name…'}</em>
+                                        : <em className={s.nodeUnnamed}>{t.ui.untitled}</em>
+                                    }
+                                  </span>
+                                )}
+
+                                {finished && (
+                                  <button
+                                    className={s.btnPublish}
+                                    onClick={() => store.publishCampaignNode(weaponId, node.id)}
+                                    title={(t.ui as Record<string, string>).btn_publish_node ?? 'Publish'}
+                                  >
+                                    {(t.ui as Record<string, string>).btn_publish_node ?? 'Publish'}
+                                  </button>
+                                )}
+
+                                {node.is_remastering && !node.completed && (
+                                  <span className={s.remasterChip}>↻ remaster</span>
+                                )}
+
+                                {node.published && (
+                                  <span className={s.publishedBadge}>
+                                    {(t.ui as Record<string, string>).node_published ?? 'Published'}
+                                  </span>
+                                )}
+                              </div>
+                            </foreignObject>
+                          )
+                        })}
+                      </svg>
+
+                      {campaign.completed && (
+                        <div className={s.completedHint}>
+                          Campaign complete — assign a new campaign to this weapon to continue growing this content tree.
+                        </div>
+                      )}
+                    </>
+                  )
+                })()}
+              </>
+            )}
           </div>
         </div>
 

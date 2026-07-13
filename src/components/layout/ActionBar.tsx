@@ -2,7 +2,6 @@ import { useState } from 'react'
 import { createPortal } from 'react-dom'
 import CharacterOverlay from '../overlays/CharacterOverlay'
 import CampaignOverlay from '../overlays/CampaignOverlay'
-import EquipOverlay     from '../overlays/EquipOverlay'
 import AnalyticsOverlay from '../overlays/AnalyticsOverlay'
 import { useT } from '../../i18n'
 import s from './ActionBar.module.css'
@@ -15,7 +14,6 @@ export default function ActionBar({ canLevel = true }: Props) {
   const t = useT()
   const [showStats,     setShowStats]     = useState(false)
   const [showContent,   setShowContent]   = useState(false)
-  const [showEquip,     setShowEquip]     = useState(false)
   const [showAnalytics, setShowAnalytics] = useState(false)
 
   return (
@@ -37,14 +35,6 @@ export default function ActionBar({ canLevel = true }: Props) {
             <line x1="7" y1="13" x2="11" y2="13"/>
           </svg>
         </button>
-        {/* Equipment */}
-        <button className={s.btn} data-tooltip={t.ui.btn_equipment} onClick={() => setShowEquip(true)}>
-          <svg viewBox="0 0 20 20" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round">
-            <line x1="4" y1="16" x2="16" y2="4"/>
-            <path d="M13 4l3 3-2 2-3-3z"/>
-            <path d="M4 13l3 3-2 1z"/>
-          </svg>
-        </button>
         {/* Analytics */}
         <button className={s.btn} data-tooltip={t.ui.btn_analytics} onClick={() => setShowAnalytics(true)}>
           <svg viewBox="0 0 20 20" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
@@ -55,7 +45,6 @@ export default function ActionBar({ canLevel = true }: Props) {
       </div>
       {showStats     && createPortal(<CharacterOverlay onClose={() => setShowStats(false)}    canLevel={canLevel} />, document.body)}
       {showContent   && createPortal(<CampaignOverlay  onClose={() => setShowContent(false)} />, document.body)}
-      {showEquip     && createPortal(<EquipOverlay     onClose={() => setShowEquip(false)} />, document.body)}
       {showAnalytics && createPortal(<AnalyticsOverlay onClose={() => setShowAnalytics(false)} />, document.body)}
     </>
   )

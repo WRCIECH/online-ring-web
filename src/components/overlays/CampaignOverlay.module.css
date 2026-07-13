@@ -268,7 +268,12 @@
   transition: background 0.12s;
 }
 
-.btnActivate:hover { background: rgba(80,160,220,0.20); }
+.btnActivate:hover:not(:disabled) { background: rgba(80,160,220,0.20); }
+
+.btnActivateDisabled {
+  opacity: 0.38;
+  cursor: not-allowed;
+}
 
 .activateConfirm {
   display: flex;
@@ -552,3 +557,227 @@
   text-align: center;
   padding: 16px 0;
 }
+
+/* ── Weapon info strip ──────────────────────────────────────────────────── */
+
+.weaponInfoStrip {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--color-sep);
+  margin-bottom: 4px;
+  flex-shrink: 0;
+}
+
+.weaponInfoTop {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.weaponInfoLeft {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.weaponInfoActions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.weaponLevel {
+  font-size: 0.72rem;
+  color: var(--color-text-dim);
+  flex-shrink: 0;
+}
+
+.statChip, .scalingChip {
+  font-family: var(--font-meta);
+  font-size: 0.7rem;
+  color: var(--color-text-dim);
+  background: rgba(255,255,255,0.04);
+  border: 1px solid var(--color-sep);
+  border-radius: 3px;
+  padding: 2px 7px;
+}
+
+.scalingChip {
+  color: var(--color-accent-dim);
+}
+
+/* ── Workflow sequence ──────────────────────────────────────────────────── */
+
+.sequenceWrap {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding-top: 4px;
+}
+
+.sequenceRow {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-wrap: wrap;
+  border-radius: 3px;
+  padding: 1px 4px;
+}
+
+.seqStateActive {
+  background: rgba(100,80,200,0.10);
+}
+
+.seqStateLabel {
+  font-size: 0.65rem;
+  color: var(--color-text-dim);
+  opacity: 0.6;
+  width: 28px;
+  flex-shrink: 0;
+}
+
+.seqStateActive .seqStateLabel {
+  color: var(--color-text);
+  opacity: 1;
+}
+
+.seqChip {
+  font-size: 0.68rem;
+  padding: 2px 6px;
+  border-radius: 3px;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.08);
+  color: var(--color-text);
+  white-space: nowrap;
+}
+
+.seqChipChanged {
+  background: rgba(200,170,50,0.10);
+  border-color: rgba(200,170,50,0.30);
+  color: #ccaa44;
+}
+
+.seqArrow {
+  font-size: 0.65rem;
+  color: var(--color-text-dim);
+  opacity: 0.4;
+}
+
+.seqSteps {
+  font-size: 0.65rem;
+  color: var(--color-text-dim);
+  opacity: 0.5;
+  padding-top: 4px;
+  border-top: 1px solid rgba(255,255,255,0.04);
+  margin-top: 2px;
+}
+
+/* ── Upgrade button ─────────────────────────────────────────────────────── */
+
+.upgradeWrap {
+  position: relative;
+  flex-shrink: 0;
+}
+
+.upgradeMax {
+  font-size: 0.65rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--color-text-dim);
+  opacity: 0.5;
+}
+
+.btnUpgrade {
+  font-size: 0.72rem;
+  letter-spacing: 0.05em;
+  padding: 4px 10px;
+  white-space: nowrap;
+  background: rgba(74,158,255,0.07);
+  border: 1px solid var(--color-accent-dim);
+  color: var(--color-accent);
+  border-radius: var(--radius);
+  cursor: pointer;
+  transition: background 0.1s, box-shadow 0.1s;
+}
+
+.btnUpgrade:hover:not(:disabled) {
+  background: rgba(74,158,255,0.16);
+  box-shadow: var(--glow-accent);
+}
+
+.btnUpgradeConfirm {
+  background: rgba(74,158,255,0.18) !important;
+  border-color: var(--color-accent) !important;
+}
+
+.btnUpgradeDim { opacity: 0.30; cursor: not-allowed; }
+
+.upgradeTip {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 4px);
+  background: var(--color-bg-panel, #12102a);
+  border: 1px solid rgba(74,100,200,0.3);
+  border-radius: var(--radius);
+  padding: 5px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  z-index: 10;
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+.upgradeTipLabel {
+  font-size: 0.62rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--color-text-dim);
+}
+
+.upgradeTipVal {
+  font-size: 0.82rem;
+  color: var(--color-text);
+  font-variant-numeric: tabular-nums;
+}
+
+.upgradeTipDelta {
+  font-size: 0.72rem;
+  color: var(--color-text-dim);
+}
+
+/* ── Sell button ────────────────────────────────────────────────────────── */
+
+.btnSell {
+  font-size: 0.72rem;
+  padding: 4px 10px;
+  border-radius: var(--radius);
+  background: transparent;
+  border: 1px solid var(--color-sep);
+  color: var(--color-text-dim);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: color 0.1s, border-color 0.1s;
+}
+
+.btnSell:hover { color: var(--color-text); border-color: var(--color-border); }
+
+.btnSellConfirm {
+  font-size: 0.72rem;
+  padding: 4px 10px;
+  border-radius: var(--radius);
+  background: transparent;
+  border: 1px solid #c06040;
+  color: #e07050;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: color 0.1s, border-color 0.1s;
+}
+
+.btnSellConfirm:hover { color: #f09070; border-color: #e07050; }
