@@ -608,6 +608,9 @@ export const useGameStore = create<GameStore>((set, get) => ({
       const campaign = s.weapon_campaigns[weaponId]
       if (!campaign || !campaign.completed) return s
 
+      const weapon = s.weapon_instances.find(w => w.instance_id === weaponId)
+      if (!weapon) return s
+
       const carried = campaign.nodes
         .filter(n => n.published)
         .reduce((acc, n) => {
@@ -619,9 +622,10 @@ export const useGameStore = create<GameStore>((set, get) => ({
       const newDoneCount = (campaign.done_count ?? 0) + 1
       const updated = { ...campaign, done_count: newDoneCount }
 
-      const { [weaponId]: _, ...restCampaigns } = s.weapon_campaigns
+      const freshCampaign = { ...generateWeaponCampaign(weapon), activated: false }
+
       return {
-        weapon_campaigns: restCampaigns,
+        weapon_campaigns: { ...s.weapon_campaigns, [weaponId]: freshCampaign },
         campaign_library: [
           ...s.campaign_library.filter(c => c.id !== campaign.id),
           updated,
