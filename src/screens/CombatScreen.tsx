@@ -334,7 +334,7 @@ export default function CombatScreen() {
   }
 
   // ── Workflow exhausted mid-fight: all tiles done, enemy still alive ──────
-  const workflowExhausted = state.phase === 'PLAYER_TURN' && state.workflow.tiles.every(t => t.is_completed)
+  const workflowExhausted = state.phase === 'PLAYER_TURN' && state.workflow.tiles.filter(t => !t.is_advance).every(t => t.is_completed)
   const otherActiveContent = activeContent.filter(c => c.id !== selectedContentId)
   const [dismissedForWorkflow, setDismissedForWorkflow] = useState<string | null>(null)
 
@@ -371,9 +371,10 @@ export default function CombatScreen() {
     const tile = state.workflow.tiles.find(t => t.id === tileId)
     if (!tile) return
     if (!tile.is_completed && !reachableTiles.has(tileId)) return
+    if (tile.is_advance) { handleContinueContent(); return }
     dispatch({ type: 'SELECT_TILE', tileId })
     setRadialPos({ x, y })
-  }, [isPlayerTurn, state.workflow, reachableTiles])
+  }, [isPlayerTurn, state.workflow, reachableTiles, handleContinueContent])
 
   const radialItems = useMemo<RadialMoveItem[]>(() => {
     if (!radialPos || !selectedTile) return []

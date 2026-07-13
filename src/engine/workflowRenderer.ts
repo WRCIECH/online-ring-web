@@ -52,6 +52,7 @@ export function drawTile(
   state: TileState = 'normal',
   size  = TILE,
   repeatCount = 0,
+  isAdvance = false,
 ): void {
   const scale    = size / TILE
   const rx       = Math.round(TILE_RX * scale)
@@ -59,6 +60,50 @@ export function drawTile(
   const locked   = state === 'locked'
   const selected = state === 'selected'
   const reach    = state === 'reachable'
+
+  if (isAdvance) {
+    // Gold advance tile
+    ctx.beginPath()
+    ctx.roundRect(x, y, size, size, rx)
+    ctx.fillStyle = done ? '#171614' : '#1c1800'
+    ctx.fill()
+
+    let bc = 'rgba(180,130,20,0.4)', bw = 1
+    if (selected)   { bc = '#d4a830'; bw = 2.5 }
+    else if (reach) { bc = 'rgba(220,170,30,0.9)'; bw = 2 }
+    else if (done)  { bc = 'rgba(48,92,52,0.75)'; bw = 1.5 }
+    ctx.beginPath()
+    ctx.roundRect(x, y, size, size, rx)
+    ctx.strokeStyle = bc; ctx.lineWidth = bw; ctx.stroke()
+
+    if (selected || reach) {
+      ctx.save()
+      ctx.shadowColor = 'rgba(212,168,48,0.6)'
+      ctx.shadowBlur  = selected ? 16 : 12
+      ctx.beginPath(); ctx.roundRect(x, y, size, size, rx)
+      ctx.strokeStyle = 'rgba(212,168,48,0.3)'; ctx.lineWidth = 1; ctx.stroke()
+      ctx.restore()
+    }
+
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle'
+    const cx = x + size / 2, cy = y + size / 2
+    if (done) {
+      ctx.fillStyle = '#3d8845'
+      ctx.font      = `bold ${Math.round(13 * scale)}px sans-serif`
+      ctx.fillText('✓', cx, cy)
+    } else if (locked) {
+      ctx.strokeStyle = 'rgba(105,98,170,0.88)'; ctx.lineWidth = 1.5
+      ctx.beginPath(); ctx.arc(cx, cy - 4 * scale, 4 * scale, Math.PI, 0, false); ctx.stroke()
+      ctx.beginPath(); ctx.roundRect(cx - 5 * scale, cy - scale, 10 * scale, 7 * scale, 2)
+      ctx.fillStyle = 'rgba(62,58,128,0.82)'; ctx.fill()
+      ctx.strokeStyle = 'rgba(105,98,170,0.82)'; ctx.lineWidth = 1; ctx.stroke()
+    } else {
+      ctx.fillStyle = '#d4a830'
+      ctx.font      = `bold ${Math.round(13 * scale)}px sans-serif`
+      ctx.fillText('▶', cx, cy)
+    }
+    return
+  }
 
   // Background
   ctx.beginPath()

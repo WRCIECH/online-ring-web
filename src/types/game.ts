@@ -57,6 +57,7 @@ export interface WorkflowTile {
   time_budget?: AtomicTime
   is_completed: boolean
   repeat_count: number
+  is_advance?: boolean // synthetic last tile that advances to the next workflow phase
 }
 
 export interface WorkflowEdge {

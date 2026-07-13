@@ -188,7 +188,9 @@ export function previewMove(state: CombatState, tile: WorkflowTile, move: MoveTy
   const isRepeat       = tile.is_completed
   const rawDamage      = calcTileDamage(tile, move, weapon, state.weaponLevel, state.playerStats)
   const repeatDamage   = isRepeat ? Math.round(rawDamage * (1 - REPEAT_DAMAGE_PENALTY)) : rawDamage
-  const wouldFinishAll = state.workflow.tiles.every(t => t.id === tile.id || t.is_completed)
+  const wouldFinishAll = state.workflow.tiles
+    .filter(t => !t.is_advance)
+    .every(t => t.id === tile.id || t.is_completed)
   const finisherMult   = wouldFinishAll ? 3.0 : 1.0
   const damage         = Math.round(
     repeatDamage * (1 - repeatPenalty) * (1 - state.incomingPenalty)
@@ -388,7 +390,7 @@ export function combatReducer(state: CombatState, action: CombatAction): CombatS
         return { ...t, is_completed: true, repeat_count: t.repeat_count + 1 }
       })
       const newWorkflow = { ...state.workflow, tiles: updatedTiles }
-      const allTilesDone = newWorkflow.tiles.every(t => t.is_completed)
+      const allTilesDone = newWorkflow.tiles.filter(t => !t.is_advance).every(t => t.is_completed)
       const finisherMult  = allTilesDone ? 3.0 : 1.0
 
       const isRepeat      = tile.is_completed

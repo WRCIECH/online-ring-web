@@ -79,11 +79,24 @@ export function generateRemasterWorkflow(
     push(t)
   }
 
+  const lastId = tiles[tiles.length - 1].id
+  const advId  = tid()
+  tiles.push({
+    id: advId,
+    type: 'Plan',
+    name: 'Advance',
+    time_light: 0, time_heavy: 0,
+    is_completed: false,
+    repeat_count: 0,
+    is_advance: true,
+  })
+  edges.push({ from: lastId, to: advId })
+
   return {
     tiles,
     edges,
     start_id: tiles[0].id,
-    end_id: tiles[tiles.length - 1].id,
+    end_id: advId,
   }
 }
 
@@ -147,6 +160,7 @@ export function regenerateWorkflowKeepingStructure(
         tile.status = pick(cls.emotions)
       }
     }
+    if (orig.is_advance) tile.is_advance = true
     return tile
   })
 

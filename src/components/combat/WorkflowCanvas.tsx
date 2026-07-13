@@ -155,7 +155,7 @@ function render(
     else if (done)                   state = 'done'
     else if (!reach)                 state = 'locked'
     else                             state = 'reachable'
-    drawTile(ctx, p.x, p.y, tile.type, state, TILE, tile.repeat_count)
+    drawTile(ctx, p.x, p.y, tile.type, state, TILE, tile.repeat_count, !!tile.is_advance)
   }
 }
 
@@ -369,22 +369,30 @@ export default function WorkflowCanvas({ workflow, selectedTileId, onSelectTile,
               <span className={s.ttBadgeDetailLabel}>{b.label}:</span> {b.detail}
             </div>
           ))}
-          {hovered.tile.is_completed && (
+          {hovered.tile.is_advance ? (
+            reachable.has(hovered.tile.id)
+              ? <span className={s.ttTimes}>Click to advance to the next workflow phase</span>
+              : <span className={s.ttLocked}>Locked — complete all tiles first</span>
+          ) : (
             <>
-              <span className={s.ttDone}>✓ Completed — repeat allowed</span>
-              <span className={s.ttRepeat}>−{Math.round(REPEAT_DAMAGE_PENALTY * 100)}% dmg penalty</span>
-              <span className={s.ttTimes}>
-                Light {fmtTime(hovered.tile.time_light)} · Heavy {fmtTime(hovered.tile.time_heavy)}
-              </span>
+              {hovered.tile.is_completed && (
+                <>
+                  <span className={s.ttDone}>✓ Completed — repeat allowed</span>
+                  <span className={s.ttRepeat}>−{Math.round(REPEAT_DAMAGE_PENALTY * 100)}% dmg penalty</span>
+                  <span className={s.ttTimes}>
+                    Light {fmtTime(hovered.tile.time_light)} · Heavy {fmtTime(hovered.tile.time_heavy)}
+                  </span>
+                </>
+              )}
+              {!hovered.tile.is_completed && !reachable.has(hovered.tile.id) && (
+                <span className={s.ttLocked}>Locked — complete previous tiles first</span>
+              )}
+              {!hovered.tile.is_completed && reachable.has(hovered.tile.id) && (
+                <span className={s.ttTimes}>
+                  Light {fmtTime(hovered.tile.time_light)} · Heavy {fmtTime(hovered.tile.time_heavy)}
+                </span>
+              )}
             </>
-          )}
-          {!hovered.tile.is_completed && !reachable.has(hovered.tile.id) && (
-            <span className={s.ttLocked}>Locked — complete previous tiles first</span>
-          )}
-          {!hovered.tile.is_completed && reachable.has(hovered.tile.id) && (
-            <span className={s.ttTimes}>
-              Light {fmtTime(hovered.tile.time_light)} · Heavy {fmtTime(hovered.tile.time_heavy)}
-            </span>
           )}
         </div>
         )
