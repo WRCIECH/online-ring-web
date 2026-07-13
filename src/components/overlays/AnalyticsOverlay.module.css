@@ -4,8 +4,10 @@
   background: rgba(0,0,0,0.75);
   z-index: 20;
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: center;
+  padding: 24px 16px;
+  overflow-y: auto;
 }
 
 .panel {
@@ -13,10 +15,8 @@
   border: 1px solid var(--color-border);
   border-radius: var(--radius-lg);
   padding: 28px 36px;
-  width: 540px;
+  width: 600px;
   max-width: 96vw;
-  max-height: 90vh;
-  overflow-y: auto;
   display: flex;
   flex-direction: column;
   gap: 20px;
@@ -77,66 +77,122 @@
   font-variant-numeric: tabular-nums;
 }
 
-.bigStat {
-  font-size: 2.2rem;
-  font-weight: 600;
-  color: var(--color-accent);
-  text-shadow: var(--glow-accent);
-  font-variant-numeric: tabular-nums;
+.empty {
+  font-size: 0.85rem;
+  color: var(--color-text-dim);
+  opacity: 0.6;
 }
 
-/* Phase breakdown */
-.phaseBar {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-  margin-top: 2px;
-}
+/* ── Campaign block ───────────────────────────────────────────────────────── */
 
-.phaseChip {
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  padding: 3px 10px;
-  border-radius: 99px;
-  border: 1px solid var(--color-border);
-  font-size: 0.78rem;
-}
-
-.phaseLabel { color: var(--color-text-dim); }
-.phaseCount { color: var(--color-text); font-weight: 600; }
-
-/* Published list */
-.publishedList {
+.campaignBlock {
   display: flex;
   flex-direction: column;
-  gap: 5px;
-  margin-top: 4px;
-  max-height: 200px;
-  overflow-y: auto;
+  gap: 6px;
+  padding: 10px 12px;
+  background: rgba(255,255,255,0.02);
+  border: 1px solid rgba(255,255,255,0.06);
+  border-radius: 6px;
 }
 
-.publishedItem {
+.campaignHeader {
   display: flex;
+  align-items: center;
   justify-content: space-between;
-  align-items: baseline;
-  font-size: 0.85rem;
-  gap: 12px;
+  gap: 8px;
 }
 
-.publishedName {
+.campaignName {
+  font-size: 0.88rem;
   color: var(--color-text);
+  font-weight: 500;
   flex: 1;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.publishedDate {
+.campaignMeta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.doneCountBadge {
+  font-size: 0.7rem;
+  padding: 1px 7px;
+  border-radius: 99px;
+  background: rgba(136,221,153,0.10);
+  border: 1px solid rgba(136,221,153,0.3);
+  color: #88dd99;
+}
+
+.campaignProgress {
+  font-size: 0.75rem;
   color: var(--color-text-dim);
-  font-size: 0.78rem;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ── Node list ────────────────────────────────────────────────────────────── */
+
+.nodeList {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding-left: 4px;
+}
+
+.nodeRow {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.nodeStatus {
+  font-size: 0.7rem;
+  flex-shrink: 0;
+  width: 12px;
+  text-align: center;
+}
+
+.nodePublished { color: var(--color-accent); }
+.nodeCompleted { color: var(--color-text-dim); }
+.nodeInProgress { color: rgba(255,255,255,0.25); }
+
+.nodeName {
+  font-size: 0.82rem;
+  color: var(--color-text-dim);
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
   white-space: nowrap;
 }
+
+/* ── Stage chips ──────────────────────────────────────────────────────────── */
+
+.stageRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  align-items: center;
+}
+
+.stageChip {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 0.68rem;
+  padding: 1px 6px;
+  border-radius: 99px;
+  border: 1px solid rgba(255,255,255,0.10);
+  background: rgba(255,255,255,0.04);
+}
+
+.stageLabel { color: var(--color-text-dim); }
+.stageCount { color: var(--color-text); font-weight: 600; }
 
 /* Location progress bar */
 .progressBarWrap {
