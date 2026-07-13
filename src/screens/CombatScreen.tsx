@@ -331,20 +331,6 @@ export default function CombatScreen() {
       return sum + base + promotes
     }, 0)
 
-  const handleSelectContent = (id: string) => {
-    setSelectedContentId(id)
-    store.setActiveContentId(id)
-  }
-
-  const handleSwitchContent = (id: string) => {
-    if (selectedContentId) store.completeCampaignNode(state.equippedWeaponId, selectedContentId, state.workflow)
-    setSelectedContentId(id)
-    store.setActiveContentId(id)
-    // Always generate a fresh workflow mid-fight; proper remaster starts at next combat init.
-    const newWorkflow = generateWorkflow(wClass, wRarity, loc?.sublocation_type === 'boss', weapon?.rolled_draws)
-    dispatch({ type: 'SWITCH_WORKFLOW', workflow: newWorkflow, isRemaster: false })
-  }
-
   const handleContinueContent = () => {
     if (selectedContentId) {
       store.completeCampaignNode(state.equippedWeaponId, selectedContentId, state.workflow)

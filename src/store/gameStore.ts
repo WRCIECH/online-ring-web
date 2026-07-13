@@ -2,7 +2,7 @@ import { create } from 'zustand'
 import type { GameState, LocationData, Stats, WeaponInstance, SublocationType, CampaignNode, Locale, WorkflowGraph, LocationTheme, RewardTier } from '../types/game'
 import { ENEMIES } from '../data/enemies'
 import { saveGame, loadGame } from '../engine/save'
-import { registerWeapon, WEAPONS } from '../data/weapons'
+import { registerWeapon } from '../data/weapons'
 import { RUN_DURATION_SECONDS, RUN_ESTUS_MAX, ESTUS_HEAL_HP, statLevelCost, weaponUpgradeCost, WEAPON_SELL_PRICE } from '../data/constants'
 import { rollWeapon } from '../data/generators/weaponGenerator'
 import { CLASS_DEFINITIONS } from '../data/classes'
@@ -757,12 +757,12 @@ export const useGameStore = create<GameStore>((set, get) => ({
     // Migrate legacy single active_workflow → per-node workflow_progress
     if (!data.workflow_progress) {
       data.workflow_progress = {}
-      const legacy = (data as Record<string, unknown>).active_workflow
+      const legacy = (data as unknown as Record<string, unknown>).active_workflow
       if (legacy && data.active_content_id) {
         data.workflow_progress[data.active_content_id] = legacy as WorkflowGraph
       }
     }
-    delete (data as Record<string, unknown>).active_workflow
+    delete (data as unknown as Record<string, unknown>).active_workflow
     // Remove legacy fields
     delete (data as unknown as Record<string, unknown>).content_items
     delete (data as unknown as Record<string, unknown>).active_campaign

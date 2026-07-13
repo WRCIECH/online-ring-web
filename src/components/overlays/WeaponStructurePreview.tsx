@@ -863,7 +863,6 @@ export default function WeaponStructurePreview({ weapon }: Props) {
       if (item.node.kind === 'phase') {
         drawTile(ctx, cx - NODE_SIZE / 2, cy - NODE_SIZE / 2, item.node.stage, 'normal', NODE_SIZE)
       } else if (item.node.kind === 'draw') {
-        const slotKey = `${item.node.label}_${item.node.occurrenceIndex}`
         drawDrawNode(ctx, cx, cy, NODE_SIZE, item.node, false)
       }
     }

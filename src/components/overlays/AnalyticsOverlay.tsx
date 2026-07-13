@@ -44,7 +44,6 @@ export default function AnalyticsOverlay({ onClose }: Props) {
             const doneCount = campaign.done_count ?? 0
             const nodes = campaign.nodes
             const publishedNodes = nodes.filter(n => n.published)
-            const completedNodes = nodes.filter(n => n.completed)
 
             return (
               <div key={campaign.id} className={s.campaignBlock}>

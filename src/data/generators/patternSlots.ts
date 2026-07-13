@@ -268,7 +268,7 @@ export function rollPatternDraws(weaponClass: WeaponClass): RolledPatternDraws {
   const steps = WEAPON_PATTERNS[weaponClass]
   const groups = listSlotGroups(steps)
   const slots = groups.flatMap(g => g.slots)
-  const N = cls.remaster_steps
+  const N = 0 // only stateIndex 0 is used; remaster states removed
 
   const groupFlatIndices: number[][] = []
   let flatIdx = 0
