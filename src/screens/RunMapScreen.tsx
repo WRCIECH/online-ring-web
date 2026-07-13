@@ -440,16 +440,18 @@ export default function RunMapScreen() {
         hp={store.current_hp} maxHp={store.maxHp()}
       />
 
-      {/* Spiral map canvas */}
-      <canvas
-        ref={canvasRef}
-        className={s.canvas}
-        width={1200}
-        height={800}
-        onMouseLeave={handleMouseLeave}
-        onClick={handleClick}
-        style={{ cursor: hoverIdx === current ? 'pointer' : 'default' }}
-      />
+      {/* Spiral map canvas — inside flex-1 wrapper so header/bottom-bar don't overlap */}
+      <div className={s.canvasWrap}>
+        <canvas
+          ref={canvasRef}
+          className={s.canvas}
+          width={1200}
+          height={800}
+          onMouseLeave={handleMouseLeave}
+          onClick={handleClick}
+          style={{ cursor: hoverIdx === current ? 'pointer' : 'default' }}
+        />
+      </div>
 
 
       {/* Flow bonus countdown banner */}
@@ -548,17 +550,15 @@ export default function RunMapScreen() {
         />
       )}
 
-      <div style={{ marginTop: 'auto' }}>
-        <CombatBottomBar
-          equippedWeaponIds={mapWeaponIds}
-          activeWeaponId={activeMapWeaponId}
-          weaponLevels={store.weapon_level}
-          playerEstus={store.run_estus_count}
-          canAct={true}
-          onSwitchWeapon={(id) => setActiveMapWeaponId(id)}
-          onEstus={() => store.drinkEstus()}
-        />
-      </div>
+      <CombatBottomBar
+        equippedWeaponIds={mapWeaponIds}
+        activeWeaponId={activeMapWeaponId}
+        weaponLevels={store.weapon_level}
+        playerEstus={store.run_estus_count}
+        canAct={true}
+        onSwitchWeapon={(id) => setActiveMapWeaponId(id)}
+        onEstus={() => store.drinkEstus()}
+      />
 
       {/* Run expired banner */}
       {selectRunRemainingSeconds(store as Parameters<typeof selectRunRemainingSeconds>[0]) <= 0 && (

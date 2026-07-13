@@ -8,13 +8,25 @@
   flex-direction: column;
 }
 
+/* Canvas lives inside a flex-1 wrapper that takes space between header and
+   bottom bar, so it never overlaps them. */
+.canvasWrap {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  position: relative;
+}
+
 .canvas {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  width: min(100vw, calc(100vh * 1.5));
-  height: min(100vh, calc(100vw / 1.5));
+  display: block;
+  /* Fill wrapper width; aspect-ratio drives height. max-height prevents
+     overflow when wrapper is shorter than 3:2 — aspect-ratio then re-solves width. */
+  width: 100%;
+  aspect-ratio: 3 / 2;
+  max-height: 100%;
   cursor: default;
 }
 
