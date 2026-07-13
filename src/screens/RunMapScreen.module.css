@@ -244,7 +244,7 @@
 /* ── Flow bonus timer ─────────────────────────────────────────────────────── */
 .flowBanner {
   position: fixed;
-  top: 52px;
+  top: 80px;
   right: 16px;
   display: flex;
   align-items: center;

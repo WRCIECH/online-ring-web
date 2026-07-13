@@ -314,12 +314,65 @@
 }
 
 .badgeActive {
-  color: var(--color-gold-dim);
-  border-color: var(--color-gold-dim);
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 10px;
+  border-radius: 4px;
+  border: 1px solid rgba(200, 170, 50, 0.55);
+  background: rgba(200, 170, 50, 0.08);
+  color: #ccaa44;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
 }
 
-.badgeInactive {
+.badgeDebuff {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 10px;
+  border-radius: 4px;
+  border: 1px solid rgba(220, 80, 50, 0.55);
+  background: rgba(220, 80, 50, 0.08);
+  color: #dd7755;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
 }
+
+.badgeActive::after,
+.badgeDebuff::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  bottom: calc(100% + 6px);
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(14, 12, 32, 0.97);
+  border: 1px solid rgba(100, 80, 200, 0.35);
+  border-radius: 6px;
+  padding: 7px 11px;
+  font-size: 0.72rem;
+  font-weight: 400;
+  color: rgba(210, 200, 255, 0.9);
+  white-space: normal;
+  max-width: 240px;
+  width: max-content;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.12s;
+  z-index: 60;
+  line-height: 1.55;
+  letter-spacing: 0.01em;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+}
+
+.badgeActive:hover::after,
+.badgeDebuff:hover::after { opacity: 1; }
+
+.badgeInactive {}
 
 /* Transparent full-screen backdrop — closes dropdown on outside click */
 .articleBackdrop {

@@ -89,3 +89,64 @@
   color: var(--color-text-danger);
   text-shadow: 0 0 12px rgba(220,60,60,0.55);
 }
+
+/* ── Location hover tooltip ───────────────────────────────────────────────── */
+
+.locTooltip {
+  position: fixed;
+  width: 260px;
+  background: rgba(15, 12, 28, 0.97);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 8px;
+  padding: 10px 13px;
+  z-index: 25;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.55);
+  pointer-events: none;
+}
+
+.locTooltipTheme {
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  margin-bottom: 5px;
+}
+
+.locTooltipDesc {
+  font-size: 0.74rem;
+  color: var(--color-text-dim);
+  font-style: italic;
+  line-height: 1.45;
+  margin-bottom: 8px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+  padding-bottom: 8px;
+}
+
+.locTooltipSection {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.locTooltipSectionLabel {
+  font-size: 0.66rem;
+  letter-spacing: 0.10em;
+  text-transform: uppercase;
+  color: var(--color-text-dim);
+}
+
+.locTooltipChips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.locTooltipChip {
+  font-size: 0.70rem;
+  padding: 2px 7px;
+  border-radius: 3px;
+  border: 1px solid;
+  background: rgba(255, 255, 255, 0.04);
+  letter-spacing: 0.03em;
+  white-space: nowrap;
+}

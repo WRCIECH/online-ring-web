@@ -80,6 +80,7 @@
   flex-wrap: wrap;
   gap: 5px;
   padding: 4px 18px;
+  margin-top: 6px;
   flex-shrink: 0;
   background: rgba(10, 8, 24, 0.60);
   border-bottom: 1px solid rgba(74, 100, 200, 0.10);
@@ -100,7 +101,7 @@
 .buff::after {
   content: attr(data-tooltip);
   position: absolute;
-  bottom: calc(100% + 6px);
+  top: calc(100% + 6px);
   left: 50%;
   transform: translateX(-50%);
   background: rgba(14, 12, 32, 0.97);

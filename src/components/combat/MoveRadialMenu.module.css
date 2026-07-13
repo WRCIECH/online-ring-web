@@ -68,19 +68,31 @@
 .tooltipMeta {
   display: flex;
   flex-wrap: wrap;
-  gap: 6px 10px;
-  font-size: 0.75rem;
-  color: var(--color-text-dim);
+  gap: 4px;
+  margin-top: 5px;
+}
+
+.metaBadge {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 7px;
+  border-radius: 3px;
+  border: 1px solid currentColor;
+  background: rgba(255, 255, 255, 0.04);
+  font-size: 0.70rem;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  white-space: nowrap;
 }
 
 .metaHoverable {
   cursor: help;
-  border-bottom: 1px dashed rgba(185, 162, 105, 0.35);
-  transition: color 0.12s, border-color 0.12s;
+  border-style: dashed;
+  transition: background 0.12s;
 }
+
 .metaHoverable:hover {
-  color: var(--color-gold-text);
-  border-bottom-color: rgba(185, 162, 105, 0.70);
+  background: rgba(255, 255, 255, 0.10);
 }
 
 .metaDesc {

@@ -101,7 +101,7 @@ export default function MoveRadialMenu({ x, y, items, onClose }: Props) {
               <span
                 key={i}
                 style={p.color ? { color: p.color } : undefined}
-                className={p.tooltip ? s.metaHoverable : undefined}
+                className={[s.metaBadge, p.tooltip ? s.metaHoverable : ''].filter(Boolean).join(' ')}
                 onMouseEnter={() => handleMetaEnter(p.tooltip)}
                 onMouseLeave={handleMetaLeave}
               >
