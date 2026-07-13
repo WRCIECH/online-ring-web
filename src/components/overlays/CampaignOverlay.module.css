@@ -549,6 +549,33 @@
   flex-shrink: 0;
 }
 
+.promoteCount {
+  font-size: 0.60rem;
+  padding: 1px 5px;
+  border-radius: 3px;
+  background: rgba(100,80,200,0.10);
+  border: 1px solid rgba(100,80,200,0.28);
+  color: rgba(180,160,255,0.85);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.btnPromote {
+  font-size: 0.68rem;
+  padding: 1px 5px;
+  border-radius: 3px;
+  background: transparent;
+  border: 1px solid rgba(80,200,100,0.28);
+  color: #55cc77;
+  cursor: pointer;
+  white-space: nowrap;
+  flex-shrink: 0;
+  line-height: 1;
+  transition: background 0.1s;
+}
+
+.btnPromote:hover { background: rgba(80,200,100,0.10); }
+
 /* ── Empty state ────────────────────────────────────────────────────────── */
 
 .empty {

@@ -720,9 +720,23 @@ export default function CampaignOverlay({ onClose }: Props) {
                                 )}
 
                                 {node.published && (
-                                  <span className={s.publishedBadge}>
-                                    {(t.ui as Record<string, string>).node_published ?? 'Published'}
-                                  </span>
+                                  <>
+                                    <span className={s.publishedBadge}>
+                                      {(t.ui as Record<string, string>).node_published ?? 'Published'}
+                                    </span>
+                                    {(node.promote_count ?? 0) > 0 && (
+                                      <span className={s.promoteCount}>×{node.promote_count}</span>
+                                    )}
+                                    {(node.promote_count ?? 0) < 3 && (
+                                      <button
+                                        className={s.btnPromote}
+                                        onClick={() => store.promoteNode(weaponId, node.id)}
+                                        title="Promote"
+                                      >
+                                        ↑
+                                      </button>
+                                    )}
+                                  </>
                                 )}
                               </div>
                             </foreignObject>

@@ -311,9 +311,14 @@ export default function CombatScreen() {
   const activeContent = selectAvailableNodes(store as Parameters<typeof selectAvailableNodes>[0], state.equippedWeaponId)
   const selectedContent = activeContent.find(c => c.id === selectedContentId) ?? null
 
-  // Superhit: one charge per published node that hasn't been used yet
+  // Superhit: base charge per published node + one per promote
   const superhitSourceNode = store.weapon_campaigns[state.equippedWeaponId]?.nodes
-    .find(n => n.published && !n.superhit_used) ?? null
+    .find(n => {
+      if (!n.published) return false
+      const base     = n.superhit_used ? 0 : 1
+      const promotes = Math.max(0, (n.promote_count ?? 0) - (n.promotes_consumed ?? 0))
+      return base + promotes > 0
+    }) ?? null
   const canSuperhit = superhitSourceNode !== null
 
   const handleSelectContent = (id: string) => {

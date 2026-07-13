@@ -284,6 +284,7 @@ export interface GameStore extends GameState {
   publishCampaignNode:          (weaponId: string, nodeId: string) => void
   startNodeRemaster:            (weaponId: string, nodeId: string) => void
   useSuperhitOnNode:            (weaponId: string, nodeId: string) => void
+  promoteNode:                  (weaponId: string, nodeId: string) => void
   renameCampaign:               (weaponId: string, name: string) => void
   applyLibraryCampaignToWeapon: (campaignId: string, weaponId: string) => void
   activateCampaign:             (weaponId: string) => void
@@ -637,7 +638,32 @@ export const useGameStore = create<GameStore>((set, get) => ({
           ...s.weapon_campaigns,
           [weaponId]: {
             ...c,
-            nodes: c.nodes.map(n => n.id === nodeId ? { ...n, superhit_used: true } : n),
+            nodes: c.nodes.map(n => {
+              if (n.id !== nodeId) return n
+              if (!n.superhit_used) return { ...n, superhit_used: true }
+              return { ...n, promotes_consumed: (n.promotes_consumed ?? 0) + 1 }
+            }),
+          },
+        },
+      }
+    })
+    get().save()
+  },
+
+  promoteNode: (weaponId, nodeId) => {
+    set(s => {
+      const c = s.weapon_campaigns[weaponId]
+      if (!c) return s
+      return {
+        weapon_campaigns: {
+          ...s.weapon_campaigns,
+          [weaponId]: {
+            ...c,
+            nodes: c.nodes.map(n =>
+              n.id === nodeId && (n.promote_count ?? 0) < 3
+                ? { ...n, promote_count: (n.promote_count ?? 0) + 1 }
+                : n
+            ),
           },
         },
       }
