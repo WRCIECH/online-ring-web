@@ -320,6 +320,13 @@ export default function CombatScreen() {
       return base + promotes > 0
     }) ?? null
   const canSuperhit = superhitSourceNode !== null
+  const totalSuperhitCharges = (store.weapon_campaigns[state.equippedWeaponId]?.nodes ?? [])
+    .reduce((sum, n) => {
+      if (!n.published) return sum
+      const base     = n.superhit_used ? 0 : 1
+      const promotes = Math.max(0, (n.promote_count ?? 0) - (n.promotes_consumed ?? 0))
+      return sum + base + promotes
+    }, 0)
 
   const handleSelectContent = (id: string) => {
     setSelectedContentId(id)
@@ -403,7 +410,7 @@ export default function CombatScreen() {
       items.push({
         id: 'Superhit',
         label: 'SUPER',
-        sublabel: `One-time · 5× light · instant`,
+        sublabel: `×${totalSuperhitCharges} · 5× light · instant`,
         metaParts: [
           { text: `⚔ ${superhitDmg}`, color: '#eecc44' },
           { text: `published: ${superhitSourceNode.name || 'Untitled'}`, color: '#aaaaaa' },
