@@ -239,6 +239,8 @@ export interface GameState {
   abandon_penalty: number
   // Per-node saved workflow progress (keyed by CampaignNode id)
   workflow_progress: Record<string, WorkflowGraph>
+  // Per-node consistency streak (tiles completed without switching content)
+  content_streak: Record<string, number>
   active_content_id: string | null
   // Set by pre-fight picker so CombatScreen boots with the right weapon
   pending_weapon_id: string | null

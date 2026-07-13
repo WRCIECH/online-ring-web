@@ -461,6 +461,7 @@ const pl: TranslationBundle = {
     prefight_badge_continue:    'Kontynuuj',
     prefight_badge_progress_lost: 'Postęp utracony',
     prefight_badge_remaster:    'Remaster ×1.2',
+    prefight_badge_streak:      'Seria',
     open_pipeline:        '📋 Otwórz Content',
     stats_level_up:       'Statystyki i awans',
     trial_title:          '⚔ Brama Próby',

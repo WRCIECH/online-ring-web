@@ -255,6 +255,7 @@ export function initCombatState(
   locationTheme?: LocationTheme,
   flowMult = 1.0,
   campaignOverloadMult = 1.0,
+  initialStreak = 0,
 ): CombatState {
   // Derive boss version when the encounter is a boss slot but the enemy entry
   // is a regular mob — scale HP ×2 and swap in the boss display name.
@@ -272,7 +273,7 @@ export function initCombatState(
     equippedWeaponId, weaponLevel, playerStats,
     incomingPenalty,
     campaignOverloadMult,
-    consistencyStreak: 0, isRemasterPass,
+    consistencyStreak: initialStreak, isRemasterPass,
     enemyData: effectiveEnemy, isBoss,
     enemyHp: effectiveEnemy.max_hp, enemyMaxHp: effectiveEnemy.max_hp,
     mobsDefeated: 0,

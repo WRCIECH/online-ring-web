@@ -222,6 +222,7 @@ function initialState(): GameState {
     completed_locations: [],
     abandon_penalty: 0,
     workflow_progress: {},
+    content_streak: {},
     active_content_id: null,
     pending_weapon_id: null,
     weapon_campaigns: {},
@@ -270,6 +271,8 @@ export interface GameStore extends GameState {
   setActiveContentId:   (id: string) => void
   setPendingWeaponId:   (id: string | null) => void
   clearActiveWorkflow:  () => void    // clears active node's progress + active_content_id
+  saveContentStreak:    (nodeId: string, streak: number) => void
+  clearContentStreak:   (nodeId: string) => void
 
   // Class & character init
   initClass: (classId: string) => void
@@ -324,6 +327,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
       current_hp: calcMaxHp(get().stats.VIG),
       run_location_name: loc.id,
       workflow_progress: {},
+      content_streak: {},
       active_content_id: null,
       pending_weapon_id: null,
       last_fight_ended_at: undefined,
@@ -457,8 +461,21 @@ export const useGameStore = create<GameStore>((set, get) => ({
     const id = get().active_content_id
     set(s => {
       if (!id) return { active_content_id: null }
-      const { [id]: _, ...rest } = s.workflow_progress
-      return { workflow_progress: rest, active_content_id: null }
+      const { [id]: _, ...restWf } = s.workflow_progress
+      const { [id]: __, ...restSt } = s.content_streak
+      return { workflow_progress: restWf, content_streak: restSt, active_content_id: null }
+    })
+    get().save()
+  },
+
+  saveContentStreak: (nodeId, streak) => {
+    set(s => ({ content_streak: { ...s.content_streak, [nodeId]: streak } }))
+    get().save()
+  },
+  clearContentStreak: (nodeId) => {
+    set(s => {
+      const { [nodeId]: _, ...rest } = s.content_streak
+      return { content_streak: rest }
     })
     get().save()
   },
@@ -479,6 +496,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
       current_hp: calcMaxHp(cls.startingStats.VIG),
       weapon_campaigns: {},
       workflow_progress: {},
+      content_streak: {},
       active_content_id: null,
     })
     get().save()
@@ -523,11 +541,13 @@ export const useGameStore = create<GameStore>((set, get) => ({
       const nodes = c.nodes.map(n => n.id === nodeId ? updated : n)
       const publishedCount = nodes.filter(n => n.published).length
       const campaignDone = publishedCount / nodes.length >= 0.6
+      const { [nodeId]: _, ...streakRest } = s.content_streak
       return {
         weapon_campaigns: {
           ...s.weapon_campaigns,
           [weaponId]: { ...c, nodes, completed: campaignDone },
         },
+        content_streak: streakRest,
       }
     })
     get().save()
@@ -649,9 +669,10 @@ export const useGameStore = create<GameStore>((set, get) => ({
       if (c && c.activated === undefined) c.activated = true
     }
     if (!data.total_task_time_s)    data.total_task_time_s    = 0
-    if (data.abandon_penalty === undefined)  data.abandon_penalty  = 0
-    if (data.active_content_id === undefined) data.active_content_id = null
-    if (data.pending_weapon_id === undefined) data.pending_weapon_id = null
+    if (data.abandon_penalty === undefined)    data.abandon_penalty    = 0
+    if (data.active_content_id === undefined)  data.active_content_id  = null
+    if (data.pending_weapon_id === undefined)  data.pending_weapon_id  = null
+    if (!data.content_streak)                  data.content_streak     = {}
     // Migrate legacy single active_workflow → per-node workflow_progress
     if (!data.workflow_progress) {
       data.workflow_progress = {}

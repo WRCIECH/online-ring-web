@@ -466,6 +466,7 @@ const en: TranslationBundle = {
     prefight_badge_continue:    'Continue',
     prefight_badge_progress_lost: 'Progress lost',
     prefight_badge_remaster:    'Remaster ×1.2',
+    prefight_badge_streak:      'Streak',
     open_pipeline:        '📋 Open Pipeline',
     stats_level_up:       'Stats & Level Up',
     trial_title:          '⚔ Trial Gate',

@@ -237,6 +237,16 @@
   color: #ccaa44;
 }
 
+.badgeStreak {
+  font-size: 0.65rem;
+  padding: 2px 7px;
+  border-radius: 3px;
+  white-space: nowrap;
+  background: rgba(220,120,60,0.12);
+  border: 1px solid rgba(220,120,60,0.32);
+  color: #e07840;
+}
+
 /* ── Empty state ────────────────────────────────────────────────────────── */
 
 .emptyMsg {

@@ -124,6 +124,7 @@ export default function PreFightPicker({ loc, onConfirm, onCancel }: Props) {
                 const isCurrent   = node.id === store.active_content_id
                 const nodeWorkflow = store.workflow_progress[node.id]
                 const hasWorkflow  = !!nodeWorkflow
+                const nodeStreak   = store.content_streak[node.id] ?? 0
 
                 // Determine parent name via campaign edges
                 const parentEdge = campaign?.edges.find(e => e.to_id === node.id)
@@ -155,6 +156,11 @@ export default function PreFightPicker({ loc, onConfirm, onCancel }: Props) {
                       {node.is_remastering && (
                         <span className={s.badgeRemaster}>
                           ↻ {t.ui.prefight_badge_remaster ?? 'Remaster ×1.2'}
+                        </span>
+                      )}
+                      {nodeStreak > 0 && (
+                        <span className={s.badgeStreak}>
+                          {t.ui.prefight_badge_streak ?? 'Streak'} +{nodeStreak * 5}%
                         </span>
                       )}
                     </div>

@@ -114,6 +114,8 @@ export default function CombatScreen() {
       }).length
       const campaignOverloadMult = calcCampaignOverloadMult(activeCampaignCount, store.stats.END)
 
+      const initialStreak = store.active_content_id ? (store.content_streak[store.active_content_id] ?? 0) : 0
+
       return initCombatState(
         workflow, enemyData, loc.enemy_id,
         initialWeaponId, initialWeaponLevel,
@@ -126,6 +128,7 @@ export default function CombatScreen() {
         loc.locationTheme,
         initialFlowMult,
         campaignOverloadMult,
+        initialStreak,
       )
     }
   )
@@ -238,15 +241,17 @@ export default function CombatScreen() {
     lootItems?.forEach(item => store.addWeaponInstance(item.instance))
     store.addDefeatedEnemy(loc.enemy_id)
     store.recordFightEnd()
-    // Persist or clear workflow
+    // Persist or clear workflow; always save streak
     const allDone = state.workflow.tiles.every(t => t.is_completed)
     if (allDone) {
       if (store.active_content_id) {
         store.completeCampaignNode(state.equippedWeaponId, store.active_content_id, state.workflow)
+        // completeCampaignNode clears the streak for this node
       }
       store.clearActiveWorkflow()
     } else {
       store.saveWorkflowProgress(state.workflow)
+      if (store.active_content_id) store.saveContentStreak(store.active_content_id, state.consistencyStreak)
     }
     const isLast = store.run_current_index >= store.run_location_sequence.length - 1
     store.advanceRun()
@@ -266,6 +271,7 @@ export default function CombatScreen() {
   const handleFlee = useCallback(() => {
     store.syncCombatResult(state.playerHp, state.playerEstus)
     store.setAbandonPenalty(ABANDON_PENALTY)
+    if (store.active_content_id) store.clearContentStreak(store.active_content_id)
     store.clearActiveWorkflow()
     store.endRunFailure()
     navigate('/')
