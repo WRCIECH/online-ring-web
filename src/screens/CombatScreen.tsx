@@ -333,11 +333,6 @@ export default function CombatScreen() {
     store.setActiveContentId(id)
   }
 
-  // ── Workflow exhausted mid-fight: all tiles done, enemy still alive ──────
-  const workflowExhausted = state.phase === 'PLAYER_TURN' && state.workflow.tiles.filter(t => !t.is_advance).every(t => t.is_completed)
-  const otherActiveContent = activeContent.filter(c => c.id !== selectedContentId)
-  const [dismissedForWorkflow, setDismissedForWorkflow] = useState<string | null>(null)
-
   const handleSwitchContent = (id: string) => {
     if (selectedContentId) store.completeCampaignNode(state.equippedWeaponId, selectedContentId, state.workflow)
     setSelectedContentId(id)
@@ -348,10 +343,12 @@ export default function CombatScreen() {
   }
 
   const handleContinueContent = () => {
-    // Count this workflow as a completed subworkflow before moving to the next phase.
-    // Use a fresh workflow for the remainder of this fight; the proper remaster is
-    // generated at the START of the next combat via the isRemasterPass init path.
-    if (selectedContentId) store.completeCampaignNode(state.equippedWeaponId, selectedContentId, state.workflow)
+    // Mark this content piece as done and move to a fresh workflow for the rest of the fight.
+    // The proper remaster workflow is generated at the START of the next combat.
+    if (selectedContentId) {
+      store.completeCampaignNode(state.equippedWeaponId, selectedContentId, state.workflow)
+      setSelectedContentId(null)
+    }
     const newWorkflow = generateWorkflow(wClass, wRarity, loc?.sublocation_type === 'boss', weapon?.rolled_draws)
     dispatch({ type: 'SWITCH_WORKFLOW', workflow: newWorkflow, isRemaster: false })
   }
@@ -572,41 +569,6 @@ export default function CombatScreen() {
         onEstus={() => dispatch({ type: 'USE_ESTUS' })}
         onAbandon={() => setShowAbandonConfirm(true)}
       />
-
-      {/* ── Workflow exhausted, enemy still alive: pick the next piece ──── */}
-      {selectedContentId !== null && workflowExhausted && dismissedForWorkflow !== state.workflow.start_id && (
-        <div className={s.endOverlay}>
-          <div className={s.endBox}>
-            <div className={s.endTitle} style={{ fontSize: '1.3rem', color: 'var(--color-gold)' }}>
-              That piece is finished — {enemyLabel} is still standing
-            </div>
-            <div className={s.endSub}>
-              {otherActiveContent.length === 0
-                ? 'Move this piece into its next phase, keep repeating tiles, or add a new piece from the Content panel.'
-                : 'Move this piece into its next phase, switch to another active piece, or keep repeating tiles.'}
-            </div>
-            <button className={s.endBtn} onClick={handleContinueContent}>
-              Continue "{selectedContent?.name}" — next phase
-            </button>
-            {otherActiveContent.length > 0 && (
-              <div className={s.contentPickList}>
-                {otherActiveContent.map(item => (
-                  <button
-                    key={item.id}
-                    className={s.contentPickItem}
-                    onClick={() => handleSwitchContent(item.id)}
-                  >
-                    <span className={s.contentPickName}>{item.name}</span>
-                  </button>
-                ))}
-              </div>
-            )}
-            <button className={s.endBtn} onClick={() => setDismissedForWorkflow(state.workflow.start_id)}>
-              Keep repeating tiles instead
-            </button>
-          </div>
-        </div>
-      )}
 
       {/* ── Timer overlay ──────────────────────────────────────────────── */}
       {state.phase === 'STEP_TIMER' && (
