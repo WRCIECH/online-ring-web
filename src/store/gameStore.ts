@@ -223,6 +223,7 @@ function initialState(): GameState {
     abandon_penalty: 0,
     active_workflow: null,
     active_content_id: null,
+    pending_weapon_id: null,
     weapon_campaigns: {},
     campaign_library: [],
 
@@ -267,6 +268,7 @@ export interface GameStore extends GameState {
 
   saveWorkflowProgress: (workflow: WorkflowGraph) => void
   setActiveContentId:   (id: string) => void
+  setPendingWeaponId:   (id: string | null) => void
   clearActiveWorkflow:  () => void
 
   // Class & character init
@@ -323,6 +325,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
       run_location_name: loc.id,
       active_workflow: null,
       active_content_id: null,
+      pending_weapon_id: null,
       last_fight_ended_at: undefined,
     })
     get().save()
@@ -444,6 +447,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
 
   saveWorkflowProgress: (workflow) => { set({ active_workflow: workflow }); get().save() },
   setActiveContentId:   (id)       => { set({ active_content_id: id }); get().save() },
+  setPendingWeaponId:   (id)       => { set({ pending_weapon_id: id }); get().save() },
   clearActiveWorkflow:  ()         => { set({ active_workflow: null, active_content_id: null }); get().save() },
 
   initClass: (classId) => {
@@ -635,6 +639,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
     if (data.abandon_penalty === undefined)  data.abandon_penalty  = 0
     if (data.active_workflow  === undefined) data.active_workflow  = null
     if (data.active_content_id === undefined) data.active_content_id = null
+    if (data.pending_weapon_id === undefined) data.pending_weapon_id = null
     // Remove legacy fields
     delete (data as unknown as Record<string, unknown>).content_items
     delete (data as unknown as Record<string, unknown>).active_campaign

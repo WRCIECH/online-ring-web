@@ -60,7 +60,10 @@ export default function CombatScreen() {
   })
 
   // ── Initial weapon (seeds the very first/resumed workflow only) ──────────
-  const initialWeaponId    = weaponsWithContent[0]?.instance_id ?? store.weapon_instances[0]?.instance_id ?? 'unarmed'
+  const initialWeaponId    =
+    (store.pending_weapon_id && store.weapon_instances.find(w => w.instance_id === store.pending_weapon_id))
+      ? store.pending_weapon_id
+      : weaponsWithContent[0]?.instance_id ?? store.weapon_instances[0]?.instance_id ?? 'unarmed'
   const initialWeapon      = WEAPONS[initialWeaponId] as WeaponInstance | undefined
   const initialWeaponLevel = store.weapon_level[initialWeaponId] ?? 0
   const initialWeaponClass  = initialWeapon?.weapon_class ?? 'straight_swords'
@@ -302,13 +305,6 @@ export default function CombatScreen() {
   const activeContent = selectAvailableNodes(store as Parameters<typeof selectAvailableNodes>[0], state.equippedWeaponId)
   const selectedContent = activeContent.find(c => c.id === selectedContentId) ?? null
 
-  // True when any available node for the current weapon is unnamed — blocks combat
-  const hasUnnamedAvailable = (() => {
-    const c = store.weapon_campaigns[state.equippedWeaponId]
-    if (!c) return false
-    return c.nodes.some(n => !n.completed && !n.name.trim() && isNodeAvailable(c.nodes, c.edges, n))
-  })()
-
   // Superhit: one charge per published node that hasn't been used yet
   const superhitSourceNode = store.weapon_campaigns[state.equippedWeaponId]?.nodes
     .find(n => n.published && !n.superhit_used) ?? null
@@ -435,6 +431,9 @@ export default function CombatScreen() {
             ?? (t.content.origin as Record<string, { badge_label: string }>)[edgeLabel]?.badge_label
             ?? edgeLabel)
           : null
+        const parentNode = parentEdge
+          ? currentCampaign?.nodes.find(n => n.id === parentEdge.from_id)
+          : null
         return (
           <div className={s.contentBar}>
             <div className={s.contentBarRow1}>
@@ -447,7 +446,9 @@ export default function CombatScreen() {
             </div>
             {edgeLabelText && (
               <div className={s.contentBarRow2}>
-                <span className={s.contentBarRelation}>↳ {edgeLabelText}</span>
+                <span className={s.contentBarRelation}>
+                  ↳ {edgeLabelText}{parentNode?.name ? ` from "${parentNode.name}"` : ''}
+                </span>
               </div>
             )}
           </div>
@@ -552,51 +553,6 @@ export default function CombatScreen() {
         onEstus={() => dispatch({ type: 'USE_ESTUS' })}
         onAbandon={() => setShowAbandonConfirm(true)}
       />
-
-      {/* ── Content selection overlay ──────────────────────────────────── */}
-      {selectedContentId === null && (
-        <div className={s.endOverlay}>
-          <div className={s.endBox}>
-            <div className={s.endTitle} style={{ fontSize: '1.3rem', color: 'var(--color-gold)' }}>
-              What are you working on?
-            </div>
-            {hasUnnamedAvailable ? (
-              <>
-                <div className={s.endSub}>
-                  Some content pieces are unnamed. Open the Content panel (⚙ Workflows) and click each item to name it before fighting.
-                </div>
-                <button className={s.endBtn} onClick={() => navigate('/map')}>
-                  ← Back to map
-                </button>
-              </>
-            ) : activeContent.length === 0 ? (
-              <>
-                <div className={s.endSub}>
-                  No active content items. Go to the Content panel and add a piece to work on before fighting.
-                </div>
-                <button className={s.endBtn} onClick={() => navigate('/map')}>
-                  ← Back to map
-                </button>
-              </>
-            ) : (
-              <>
-                <div className={s.endSub}>Pick the piece of content you're tackling in this session.</div>
-                <div className={s.contentPickList}>
-                  {activeContent.map(item => (
-                    <button
-                      key={item.id}
-                      className={s.contentPickItem}
-                      onClick={() => handleSelectContent(item.id)}
-                    >
-                      <span className={s.contentPickName}>{item.name}</span>
-                    </button>
-                  ))}
-                </div>
-              </>
-            )}
-          </div>
-        </div>
-      )}
 
       {/* ── Workflow exhausted, enemy still alive: pick the next piece ──── */}
       {selectedContentId !== null && workflowExhausted && dismissedForWorkflow !== state.workflow.start_id && (

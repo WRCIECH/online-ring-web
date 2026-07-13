@@ -1,0 +1,283 @@
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.75);
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.panel {
+  background: rgba(15, 13, 34, 0.97);
+  border: 1px solid rgba(100, 80, 200, 0.28);
+  border-radius: var(--radius-lg);
+  padding: 22px 28px;
+  width: min(860px, 94vw);
+  max-height: 82vh;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  overflow: hidden;
+}
+
+/* ── Header ─────────────────────────────────────────────────────────────── */
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-shrink: 0;
+  gap: 12px;
+}
+
+.headerLeft {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+}
+
+.title {
+  font-size: 0.72rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--color-text-dim);
+}
+
+.locBadge {
+  font-size: 0.75rem;
+  color: var(--color-text-dim);
+  opacity: 0.7;
+}
+
+.btnClose {
+  font-size: 0.8rem;
+  padding: 4px 14px;
+  border-radius: var(--radius);
+}
+
+/* ── Body: two columns ──────────────────────────────────────────────────── */
+
+.body {
+  display: flex;
+  gap: 16px;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+
+/* ── Weapon list (left) ─────────────────────────────────────────────────── */
+
+.weaponList {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  width: 200px;
+  flex-shrink: 0;
+  overflow-y: auto;
+}
+
+.sectionLabel {
+  font-size: 0.68rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--color-text-dim);
+  margin-bottom: 4px;
+  flex-shrink: 0;
+}
+
+.weaponCard {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  border-radius: var(--radius);
+  background: rgba(255,255,255,0.02);
+  border: 1px solid var(--color-border);
+  cursor: pointer;
+  text-align: left;
+  transition: background 0.1s, border-color 0.1s;
+  width: 100%;
+}
+
+.weaponCard:hover { background: rgba(255,255,255,0.05); }
+
+.weaponCardSelected {
+  background: rgba(100,80,200,0.12) !important;
+  border-color: rgba(100,80,200,0.45) !important;
+}
+
+.weaponIcon {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+  opacity: 0.75;
+}
+
+.weaponCardBody {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.weaponName {
+  font-size: 0.8rem;
+  color: var(--color-text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.weaponCampaign {
+  font-size: 0.66rem;
+  color: var(--color-text-dim);
+  opacity: 0.7;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.nodeCount {
+  font-size: 0.68rem;
+  color: var(--color-text-dim);
+  flex-shrink: 0;
+  padding: 1px 5px;
+  background: rgba(255,255,255,0.05);
+  border-radius: 3px;
+}
+
+/* ── Content node list (right) ──────────────────────────────────────────── */
+
+.contentList {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  overflow-y: auto;
+  min-width: 0;
+}
+
+.nodeCard {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: var(--radius);
+  background: rgba(255,255,255,0.02);
+  border: 1px solid var(--color-border);
+  cursor: pointer;
+  text-align: left;
+  transition: background 0.1s, border-color 0.1s;
+  width: 100%;
+}
+
+.nodeCard:hover { background: rgba(255,255,255,0.05); }
+
+.nodeCardSelected {
+  background: rgba(100,80,200,0.12) !important;
+  border-color: rgba(100,80,200,0.45) !important;
+}
+
+.nodeCardMain {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+  flex: 1;
+}
+
+.nodeName {
+  font-size: 0.88rem;
+  color: var(--color-text);
+}
+
+.nodeParent {
+  font-size: 0.68rem;
+  color: var(--color-text-dim);
+  opacity: 0.65;
+}
+
+.nodeBadges {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  align-items: flex-end;
+  flex-shrink: 0;
+}
+
+/* ── Implication badges ─────────────────────────────────────────────────── */
+
+.badgeResume,
+.badgeContinue,
+.badgeWarn,
+.badgeRemaster {
+  font-size: 0.65rem;
+  padding: 2px 7px;
+  border-radius: 3px;
+  white-space: nowrap;
+}
+
+.badgeResume {
+  background: rgba(60,180,100,0.12);
+  border: 1px solid rgba(60,180,100,0.35);
+  color: #55cc77;
+}
+
+.badgeContinue {
+  background: rgba(60,180,100,0.06);
+  border: 1px solid rgba(60,180,100,0.20);
+  color: #44aa66;
+}
+
+.badgeWarn {
+  background: rgba(220,160,50,0.10);
+  border: 1px solid rgba(220,160,50,0.30);
+  color: #ccaa44;
+}
+
+.badgeRemaster {
+  background: rgba(200,170,50,0.10);
+  border: 1px solid rgba(200,170,50,0.28);
+  color: #ccaa44;
+}
+
+/* ── Empty state ────────────────────────────────────────────────────────── */
+
+.emptyMsg {
+  font-size: 0.8rem;
+  color: var(--color-text-dim);
+  line-height: 1.5;
+  padding: 8px 0;
+}
+
+/* ── Footer ─────────────────────────────────────────────────────────────── */
+
+.footer {
+  display: flex;
+  justify-content: flex-end;
+  flex-shrink: 0;
+  padding-top: 4px;
+  border-top: 1px solid var(--color-sep);
+}
+
+.btnEnter {
+  font-size: 0.85rem;
+  padding: 9px 26px;
+  border-radius: var(--radius);
+  background: rgba(100,80,200,0.14);
+  border: 1px solid rgba(100,80,200,0.40);
+  color: var(--color-text);
+  cursor: pointer;
+  letter-spacing: 0.06em;
+  transition: background 0.15s;
+}
+
+.btnEnter:hover:not(:disabled) { background: rgba(100,80,200,0.24); }
+
+.btnEnter:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}

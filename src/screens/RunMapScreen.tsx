@@ -5,7 +5,8 @@ import { ENEMIES } from '../data/enemies'
 import type { LocationData } from '../types/game'
 import { FLOW_GAP_HOT_MINS, FLOW_GAP_WARM_MINS, FLOW_MULT_HOT, FLOW_MULT_WARM } from '../data/constants'
 import RunHeader        from '../components/layout/RunHeader'
-import CampaignOverlay from '../components/overlays/CampaignOverlay'
+import CampaignOverlay  from '../components/overlays/CampaignOverlay'
+import PreFightPicker   from '../components/overlays/PreFightPicker'
 import CombatBottomBar  from '../components/combat/CombatBottomBar'
 import { useT } from '../i18n'
 import s from './RunMapScreen.module.css'
@@ -99,6 +100,7 @@ export default function RunMapScreen() {
   const [popupIdx, setPopupIdx]     = useState(-1)
   const [popupPos, setPopupPos]     = useState({ x: 0, y: 0 })
   const [eventNode, setEventNode]   = useState<LocationData | null>(null)
+  const [preFightLoc, setPreFightLoc] = useState<LocationData | null>(null)
   const [showContent,   setShowContent]   = useState(false)
   const [, setTick] = useState(0)
   const expiredRef = useRef(false)
@@ -416,9 +418,8 @@ export default function RunMapScreen() {
 
   function handleEnterLocation() {
     if (popupIdx < 0) return
-    const loc = seq[popupIdx]
-    store.setPendingEncounter(loc)
-    navigate('/combat')
+    setPreFightLoc(seq[popupIdx])
+    setPopupIdx(-1)
   }
 
   function handleEnterTrial() {
@@ -533,6 +534,20 @@ export default function RunMapScreen() {
       )}
 
       {showContent && <CampaignOverlay onClose={() => setShowContent(false)} />}
+
+      {preFightLoc && (
+        <PreFightPicker
+          loc={preFightLoc}
+          onConfirm={(weaponId, contentId) => {
+            store.setPendingWeaponId(weaponId)
+            if (contentId !== store.active_content_id) store.clearActiveWorkflow()
+            store.setActiveContentId(contentId)
+            store.setPendingEncounter(preFightLoc)
+            navigate('/combat')
+          }}
+          onCancel={() => setPreFightLoc(null)}
+        />
+      )}
 
       <div style={{ marginTop: 'auto' }}>
         <CombatBottomBar

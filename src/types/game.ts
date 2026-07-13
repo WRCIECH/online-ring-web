@@ -240,6 +240,8 @@ export interface GameState {
   // Active workflow (persisted across mob fights until all tiles done or abandoned)
   active_workflow: WorkflowGraph | null
   active_content_id: string | null
+  // Set by pre-fight picker so CombatScreen boots with the right weapon
+  pending_weapon_id: string | null
   // Content campaigns (per weapon instance)
   weapon_campaigns: Record<string, WeaponCampaign>
   // Completed campaigns saved for re-use across weapons
