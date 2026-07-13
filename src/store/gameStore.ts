@@ -323,6 +323,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
       run_location_name: loc.id,
       active_workflow: null,
       active_content_id: null,
+      last_fight_ended_at: undefined,
     })
     get().save()
   },
