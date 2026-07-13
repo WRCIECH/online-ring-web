@@ -12,20 +12,37 @@ import { useT } from '../i18n'
 import s from './RunMapScreen.module.css'
 
 // ── Map geometry ──────────────────────────────────────────────────────────
-// CY=470 keeps all nodes (worst-case 30-node run) within canvas bounds:
-// the spiral's minimum-Y node lands at ≈Y26, safely above the canvas top.
-const CX = 600, CY = 470
+const CX = 600, CY = 390          // used for background gradient centre
 const R0 = 45, DR = 16, DTHETA = 1.082
 const NODE_R = 14
+const SPIRAL_PAD = 32             // canvas-unit margin from every edge
 
 interface NodePos { x: number; y: number; idx: number }
 
+// Generate spiral positions then auto-fit to the canvas:
+// compute bounding box, scale uniformly so it fills [PAD, 1200-PAD]×[PAD, 800-PAD],
+// then centre. This guarantees no node is clipped by the header or bottom bar.
 function buildNodes(count: number): NodePos[] {
-  return Array.from({ length: count }, (_, i) => {
-    const r = R0 + i * DR
-    const theta = i * DTHETA
-    return { x: CX + r * Math.cos(theta), y: CY + r * Math.sin(theta), idx: i }
-  })
+  if (count === 0) return []
+  const raw = Array.from({ length: count }, (_, i) => ({
+    x: CX + (R0 + i * DR) * Math.cos(i * DTHETA),
+    y: CY + (R0 + i * DR) * Math.sin(i * DTHETA),
+    idx: i,
+  }))
+  if (count === 1) return raw
+  const xs = raw.map(n => n.x), ys = raw.map(n => n.y)
+  const bMinX = Math.min(...xs) - NODE_R, bMaxX = Math.max(...xs) + NODE_R
+  const bMinY = Math.min(...ys) - NODE_R, bMaxY = Math.max(...ys) + NODE_R
+  const cx = (bMinX + bMaxX) / 2, cy = (bMinY + bMaxY) / 2
+  const scale = Math.min(
+    (1200 - 2 * SPIRAL_PAD) / (bMaxX - bMinX),
+    (800  - 2 * SPIRAL_PAD) / (bMaxY - bMinY),
+  )
+  return raw.map(n => ({
+    idx: n.idx,
+    x: (n.x - cx) * scale + 600,
+    y: (n.y - cy) * scale + 400,
+  }))
 }
 
 function getNodeAt(x: number, y: number, nodes: NodePos[]): number {
