@@ -12,7 +12,9 @@ import { useT } from '../i18n'
 import s from './RunMapScreen.module.css'
 
 // ── Map geometry ──────────────────────────────────────────────────────────
-const CX = 600, CY = 390
+// CY=470 keeps all nodes (worst-case 30-node run) within canvas bounds:
+// the spiral's minimum-Y node lands at ≈Y26, safely above the canvas top.
+const CX = 600, CY = 470
 const R0 = 45, DR = 16, DTHETA = 1.082
 const NODE_R = 14
 
@@ -97,6 +99,7 @@ export default function RunMapScreen() {
   const [tooltipPos, setTooltipPos] = useState({ x: 0, y: 0 })
   const bgCanvasRef                  = useRef<HTMLCanvasElement | null>(null)
   const canvasRectRef                = useRef<DOMRect | null>(null)
+  const wrapRef                      = useRef<HTMLDivElement>(null)
   const [popupIdx, setPopupIdx]     = useState(-1)
   const [popupPos, setPopupPos]     = useState({ x: 0, y: 0 })
   const [eventNode, setEventNode]   = useState<LocationData | null>(null)
@@ -364,11 +367,33 @@ export default function RunMapScreen() {
     return () => cancelAnimationFrame(rafRef.current)
   }, [])
 
+  // ── Size canvas to fill wrapper maintaining exact 3:2 ratio ─────────────
+  // aspect-ratio CSS alone doesn't reliably re-solve width when max-height
+  // clamps height in a flex context, so we use ResizeObserver instead.
+  useEffect(() => {
+    const wrap   = wrapRef.current
+    const canvas = canvasRef.current
+    if (!wrap || !canvas) return
+    function sync() {
+      const w = wrap!.clientWidth
+      const h = wrap!.clientHeight
+      if (!w || !h) return
+      const byHeight = w / h > 1.5
+      canvas!.style.width  = byHeight ? `${h * 1.5}px` : `${w}px`
+      canvas!.style.height = byHeight ? `${h}px`       : `${w / 1.5}px`
+      canvasRectRef.current = canvas!.getBoundingClientRect()
+    }
+    sync()
+    const ro = new ResizeObserver(sync)
+    ro.observe(wrap)
+    return () => ro.disconnect()
+  }, [])
+
   // ── Native passive mousemove — bypasses React synthetic event overhead ──
   useEffect(() => {
     const canvas = canvasRef.current
     if (!canvas) return
-    canvasRectRef.current = canvas.getBoundingClientRect()
+    canvasRectRef.current = canvasRectRef.current ?? canvas.getBoundingClientRect()
     const onResize = () => { canvasRectRef.current = canvas.getBoundingClientRect() }
     window.addEventListener('resize', onResize)
     const onMove = (e: MouseEvent) => {
@@ -441,7 +466,7 @@ export default function RunMapScreen() {
       />
 
       {/* Spiral map canvas — inside flex-1 wrapper so header/bottom-bar don't overlap */}
-      <div className={s.canvasWrap}>
+      <div ref={wrapRef} className={s.canvasWrap}>
         <canvas
           ref={canvasRef}
           className={s.canvas}

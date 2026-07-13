@@ -8,25 +8,20 @@
   flex-direction: column;
 }
 
-/* Canvas lives inside a flex-1 wrapper that takes space between header and
-   bottom bar, so it never overlaps them. */
+/* Canvas wrapper takes all space between header and bottom bar. */
 .canvasWrap {
   flex: 1;
   min-height: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  overflow: hidden;
   position: relative;
+  overflow: hidden;
 }
 
+/* Width/height are set by ResizeObserver in JS to maintain exact 3:2 ratio. */
 .canvas {
-  display: block;
-  /* Fill wrapper width; aspect-ratio drives height. max-height prevents
-     overflow when wrapper is shorter than 3:2 — aspect-ratio then re-solves width. */
-  width: 100%;
-  aspect-ratio: 3 / 2;
-  max-height: 100%;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
   cursor: default;
 }
 
