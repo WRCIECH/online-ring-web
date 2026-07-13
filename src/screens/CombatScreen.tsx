@@ -203,9 +203,10 @@ export default function CombatScreen() {
       sub === 'boss' || sub === 'event' ? 'rare' :
       sub === 'elite'                   ? 'Intellectual' : 'common'
 
+    const dropMult = sub === 'elite' ? 0.8 : sub === 'mob' ? 0.7 : 1.0
     const items: LootItem[] = []
     for (const drop of enemy.drops) {
-      const chance = defeatedBefore ? drop.repeat_chance : drop.first_kill_chance
+      const chance = (defeatedBefore ? drop.repeat_chance : drop.first_kill_chance) * dropMult
       if (Math.random() < chance) {
         const w = rollWeapon(undefined, minRarity)
         items.push({ name: w.name, rarity: w.rarity, instance: w })
