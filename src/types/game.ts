@@ -203,6 +203,7 @@ export interface WeaponCampaign {
   created_at: number
   completed: boolean            // >= 60% of nodes published
   campaign_name?: string        // player-editable title
+  activated?: boolean           // false = draft, true = counts toward overload penalty
 }
 
 // ── Game state ────────────────────────────────────────────────────────────

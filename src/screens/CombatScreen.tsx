@@ -105,9 +105,10 @@ export default function CombatScreen() {
             )
           : generateWorkflow(initialWeaponClass, initialWeaponRarity, spawnAsBoss, initialWeapon?.rolled_draws))
 
-      const activeCampaignCount = store.owned_weapons.filter(
-        wid => store.weapon_campaigns[wid] && !store.weapon_campaigns[wid].completed
-      ).length
+      const activeCampaignCount = store.owned_weapons.filter(wid => {
+        const c = store.weapon_campaigns[wid]
+        return c && c.activated === true && !c.completed
+      }).length
       const campaignOverloadMult = calcCampaignOverloadMult(activeCampaignCount, store.stats.END)
 
       return initCombatState(

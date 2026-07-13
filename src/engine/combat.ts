@@ -1,6 +1,6 @@
 import type {
   CombatPhase, MoveType, WorkflowGraph, WorkflowTile,
-  Enemy, WeaponInstance, Stats, MobAffinities, MobAffinityConditions, LocationTheme,
+  Enemy, WeaponInstance, Stats, MobAffinities, MobAffinityConditions, LocationTheme, WeaponCampaign,
 } from '../types/game'
 import { LOCATION_THEMES } from '../data/locationThemes'
 import { WEAPONS, calcWeaponScaledDamage } from '../data/weapons'
@@ -219,6 +219,15 @@ export function calcFlowMult(lastFightEndedAt: number | undefined): number {
   if (gapMins < FLOW_GAP_WARM_MINS) return FLOW_MULT_WARM
   if (gapMins < FLOW_GAP_COLD_MINS) return FLOW_MULT_COLD
   return FLOW_MULT_DEAD
+}
+
+// A campaign only counts as "active" (and contributes to the overload penalty)
+// once it is fully defined: has a campaign name AND all nodes have names.
+export function isCampaignFullyDefined(c: WeaponCampaign): boolean {
+  return (
+    !!c.campaign_name?.trim() &&
+    c.nodes.every(n => n.name.trim() !== '')
+  )
 }
 
 export function calcCampaignOverloadMult(activeCampaigns: number, endurance: number): number {

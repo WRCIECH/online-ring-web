@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from 'react'
 import { useGameStore } from '../../store/gameStore'
 import { isNodeAvailable } from '../../data/generators/campaignGenerator'
-import { calcCampaignOverloadMult } from '../../engine/combat'
+import { calcCampaignOverloadMult, isCampaignFullyDefined } from '../../engine/combat'
 import type { CampaignNode, CampaignEdge, WeaponCampaign, WeaponInstance } from '../../types/game'
 import WeaponIcon from '../WeaponIcon'
 import { useT, localizeWeaponName } from '../../i18n'
@@ -152,14 +152,32 @@ export default function CampaignOverlay({ onClose }: Props) {
   const [editingNodeId, setEditingNodeId] = useState<string | null>(null)
   const [editingNodeVal, setEditingNodeVal] = useState('')
   const [edgeTooltip, setEdgeTooltip] = useState<{ text: string; x: number; y: number } | null>(null)
-  const [editingCampaignName, setEditingCampaignName] = useState(false)
-  const [campaignNameVal, setCampaignNameVal] = useState('')
+  // Campaign name combobox
+  const [nameOpen, setNameOpen] = useState(false)
+  const [nameVal, setNameVal] = useState('')
+  // Activate confirmation
+  const [showActivateConfirm, setShowActivateConfirm] = useState(false)
+
   const nodeInputRef = useRef<HTMLInputElement>(null)
-  const campaignNameInputRef = useRef<HTMLInputElement>(null)
+  const nameInputRef = useRef<HTMLInputElement>(null)
   const treePaneRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => { if (editingNodeId) nodeInputRef.current?.focus() }, [editingNodeId])
-  useEffect(() => { if (editingCampaignName) campaignNameInputRef.current?.focus() }, [editingCampaignName])
+  useEffect(() => { if (nameOpen) nameInputRef.current?.focus() }, [nameOpen])
+
+  // Auto-generate campaign when selecting a weapon that has none
+  useEffect(() => {
+    if (selectedWeaponId && !store.weapon_campaigns[selectedWeaponId]) {
+      store.assignCampaignToWeapon(selectedWeaponId)
+    }
+  }, [selectedWeaponId]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Reset transient UI when switching weapons
+  useEffect(() => {
+    setShowActivateConfirm(false)
+    setNameOpen(false)
+    setEditingNodeId(null)
+  }, [selectedWeaponId])
 
   const selectedWeapon = selectedWeaponId
     ? store.weapon_instances.find(w => w.instance_id === selectedWeaponId)
@@ -175,10 +193,10 @@ export default function CampaignOverlay({ onClose }: Props) {
     setEditingNodeVal('')
   }
 
-  function handleCampaignNameSave(weaponId: string) {
-    const name = campaignNameVal.trim()
+  function saveNameAndClose(weaponId: string, forceName?: string) {
+    const name = (forceName ?? nameVal).trim()
     if (name) store.renameCampaign(weaponId, name)
-    setEditingCampaignName(false)
+    setNameOpen(false)
   }
 
   const weapons = store.weapon_instances
@@ -220,36 +238,7 @@ export default function CampaignOverlay({ onClose }: Props) {
             {!selectedWeapon ? (
               <div className={s.empty}>Select a weapon.</div>
             ) : !campaign ? (
-              <div className={s.generateWrap}>
-                <div className={s.generateMsg}>
-                  No campaign attached to this weapon yet.
-                </div>
-                <button
-                  className={s.btnGenerate}
-                  onClick={() => store.assignCampaignToWeapon(selectedWeapon.instance_id)}
-                >
-                  + {(t.ui as Record<string, string>).btn_generate_campaign ?? 'Generate Campaign'}
-                </button>
-                {store.campaign_library.length > 0 && (
-                  <div className={s.librarySection}>
-                    <div className={s.libraryTitle}>
-                      {(t.ui as Record<string, string>).campaign_library_title ?? 'Use a completed campaign'}
-                    </div>
-                    {store.campaign_library.map(lc => (
-                      <button
-                        key={lc.id}
-                        className={s.libraryEntry}
-                        onClick={() => store.applyLibraryCampaignToWeapon(lc.id, selectedWeapon.instance_id)}
-                      >
-                        <span className={s.libraryEntryName}>
-                          {lc.campaign_name || ((t.ui as Record<string, string>).campaign_unnamed ?? 'Unnamed Campaign')}
-                        </span>
-                        <span className={s.libraryEntryMeta}>{lc.nodes.length} nodes</span>
-                      </button>
-                    ))}
-                  </div>
-                )}
-              </div>
+              <div className={s.empty}>Generating…</div>
             ) : (() => {
               const { nodes, edges } = campaign
               const childrenMap = buildChildrenMap(edges)
@@ -259,10 +248,25 @@ export default function CampaignOverlay({ onClose }: Props) {
               const targetPublished = Math.ceil(nodes.length * 0.6)
               const needMore       = Math.max(0, targetPublished - publishedCount)
               const weaponId = selectedWeapon.instance_id
-              const activeCampaignCount = store.owned_weapons.filter(
-                wid => store.weapon_campaigns[wid] && !store.weapon_campaigns[wid].completed
-              ).length
+
+              const activeCampaignCount = store.owned_weapons.filter(wid => {
+                const c = store.weapon_campaigns[wid]
+                return c && c.activated === true && !c.completed
+              }).length
               const overloadMult = calcCampaignOverloadMult(activeCampaignCount, store.stats.END)
+
+              const isFullyDefined = isCampaignFullyDefined(campaign)
+              const isActivated = campaign.activated === true
+
+              // For activation confirm preview
+              const futureCount = activeCampaignCount + 1
+              const futureOverloadMult = calcCampaignOverloadMult(futureCount, store.stats.END)
+              const futurePenaltyPct = Math.round((1 - futureOverloadMult) * 100)
+
+              // Library suggestions for combobox
+              const libSuggestions = store.campaign_library.filter(lc =>
+                lc.campaign_name && (!nameVal || lc.campaign_name.toLowerCase().includes(nameVal.toLowerCase()))
+              )
 
               // Compute SVG layout
               const positions = computePositions(roots.map(r => r.id), childrenMap)
@@ -276,28 +280,51 @@ export default function CampaignOverlay({ onClose }: Props) {
 
               return (
                 <>
+                  {/* Campaign name (combobox) */}
                   <div className={s.campaignNameRow}>
-                    {editingCampaignName ? (
-                      <input
-                        ref={campaignNameInputRef}
-                        className={s.campaignNameInput}
-                        value={campaignNameVal}
-                        onChange={e => setCampaignNameVal(e.target.value)}
-                        onBlur={() => handleCampaignNameSave(weaponId)}
-                        onKeyDown={e => {
-                          if (e.key === 'Enter') handleCampaignNameSave(weaponId)
-                          if (e.key === 'Escape') setEditingCampaignName(false)
-                        }}
-                      />
+                    {nameOpen ? (
+                      <div className={s.comboboxWrap}>
+                        <input
+                          ref={nameInputRef}
+                          className={s.comboboxInput}
+                          value={nameVal}
+                          placeholder={(t.ui as Record<string, string>).campaign_name_placeholder ?? 'Name this campaign…'}
+                          onChange={e => setNameVal(e.target.value)}
+                          onBlur={() => saveNameAndClose(weaponId)}
+                          onKeyDown={e => {
+                            if (e.key === 'Enter') saveNameAndClose(weaponId)
+                            if (e.key === 'Escape') setNameOpen(false)
+                          }}
+                        />
+                        {libSuggestions.length > 0 && (
+                          <div className={s.comboboxDropdown}>
+                            {libSuggestions.map(lc => (
+                              <button
+                                key={lc.id}
+                                className={s.comboboxOption}
+                                onMouseDown={e => {
+                                  e.preventDefault()
+                                  saveNameAndClose(weaponId, lc.campaign_name)
+                                }}
+                              >
+                                <span className={s.comboboxOptionName}>{lc.campaign_name}</span>
+                                <span className={s.comboboxOptionMeta}>{lc.nodes.length} nodes</span>
+                              </button>
+                            ))}
+                          </div>
+                        )}
+                      </div>
                     ) : (
                       <span
                         className={campaign.campaign_name ? s.campaignNameSet : s.campaignNameEmpty}
-                        onClick={() => { setCampaignNameVal(campaign.campaign_name ?? ''); setEditingCampaignName(true) }}
+                        onClick={() => { setNameVal(campaign.campaign_name ?? ''); setNameOpen(true) }}
                       >
                         {campaign.campaign_name || ((t.ui as Record<string, string>).campaign_name_placeholder ?? 'Name this campaign…')}
                       </span>
                     )}
                   </div>
+
+                  {/* Progress + activation */}
                   <div className={s.campaignProgress}>
                     <span className={s.progressLabel}>
                       {publishedCount}/{nodes.length} {(t.ui as Record<string, string>).node_published ?? 'published'}
@@ -317,15 +344,54 @@ export default function CampaignOverlay({ onClose }: Props) {
                         {(t.ui as Record<string, string>).campaign_done ?? 'Campaign Complete'}
                       </span>
                     )}
-                    {overloadMult < 1.0 ? (
+
+                    {/* Activation section */}
+                    {!campaign.completed && !isActivated && (
+                      isFullyDefined ? (
+                        showActivateConfirm ? (
+                          <div className={s.activateConfirm}>
+                            <span className={s.activateConfirmText}>
+                              Will count as #{futureCount} active campaign.
+                              {futurePenaltyPct > 0
+                                ? ` Penalty: −${futurePenaltyPct}% dmg (END ${store.stats.END}).`
+                                : ` No penalty at END ${store.stats.END}.`}
+                            </span>
+                            <div className={s.activateActions}>
+                              <button
+                                className={s.btnActivateConfirm}
+                                onClick={() => { store.activateCampaign(weaponId); setShowActivateConfirm(false) }}
+                              >
+                                Activate
+                              </button>
+                              <button
+                                className={s.btnActivateCancel}
+                                onClick={() => setShowActivateConfirm(false)}
+                              >
+                                Cancel
+                              </button>
+                            </div>
+                          </div>
+                        ) : (
+                          <button className={s.btnActivate} onClick={() => setShowActivateConfirm(true)}>
+                            Activate Campaign
+                          </button>
+                        )
+                      ) : (
+                        <span className={s.overloadPending}>
+                          ○ name campaign &amp; all nodes to activate
+                        </span>
+                      )
+                    )}
+                    {isActivated && !campaign.completed && overloadMult < 1.0 && (
                       <span className={s.overloadWarning}>
                         ⚠ {activeCampaignCount} active · END {store.stats.END} → −{Math.round((1 - overloadMult) * 100)}% dmg
                       </span>
-                    ) : activeCampaignCount > 1 ? (
+                    )}
+                    {isActivated && !campaign.completed && overloadMult >= 1.0 && activeCampaignCount > 1 && (
                       <span className={s.overloadOk}>
-                        {activeCampaignCount} active · END {store.stats.END} → no penalty
+                        {activeCampaignCount} active · no penalty
                       </span>
-                    ) : null}
+                    )}
                   </div>
 
                   <svg

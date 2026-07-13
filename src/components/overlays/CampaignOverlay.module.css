@@ -144,35 +144,6 @@
   white-space: normal;
 }
 
-/* ── Generate campaign ──────────────────────────────────────────────────── */
-
-.generateWrap {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 12px;
-  padding: 16px 0;
-}
-
-.generateMsg {
-  font-size: 0.82rem;
-  color: var(--color-text-dim);
-}
-
-.btnGenerate {
-  font-size: 0.82rem;
-  letter-spacing: 0.06em;
-  padding: 8px 18px;
-  border-radius: var(--radius);
-  background: rgba(80,200,100,0.07);
-  border: 1px dashed rgba(80,200,100,0.3);
-  color: #66cc88;
-  cursor: pointer;
-  transition: background 0.15s;
-}
-
-.btnGenerate:hover { background: rgba(80,200,100,0.14); }
-
 /* ── Campaign name ──────────────────────────────────────────────────────── */
 
 .campaignNameRow {
@@ -216,43 +187,56 @@
 
 .campaignNameEmpty:hover { background: rgba(255,255,255,0.04); }
 
-/* ── Campaign library ───────────────────────────────────────────────────── */
+/* ── Campaign name combobox ─────────────────────────────────────────────── */
 
-.librarySection {
-  margin-top: 16px;
-  display: flex;
-  flex-direction: column;
-  gap: 5px;
+.comboboxWrap {
+  position: relative;
+  flex: 1;
 }
 
-.libraryTitle {
-  font-size: 0.72rem;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: var(--color-text-dim);
-  margin-bottom: 4px;
+.comboboxInput {
+  width: 100%;
+  box-sizing: border-box;
+  font-size: 0.92rem;
+  padding: 3px 7px;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid var(--color-border);
+  border-radius: 3px;
+  color: var(--color-text);
 }
 
-.libraryEntry {
+.comboboxDropdown {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  background: rgba(18, 16, 40, 0.97);
+  border: 1px solid rgba(100,80,200,0.3);
+  border-radius: var(--radius);
+  overflow: hidden;
+  z-index: 30;
+  max-height: 180px;
+  overflow-y: auto;
+}
+
+.comboboxOption {
   display: flex;
   align-items: center;
   justify-content: space-between;
   width: 100%;
   padding: 7px 10px;
-  border-radius: var(--radius);
-  background: rgba(255,255,255,0.02);
-  border: 1px dashed rgba(100,80,200,0.2);
-  cursor: pointer;
   text-align: left;
-  transition: background 0.1s, border-color 0.1s;
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid rgba(100,80,200,0.1);
+  cursor: pointer;
+  transition: background 0.1s;
 }
 
-.libraryEntry:hover {
-  background: rgba(100,80,200,0.07);
-  border-color: rgba(100,80,200,0.35);
-}
+.comboboxOption:last-child { border-bottom: none; }
+.comboboxOption:hover { background: rgba(100,80,200,0.12); }
 
-.libraryEntryName {
+.comboboxOptionName {
   flex: 1;
   font-size: 0.84rem;
   color: var(--color-text);
@@ -262,12 +246,74 @@
   white-space: nowrap;
 }
 
-.libraryEntryMeta {
-  font-size: 0.72rem;
+.comboboxOptionMeta {
+  font-size: 0.70rem;
   color: var(--color-text-dim);
   flex-shrink: 0;
   margin-left: 8px;
 }
+
+/* ── Activate button + confirm ──────────────────────────────────────────── */
+
+.btnActivate {
+  font-size: 0.68rem;
+  padding: 2px 10px;
+  border-radius: 3px;
+  background: rgba(80,160,220,0.10);
+  border: 1px solid rgba(80,160,220,0.32);
+  color: #66aadd;
+  cursor: pointer;
+  white-space: nowrap;
+  flex-shrink: 0;
+  transition: background 0.12s;
+}
+
+.btnActivate:hover { background: rgba(80,160,220,0.20); }
+
+.activateConfirm {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  flex-shrink: 0;
+}
+
+.activateConfirmText {
+  font-size: 0.68rem;
+  color: #aaa8cc;
+}
+
+.activateActions {
+  display: flex;
+  gap: 5px;
+  flex-shrink: 0;
+}
+
+.btnActivateConfirm {
+  font-size: 0.65rem;
+  padding: 2px 8px;
+  border-radius: 3px;
+  background: rgba(80,160,220,0.14);
+  border: 1px solid rgba(80,160,220,0.40);
+  color: #66aadd;
+  cursor: pointer;
+  transition: background 0.12s;
+}
+
+.btnActivateConfirm:hover { background: rgba(80,160,220,0.26); }
+
+.btnActivateCancel {
+  font-size: 0.65rem;
+  padding: 2px 8px;
+  border-radius: 3px;
+  background: transparent;
+  border: 1px solid var(--color-border);
+  color: var(--color-text-dim);
+  cursor: pointer;
+  transition: background 0.12s;
+}
+
+.btnActivateCancel:hover { background: rgba(255,255,255,0.05); }
 
 /* ── Campaign progress bar ──────────────────────────────────────────────── */
 
@@ -342,6 +388,13 @@
   font-size: 0.68rem;
   color: var(--color-text-dim);
   opacity: 0.6;
+}
+
+.overloadPending {
+  font-size: 0.68rem;
+  color: var(--color-text-dim);
+  opacity: 0.55;
+  font-style: italic;
 }
 
 .completedHint {

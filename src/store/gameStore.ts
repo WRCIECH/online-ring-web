@@ -281,6 +281,7 @@ export interface GameStore extends GameState {
   useSuperhitOnNode:            (weaponId: string, nodeId: string) => void
   renameCampaign:               (weaponId: string, name: string) => void
   applyLibraryCampaignToWeapon: (campaignId: string, weaponId: string) => void
+  activateCampaign:             (weaponId: string) => void
 
   // Learning items
 
@@ -468,7 +469,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
   assignCampaignToWeapon: (weaponId) => {
     const weapon = get().weapon_instances.find(w => w.instance_id === weaponId)
     if (!weapon) return
-    const campaign = generateWeaponCampaign(weapon)
+    const campaign = { ...generateWeaponCampaign(weapon), activated: false }
     set(s => ({ weapon_campaigns: { ...s.weapon_campaigns, [weaponId]: campaign } }))
     get().save()
   },
@@ -546,9 +547,17 @@ export const useGameStore = create<GameStore>((set, get) => ({
     const libraryEntry = get().campaign_library.find(c => c.id === campaignId)
     const weapon = get().weapon_instances.find(w => w.instance_id === weaponId)
     if (!libraryEntry || !weapon) return
-    const fresh = generateWeaponCampaign(weapon)
-    fresh.campaign_name = libraryEntry.campaign_name
+    const fresh = { ...generateWeaponCampaign(weapon), campaign_name: libraryEntry.campaign_name, activated: false }
     set(s => ({ weapon_campaigns: { ...s.weapon_campaigns, [weaponId]: fresh } }))
+    get().save()
+  },
+
+  activateCampaign: (weaponId) => {
+    set(s => {
+      const c = s.weapon_campaigns[weaponId]
+      if (!c) return s
+      return { weapon_campaigns: { ...s.weapon_campaigns, [weaponId]: { ...c, activated: true } } }
+    })
     get().save()
   },
 
@@ -616,6 +625,11 @@ export const useGameStore = create<GameStore>((set, get) => ({
     if (!data.locale)               data.locale               = 'pl'
     if (!data.weapon_campaigns)     data.weapon_campaigns     = {}
     if (!data.campaign_library)     data.campaign_library     = []
+    // Legacy campaigns (pre-activated field) were all active by definition
+    for (const wid of Object.keys(data.weapon_campaigns)) {
+      const c = data.weapon_campaigns[wid]
+      if (c && c.activated === undefined) c.activated = true
+    }
     if (!data.total_task_time_s)    data.total_task_time_s    = 0
     if (data.abandon_penalty === undefined)  data.abandon_penalty  = 0
     if (data.active_workflow  === undefined) data.active_workflow  = null

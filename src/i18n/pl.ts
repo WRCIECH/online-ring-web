@@ -325,7 +325,7 @@ const pl: TranslationBundle = {
     mult_repeatScaling_desc: 'Dodatkowa kara rosnąca z każdą kolejną powtórką tego kafelka.',
     mult_abandon_desc:       'Kara naliczona za rezygnację z poprzedniego kafelka przed upływem czasu.',
     mult_affinity_desc:      'Bonus lub kara wynikająca z powinowactwa statystyk broni do preferencji przeciwnika.',
-    mult_theme_desc:         'Twoja treść pasuje do klimatu tej lokacji — wróg jest bardziej podatny.',
+    mult_theme_desc:         'Treści dające bonus obrażeń w tej lokacji.',
     mult_streak_desc:        'Bonus rośnie z każdym kolejnym ukończonym kafelkiem bez pomijania ani rezygnacji.',
     mult_remaster_desc:      'Przerabiasz istniejącą treść — doświadczony warsztat przekłada się na większe obrażenia.',
     mult_finisher_desc:      'To ostatni kafelka w bieżącym przepływie — cios finiszujący zadaje potrojone obrażenia.',
