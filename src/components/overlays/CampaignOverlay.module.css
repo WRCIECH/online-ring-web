@@ -616,16 +616,17 @@
 
 .sequenceWrap {
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: center;
   gap: 4px;
   padding-top: 4px;
 }
 
-.sequenceRow {
-  display: flex;
+.sequenceGroup {
+  display: inline-flex;
   align-items: center;
   gap: 4px;
-  flex-wrap: wrap;
   border-radius: 3px;
   padding: 1px 4px;
 }
@@ -634,11 +635,17 @@
   background: rgba(100,80,200,0.10);
 }
 
+.seqGroupArrow {
+  font-size: 0.75rem;
+  color: var(--color-text-dim);
+  opacity: 0.45;
+  flex-shrink: 0;
+}
+
 .seqStateLabel {
   font-size: 0.65rem;
   color: var(--color-text-dim);
   opacity: 0.6;
-  width: 28px;
   flex-shrink: 0;
 }
 

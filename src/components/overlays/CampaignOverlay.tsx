@@ -188,29 +188,39 @@ function WorkflowSequence({
     .map(stage => `${phaseTotals[stage]} ${stage}`)
     .join(' · ')
 
+  const visibleStates = states
+    .map((row, stateIdx) => {
+      const chips = stateIdx === 0
+        ? row.filter(slot => slot.kind === 'format' && slot.value !== null)
+        : row.filter(slot => slot.changed && slot.value !== null)
+      return chips.length ? { stateIdx, chips } : null
+    })
+    .filter(Boolean) as Array<{ stateIdx: number; chips: RemasterSlotView[] }>
+
+  if (!visibleStates.length) return null
+
   return (
     <div className={s.sequenceWrap}>
-      {states.map((row, stateIdx) => {
-        const chips = stateIdx === 0
-          ? row.filter(slot => slot.kind === 'format' && slot.value !== null)
-          : row.filter(slot => slot.changed && slot.value !== null)
-        if (!chips.length) return null
+      {visibleStates.map(({ stateIdx, chips }, groupIdx) => {
         const isActive = activeStageIdx !== null && stateIdx === activeStageIdx
         return (
-          <div key={stateIdx} className={[s.sequenceRow, isActive ? s.seqStateActive : ''].filter(Boolean).join(' ')}>
-            <span className={s.seqStateLabel}>{stateIdx === 0 ? 'Base' : `R${stateIdx}`}</span>
-            {chips.map((slot, i) => (
-              <span key={`${slot.kind}_${slot.occurrenceIndex}`} style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                {i > 0 && <span className={s.seqArrow}>→</span>}
-                <span className={[s.seqChip, slot.changed ? s.seqChipChanged : ''].filter(Boolean).join(' ')}>
-                  {badgeLabel(slot)}
+          <span key={stateIdx} style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+            {groupIdx > 0 && <span className={s.seqGroupArrow}>→</span>}
+            <span className={[s.sequenceGroup, isActive ? s.seqStateActive : ''].filter(Boolean).join(' ')}>
+              <span className={s.seqStateLabel}>{stateIdx === 0 ? 'Base' : `R${stateIdx}`}</span>
+              {chips.map((slot, i) => (
+                <span key={`${slot.kind}_${slot.occurrenceIndex}`} style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                  {i > 0 && <span className={s.seqArrow}>→</span>}
+                  <span className={[s.seqChip, slot.changed ? s.seqChipChanged : ''].filter(Boolean).join(' ')}>
+                    {badgeLabel(slot)}
+                  </span>
                 </span>
-              </span>
-            ))}
-          </div>
+              ))}
+            </span>
+          </span>
         )
       })}
-      {stepsLabel && <div className={s.seqSteps}>{stepsLabel}</div>}
+      {stepsLabel && <span className={s.seqSteps}>{stepsLabel}</span>}
     </div>
   )
 }
