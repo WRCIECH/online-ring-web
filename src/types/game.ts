@@ -1,4 +1,5 @@
 export type Locale = 'pl' | 'en'
+export type RewardTier = 'C' | 'B1' | 'B2' | 'A1' | 'A2' | 'S'
 export type StatKey = 'VIG' | 'END' | 'TEXT' | 'VIDEO' | 'AUDIO' | 'GRAPHIC' | 'VELOCITY' | 'DEPTH' | 'PARASOCIAL' | 'FRICTION' | 'INSIGHT'
 export type Grade = 'S' | 'A' | 'B' | 'C' | 'D' | 'E'
 export type WeaponRarity = 'common' | 'Intellectual' | 'rare' | 'epic' | 'legendary'
@@ -252,4 +253,7 @@ export interface GameState {
   last_fight_ended_at?: number   // epoch ms; updated on fight VICTORY, used to compute flow mult
   // UI locale
   locale: Locale
+  // External rewards
+  rewards: Record<RewardTier, number>
+  reward_names: Partial<Record<RewardTier, string>>
 }

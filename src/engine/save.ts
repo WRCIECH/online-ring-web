@@ -5,7 +5,7 @@ const BACKUP_KEY = 'online_ring_save_backup'
 
 // Bump this whenever the GameState schema changes in a breaking way.
 // Any save with a different version is silently discarded.
-const SAVE_VERSION = 14
+const SAVE_VERSION = 15
 
 export function saveGame(state: GameState): void {
   try {

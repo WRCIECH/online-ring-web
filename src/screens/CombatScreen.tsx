@@ -6,7 +6,7 @@ import { useGameStore, selectAvailableNodes } from '../store/gameStore'
 import { ENEMIES } from '../data/enemies'
 import { WEAPONS } from '../data/weapons'
 import { playSound } from '../engine/sound'
-import type { WeaponInstance, WeaponRarity, MoveType, WorkflowGraph } from '../types/game'
+import type { WeaponInstance, WeaponRarity, MoveType, WorkflowGraph, RewardTier } from '../types/game'
 import { rollWeapon } from '../data/generators/weaponGenerator'
 import { generateWorkflow } from '../data/generators/workflowGenerator'
 import { isNodeAvailable } from '../data/generators/campaignGenerator'
@@ -36,6 +36,11 @@ function fmtMoveTime(secs: number): string {
 const RARITY_COLOURS: Record<WeaponRarity, string> = {
   common: '#aaaaaa', Intellectual: '#4488cc', rare: '#ccaa22',
   epic: '#9944cc', legendary: '#ee8822',
+}
+
+const REWARD_COLOURS: Record<RewardTier, string> = {
+  C: '#aaaaaa', B1: '#4488cc', B2: '#4488cc',
+  A1: '#9944cc', A2: '#9944cc', S: '#ee8822',
 }
 
 
@@ -192,7 +197,16 @@ export default function CombatScreen() {
 
   // ── Loot (computed once when VICTORY) ────────────────────────────────────
   interface LootItem { name: string; rarity: WeaponRarity; instance: WeaponInstance }
-  const [lootItems, setLootItems] = useState<LootItem[] | null>(null)
+  const [lootItems,  setLootItems]  = useState<LootItem[] | null>(null)
+  const [rewardDrop, setRewardDrop] = useState<RewardTier | null>(null)
+
+  function rollRewardTier(): RewardTier {
+    const r = Math.random()
+    if (r < 0.64)       return 'C'
+    if (r < 0.94)       return Math.random() < 0.5 ? 'B1' : 'B2'
+    if (r < 0.99)       return Math.random() < 0.5 ? 'A1' : 'A2'
+    return 'S'
+  }
 
   useEffect(() => {
     if (state.phase !== 'VICTORY' || !loc || lootItems !== null) return
@@ -213,6 +227,7 @@ export default function CombatScreen() {
       }
     }
     setLootItems(items)
+    setRewardDrop(rollRewardTier())
     playSound('RUNE_GAIN')
     items.forEach((_, i) => setTimeout(() => playSound('LOOT_DROP'), i * 280 + 150))
   }, [state.phase, loc, lootItems, store.run_defeated_enemies])
@@ -224,6 +239,7 @@ export default function CombatScreen() {
     store.addRunes(state.runesEarned)
     store.clearAbandonPenalty()
     lootItems?.forEach(item => store.addWeaponInstance(item.instance))
+    if (rewardDrop) store.addReward(rewardDrop)
     store.addDefeatedEnemy(loc.enemy_id)
     store.recordFightEnd()
     // Persist or clear workflow; always save streak
@@ -242,7 +258,7 @@ export default function CombatScreen() {
     store.advanceRun()
     if (isLast) { store.endRunVictory(); navigate('/run-complete') }
     else        { store.setPendingEncounter(null); navigate('/map') }
-  }, [loc, store, navigate, state, lootItems, enemyData])
+  }, [loc, store, navigate, state, lootItems, rewardDrop, enemyData])
 
   // ── Defeat ────────────────────────────────────────────────────────────────
   const handleDefeat = useCallback(() => {
@@ -572,6 +588,15 @@ export default function CombatScreen() {
                     <span className={s.lootType}>{item.rarity} workflow</span>
                   </div>
                 ))}
+              </div>
+            )}
+
+            {rewardDrop && (
+              <div className={s.rewardDrop}>
+                <span className={s.rewardDropLabel}>{t.ui.reward_earned}</span>
+                <span className={s.rewardDropTier} style={{ color: REWARD_COLOURS[rewardDrop] }}>
+                  {store.reward_names[rewardDrop] || t.ui[`reward_tier_${rewardDrop}` as keyof typeof t.ui] || rewardDrop}
+                </span>
               </div>
             )}
 

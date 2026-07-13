@@ -1,5 +1,5 @@
 import { create } from 'zustand'
-import type { GameState, LocationData, Stats, WeaponInstance, SublocationType, CampaignNode, Locale, WorkflowGraph, LocationTheme } from '../types/game'
+import type { GameState, LocationData, Stats, WeaponInstance, SublocationType, CampaignNode, Locale, WorkflowGraph, LocationTheme, RewardTier } from '../types/game'
 import { ENEMIES } from '../data/enemies'
 import { saveGame, loadGame } from '../engine/save'
 import { registerWeapon, WEAPONS } from '../data/weapons'
@@ -228,6 +228,8 @@ function initialState(): GameState {
 
     total_task_time_s: 0,
     locale: 'pl',
+    rewards: { C: 0, B1: 0, B2: 0, A1: 0, A2: 0, S: 0 },
+    reward_names: {},
   }
 }
 
@@ -287,6 +289,12 @@ export interface GameStore extends GameState {
   activateCampaign:             (weaponId: string) => void
 
   // Learning items
+
+  // External rewards
+  addReward:    (tier: RewardTier) => void
+  useReward:    (tier: RewardTier) => void
+  mergeRewards: (tier: RewardTier) => void
+  renameReward: (tier: RewardTier, name: string) => void
 
   // Flow bonus (consecutive fights)
   recordFightEnd: () => void
@@ -638,6 +646,51 @@ export const useGameStore = create<GameStore>((set, get) => ({
   },
 
   recordFightEnd: () => { set({ last_fight_ended_at: Date.now() }); get().save() },
+
+  addReward: (tier) => {
+    set(s => ({ rewards: { ...s.rewards, [tier]: (s.rewards[tier] ?? 0) + 1 } }))
+    get().save()
+  },
+
+  useReward: (tier) => {
+    set(s => {
+      const cur = s.rewards[tier] ?? 0
+      if (cur <= 0) return s
+      return { rewards: { ...s.rewards, [tier]: cur - 1 } }
+    })
+    get().save()
+  },
+
+  mergeRewards: (tier) => {
+    const MERGE_UP: Record<RewardTier, RewardTier[]> = {
+      C:  ['B1', 'B2'],
+      B1: ['A1', 'A2'],
+      B2: ['A1', 'A2'],
+      A1: ['S'],
+      A2: ['S'],
+      S:  [],
+    }
+    const targets = MERGE_UP[tier]
+    if (!targets.length) return
+    set(s => {
+      const cur = s.rewards[tier] ?? 0
+      if (cur < 3) return s
+      const target = targets[Math.floor(Math.random() * targets.length)] as RewardTier
+      return {
+        rewards: {
+          ...s.rewards,
+          [tier]: cur - 3,
+          [target]: (s.rewards[target] ?? 0) + 1,
+        },
+      }
+    })
+    get().save()
+  },
+
+  renameReward: (tier, name) => {
+    set(s => ({ reward_names: { ...s.reward_names, [tier]: name || undefined } }))
+    get().save()
+  },
 
   setLocale: (locale) => { set({ locale }); get().save() },
 

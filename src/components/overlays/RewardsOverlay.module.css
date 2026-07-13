@@ -1,0 +1,148 @@
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: var(--color-bg-overlay);
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  z-index: 20;
+  padding: 24px 16px;
+  overflow-y: auto;
+}
+
+.panel {
+  background: rgba(15, 13, 34, 0.92);
+  border: 1px solid rgba(74, 100, 200, 0.22);
+  border-radius: var(--radius-lg);
+  width: 720px;
+  max-width: 98vw;
+  display: flex;
+  flex-direction: column;
+  padding-bottom: 28px;
+}
+
+/* ── Header ───────────────────────────────────────────────────────────── */
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 24px 16px;
+}
+
+.title {
+  font-size: 0.78rem;
+  letter-spacing: 0.18em;
+  color: var(--color-text-dim);
+  text-transform: uppercase;
+}
+
+.btnClose {
+  font-size: 0.78rem;
+  letter-spacing: 0.08em;
+  color: var(--color-text-dim);
+  border: 1px solid var(--color-border);
+  padding: 6px 14px;
+}
+.btnClose:hover { color: var(--color-text); border-color: var(--color-text-dim); }
+
+.sep { border: none; border-top: 1px solid var(--color-sep); margin: 0 0 24px; }
+
+/* ── Reward card grid ─────────────────────────────────────────────────── */
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  padding: 0 24px;
+}
+
+.card {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: var(--radius-md, 8px);
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  transition: border-color 0.15s;
+}
+
+.cardTop {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.tierBadge {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  border: 1px solid;
+  border-radius: 4px;
+  padding: 2px 8px;
+}
+
+.count {
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: var(--color-text);
+  font-family: var(--font-numbers);
+}
+
+/* ── Name button / input ──────────────────────────────────────────────── */
+
+.nameBtn {
+  background: none;
+  border: none;
+  padding: 0;
+  font-size: 0.88rem;
+  color: var(--color-text);
+  text-align: left;
+  cursor: pointer;
+  width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.nameBtn:hover { color: var(--color-accent); }
+
+.nameInput {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid var(--color-border);
+  border-radius: 4px;
+  color: var(--color-text);
+  font-size: 0.88rem;
+  padding: 4px 8px;
+  width: 100%;
+  outline: none;
+  box-sizing: border-box;
+}
+.nameInput:focus { border-color: var(--color-accent); }
+
+/* ── Action buttons ───────────────────────────────────────────────────── */
+
+.actions {
+  display: flex;
+  gap: 8px;
+}
+
+.btn {
+  flex: 1;
+  font-size: 0.75rem;
+  letter-spacing: 0.06em;
+  padding: 5px 6px;
+  border: 1px solid var(--color-border);
+  color: var(--color-text-dim);
+  border-radius: 4px;
+  transition: color 0.12s, border-color 0.12s, background 0.12s;
+}
+.btn:hover:not(:disabled) { color: var(--color-text); border-color: var(--color-text-dim); background: rgba(255,255,255,0.05); }
+.btn:disabled { opacity: 0.3; cursor: default; }
+
+.btnConfirm {
+  color: var(--color-gold);
+  border-color: var(--color-gold);
+}
+.btnConfirm:hover:not(:disabled) { background: rgba(201,169,58,0.12); }

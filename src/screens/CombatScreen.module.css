@@ -387,3 +387,14 @@
   from { transform: translateY(10px); opacity: 0; }
   to   { transform: translateY(0);    opacity: 1; }
 }
+
+.rewardDrop {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.9rem;
+  animation: lootItemReveal 0.35s ease both;
+  animation-delay: 0.1s;
+}
+.rewardDropLabel { color: var(--color-text-dim); font-size: 0.8rem; letter-spacing: 0.08em; text-transform: uppercase; }
+.rewardDropTier  { font-weight: 600; letter-spacing: 0.06em; }
