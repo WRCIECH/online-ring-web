@@ -129,11 +129,13 @@ export default function CombatScreen() {
   // ── Live active weapon (can change mid-fight via SWITCH_WEAPON) ──────────
   const weapon  = WEAPONS[state.equippedWeaponId] as WeaponInstance | undefined
 
-  // Per-weapon workflow+streak cache: preserves progress when switching away and back
-  type WeaponSnapshot = { workflow: WorkflowGraph; streak: number }
-  const weaponWorkflows = useRef<Record<string, WeaponSnapshot>>({
-    [initialWeaponId]: { workflow: state.workflow, streak: state.consistencyStreak },
-  })
+  // Per-content-node workflow cache: preserves progress when switching away and back
+  type ContentSnapshot = { workflow: WorkflowGraph; streak: number }
+  const contentCache = useRef<Record<string, ContentSnapshot>>(
+    store.active_content_id
+      ? { [store.active_content_id]: { workflow: state.workflow, streak: state.consistencyStreak } }
+      : {}
+  )
   // Keep the cache current as tiles are completed for the active weapon
   const stateRef = useRef(state)
   stateRef.current = state
@@ -262,19 +264,25 @@ export default function CombatScreen() {
     const cur = stateRef.current
     if (contentId === selectedContentId && weaponId === cur.equippedWeaponId) return
 
+    // Save outgoing content's progress before leaving
+    if (selectedContentId) {
+      contentCache.current[selectedContentId] = { workflow: cur.workflow, streak: cur.consistencyStreak }
+    }
+
     if (weaponId !== cur.equippedWeaponId) {
-      weaponWorkflows.current[cur.equippedWeaponId] = { workflow: cur.workflow, streak: cur.consistencyStreak }
       dispatch({ type: 'SWITCH_WEAPON', weaponId, weaponLevel: store.weapon_level[weaponId] ?? 0 })
     }
 
-    const pickedWeapon     = WEAPONS[weaponId] as WeaponInstance | undefined
-    const existingWorkflow = store.workflow_progress[contentId]
-    const newWorkflow      = existingWorkflow ?? generateWorkflow(
-      pickedWeapon?.weapon_class ?? 'straight_swords',
-      pickedWeapon?.rarity       ?? 'common',
-      loc?.sublocation_type === 'boss',
-      pickedWeapon?.rolled_draws,
-    )
+    const pickedWeapon = WEAPONS[weaponId] as WeaponInstance | undefined
+    const cached       = contentCache.current[contentId]
+    const newWorkflow  = cached?.workflow
+      ?? store.workflow_progress[contentId]
+      ?? generateWorkflow(
+        pickedWeapon?.weapon_class ?? 'straight_swords',
+        pickedWeapon?.rarity       ?? 'common',
+        loc?.sublocation_type === 'boss',
+        pickedWeapon?.rolled_draws,
+      )
     setSelectedContentId(contentId)
     store.setActiveContentId(contentId)
     // No consistencyStreak → defaults to 0 → breaks the streak
@@ -330,17 +338,19 @@ export default function CombatScreen() {
     setShowAdvancePicker(false)
     const cur = stateRef.current
     const pickedWeapon = WEAPONS[pickedWeaponId] as WeaponInstance | undefined
-    const targetClass  = pickedWeapon?.weapon_class ?? 'straight_swords'
-    const targetRarity = pickedWeapon?.rarity       ?? 'common'
 
     if (pickedWeaponId !== cur.equippedWeaponId) {
-      weaponWorkflows.current[cur.equippedWeaponId] = { workflow: cur.workflow, streak: cur.consistencyStreak }
       dispatch({ type: 'SWITCH_WEAPON', weaponId: pickedWeaponId, weaponLevel: store.weapon_level[pickedWeaponId] ?? 0 })
     }
 
-    const existingWorkflow = store.workflow_progress[contentId]
-    const newWorkflow = existingWorkflow
-      ?? generateWorkflow(targetClass, targetRarity, loc?.sublocation_type === 'boss', pickedWeapon?.rolled_draws)
+    const newWorkflow = contentCache.current[contentId]?.workflow
+      ?? store.workflow_progress[contentId]
+      ?? generateWorkflow(
+        pickedWeapon?.weapon_class ?? 'straight_swords',
+        pickedWeapon?.rarity       ?? 'common',
+        loc?.sublocation_type === 'boss',
+        pickedWeapon?.rolled_draws,
+      )
     const savedStreak = store.content_streak[contentId] ?? 0
     setSelectedContentId(contentId)
     store.setActiveContentId(contentId)
