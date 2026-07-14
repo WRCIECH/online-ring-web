@@ -291,6 +291,12 @@ export default function CampaignOverlay({ onClose }: Props) {
                   <div className={s.weaponInfoTop}>
                     <div className={s.weaponInfoLeft}>
                       <span className={s.weaponLevel}>+{level}</span>
+                      {(() => {
+                        const primaryFormat = selectedWeapon.rolled_draws?.format[0]?.[0]
+                        if (!primaryFormat) return null
+                        const label = t.content.product[primaryFormat]?.badge_label ?? primaryFormat
+                        return <span className={s.mediumChip}>{label}</span>
+                      })()}
                       <span className={s.statChip}>×{(dmgCurrent / 100).toFixed(2)} dmg</span>
                       {classDef && <>
                         <span className={s.statChip}>+{((LEVEL_MULT[selectedWeapon.rarity] ?? 0.03) * 100).toFixed(0)}% / lv</span>

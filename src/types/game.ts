@@ -53,7 +53,6 @@ export interface WorkflowTile {
   time_heavy: number   // seconds for Heavy Attack timer
   content_type?: ContentProductType
   content_origin?: AtomicOrigin
-  style_type?: StyleType
   status?: EmotionType
   time_budget?: AtomicTime
   is_completed: boolean

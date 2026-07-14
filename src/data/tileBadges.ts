@@ -1,8 +1,7 @@
-import type { AtomicStage, WorkflowTile, WorkflowGraph, ContentProductType, AtomicOrigin, StyleType, EmotionType } from '../types/game'
+import type { AtomicStage, WorkflowTile, WorkflowGraph, ContentProductType, AtomicOrigin, EmotionType } from '../types/game'
 import type { TranslationBundle } from '../i18n/types'
 import { CONTENT_TYPE_STATS } from './contentTypeScaling'
 import { ATOMIC_ORIGIN_STATS } from './atomicOriginScaling'
-import { STYLE_TYPE_STATS } from './styleTypeScaling'
 import { STATUS_TYPE_STATS } from './statusTypeScaling'
 
 export const STAGE_COLOR: Record<AtomicStage, string> = {
@@ -26,7 +25,6 @@ function statsLine(stats: string[]): string {
 export interface EffectiveTags {
   content_type?:   ContentProductType
   content_origin?: AtomicOrigin
-  style_type?:    StyleType
   status?:         EmotionType
 }
 
@@ -61,7 +59,6 @@ export function computeEffectiveTags(workflow: WorkflowGraph): Map<string, Effec
     result.set(id, {
       content_type:   tile.content_type   ?? inherited.content_type,
       content_origin: tile.content_origin ?? inherited.content_origin,
-      style_type:    tile.style_type    ?? inherited.style_type,
       status:         tile.status         ?? inherited.status,
     })
 
@@ -100,11 +97,6 @@ export function getTileBadges(tile: WorkflowTile, effective?: EffectiveTags, t?:
     const info   = ATOMIC_ORIGIN_STATS[tags.content_origin]
     const entry  = t?.content.origin[tags.content_origin]
     badges.push({ key: 'origin', label: entry?.badge_label ?? info.label, detail: entry?.detail ?? statsLine(info.stats) })
-  }
-  if (tags.style_type) {
-    const info  = STYLE_TYPE_STATS[tags.style_type]
-    const entry = t?.content.style[tags.style_type]
-    badges.push({ key: 'damageType', label: entry?.badge_label ?? info.label, detail: entry?.detail ?? statsLine(info.stats) })
   }
   if (tags.status) {
     const info  = STATUS_TYPE_STATS[tags.status]

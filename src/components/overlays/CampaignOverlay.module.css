@@ -661,6 +661,16 @@
   flex-shrink: 0;
 }
 
+.mediumChip {
+  font-family: var(--font-meta);
+  font-size: 0.7rem;
+  color: #88bbdd;
+  background: rgba(136,187,221,0.08);
+  border: 1px solid rgba(136,187,221,0.25);
+  border-radius: 3px;
+  padding: 2px 7px;
+}
+
 .statChip, .scalingChip {
   font-family: var(--font-meta);
   font-size: 0.7rem;
