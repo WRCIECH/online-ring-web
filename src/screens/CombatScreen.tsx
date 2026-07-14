@@ -128,8 +128,6 @@ export default function CombatScreen() {
 
   // ── Live active weapon (can change mid-fight via SWITCH_WEAPON) ──────────
   const weapon  = WEAPONS[state.equippedWeaponId] as WeaponInstance | undefined
-  const wClass  = weapon?.weapon_class ?? initialWeaponClass
-  const wRarity = weapon?.rarity       ?? initialWeaponRarity
 
   // Per-weapon workflow+streak cache: preserves progress when switching away and back
   type WeaponSnapshot = { workflow: WorkflowGraph; streak: number }
@@ -139,45 +137,6 @@ export default function CombatScreen() {
   // Keep the cache current as tiles are completed for the active weapon
   const stateRef = useRef(state)
   stateRef.current = state
-
-  const handleSwitchWeapon = useCallback((weaponId: string, weaponLevel: number) => {
-    const cur = stateRef.current
-    if (weaponId === cur.equippedWeaponId) return
-
-    // Save current weapon's workflow + streak before leaving
-    weaponWorkflows.current[cur.equippedWeaponId] = {
-      workflow: cur.workflow,
-      streak:   cur.consistencyStreak,
-    }
-
-    dispatch({ type: 'SWITCH_WEAPON', weaponId, weaponLevel })
-
-    // Restore saved snapshot or generate a fresh workflow for a first-seen weapon
-    const saved = weaponWorkflows.current[weaponId]
-    if (saved) {
-      dispatch({ type: 'SWITCH_WORKFLOW', workflow: saved.workflow, consistencyStreak: saved.streak })
-    } else {
-      const newWeapon   = WEAPONS[weaponId] as WeaponInstance | undefined
-      const newClass    = newWeapon?.weapon_class ?? 'straight_swords'
-      const newRarity   = newWeapon?.rarity       ?? 'common'
-      const isBoss      = loc?.sublocation_type === 'boss'
-      const newWorkflow = generateWorkflow(newClass, newRarity, isBoss, newWeapon?.rolled_draws)
-      weaponWorkflows.current[weaponId] = { workflow: newWorkflow, streak: 0 }
-      dispatch({ type: 'SWITCH_WORKFLOW', workflow: newWorkflow })
-    }
-
-    // Switch active content to first available node in new weapon's campaign
-    const newCampaign = store.weapon_campaigns[weaponId]
-    if (newCampaign) {
-      const firstAvailable = newCampaign.nodes.find(
-        n => !n.completed && isNodeAvailable(newCampaign.nodes, newCampaign.edges, n)
-      )
-      if (firstAvailable) {
-        setSelectedContentId(firstAvailable.id)
-        store.setActiveContentId(firstAvailable.id)
-      }
-    }
-  }, [loc, store])
 
   // ── Sound effects on phase change ─────────────────────────────────────────
   useEffect(() => {
@@ -297,6 +256,30 @@ export default function CombatScreen() {
   const [selectedContentId, setSelectedContentId] = useState<string | null>(
     store.active_content_id ?? null
   )
+
+  // Switches weapon + content from the bottom bar dropdown; streak always resets to 0
+  const handleSelectContent = useCallback((weaponId: string, contentId: string) => {
+    const cur = stateRef.current
+    if (contentId === selectedContentId && weaponId === cur.equippedWeaponId) return
+
+    if (weaponId !== cur.equippedWeaponId) {
+      weaponWorkflows.current[cur.equippedWeaponId] = { workflow: cur.workflow, streak: cur.consistencyStreak }
+      dispatch({ type: 'SWITCH_WEAPON', weaponId, weaponLevel: store.weapon_level[weaponId] ?? 0 })
+    }
+
+    const pickedWeapon     = WEAPONS[weaponId] as WeaponInstance | undefined
+    const existingWorkflow = store.workflow_progress[contentId]
+    const newWorkflow      = existingWorkflow ?? generateWorkflow(
+      pickedWeapon?.weapon_class ?? 'straight_swords',
+      pickedWeapon?.rarity       ?? 'common',
+      loc?.sublocation_type === 'boss',
+      pickedWeapon?.rolled_draws,
+    )
+    setSelectedContentId(contentId)
+    store.setActiveContentId(contentId)
+    // No consistencyStreak → defaults to 0 → breaks the streak
+    dispatch({ type: 'SWITCH_WORKFLOW', workflow: newWorkflow })
+  }, [selectedContentId, loc, store])
 
   // Flow countdown — seconds until the current flow tier expires
   const [flowCountdown, setFlowCountdown] = useState('')
@@ -589,18 +572,22 @@ export default function CombatScreen() {
       <CombatBottomBar
         equippedWeaponIds={weaponsWithContent.map(w => w.instance_id)}
         activeWeaponId={state.equippedWeaponId}
+        activeContentId={selectedContentId ?? undefined}
         weaponLevels={store.weapon_level}
         weaponNodes={Object.fromEntries(
-          weaponsWithContent.map(w => [
-            w.instance_id,
-            (store.weapon_campaigns[w.instance_id]?.nodes ?? [])
-              .filter(n => !n.completed)
-              .map(n => n.name || 'Untitled'),
-          ])
+          weaponsWithContent.map(w => {
+            const c = store.weapon_campaigns[w.instance_id]
+            return [
+              w.instance_id,
+              (c?.nodes ?? [])
+                .filter(n => !n.completed && isNodeAvailable(c!.nodes, c!.edges, n))
+                .map(n => ({ id: n.id, name: n.name || 'Untitled' })),
+            ]
+          })
         )}
         playerEstus={state.playerEstus}
         canAct={isPlayerTurn}
-        onSwitchWeapon={handleSwitchWeapon}
+        onSelectContent={handleSelectContent}
         onEstus={() => dispatch({ type: 'USE_ESTUS' })}
         onAbandon={() => setShowAbandonConfirm(true)}
       />

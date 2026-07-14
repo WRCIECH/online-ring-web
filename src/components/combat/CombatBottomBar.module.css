@@ -61,7 +61,7 @@
 .weaponActive {
   border-color: var(--color-accent);
   box-shadow: var(--glow-accent);
-  cursor: default;
+  cursor: pointer;
 }
 
 /* Estus-specific */
@@ -163,3 +163,109 @@
 }
 
 .abandonBtn:hover { color: #cc6666; border-color: rgba(160, 60, 60, 0.55); }
+
+/* ── Weapon slot wrapper (relative anchor for the dropdown) ──────────────── */
+.weaponWrap {
+  position: relative;
+  flex-shrink: 0;
+}
+
+/* ── Content picker dropdown ─────────────────────────────────────────────── */
+.contentMenu {
+  position: absolute;
+  bottom: calc(100% + 8px);
+  left: 0;
+  z-index: 30;
+  min-width: 220px;
+  max-width: 300px;
+  background: rgba(12, 10, 28, 0.97);
+  border: 1px solid rgba(74, 100, 200, 0.28);
+  border-radius: var(--radius);
+  box-shadow: 0 6px 28px rgba(0, 0, 0, 0.65);
+  overflow: hidden;
+}
+
+.menuHeader {
+  padding: 8px 12px 6px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.menuWeaponName {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--color-text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.menuWeaponSub {
+  font-size: 0.66rem;
+  color: var(--color-text-dim);
+  letter-spacing: 0.04em;
+  text-transform: capitalize;
+}
+
+.menuEmpty {
+  padding: 10px 12px;
+  font-size: 0.76rem;
+  color: var(--color-text-dim);
+  font-style: italic;
+}
+
+.menuNodes {
+  display: flex;
+  flex-direction: column;
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.menuNode {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 7px 12px;
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+  cursor: pointer;
+  text-align: left;
+  transition: background 0.12s;
+  width: 100%;
+}
+
+.menuNode:last-child { border-bottom: none; }
+
+.menuNode:hover {
+  background: rgba(74, 158, 255, 0.08);
+}
+
+.menuNodeActive {
+  background: rgba(74, 158, 255, 0.10);
+}
+
+.menuNodeActive .menuNodeName {
+  color: var(--color-accent);
+}
+
+.menuNodeDot {
+  font-size: 0.62rem;
+  color: var(--color-text-dim);
+  flex-shrink: 0;
+  width: 10px;
+}
+
+.menuNodeActive .menuNodeDot {
+  color: var(--color-accent);
+}
+
+.menuNodeName {
+  font-size: 0.8rem;
+  color: var(--color-text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
