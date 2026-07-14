@@ -423,7 +423,7 @@ export function combatReducer(state: CombatState, action: CombatAction): CombatS
         const tier = affinityMult > 1 ? (affinityMult >= 2 ? 'LOVE' : 'LIKE') : (affinityMult <= 0.5 ? 'HATE' : 'DISLIKE')
         s = log(s, `Affinity: ${tier} ×${affinityMult.toFixed(1)}`, affinityMult > 1 ? '#44dd88' : '#dd6644')
       }
-      if (themeBonus !== 1.0) {
+      if (rawTheme !== 1.0) {
         s = log(s, `Location theme match +20%`, '#88ccff')
       }
       if (allTilesDone) {
