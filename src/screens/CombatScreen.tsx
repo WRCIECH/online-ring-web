@@ -17,6 +17,7 @@ import WorkflowCanvas from '../components/combat/WorkflowCanvas'
 import MoveRadialMenu, { type RadialMoveItem } from '../components/combat/MoveRadialMenu'
 import CombatBottomBar from '../components/combat/CombatBottomBar'
 import CombatMusic  from '../components/combat/CombatMusic'
+import PreFightPicker from '../components/overlays/PreFightPicker'
 import { COMBAT_MUSIC } from '../data/combatMusic'
 import { useT } from '../i18n'
 import s from './CombatScreen.module.css'
@@ -290,6 +291,7 @@ export default function CombatScreen() {
     })
   }, [])
   const [showAbandonConfirm, setShowAbandonConfirm] = useState(false)
+  const [showAdvancePicker, setShowAdvancePicker]   = useState(false)
   // If a campaign node was already locked in the store, skip the picker entirely
   const [selectedContentId, setSelectedContentId] = useState<string | null>(
     store.active_content_id ?? null
@@ -332,11 +334,45 @@ export default function CombatScreen() {
     }, 0)
 
   const handleContinueContent = () => {
+    // Mark the completed node before opening picker so children are unblocked immediately
     if (selectedContentId) {
       store.completeCampaignNode(state.equippedWeaponId, selectedContentId, state.workflow)
       setSelectedContentId(null)
     }
-    const newWorkflow = generateWorkflow(wClass, wRarity, loc?.sublocation_type === 'boss', weapon?.rolled_draws)
+    setShowAdvancePicker(true)
+  }
+
+  function handleAdvanceConfirm(pickedWeaponId: string, contentId: string) {
+    setShowAdvancePicker(false)
+    const cur = stateRef.current
+    const pickedWeapon = WEAPONS[pickedWeaponId] as WeaponInstance | undefined
+    const targetClass  = pickedWeapon?.weapon_class ?? 'straight_swords'
+    const targetRarity = pickedWeapon?.rarity       ?? 'common'
+
+    if (pickedWeaponId !== cur.equippedWeaponId) {
+      weaponWorkflows.current[cur.equippedWeaponId] = { workflow: cur.workflow, streak: cur.consistencyStreak }
+      dispatch({ type: 'SWITCH_WEAPON', weaponId: pickedWeaponId, weaponLevel: store.weapon_level[pickedWeaponId] ?? 0 })
+    }
+
+    const existingWorkflow = store.workflow_progress[contentId]
+    const newWorkflow = existingWorkflow
+      ?? generateWorkflow(targetClass, targetRarity, loc?.sublocation_type === 'boss', pickedWeapon?.rolled_draws)
+    const savedStreak = store.content_streak[contentId] ?? 0
+    setSelectedContentId(contentId)
+    store.setActiveContentId(contentId)
+    dispatch({ type: 'SWITCH_WORKFLOW', workflow: newWorkflow, consistencyStreak: savedStreak })
+  }
+
+  function handleAdvanceClose() {
+    setShowAdvancePicker(false)
+    const cur = stateRef.current
+    const w = WEAPONS[cur.equippedWeaponId] as WeaponInstance | undefined
+    const newWorkflow = generateWorkflow(
+      w?.weapon_class ?? 'straight_swords',
+      w?.rarity ?? 'common',
+      loc?.sublocation_type === 'boss',
+      w?.rolled_draws,
+    )
     dispatch({ type: 'SWITCH_WORKFLOW', workflow: newWorkflow })
   }
 
@@ -647,6 +683,15 @@ export default function CombatScreen() {
             </div>
           </div>
         </div>
+      )}
+
+      {/* ── Advance picker — opened when the advance tile is clicked ───── */}
+      {showAdvancePicker && loc && (
+        <PreFightPicker
+          loc={loc}
+          onConfirm={handleAdvanceConfirm}
+          onCancel={handleAdvanceClose}
+        />
       )}
 
       {/* ── Fled overlay ───────────────────────────────────────────────── */}
