@@ -622,7 +622,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
       const newDoneCount = (campaign.done_count ?? 0) + 1
       const updated = { ...campaign, done_count: newDoneCount }
 
-      const freshCampaign = { ...generateWeaponCampaign(weapon), activated: false }
+      const freshCampaign = { ...generateWeaponCampaign(weapon), activated: false, ordinal: newDoneCount + 1 }
 
       return {
         weapon_campaigns: { ...s.weapon_campaigns, [weaponId]: freshCampaign },

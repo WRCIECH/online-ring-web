@@ -205,6 +205,7 @@ export interface WeaponCampaign {
   campaign_name?: string        // player-editable title
   activated?: boolean           // false = draft, true = counts toward overload penalty
   done_count?: number           // times finalized across all weapons; drives +5%/completion damage mult
+  ordinal?: number              // sequential number for this weapon (1 = first, 2 = after first finalization, …)
 }
 
 // ── Game state ────────────────────────────────────────────────────────────

@@ -367,6 +367,9 @@ export default function CampaignOverlay({ onClose }: Props) {
                   }).length
                   const overloadMult = calcCampaignOverloadMult(activeCampaignCount, store.stats.END)
 
+                  const campaignOrdinal = campaign.ordinal ?? 1
+                  const defaultCampaignName = `Kampania #${campaignOrdinal} · ${localizeWeaponName(selectedWeapon, t)}`
+
                   const isFullyDefined = isCampaignFullyDefined(campaign)
                   const isActivated = campaign.activated === true
 
@@ -400,7 +403,7 @@ export default function CampaignOverlay({ onClose }: Props) {
                               ref={nameInputRef}
                               className={s.comboboxInput}
                               value={nameVal}
-                              placeholder={(t.ui as Record<string, string>).campaign_name_placeholder ?? 'Name this campaign…'}
+                              placeholder={defaultCampaignName}
                               onChange={e => setNameVal(e.target.value)}
                               onBlur={() => saveNameAndClose(weaponId)}
                               onKeyDown={e => {
@@ -431,7 +434,7 @@ export default function CampaignOverlay({ onClose }: Props) {
                             className={campaign.campaign_name ? s.campaignNameSet : s.campaignNameEmpty}
                             onClick={() => { setNameVal(campaign.campaign_name ?? ''); setNameOpen(true) }}
                           >
-                            {campaign.campaign_name || ((t.ui as Record<string, string>).campaign_name_placeholder ?? 'Name this campaign…')}
+                            {campaign.campaign_name || defaultCampaignName}
                           </span>
                         )}
                       </div>
