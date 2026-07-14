@@ -372,6 +372,20 @@
 .badgeActive:hover::after,
 .badgeDebuff:hover::after { opacity: 1; }
 
+.badgeStack {
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 1px;
+}
+
+.badgeDetail {
+  font-size: 0.60rem;
+  font-weight: 400;
+  letter-spacing: 0.02em;
+  opacity: 0.65;
+  white-space: nowrap;
+}
+
 .badgeInactive {}
 
 /* Transparent full-screen backdrop — closes dropdown on outside click */

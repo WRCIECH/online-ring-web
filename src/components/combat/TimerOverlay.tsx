@@ -103,10 +103,14 @@ export default function TimerOverlay({ state, dispatch, contentName }: Props) {
                   return (
                     <span
                       key={m.key}
-                      className={m.value >= 1.0 ? s.badgeActive : s.badgeDebuff}
+                      className={[
+                        m.value >= 1.0 ? s.badgeActive : s.badgeDebuff,
+                        m.detail ? s.badgeStack : '',
+                      ].filter(Boolean).join(' ')}
                       data-tooltip={desc || undefined}
                     >
-                      {label} {formatMultiplierPct(m.value)}
+                      <span>{label} {formatMultiplierPct(m.value)}</span>
+                      {m.detail && <span className={s.badgeDetail}>{m.detail}</span>}
                     </span>
                   )
                 })}
