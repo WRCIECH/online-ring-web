@@ -1,6 +1,6 @@
 import type {
   WeaponClass, WeaponRarity, AtomicStage, WorkflowTile, WorkflowEdge, WorkflowGraph, RolledPatternDraws,
-  ContentProductType, AtomicOrigin, EmotionType,
+  ContentProductType, AtomicOrigin, EmotionType, StyleType,
 } from '../../types/game'
 import type { PatternStep } from './weaponPatterns'
 import { WEAPON_PATTERNS, drawKindOf } from './weaponPatterns'
@@ -150,7 +150,7 @@ function compilePhase(step: { stage: AtomicStage; min: number; max: number }, ct
   ctx.lastResearchBlockTileIds = step.stage === 'Research' ? newTiles.map(t => t.id) : null
 }
 
-type DrawValue = ContentProductType | AtomicOrigin | EmotionType
+type DrawValue = ContentProductType | AtomicOrigin | EmotionType | StyleType
 
 // Shared tail for every draw kind: format/transformation also retag the
 // preceding Research block (and require one to exist — a structural
@@ -283,7 +283,7 @@ function legacyResolveKind(cls: WeaponClassDef, kind: SlotKind): DrawValue | nul
     return pool[Math.floor(Math.random() * pool.length)]
   }
   if (kind === 'transformation') return resolveTransformation(cls)
-  if (kind === 'style') return resolveStyle(cls, 1)
+  if (kind === 'style') return null  // style removed from workflow tiles
   return resolveEmotion(cls, 1)
 }
 
