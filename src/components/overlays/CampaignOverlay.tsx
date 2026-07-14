@@ -176,7 +176,9 @@ export default function CampaignOverlay({ onClose }: Props) {
   // Auto-generate campaign when selecting a weapon that has none
   useEffect(() => {
     if (selectedWeaponId && !store.weapon_campaigns[selectedWeaponId]) {
-      store.assignCampaignToWeapon(selectedWeaponId)
+      const w = store.weapon_instances.find(wi => wi.instance_id === selectedWeaponId)
+      const defaultName = w ? `Kampania #1 · ${localizeWeaponName(w, t)}` : undefined
+      store.assignCampaignToWeapon(selectedWeaponId, defaultName)
     }
   }, [selectedWeaponId]) // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -369,6 +371,7 @@ export default function CampaignOverlay({ onClose }: Props) {
 
                   const campaignOrdinal = campaign.ordinal ?? 1
                   const defaultCampaignName = `Kampania #${campaignOrdinal} · ${localizeWeaponName(selectedWeapon, t)}`
+                  const nextCampaignName = `Kampania #${campaignOrdinal + 1} · ${localizeWeaponName(selectedWeapon, t)}`
 
                   const isFullyDefined = isCampaignFullyDefined(campaign)
                   const isActivated = campaign.activated === true
@@ -470,7 +473,7 @@ export default function CampaignOverlay({ onClose }: Props) {
                               <button
                                 className={s.btnFinalizeConfirm}
                                 onClick={() => {
-                                  store.finalizeCampaign(weaponId)
+                                  store.finalizeCampaign(weaponId, nextCampaignName)
                                   setConfirmFinalize(false)
                                 }}
                               >

@@ -279,7 +279,7 @@ export interface GameStore extends GameState {
   initClass: (classId: string) => void
 
   // Campaign (per weapon)
-  assignCampaignToWeapon:       (weaponId: string) => void
+  assignCampaignToWeapon:       (weaponId: string, defaultName?: string) => void
   renameCampaignNode:           (weaponId: string, nodeId: string, name: string) => void
   completeCampaignNode:         (weaponId: string, nodeId: string, workflow: WorkflowGraph) => void
   publishCampaignNode:          (weaponId: string, nodeId: string) => void
@@ -292,7 +292,7 @@ export interface GameStore extends GameState {
   // Learning items
 
   // Campaign finalization
-  finalizeCampaign: (weaponId: string) => void
+  finalizeCampaign: (weaponId: string, freshCampaignName?: string) => void
 
   // External rewards
   addReward:    (tier: RewardTier) => void
@@ -513,10 +513,10 @@ export const useGameStore = create<GameStore>((set, get) => ({
     get().save()
   },
 
-  assignCampaignToWeapon: (weaponId) => {
+  assignCampaignToWeapon: (weaponId, defaultName) => {
     const weapon = get().weapon_instances.find(w => w.instance_id === weaponId)
     if (!weapon) return
-    const campaign = { ...generateWeaponCampaign(weapon), activated: false }
+    const campaign = { ...generateWeaponCampaign(weapon), activated: false, campaign_name: defaultName }
     set(s => ({ weapon_campaigns: { ...s.weapon_campaigns, [weaponId]: campaign } }))
     get().save()
   },
@@ -603,7 +603,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
     get().save()
   },
 
-  finalizeCampaign: (weaponId) => {
+  finalizeCampaign: (weaponId, freshCampaignName) => {
     set(s => {
       const campaign = s.weapon_campaigns[weaponId]
       if (!campaign || !campaign.completed) return s
@@ -622,7 +622,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
       const newDoneCount = (campaign.done_count ?? 0) + 1
       const updated = { ...campaign, done_count: newDoneCount }
 
-      const freshCampaign = { ...generateWeaponCampaign(weapon), activated: false, ordinal: newDoneCount + 1 }
+      const freshCampaign = { ...generateWeaponCampaign(weapon), activated: false, ordinal: newDoneCount + 1, campaign_name: freshCampaignName }
 
       return {
         weapon_campaigns: { ...s.weapon_campaigns, [weaponId]: freshCampaign },
