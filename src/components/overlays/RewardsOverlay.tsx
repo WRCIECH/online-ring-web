@@ -70,50 +70,67 @@ export default function RewardsOverlay({ onClose }: Props) {
 
         <hr className={s.sep} />
 
-        <div className={s.grid}>
+        <div className={s.list}>
           {ALL_TIERS.map(tier => {
-            const count   = store.rewards[tier] ?? 0
-            const canUse  = count >= 1
-            const canMerg = CAN_MERGE[tier] && count >= 3
+            const count    = store.rewards[tier] ?? 0
+            const usedCount = (store.reward_used_count ?? {})[tier] ?? 0
+            const canUse   = count >= 1
+            const canMerg  = CAN_MERGE[tier] && count >= 3
             const isEditing  = editingTier === tier
             const isConfirm  = confirmUse === tier
-            const colour  = TIER_COLOUR[tier]
+            const colour   = TIER_COLOUR[tier]
 
             return (
-              <div key={tier} className={s.card} style={{ borderColor: colour + '44' }}>
-                <div className={s.cardTop}>
+              <div
+                key={tier}
+                className={[s.row, canUse ? s.rowActive : ''].filter(Boolean).join(' ')}
+                style={{ borderColor: canUse ? colour + '66' : colour + '22' }}
+              >
+                {/* Tier badge + count */}
+                <div className={s.tierCell}>
                   <span className={s.tierBadge} style={{ color: colour, borderColor: colour + '66' }}>
                     {tier}
                   </span>
-                  <span className={s.count}>×{count}</span>
+                  <span className={s.count} style={{ color: canUse ? colour : 'var(--color-text-dim)' }}>
+                    ×{count}
+                  </span>
                 </div>
 
-                {isEditing ? (
-                  <input
-                    ref={inputRef}
-                    className={s.nameInput}
-                    value={editingVal}
-                    placeholder={defaultName(tier)}
-                    onChange={e => setEditingVal(e.target.value)}
-                    onBlur={() => saveEdit(tier)}
-                    onKeyDown={e => {
-                      if (e.key === 'Enter')  saveEdit(tier)
-                      if (e.key === 'Escape') { setEditingTier(null); setEditingVal('') }
-                    }}
-                  />
-                ) : (
-                  <button
-                    className={s.nameBtn}
-                    title={t.ui.reward_click_rename ?? 'Click to rename'}
-                    onClick={() => startEdit(tier)}
-                  >
-                    {displayName(tier)}
-                  </button>
-                )}
+                {/* Name */}
+                <div className={s.nameCell}>
+                  {isEditing ? (
+                    <input
+                      ref={inputRef}
+                      className={s.nameInput}
+                      value={editingVal}
+                      placeholder={defaultName(tier)}
+                      onChange={e => setEditingVal(e.target.value)}
+                      onBlur={() => saveEdit(tier)}
+                      onKeyDown={e => {
+                        if (e.key === 'Enter')  saveEdit(tier)
+                        if (e.key === 'Escape') { setEditingTier(null); setEditingVal('') }
+                      }}
+                    />
+                  ) : (
+                    <button
+                      className={[s.nameBtn, canUse ? s.nameBtnActive : ''].filter(Boolean).join(' ')}
+                      title={t.ui.reward_click_rename ?? 'Click to rename'}
+                      onClick={() => startEdit(tier)}
+                    >
+                      {displayName(tier)}
+                    </button>
+                  )}
+                  {usedCount > 0 && (
+                    <span className={s.usedCount}>
+                      {t.ui.reward_used_times ?? 'used'} ×{usedCount}
+                    </span>
+                  )}
+                </div>
 
+                {/* Actions */}
                 <div className={s.actions}>
                   <button
-                    className={[s.btn, isConfirm ? s.btnConfirm : ''].filter(Boolean).join(' ')}
+                    className={[s.btn, isConfirm ? s.btnConfirm : '', canUse ? s.btnCanUse : ''].filter(Boolean).join(' ')}
                     disabled={!canUse}
                     onClick={() => handleUse(tier)}
                     onBlur={() => setConfirmUse(null)}

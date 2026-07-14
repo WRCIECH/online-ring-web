@@ -357,6 +357,7 @@ const en: TranslationBundle = {
     reward_merge:        'Merge ×3',
     reward_earned:       'Reward earned:',
     reward_click_rename: 'Click to rename',
+    reward_used_times:   'used',
     btn_finalize_campaign:   'Mark as Done',
     btn_finalize_confirm:    'Confirm?',
     campaign_done_count:     'Completed',

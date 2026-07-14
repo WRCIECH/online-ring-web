@@ -257,6 +257,7 @@ export interface GameState {
   // External rewards
   rewards: Record<RewardTier, number>
   reward_names: Partial<Record<RewardTier, string>>
+  reward_used_count: Partial<Record<RewardTier, number>>
   // Unconsumed Superhit/promote charges carried over when a campaign is finalized
   weapon_pending_superhits: Record<string, number>
 }

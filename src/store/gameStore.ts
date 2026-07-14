@@ -230,6 +230,7 @@ function initialState(): GameState {
     locale: 'pl',
     rewards: { C: 0, B1: 0, B2: 0, A1: 0, A2: 0, S: 0 },
     reward_names: {},
+    reward_used_count: {},
     weapon_pending_superhits: {},
   }
 }
@@ -697,7 +698,10 @@ export const useGameStore = create<GameStore>((set, get) => ({
     set(s => {
       const cur = s.rewards[tier] ?? 0
       if (cur <= 0) return s
-      return { rewards: { ...s.rewards, [tier]: cur - 1 } }
+      return {
+        rewards: { ...s.rewards, [tier]: cur - 1 },
+        reward_used_count: { ...(s.reward_used_count ?? {}), [tier]: ((s.reward_used_count ?? {})[tier] ?? 0) + 1 },
+      }
     })
     get().save()
   },

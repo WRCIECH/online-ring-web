@@ -352,6 +352,7 @@ const pl: TranslationBundle = {
     reward_merge:        'Połącz ×3',
     reward_earned:       'Zdobyta nagroda:',
     reward_click_rename: 'Kliknij, aby zmienić nazwę',
+    reward_used_times:   'użyto',
     btn_finalize_campaign:   'Oznacz jako ukończone',
     btn_finalize_confirm:    'Potwierdzić?',
     campaign_done_count:     'Ukończone',
