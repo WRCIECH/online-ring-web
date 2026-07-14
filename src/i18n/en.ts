@@ -287,6 +287,7 @@ const en: TranslationBundle = {
     task_time:               'Task time',
     heat_limit:              'Heat limit',
     working_on:              'Working on:',
+    required_format:         'Required format',
     none_option:             '— None —',
     unnamed_item:            '(unnamed)',
     boss_publish_title:      'Publish to Seal the Victory',

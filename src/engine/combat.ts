@@ -48,8 +48,9 @@ export interface CombatState {
   timerExpired: boolean
   // Rune reward — set once, from the defeated enemy's rune_reward, on VICTORY
   runesEarned: number
-  // Flow bonus (time since last fight)
+  // Flow bonus — snapped at START_TIMER so "starting work" governs, not accomplishing
   flowMult: number
+  lastFightEndedAt?: number   // stored so START_TIMER can recompute flowMult
   // Location theme bonus
   locationTheme?: LocationTheme
   // Log
@@ -254,6 +255,7 @@ export function initCombatState(
   campaignOverloadMult = 1.0,
   campaignDoneMult = 1.0,
   initialStreak = 0,
+  lastFightEndedAt?: number,
 ): CombatState {
   // Derive boss version when the encounter is a boss slot but the enemy entry
   // is a regular mob — scale HP ×2 and swap in the boss display name.
@@ -282,6 +284,7 @@ export function initCombatState(
     stepStarted: false, timerExpired: false,
     runesEarned: 0,
     flowMult,
+    lastFightEndedAt,
     locationTheme,
     log: [], logId: 0,
   }
@@ -339,7 +342,8 @@ export function combatReducer(state: CombatState, action: CombatAction): CombatS
     }
 
     case 'START_TIMER':
-      return { ...state, stepStarted: true }
+      // Recompute flow at the moment work starts, not at fight entry
+      return { ...state, stepStarted: true, flowMult: calcFlowMult(state.lastFightEndedAt) }
 
     case 'TICK': {
       if (!state.stepStarted || state.timerExpired) return state

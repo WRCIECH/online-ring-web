@@ -121,6 +121,7 @@ export default function CombatScreen() {
         campaignOverloadMult,
         campaignDoneMult,
         initialStreak,
+        store.last_fight_ended_at,
       )
     }
   )
@@ -473,21 +474,32 @@ export default function CombatScreen() {
         const parentNode = parentEdge
           ? currentCampaign?.nodes.find(n => n.id === parentEdge.from_id)
           : null
+        const primaryFormat = (WEAPONS[state.equippedWeaponId] as WeaponInstance | undefined)
+          ?.rolled_draws?.format[0]?.[0]
+        const formatLabel = primaryFormat
+          ? (t.content.product[primaryFormat]?.badge_label ?? primaryFormat)
+          : null
         return (
           <div className={s.contentBar}>
             <div className={s.contentBarRow1}>
               <span className={s.contentBarLabel}>{t.ui.working_on}</span>
-              {currentCampaign?.campaign_name && (
-                <span className={s.contentBarCampaign}>{currentCampaign.campaign_name}</span>
-              )}
-              {currentCampaign?.campaign_name && <span className={s.contentBarSep}>·</span>}
               <span className={s.contentBarTitle}>{selectedContent.name}</span>
+              {currentCampaign?.campaign_name && (
+                <span className={s.contentBarCampaign}>— {currentCampaign.campaign_name}</span>
+              )}
             </div>
-            {edgeLabelText && (
+            {(formatLabel || edgeLabelText) && (
               <div className={s.contentBarRow2}>
-                <span className={s.contentBarRelation}>
-                  ↳ {edgeLabelText}{parentNode?.name ? ` from "${parentNode.name}"` : ''}
-                </span>
+                {formatLabel && (
+                  <span className={s.contentBarFormat}>
+                    {t.ui.required_format ?? 'Format'}: <strong>{formatLabel}</strong>
+                  </span>
+                )}
+                {edgeLabelText && (
+                  <span className={s.contentBarRelation}>
+                    {formatLabel ? ' · ' : ''}↳ {edgeLabelText}{parentNode?.name ? ` from "${parentNode.name}"` : ''}
+                  </span>
+                )}
               </div>
             )}
           </div>

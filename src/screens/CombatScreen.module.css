@@ -66,6 +66,16 @@
   color: var(--color-accent-dim);
 }
 
+.contentBarFormat {
+  font-size: 0.72rem;
+  color: var(--color-text-dim);
+  letter-spacing: 0.03em;
+}
+.contentBarFormat strong {
+  color: #88bbdd;
+  font-weight: 600;
+}
+
 .contentBarRelation {
   font-size: 0.68rem;
   color: rgba(160, 140, 220, 0.5);

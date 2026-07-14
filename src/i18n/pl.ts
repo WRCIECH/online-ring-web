@@ -282,6 +282,7 @@ const pl: TranslationBundle = {
     task_time:               'Czas zadania',
     heat_limit:              'Limit nagrzania',
     working_on:              'Pracujesz nad:',
+    required_format:         'Wymagany format',
     none_option:             '— Żaden —',
     unnamed_item:            '(bez nazwy)',
     boss_publish_title:      'Opublikuj, by przypieczętować zwycięstwo',
