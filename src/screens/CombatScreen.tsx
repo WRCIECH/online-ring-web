@@ -264,9 +264,14 @@ export default function CombatScreen() {
     const cur = stateRef.current
     if (contentId === selectedContentId && weaponId === cur.equippedWeaponId) return
 
-    // Save outgoing content's progress before leaving
+    // Persist outgoing content to both in-memory cache and the store so progress
+    // survives even if this component unmounts before the player switches back.
+    // saveWorkflowProgress reads active_content_id from the store, which still
+    // points to the outgoing content at this point (we update it below).
     if (selectedContentId) {
       contentCache.current[selectedContentId] = { workflow: cur.workflow, streak: cur.consistencyStreak }
+      store.saveWorkflowProgress(cur.workflow)
+      store.saveContentStreak(selectedContentId, cur.consistencyStreak)
     }
 
     if (weaponId !== cur.equippedWeaponId) {
