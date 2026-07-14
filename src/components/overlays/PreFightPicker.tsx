@@ -16,10 +16,10 @@ export default function PreFightPicker({ loc, onConfirm, onCancel }: Props) {
   const store = useGameStore()
   const t = useT()
 
-  // Weapons that have at least one available, named, incomplete node
+  // Weapons that have an activated campaign with at least one available, named, incomplete node
   const eligibleWeapons = store.weapon_instances.filter(w => {
     const c = store.weapon_campaigns[w.instance_id]
-    if (!c) return false
+    if (!c || !c.activated) return false
     return c.nodes.some(n => !n.completed && n.name.trim() !== '' && isNodeAvailable(c.nodes, c.edges, n))
   })
 

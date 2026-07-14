@@ -477,7 +477,7 @@ const en: TranslationBundle = {
     prefight_weapon_label:      'Weapon',
     prefight_content_label:     'Content piece',
     prefight_enter:             'Enter Fight',
-    prefight_no_weapons:        'No weapons with active campaign content. Open the Campaign panel and name your content nodes.',
+    prefight_no_weapons:        'No weapons with an activated campaign. Open the Campaign panel, activate a campaign, and name your content nodes.',
     prefight_select_weapon_first: 'Select a weapon first.',
     prefight_no_nodes:          'No available content nodes for this weapon.',
     prefight_badge_resume:      'Resume',

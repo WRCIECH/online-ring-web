@@ -54,10 +54,10 @@ export default function CombatScreen() {
 
   const enemyData = loc ? ENEMIES[loc.enemy_id] : null
 
-  // ── Weapons available in combat: campaign exists AND all available nodes are named ──
+  // ── Weapons available in combat: activated campaign with named available nodes ──
   const weaponsWithContent = store.weapon_instances.filter(w => {
     const c = store.weapon_campaigns[w.instance_id]
-    if (!c) return false
+    if (!c || !c.activated) return false
     const available = c.nodes.filter(n => !n.completed && isNodeAvailable(c.nodes, c.edges, n))
     return available.length > 0 && available.every(n => n.name.trim() !== '')
   })

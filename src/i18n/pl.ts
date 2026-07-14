@@ -472,7 +472,7 @@ const pl: TranslationBundle = {
     prefight_weapon_label:      'Broń',
     prefight_content_label:     'Treść',
     prefight_enter:             'Wejdź do walki',
-    prefight_no_weapons:        'Brak broni z aktywnymi treściami. Otwórz panel Kampanii i nazwij węzły treści.',
+    prefight_no_weapons:        'Brak broni z aktywowaną kampanią. Otwórz panel Kampanii, aktywuj kampanię i nazwij węzły treści.',
     prefight_select_weapon_first: 'Najpierw wybierz broń.',
     prefight_no_nodes:          'Brak dostępnych węzłów dla tej broni.',
     prefight_badge_resume:      'Wznów',
