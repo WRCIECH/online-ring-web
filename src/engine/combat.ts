@@ -160,6 +160,7 @@ export interface DamageMultiplier {
   key:    string
   value:  number    // multiplicative factor; <1 is a penalty, >1 is a bonus
   active: boolean
+  detail?: string   // optional per-component breakdown shown in smaller text
 }
 
 export function formatMultiplierPct(value: number): string {
@@ -187,11 +188,21 @@ export function previewMove(state: CombatState, tile: WorkflowTile, move: MoveTy
   const finisherMult   = wouldFinishAll ? FINISHER_MULT : 1.0
   // Streak, flow, theme, and campaignDone pool their bonuses additively to prevent
   // exponential stacking — each adds a % on top of a shared base instead of compounding.
-  const bonusPool = Math.min(0.5, 0.05 * state.consistencyStreak)
-                  + (state.flowMult - 1)
-                  + (rawTheme - 1)
-                  + (state.campaignDoneMult - 1)
-  const rewardMult = 1 + bonusPool
+  const streakBonus   = Math.min(0.5, 0.05 * state.consistencyStreak)
+  const flowBonus     = state.flowMult - 1
+  const themeBonus    = rawTheme - 1
+  const campaignBonus = state.campaignDoneMult - 1
+  const bonusPool     = streakBonus + flowBonus + themeBonus + campaignBonus
+  const rewardMult    = 1 + bonusPool
+
+  function fmtBonusPct(v: number) { return `+${Math.round(v * 100)}%` }
+  const bonusDetail = [
+    streakBonus   > 0 ? `${fmtBonusPct(streakBonus)} streak`   : null,
+    flowBonus     > 0 ? `${fmtBonusPct(flowBonus)} flow`       : null,
+    themeBonus    > 0 ? `${fmtBonusPct(themeBonus)} theme`     : null,
+    campaignBonus > 0 ? `${fmtBonusPct(campaignBonus)} done`   : null,
+  ].filter(Boolean).join(' · ')
+
   const damage         = Math.round(
     repeatDamage * (1 - repeatPenalty) * (1 - state.incomingPenalty)
       * state.campaignOverloadMult
@@ -203,7 +214,7 @@ export function previewMove(state: CombatState, tile: WorkflowTile, move: MoveTy
     { key: 'repeatScaling',     value: 1 - repeatPenalty,              active: repeatPenalty > 0 },
     { key: 'abandon',           value: 1 - state.incomingPenalty,      active: state.incomingPenalty > 0 },
     { key: 'campaignOverload',  value: state.campaignOverloadMult,     active: state.campaignOverloadMult < 1.0 },
-    { key: 'bonusPool',         value: rewardMult,                     active: rewardMult > 1.0 },
+    { key: 'bonusPool',         value: rewardMult,                     active: rewardMult > 1.0, detail: bonusDetail || undefined },
     { key: 'affinity',          value: affinityMult,                   active: affinityMult !== 1.0 },
     { key: 'finisher',          value: FINISHER_MULT,                  active: wouldFinishAll },
   ]

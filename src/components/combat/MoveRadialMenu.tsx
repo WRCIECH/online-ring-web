@@ -5,7 +5,7 @@ export interface RadialMoveItem {
   id: string
   label: string
   sublabel?: string
-  metaParts: Array<{ text: string; color?: string; tooltip?: string }>
+  metaParts: Array<{ text: string; color?: string; tooltip?: string; subtext?: string }>
   colorVar: string
   tx: number
   ty: number
@@ -101,11 +101,16 @@ export default function MoveRadialMenu({ x, y, items, onClose }: Props) {
               <span
                 key={i}
                 style={p.color ? { color: p.color } : undefined}
-                className={[s.metaBadge, p.tooltip ? s.metaHoverable : ''].filter(Boolean).join(' ')}
+                className={[
+                  s.metaBadge,
+                  p.tooltip   ? s.metaHoverable  : '',
+                  p.subtext   ? s.metaBadgeStack  : '',
+                ].filter(Boolean).join(' ')}
                 onMouseEnter={() => handleMetaEnter(p.tooltip)}
                 onMouseLeave={handleMetaLeave}
               >
-                {p.text}
+                <span>{p.text}</span>
+                {p.subtext && <span className={s.metaSubtext}>{p.subtext}</span>}
               </span>
             ))}
           </div>

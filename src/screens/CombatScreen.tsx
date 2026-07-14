@@ -407,6 +407,7 @@ export default function CombatScreen() {
           ...preview.multipliers.filter(m => m.active).map(m => ({
             text:    `${(t.ui as Record<string,string>)[`mult_${m.key}`] ?? m.key} ${formatMultiplierPct(m.value)}`,
             tooltip: (t.ui as Record<string,string>)[`mult_${m.key}_desc`],
+            subtext: m.detail,
           })),
         ],
         colorVar: def.colorVar,
