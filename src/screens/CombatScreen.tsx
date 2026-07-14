@@ -268,10 +268,11 @@ export default function CombatScreen() {
     // survives even if this component unmounts before the player switches back.
     // saveWorkflowProgress reads active_content_id from the store, which still
     // points to the outgoing content at this point (we update it below).
+    // Streak resets to 0 on switch — mirroring what SWITCH_WORKFLOW does in combat state.
     if (selectedContentId) {
-      contentCache.current[selectedContentId] = { workflow: cur.workflow, streak: cur.consistencyStreak }
+      contentCache.current[selectedContentId] = { workflow: cur.workflow, streak: 0 }
       store.saveWorkflowProgress(cur.workflow)
-      store.saveContentStreak(selectedContentId, cur.consistencyStreak)
+      store.saveContentStreak(selectedContentId, 0)
     }
 
     if (weaponId !== cur.equippedWeaponId) {
