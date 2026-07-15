@@ -1,6 +1,8 @@
 import { useState } from 'react'
 import { ContentRegistry } from '../../data/contentProducts'
 import { STAGE_TIME } from '../../data/generators/workflowGenerator'
+import { WEAPON_CLASSES, ALL_WEAPON_CLASSES } from '../../data/generators/weaponClasses'
+import WeaponIcon from '../WeaponIcon'
 import {
   HEAVY_TIME_BONUS, FINISHER_MULT,
   FLOW_MULT_HOT, FLOW_MULT_WARM, FLOW_GAP_HOT_MINS, FLOW_GAP_WARM_MINS,
@@ -11,7 +13,7 @@ import { useT } from '../../i18n'
 import type { ContentTransformation } from '../../types/game'
 import s from './CodexOverlay.module.css'
 
-type Tab = 'formats' | 'transformations' | 'stages' | 'multipliers'
+type Tab = 'formats' | 'transformations' | 'stages' | 'multipliers' | 'weapons'
 
 const CATEGORY_ORDER = ['Text', 'Visual', 'Audio', 'Video', 'Hybrid', 'Exotic'] as const
 
@@ -66,7 +68,7 @@ export default function CodexOverlay({ onClose }: Props) {
         </div>
 
         <div className={s.tabs}>
-          {(['formats', 'transformations', 'stages', 'multipliers'] as Tab[]).map(k => (
+          {(['formats', 'transformations', 'stages', 'multipliers', 'weapons'] as Tab[]).map(k => (
             <button
               key={k}
               className={[s.tabBtn, tab === k ? s.tabBtnActive : ''].filter(Boolean).join(' ')}
@@ -178,6 +180,38 @@ export default function CodexOverlay({ onClose }: Props) {
                   </div>
                 ))}
               </div>
+            </div>
+          )}
+          {/* ── WEAPONS ── */}
+          {tab === 'weapons' && (
+            <div className={s.listWrap}>
+              {ALL_WEAPON_CLASSES.map(wc => {
+                const cls = WEAPON_CLASSES[wc]
+                const wt = (t.weapons as Record<string, { name: string; description: string }>)[wc]
+                const scalingEntries = Object.entries(cls.scaling)
+                return (
+                  <div key={wc} className={s.weaponEntry}>
+                    <div className={s.weaponIcon}>
+                      <WeaponIcon weaponClass={wc} className={s.weaponSvg} />
+                    </div>
+                    <div className={s.weaponInfo}>
+                      <div className={s.entryTop}>
+                        <span className={s.entryName}>{wt?.name ?? wc}</span>
+                        <span className={s.poiseChip}>{cls.poise_weight}</span>
+                        <span className={s.dmgChip}>×{cls.base_damage_mult}</span>
+                      </div>
+                      <div className={s.entryDesc}>{wt?.description}</div>
+                      {scalingEntries.length > 0 && (
+                        <div className={s.scalingRow}>
+                          {scalingEntries.map(([stat, grade]) => (
+                            <span key={stat} className={s.scalingChip}>{stat} {grade}</span>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )
+              })}
             </div>
           )}
         </div>

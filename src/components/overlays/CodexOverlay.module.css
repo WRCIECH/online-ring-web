@@ -208,6 +208,77 @@
   font-variant-numeric: tabular-nums;
 }
 
+/* ── Weapon entries ── */
+
+.weaponEntry {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 7px 4px;
+  border-bottom: 1px solid rgba(255,255,255,0.04);
+}
+
+.weaponIcon {
+  width: 24px;
+  flex-shrink: 0;
+  color: var(--color-text-dim, #aaa8cc);
+  opacity: 0.7;
+  padding-top: 2px;
+}
+
+.weaponSvg {
+  width: 24px;
+  height: 42px;
+  display: block;
+}
+
+.weaponInfo {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+
+.poiseChip {
+  font-size: 0.58rem;
+  padding: 1px 5px;
+  border-radius: 3px;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.10);
+  color: var(--color-text-dim, #aaa8cc);
+  flex-shrink: 0;
+  text-transform: capitalize;
+}
+
+.dmgChip {
+  font-size: 0.58rem;
+  padding: 1px 5px;
+  border-radius: 3px;
+  background: rgba(80,200,120,0.08);
+  border: 1px solid rgba(80,200,120,0.18);
+  color: #88dd99;
+  flex-shrink: 0;
+  font-variant-numeric: tabular-nums;
+}
+
+.scalingRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 1px;
+}
+
+.scalingChip {
+  font-size: 0.58rem;
+  padding: 1px 5px;
+  border-radius: 3px;
+  background: rgba(130,100,220,0.10);
+  border: 1px solid rgba(130,100,220,0.20);
+  color: var(--color-accent, #8264dc);
+  font-variant-numeric: tabular-nums;
+}
+
 .multValuePenalty {
   font-size: 0.65rem;
   padding: 1px 7px;

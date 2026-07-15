@@ -359,6 +359,7 @@ const pl: TranslationBundle = {
     codex_tab_transformations: 'Transformacje',
     codex_tab_stages:         'Etapy',
     codex_tab_multipliers:    'Mnożniki',
+    codex_tab_weapons:        'Klasy broni',
     codex_bonuses:            'Bonusy',
     codex_penalties:          'Kary',
     rewards_title:       'NAGRODY',

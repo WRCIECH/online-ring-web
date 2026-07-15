@@ -364,6 +364,7 @@ const en: TranslationBundle = {
     codex_tab_transformations: 'Transformations',
     codex_tab_stages:         'Stages',
     codex_tab_multipliers:    'Multipliers',
+    codex_tab_weapons:        'Weapon Classes',
     codex_bonuses:            'Bonuses',
     codex_penalties:          'Penalties',
     rewards_title:       'REWARDS',
