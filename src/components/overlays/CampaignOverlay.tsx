@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from 'react'
 import { useGameStore } from '../../store/gameStore'
 import { isNodeAvailable } from '../../data/generators/campaignGenerator'
-import { calcCampaignOverloadMult, isCampaignFullyDefined } from '../../engine/combat'
+import { calcCampaignOverloadMult, countActiveCampaigns, isCampaignFullyDefined } from '../../engine/combat'
 import { LEVEL_MULT, weaponUpgradeCost, calcWeaponScaledDamage } from '../../data/weapons'
 import { WEAPON_CLASSES } from '../../data/generators/weaponClasses'
 import { WEAPON_SELL_PRICE } from '../../data/constants'
@@ -179,6 +179,7 @@ export default function CampaignOverlay({ onClose }: Props) {
   // Activate confirmation
   const [showActivateConfirm, setShowActivateConfirm] = useState(false)
   const [confirmFinalize, setConfirmFinalize] = useState(false)
+  const [confirmDetachId, setConfirmDetachId] = useState<string | null>(null)
   // Weapon actions
   const [confirmSellId,    setConfirmSellId]    = useState<string | null>(null)
   const [confirmUpgradeId, setConfirmUpgradeId] = useState<string | null>(null)
@@ -204,6 +205,7 @@ export default function CampaignOverlay({ onClose }: Props) {
   useEffect(() => {
     setShowActivateConfirm(false)
     setConfirmFinalize(false)
+    setConfirmDetachId(null)
     setNameOpen(false)
     setEditingNodeId(null)
     setConfirmSellId(null)
@@ -387,10 +389,7 @@ export default function CampaignOverlay({ onClose }: Props) {
                   const needMore       = Math.max(0, targetPublished - publishedCount)
                   const weaponId = selectedWeapon.instance_id
 
-                  const activeCampaignCount = store.owned_weapons.filter(w => {
-                    const c = store.weapon_campaigns[w]
-                    return c && c.activated === true && !c.completed
-                  }).length
+                  const activeCampaignCount = countActiveCampaigns(store.weapon_campaigns, store.owned_weapons)
                   const overloadMult = calcCampaignOverloadMult(activeCampaignCount, store.stats.END)
 
                   const campaignOrdinal = campaign.ordinal ?? 1
@@ -562,6 +561,34 @@ export default function CampaignOverlay({ onClose }: Props) {
                           <span className={s.overloadOk}>
                             {activeCampaignCount} active · no penalty
                           </span>
+                        )}
+
+                        {!campaign.completed && (
+                          confirmDetachId === weaponId ? (
+                            <div className={s.detachConfirm}>
+                              <button
+                                className={s.btnDetachConfirm}
+                                onClick={() => {
+                                  store.detachCampaign(weaponId)
+                                  setConfirmDetachId(null)
+                                  setShowActivateConfirm(false)
+                                  setConfirmFinalize(false)
+                                }}
+                              >
+                                {(t.ui as Record<string, string>).btn_detach_confirm ?? 'Abandon?'}
+                              </button>
+                              <button className={s.btnActivateCancel} onClick={() => setConfirmDetachId(null)}>
+                                {t.ui.btn_cancel ?? 'Cancel'}
+                              </button>
+                            </div>
+                          ) : (
+                            <button
+                              className={s.btnDetach}
+                              onClick={() => setConfirmDetachId(weaponId)}
+                            >
+                              {(t.ui as Record<string, string>).btn_detach_campaign ?? 'Detach Campaign'}
+                            </button>
+                          )
                         )}
                       </div>
 

@@ -369,6 +369,8 @@ const pl: TranslationBundle = {
     reward_used_times:   'użyto',
     btn_finalize_campaign:   'Oznacz jako ukończone',
     btn_finalize_confirm:    'Potwierdzić?',
+    btn_detach_campaign:     'Odepnij kampanię',
+    btn_detach_confirm:      'Porzucić?',
     campaign_done_count:     'Ukończone',
     campaign_done_bonus:     'bonus dmg',
     mult_campaignDone:      'Mistrzostwo kampanii',

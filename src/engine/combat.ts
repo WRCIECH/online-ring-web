@@ -239,6 +239,16 @@ export function isCampaignFullyDefined(c: WeaponCampaign): boolean {
   )
 }
 
+export function countActiveCampaigns(
+  campaigns: Record<string, WeaponCampaign>,
+  ownedWeaponIds: string[],
+): number {
+  return ownedWeaponIds.filter(wid => {
+    const c = campaigns[wid]
+    return c && c.activated === true && !c.completed
+  }).length
+}
+
 export function calcCampaignOverloadMult(activeCampaigns: number, endurance: number): number {
   const excess = Math.max(0, activeCampaigns - 1)
   if (excess === 0) return 1.0

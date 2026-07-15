@@ -374,6 +374,8 @@ const en: TranslationBundle = {
     reward_used_times:   'used',
     btn_finalize_campaign:   'Mark as Done',
     btn_finalize_confirm:    'Confirm?',
+    btn_detach_campaign:     'Detach Campaign',
+    btn_detach_confirm:      'Abandon?',
     campaign_done_count:     'Completed',
     campaign_done_bonus:     'dmg bonus',
     mult_campaignDone:      'Campaign mastery',

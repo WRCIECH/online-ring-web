@@ -1,6 +1,6 @@
 import { useReducer, useEffect, useCallback, useState, useMemo, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { combatReducer, initCombatState, getReachableTiles, previewMove, formatMultiplierPct, calcTileDamage, calcFlowMult, calcCampaignOverloadMult, ABANDON_PENALTY } from '../engine/combat'
+import { combatReducer, initCombatState, getReachableTiles, previewMove, formatMultiplierPct, calcTileDamage, calcFlowMult, calcCampaignOverloadMult, countActiveCampaigns, ABANDON_PENALTY } from '../engine/combat'
 import { FLOW_GAP_HOT_MINS, FLOW_GAP_WARM_MINS } from '../data/constants'
 import { useGameStore, selectAvailableNodes } from '../store/gameStore'
 import { ENEMIES } from '../data/enemies'
@@ -99,10 +99,7 @@ export default function CombatScreen() {
       const workflow = (store.active_content_id ? store.workflow_progress[store.active_content_id] : undefined)
         ?? generateWorkflow(initialWeaponClass, initialWeaponRarity, spawnAsBoss, initialWeapon?.rolled_draws)
 
-      const activeCampaignCount = store.owned_weapons.filter(wid => {
-        const c = store.weapon_campaigns[wid]
-        return c && c.activated === true && !c.completed
-      }).length
+      const activeCampaignCount = countActiveCampaigns(store.weapon_campaigns, store.owned_weapons)
       const campaignOverloadMult = calcCampaignOverloadMult(activeCampaignCount, store.stats.END)
       const campaignDoneMult = 1.0 + 0.05 * (activeWeaponCampaign?.done_count ?? 0)
 
