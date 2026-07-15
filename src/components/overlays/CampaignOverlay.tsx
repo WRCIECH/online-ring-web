@@ -80,6 +80,22 @@ const LABEL_TOOLTIP: Record<string, string> = {
   Hope:          'Hope — inspirational, wholesome, motivational framing.',
   Fear:          'Fear — anxiety, doomscrolling, worst-case scenarios.',
   Desire:        'Desire — FOMO, urgency, scarcity, aspiration.',
+  // ContentTransformation — new types
+  Critique:       'Critique — critically analyzes an existing piece, exposing its weaknesses, flaws, or hidden assumptions.',
+  Follows:        'Follows — natural continuation of the parent piece, extending its story, series, or ongoing discussion.',
+  AudienceShift:  'Audience Shift — same core idea adapted to the needs and knowledge of a different target audience.',
+  DomainTransfer: 'Domain Transfer — existing idea transplanted into a completely different domain to reveal new applications.',
+  Synthesis:      'Synthesis — multiple related pieces combined into one coherent work with greater informational value.',
+  RemixFusion:    'Remix / Fusion — two or more independent ideas merged into a new, original creation.',
+  Split:          'Split — a larger piece broken into several standalone pieces, each focused on a different aspect.',
+  Evidence:       'Evidence — existing claims strengthened with additional data, research, examples, or supporting sources.',
+  Simplify:       'Simplify — same content rewritten with simpler language and more accessible examples.',
+  Technicalize:   'Technicalize — same content transformed into a more precise, detailed, specialist version.',
+  Localize:       'Localize — content adapted for a specific country, region, or culture while preserving the core idea.',
+  Socratic:       'Socratic — guides the audience through questions instead of answers, encouraging independent thinking.',
+  Analogy:        'Analogy — core idea explained through clear analogies, metaphors, and comparisons.',
+  FirstPrinciples:'First Principles — topic decomposed to its most fundamental assumptions and rebuilt from there.',
+  DataDriven:     'Data Driven — content based primarily on numbers, data, charts, and objective evidence rather than opinion.',
 }
 
 const FOLLOWS_TOOLTIP = 'Follows — this piece continues naturally from its parent in sequence or as a direct consequence. No specific transformation was applied.'

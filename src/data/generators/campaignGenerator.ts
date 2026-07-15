@@ -51,6 +51,9 @@ const GLOBAL_EDGE_POOL: ContentTransformation[] = [
   'Minimalism', 'Shock', 'Narration', 'Segmentation', 'Fast', 'Passion', 'Intellectual',
   'ProblemSolving', 'Estetic', 'Interactive', 'Cliffhanger', 'Viral', 'Controversy',
   'Comfort', 'Drama', 'Humor', 'Parasocial', 'Wow', 'Hope', 'Fear', 'Desire',
+  'Critique', 'Follows', 'AudienceShift', 'DomainTransfer', 'Synthesis', 'RemixFusion',
+  'Split', 'Evidence', 'Simplify', 'Technicalize', 'Localize', 'Socratic',
+  'Analogy', 'FirstPrinciples', 'DataDriven',
 ]
 
 const NODE_COUNT_BY_WEIGHT: Record<string, [number, number]> = {

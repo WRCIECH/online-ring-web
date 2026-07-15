@@ -14,6 +14,9 @@ export type ContentTransformation =
   | 'Passion' | 'Intellectual' | 'ProblemSolving' | 'Estetic' | 'Interactive' | 'Cliffhanger'
   | 'Viral' | 'Controversy' | 'Comfort' | 'Drama' | 'Humor'
   | 'Parasocial' | 'Wow' | 'Hope' | 'Fear' | 'Desire'
+  | 'Critique' | 'Follows' | 'AudienceShift' | 'DomainTransfer' | 'Synthesis'
+  | 'RemixFusion' | 'Split' | 'Evidence' | 'Simplify' | 'Technicalize'
+  | 'Localize' | 'Socratic' | 'Analogy' | 'FirstPrinciples' | 'DataDriven'
 
 export type EmotionType =
   | 'Viral' | 'Polarization' | 'Envy' | 'Controversion' | 'Comfort'
