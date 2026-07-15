@@ -3,25 +3,19 @@
 // use getT(locale).content.* from src/i18n/index.ts instead.
 
 import type { ContentEntry } from '../i18n/types'
-import type { AtomicOrigin, StyleType, EmotionType } from '../types/game'
+import type { ContentTransformation, EmotionType } from '../types/game'
 import en from '../i18n/en'
 
 export type { ContentEntry }
 
-export const CONTENT_ORIGIN_INFO = en.content.origin
-export const STYLE_INFO        = en.content.style
-export const EMOTION_INFO          = en.content.emotion
-export const STAGE_INFO           = en.content.stage
-export const PRODUCT_INFO         = en.content.product
+export const CONTENT_TRANSFORMATION_INFO = en.content.transformation
+export const EMOTION_INFO                = en.content.emotion
+export const STAGE_INFO                  = en.content.stage
+export const PRODUCT_INFO                = en.content.product
 
-// Backward-compatible string exports
-export const CONTENT_ORIGIN_LABELS = Object.fromEntries(
-  (Object.entries(CONTENT_ORIGIN_INFO) as [AtomicOrigin, ContentEntry][]).map(([k, v]) => [k, v.label])
-) as Record<AtomicOrigin, string>
-
-export const STYLE_CONTENT = Object.fromEntries(
-  (Object.entries(STYLE_INFO) as [StyleType, ContentEntry][]).map(([k, v]) => [k, v.label])
-) as Record<StyleType, string>
+export const CONTENT_TRANSFORMATION_LABELS = Object.fromEntries(
+  (Object.entries(CONTENT_TRANSFORMATION_INFO) as [ContentTransformation, ContentEntry][]).map(([k, v]) => [k, v.label])
+) as Record<ContentTransformation, string>
 
 export const STATUS_CONTENT = Object.fromEntries(
   (Object.entries(EMOTION_INFO) as [EmotionType, ContentEntry][]).map(([k, v]) => [k, v.label])

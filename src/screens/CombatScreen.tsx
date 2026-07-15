@@ -467,8 +467,7 @@ export default function CombatScreen() {
         const parentEdge = currentCampaign?.edges.find(e => e.to_id === selectedContentId)
         const edgeLabel = parentEdge?.label ?? null
         const edgeLabelText = edgeLabel
-          ? ((t.content.style as Record<string, { badge_label: string }>)[edgeLabel]?.badge_label
-            ?? (t.content.origin as Record<string, { badge_label: string }>)[edgeLabel]?.badge_label
+          ? ((t.content.transformation as Record<string, { badge_label: string }>)[edgeLabel]?.badge_label
             ?? edgeLabel)
           : null
         const parentNode = parentEdge

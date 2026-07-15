@@ -1,7 +1,6 @@
-import type { AtomicStage, WorkflowTile, WorkflowGraph, ContentProductType, AtomicOrigin, EmotionType } from '../types/game'
+import type { AtomicStage, WorkflowTile, WorkflowGraph, ContentProductType, EmotionType } from '../types/game'
 import type { TranslationBundle } from '../i18n/types'
 import { CONTENT_TYPE_STATS } from './contentTypeScaling'
-import { ATOMIC_ORIGIN_STATS } from './atomicOriginScaling'
 import { STATUS_TYPE_STATS } from './statusTypeScaling'
 
 export const STAGE_COLOR: Record<AtomicStage, string> = {
@@ -23,9 +22,8 @@ function statsLine(stats: string[]): string {
 }
 
 export interface EffectiveTags {
-  content_type?:   ContentProductType
-  content_origin?: AtomicOrigin
-  status?:         EmotionType
+  content_type?: ContentProductType
+  status?:       EmotionType
 }
 
 // Once a content dimension is introduced on a tile (e.g. content_type
@@ -57,9 +55,8 @@ export function computeEffectiveTags(workflow: WorkflowGraph): Map<string, Effec
     const preds = predecessorsOf.get(id) ?? []
     const inherited = preds.length > 0 ? result.get(preds[0]) ?? {} : {}
     result.set(id, {
-      content_type:   tile.content_type   ?? inherited.content_type,
-      content_origin: tile.content_origin ?? inherited.content_origin,
-      status:         tile.status         ?? inherited.status,
+      content_type: tile.content_type ?? inherited.content_type,
+      status:       tile.status       ?? inherited.status,
     })
 
     for (const e of workflow.edges) {
@@ -92,11 +89,6 @@ export function getTileBadges(tile: WorkflowTile, effective?: EffectiveTags, t?:
     const info   = CONTENT_TYPE_STATS[tags.content_type]
     const entry  = t?.content.product[tags.content_type]
     badges.push({ key: 'contentType', label: entry?.badge_label ?? info.label, detail: entry?.detail ?? statsLine(info.stats) })
-  }
-  if (tags.content_origin) {
-    const info   = ATOMIC_ORIGIN_STATS[tags.content_origin]
-    const entry  = t?.content.origin[tags.content_origin]
-    badges.push({ key: 'origin', label: entry?.badge_label ?? info.label, detail: entry?.detail ?? statsLine(info.stats) })
   }
   if (tags.status) {
     const info  = STATUS_TYPE_STATS[tags.status]

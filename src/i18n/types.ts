@@ -1,4 +1,4 @@
-import type { AtomicOrigin, AtomicStage, StyleType, Locale, EmotionType } from '../types/game'
+import type { ContentTransformation, AtomicStage, Locale, EmotionType } from '../types/game'
 import type { ContentProductType } from '../data/contentProducts'
 
 export type { Locale }
@@ -12,11 +12,10 @@ export interface ContentEntry {
 
 export interface TranslationBundle {
   content: {
-    product:  Record<ContentProductType, ContentEntry>
-    origin:   Record<AtomicOrigin, ContentEntry>
-    style: Record<StyleType, ContentEntry>
-    emotion:   Record<EmotionType, ContentEntry>
-    stage:    Record<AtomicStage, ContentEntry>
+    product:        Record<ContentProductType, ContentEntry>
+    transformation: Record<ContentTransformation, ContentEntry>
+    emotion:        Record<EmotionType, ContentEntry>
+    stage:          Record<AtomicStage, ContentEntry>
   }
   weapons:        Record<string, { name: string; description: string }>
   enemies:        Record<string, { name: string; description: string }>

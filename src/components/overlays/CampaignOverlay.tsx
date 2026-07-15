@@ -17,7 +17,7 @@ interface Props {
 // ── Edge label display names and tooltips ───────────────────────────────────
 
 const LABEL_DISPLAY: Record<string, string> = {
-  // AtomicOrigin
+  // ContentTransformation — relation types
   New:           'New',
   Compression:   'Compression',
   Expansion:     'Expansion',
@@ -25,7 +25,7 @@ const LABEL_DISPLAY: Record<string, string> = {
   ZoomOut:       'Zoom Out',
   Similar:       'Similar',
   Opposite:      'Opposite',
-  // StyleType
+  // ContentTransformation — style types
   Minimalism:    'Minimalism',
   Shock:         'Shock',
   Narration:     'Narration',
@@ -50,6 +50,7 @@ const LABEL_DISPLAY: Record<string, string> = {
 }
 
 const LABEL_TOOLTIP: Record<string, string> = {
+  // ContentTransformation — relation types
   New:           'New — fresh angle on the topic, not derived from previous content.',
   Compression:   'Compression — distils and summarises the parent into a denser form.',
   Expansion:     'Expansion — takes one idea from the parent and develops it in depth.',
@@ -57,6 +58,7 @@ const LABEL_TOOLTIP: Record<string, string> = {
   ZoomOut:       'Zoom Out — widens scope to place the parent in a broader context.',
   Similar:       'Similar — parallel piece on a related topic using the same structure.',
   Opposite:      'Opposite — argues the counter-position or explores the antithesis of the parent.',
+  // ContentTransformation — style types
   Minimalism:    'Minimalism — stripped-down style with only what is essential.',
   Shock:         'Shock — provocative, attention-grabbing framing designed to surprise.',
   Narration:     'Narration — story-driven, narrative format.',

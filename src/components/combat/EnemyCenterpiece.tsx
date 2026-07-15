@@ -37,19 +37,17 @@ export default function EnemyCenterpiece(props: Props) {
   const hpPct = Math.max(0, props.maxHp > 0 ? (props.hp / props.maxHp) * 100 : 0)
 
   function labelFor(key: string): string {
-    return (t.content.product as Record<string, { badge_label: string }>)[key]?.badge_label
-      ?? (t.content.style   as Record<string, { badge_label: string }>)[key]?.badge_label
-      ?? (t.content.origin  as Record<string, { badge_label: string }>)[key]?.badge_label
+    return (t.content.product        as Record<string, { badge_label: string }>)[key]?.badge_label
+      ?? (t.content.transformation   as Record<string, { badge_label: string }>)[key]?.badge_label
       ?? key
   }
 
   function formatConditions(cond: NonNullable<MobAffinities[keyof MobAffinities]>): string {
     return [
-      ...(cond.products ?? []),
-      ...(cond.origins  ?? []),
-      ...(cond.styles   ?? []),
-      ...(cond.emotions ?? []),
-      ...(cond.stages   ?? []),
+      ...(cond.products       ?? []),
+      ...(cond.transformations ?? []),
+      ...(cond.emotions       ?? []),
+      ...(cond.stages         ?? []),
     ].map(labelFor).join(', ')
   }
 

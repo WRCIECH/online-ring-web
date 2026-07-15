@@ -123,7 +123,7 @@ export function calcTileDamage(
 ): number {
   const base = tileDamageBase(tile, move)
   return weapon
-    ? calcWeaponScaledDamage(base, weapon, weaponLevel, stats, tile.content_type, tile.content_origin, tile.status)
+    ? calcWeaponScaledDamage(base, weapon, weaponLevel, stats, tile.content_type, tile.status)
     : Math.round(base)
 }
 
@@ -135,9 +135,8 @@ export function calcAffinityMultiplier(tile: WorkflowTile, enemy: Enemy): number
   for (const [tier, conditions] of Object.entries(affinities) as [keyof MobAffinities, MobAffinityConditions][]) {
     if (!conditions) continue
     const matched =
-      (tile.content_type  != null && conditions.products?.includes(tile.content_type))   ||
-      (tile.content_origin != null && conditions.origins?.includes(tile.content_origin))  ||
-      (tile.status        != null && conditions.emotions?.includes(tile.status))           ||
+      (tile.content_type != null && conditions.products?.includes(tile.content_type)) ||
+      (tile.status       != null && conditions.emotions?.includes(tile.status))       ||
       (conditions.stages?.includes(tile.type))
     if (matched) mult *= AFFINITY_MULTS[tier]
   }

@@ -6,8 +6,10 @@ export type WeaponRarity = 'common' | 'Intellectual' | 'rare' | 'epic' | 'legend
 export type SublocationType = 'mob' | 'elite' | 'event' | 'boss'
 export type MoveType = 'Light' | 'Heavy'
 
-// Kept for content pipeline stamps and badge colours
-export type StyleType =
+// Unified content transformation type — annotates campaign edges and tiles.
+// Combines the former AtomicOrigin (relation types) and StyleType (style types).
+export type ContentTransformation =
+  | 'New' | 'Compression' | 'Expansion' | 'ZoomIn' | 'ZoomOut' | 'Similar' | 'Opposite'
   | 'Minimalism' | 'Shock' | 'Narration' | 'Segmentation' | 'Fast'
   | 'Passion' | 'Intellectual' | 'ProblemSolving' | 'Estetic' | 'Interactive' | 'Cliffhanger'
   | 'Viral' | 'Controversy' | 'Comfort' | 'Drama' | 'Humor'
@@ -27,22 +29,12 @@ export type WeaponClass =
   | 'great_spears' | 'halberds' | 'reapers' | 'whips'
   | 'greatbows' | 'crossbows' | 'ballistas' | 'torches'
 
-// ── Content creation dimensions (kept for tile generation & stamps) ────────
+// ── Content creation dimensions ────────────────────────────────────────────
 export type AtomicStage = 'Research' | 'Plan' | 'Produce' | 'Refine'
-export type AtomicOrigin =
-  | 'New' | 'Compression' | 'Expansion'
-  | 'ZoomIn' | 'ZoomOut' | 'Similar' | 'Opposite'
 export type AtomicTime = 'Micro' | 'Short' | 'Medium' | 'Long' | 'Deep'
 
 import type { ContentProductType } from '../data/contentProducts'
 export type { ContentProductType }
-
-export interface AtomicDimensions {
-  product: ContentProductType
-  stage: AtomicStage
-  time_budget: AtomicTime
-  content_origin: AtomicOrigin
-}
 
 // ── Workflow graph ─────────────────────────────────────────────────────────
 export interface WorkflowTile {
@@ -52,7 +44,7 @@ export interface WorkflowTile {
   time_light: number   // seconds for Light Attack timer
   time_heavy: number   // seconds for Heavy Attack timer
   content_type?: ContentProductType
-  content_origin?: AtomicOrigin
+  content_transformation?: ContentTransformation
   status?: EmotionType
   time_budget?: AtomicTime
   is_completed: boolean
@@ -116,8 +108,7 @@ export interface WeaponInstance extends Weapon {
 // ── Enemy affinity system ─────────────────────────────────────────────────
 export interface MobAffinityConditions {
   products?: ContentProductType[]
-  origins?: AtomicOrigin[]
-  styles?: StyleType[]
+  transformations?: ContentTransformation[]
   emotions?: EmotionType[]
   stages?: AtomicStage[]
 }
@@ -189,7 +180,7 @@ export interface CampaignNode {
 export interface CampaignEdge {
   from_id: string
   to_id: string
-  label: AtomicOrigin | StyleType | null  // null = chronological/follows
+  label: ContentTransformation | null  // null = chronological/follows
 }
 
 export interface WeaponCampaign {

@@ -1,4 +1,4 @@
-import type { CampaignNode, CampaignEdge, WeaponCampaign, AtomicOrigin, StyleType, WeaponInstance } from '../../types/game'
+import type { CampaignNode, CampaignEdge, WeaponCampaign, ContentTransformation, WeaponInstance } from '../../types/game'
 
 function genId(): string {
   return 'cn_' + Math.random().toString(36).slice(2, 9)
@@ -34,9 +34,7 @@ function nodeDepth(_nodes: CampaignNode[], edges: CampaignEdge[], nodeId: string
   return depth
 }
 
-function drawEdgeLabel(
-  pool: (AtomicOrigin | StyleType)[],
-): AtomicOrigin | StyleType | null {
+function drawEdgeLabel(pool: ContentTransformation[]): ContentTransformation | null {
   if (Math.random() < 0.50) return null
   const effectivePool = pool.length > 0 ? pool : GLOBAL_EDGE_POOL
   return effectivePool[Math.floor(Math.random() * effectivePool.length)]
@@ -48,9 +46,12 @@ export function isNodeAvailable(nodes: CampaignNode[], edges: CampaignEdge[], no
   return incoming.every(e => nodes.find(n => n.id === e.from_id)?.completed ?? false)
 }
 
-const ALL_ATOMIC_ORIGINS: AtomicOrigin[] = ['New', 'Compression', 'Expansion', 'ZoomIn', 'ZoomOut', 'Similar', 'Opposite']
-const ALL_STYLE_TYPES: StyleType[]    = ['Minimalism', 'Shock', 'Narration', 'Segmentation', 'Fast', 'Passion', 'Intellectual', 'ProblemSolving', 'Estetic', 'Interactive', 'Cliffhanger', 'Viral', 'Controversy', 'Comfort', 'Drama', 'Humor', 'Parasocial', 'Wow', 'Hope', 'Fear', 'Desire']
-const GLOBAL_EDGE_POOL: (AtomicOrigin | StyleType)[] = [...ALL_ATOMIC_ORIGINS, ...ALL_STYLE_TYPES]
+const GLOBAL_EDGE_POOL: ContentTransformation[] = [
+  'New', 'Compression', 'Expansion', 'ZoomIn', 'ZoomOut', 'Similar', 'Opposite',
+  'Minimalism', 'Shock', 'Narration', 'Segmentation', 'Fast', 'Passion', 'Intellectual',
+  'ProblemSolving', 'Estetic', 'Interactive', 'Cliffhanger', 'Viral', 'Controversy',
+  'Comfort', 'Drama', 'Humor', 'Parasocial', 'Wow', 'Hope', 'Fear', 'Desire',
+]
 
 const NODE_COUNT_BY_WEIGHT: Record<string, [number, number]> = {
   light:    [5, 7],
