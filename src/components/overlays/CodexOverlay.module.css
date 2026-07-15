@@ -1,0 +1,220 @@
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.65);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 400;
+}
+
+.panel {
+  background: var(--color-bg-overlay, #1a1630);
+  border: 1px solid var(--color-border, rgba(255,255,255,0.10));
+  border-radius: 6px;
+  width: min(720px, 96vw);
+  max-height: 88vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px 10px;
+  border-bottom: 1px solid var(--color-border, rgba(255,255,255,0.08));
+  flex-shrink: 0;
+}
+
+.title {
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-text-dim, #aaa8cc);
+}
+
+.btnClose {
+  background: none;
+  border: none;
+  color: var(--color-text-dim, #aaa8cc);
+  cursor: pointer;
+  font-size: 0.85rem;
+  padding: 2px 6px;
+  border-radius: 3px;
+  transition: color 0.12s;
+}
+.btnClose:hover { color: var(--color-text, #e8e4ff); }
+
+/* ── Tabs ── */
+
+.tabs {
+  display: flex;
+  gap: 2px;
+  padding: 8px 12px 0;
+  flex-shrink: 0;
+  border-bottom: 1px solid var(--color-border, rgba(255,255,255,0.08));
+}
+
+.tabBtn {
+  font-size: 0.70rem;
+  padding: 5px 12px;
+  border: none;
+  border-radius: 4px 4px 0 0;
+  background: transparent;
+  color: var(--color-text-dim, #aaa8cc);
+  cursor: pointer;
+  transition: background 0.12s, color 0.12s;
+  letter-spacing: 0.04em;
+}
+.tabBtn:hover { background: rgba(255,255,255,0.05); color: var(--color-text, #e8e4ff); }
+
+.tabBtnActive {
+  background: rgba(130,100,220,0.15);
+  color: var(--color-text, #e8e4ff);
+  border-bottom: 2px solid var(--color-accent, #8264dc);
+}
+
+/* ── Body ── */
+
+.body {
+  overflow-y: auto;
+  flex: 1;
+  padding: 12px 16px 16px;
+}
+
+.listWrap {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+/* ── Group headers ── */
+
+.group {
+  margin-bottom: 10px;
+}
+
+.groupHeader {
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.10em;
+  text-transform: uppercase;
+  color: var(--color-accent, #8264dc);
+  padding: 8px 0 4px;
+  border-bottom: 1px solid rgba(130,100,220,0.18);
+  margin-bottom: 4px;
+}
+
+.groupHeaderPenalty {
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.10em;
+  text-transform: uppercase;
+  color: #bb6666;
+  padding: 8px 0 4px;
+  border-bottom: 1px solid rgba(200,80,80,0.18);
+  margin-bottom: 4px;
+}
+
+/* ── Entries ── */
+
+.entry {
+  padding: 7px 4px;
+  border-bottom: 1px solid rgba(255,255,255,0.04);
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.entryTop {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.entryName {
+  font-size: 0.76rem;
+  color: var(--color-text, #e8e4ff);
+  font-weight: 500;
+}
+
+.entryDesc {
+  font-size: 0.68rem;
+  color: var(--color-text-dim, #aaa8cc);
+  line-height: 1.45;
+}
+
+.entryExample {
+  font-size: 0.65rem;
+  color: rgba(170,168,204,0.65);
+  font-style: italic;
+  line-height: 1.4;
+}
+
+.entryNote {
+  font-size: 0.63rem;
+  color: var(--color-accent, #8264dc);
+  margin-top: 1px;
+}
+
+/* ── Complexity dots (Formats tab) ── */
+
+.complexityDots {
+  display: flex;
+  gap: 2px;
+  flex-shrink: 0;
+}
+
+.dotFilled {
+  font-size: 0.45rem;
+  color: var(--color-accent, #8264dc);
+}
+
+.dotEmpty {
+  font-size: 0.45rem;
+  color: rgba(255,255,255,0.15);
+}
+
+/* ── Stage time chips ── */
+
+.stageTimes {
+  display: flex;
+  gap: 6px;
+  margin-top: 3px;
+}
+
+.timeChip {
+  font-size: 0.62rem;
+  padding: 1px 7px;
+  border-radius: 3px;
+  background: rgba(130,100,220,0.12);
+  border: 1px solid rgba(130,100,220,0.22);
+  color: var(--color-text-dim, #aaa8cc);
+}
+
+/* ── Multiplier value chips ── */
+
+.multValue {
+  font-size: 0.65rem;
+  padding: 1px 7px;
+  border-radius: 3px;
+  background: rgba(80,200,120,0.10);
+  border: 1px solid rgba(80,200,120,0.25);
+  color: #88dd99;
+  flex-shrink: 0;
+  font-variant-numeric: tabular-nums;
+}
+
+.multValuePenalty {
+  font-size: 0.65rem;
+  padding: 1px 7px;
+  border-radius: 3px;
+  background: rgba(200,80,80,0.10);
+  border: 1px solid rgba(200,80,80,0.25);
+  color: #cc7777;
+  flex-shrink: 0;
+  font-variant-numeric: tabular-nums;
+}
