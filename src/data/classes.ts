@@ -34,7 +34,7 @@ export const CLASS_DEFINITIONS: ClassDef[] = [
     id: 'researcher',
     name: 'Researcher',
     description: 'Evidence-based and analytical. Depth before breadth.',
-    weaponClass: 'heavy_thrusting',
+    weaponClass: 'spears',
     startingStats: { VIG:9, END:10, TEXT:12, VIDEO:8, AUDIO:8, GRAPHIC:8, VELOCITY:8, DEPTH:15, PARASOCIAL:8, FRICTION:8, INSIGHT:8 },
   },
   {
@@ -62,7 +62,7 @@ export const CLASS_DEFINITIONS: ClassDef[] = [
     id: 'teacher',
     name: 'Teacher',
     description: 'Simplifies complexity. Turns knowledge into actionable understanding.',
-    weaponClass: 'halberds',
+    weaponClass: 'spears',
     startingStats: { VIG:9, END:10, TEXT:8, VIDEO:8, AUDIO:8, GRAPHIC:12, VELOCITY:8, DEPTH:13, PARASOCIAL:12, FRICTION:8, INSIGHT:8 },
   },
   {
