@@ -1,4 +1,4 @@
-import type { WeaponClass, AtomicTime, AtomicOrigin, StyleType, EmotionType, ContentProductType, RolledPatternDraws } from '../../types/game'
+import type { WeaponClass, AtomicTime, AtomicOrigin, StyleType, ContentProductType, RolledPatternDraws } from '../../types/game'
 import type { PatternStep } from './weaponPatterns'
 import { WEAPON_PATTERNS } from './weaponPatterns'
 import { WEAPON_CLASSES, type WeaponClassDef } from './weaponClasses'
@@ -10,12 +10,12 @@ import { WEAPON_CLASSES, type WeaponClassDef } from './weaponClasses'
 // draw-step ordering, not tiles/edges/frontier, so it's safe to reuse from
 // both the weapon-creation roller below and the UI structure preview.
 
-export type SlotKind = 'format' | 'transformation' | 'style' | 'emotion'
+export type SlotKind = 'format' | 'transformation' | 'style'
 export interface SlotRef {
   kind: SlotKind
   occurrenceIndex: number
   probability: number
-  fixedValue?: ContentProductType | AtomicOrigin | StyleType | EmotionType
+  fixedValue?: ContentProductType | AtomicOrigin | StyleType
 }
 
 function slotForDraw(step: PatternStep, counters: Record<SlotKind, number>): SlotRef | null {
@@ -23,7 +23,6 @@ function slotForDraw(step: PatternStep, counters: Record<SlotKind, number>): Slo
     case 'drawFormat':         return { kind: 'format', occurrenceIndex: counters.format++, probability: 1 }
     case 'drawTransformation': return { kind: 'transformation', occurrenceIndex: counters.transformation++, probability: 1 }
     case 'drawStyle':          return { kind: 'style', occurrenceIndex: counters.style++, probability: step.probability }
-    case 'drawEmotion':        return { kind: 'emotion', occurrenceIndex: counters.emotion++, probability: step.probability }
     case 'fixedDraw':          return { kind: step.slotKind, occurrenceIndex: counters[step.slotKind]++, probability: 1, fixedValue: step.value }
     default: return null
   }
@@ -53,7 +52,7 @@ export interface SlotGroup {
 
 export function listSlotGroups(steps: PatternStep[]): SlotGroup[] {
   const groups: SlotGroup[] = []
-  const counters: Record<SlotKind, number> = { format: 0, transformation: 0, style: 0, emotion: 0 }
+  const counters: Record<SlotKind, number> = { format: 0, transformation: 0, style: 0 }
   for (const step of steps) {
     if (step.kind === 'branch') {
       const branchSlots: SlotRef[] = []
@@ -100,7 +99,7 @@ export function listPatternSlots(steps: PatternStep[]): SlotRef[] {
 }
 
 export function countSlotsByKind(steps: PatternStep[]): Record<SlotKind, number> {
-  const counts: Record<SlotKind, number> = { format: 0, transformation: 0, style: 0, emotion: 0 }
+  const counts: Record<SlotKind, number> = { format: 0, transformation: 0, style: 0 }
   for (const slot of listPatternSlots(steps)) counts[slot.kind]++
   return counts
 }
@@ -126,10 +125,6 @@ const ALL_TRANSFORMATIONS_EXCEPT_NEW: AtomicOrigin[] = [
 const ALL_STYLE_TYPES: StyleType[] = [
   'Minimalism', 'Shock', 'Narration', 'Segmentation', 'Fast', 'Passion', 'Intellectual', 'ProblemSolving', 'Estetic', 'Interactive', 'Cliffhanger',
 ]
-const ALL_STATUS_TYPES: EmotionType[] = [
-  'Viral', 'Polarization', 'Envy', 'Controversion', 'Comfort', 'Drama', 'Wow',
-  'Humor', 'Parasocial', 'Fomo', 'Fear', 'Rumor', 'Hope',
-]
 
 function pick<T>(arr: readonly T[]): T {
   return arr[Math.floor(Math.random() * arr.length)]
@@ -149,7 +144,7 @@ export function pickWeighted(weights: number[]): number {
   return weights.length - 1
 }
 
-type SlotValue = ContentProductType | AtomicOrigin | StyleType | EmotionType | null
+type SlotValue = ContentProductType | AtomicOrigin | StyleType | null
 
 // Picks from `pool`, excluding `exclude` when an alternative actually
 // exists — used on remaster rerolls so a "redraw" can't silently land back
@@ -166,14 +161,13 @@ function pickExcluding<T extends SlotValue>(pool: readonly T[], exclude: SlotVal
 function poolFor(cls: WeaponClassDef, kind: SlotKind): readonly NonNullable<SlotValue>[] {
   if (kind === 'format') return cls.supported_products.length > 0 ? cls.supported_products : ALL_CONTENT_PRODUCTS
   if (kind === 'transformation') return cls.allowed_transformations.length > 0 ? cls.allowed_transformations : ALL_TRANSFORMATIONS_EXCEPT_NEW
-  if (kind === 'style') return cls.styles.length > 0 ? cls.styles : ALL_STYLE_TYPES
-  return cls.emotions.length > 0 ? cls.emotions : ALL_STATUS_TYPES
+  return cls.styles.length > 0 ? cls.styles : ALL_STYLE_TYPES
 }
 
 // `exclude` is only passed on remaster rerolls (states 1..N) — the initial
 // state-0 roll has no previous value to avoid repeating.
 function rollSlotValue(cls: WeaponClassDef, slot: SlotRef, exclude?: SlotValue): SlotValue {
-  if (slot.kind === 'style' || slot.kind === 'emotion') {
+  if (slot.kind === 'style') {
     if (Math.random() >= slot.probability) return null
   }
   const pool = poolFor(cls, slot.kind)
@@ -319,21 +313,18 @@ export function rollPatternDraws(weaponClass: WeaponClass): RolledPatternDraws {
   const format: (ContentProductType | null)[][] = []
   const transformation: (AtomicOrigin | null)[][] = []
   const style: (StyleType | null)[][] = []
-  const emotion: (EmotionType | null)[][] = []
 
   slots.forEach((slot, slotIdx) => {
     const sequence = states.map(state => state[slotIdx])
     if (slot.kind === 'format')         format.push(sequence as (ContentProductType | null)[])
     if (slot.kind === 'transformation') transformation.push(sequence as (AtomicOrigin | null)[])
     if (slot.kind === 'style')          style.push(sequence as (StyleType | null)[])
-    if (slot.kind === 'emotion')        emotion.push(sequence as (EmotionType | null)[])
   })
 
   return {
     format,
     transformation,
     style,
-    emotion,
     length: pick(ATOMIC_TIMES),
   }
 }

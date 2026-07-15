@@ -1,6 +1,6 @@
 import type {
   WeaponClass, WeaponRarity, AtomicStage, WorkflowTile, WorkflowEdge, WorkflowGraph, RolledPatternDraws,
-  ContentProductType, AtomicOrigin, EmotionType, StyleType,
+  ContentProductType, AtomicOrigin, StyleType,
 } from '../../types/game'
 import type { PatternStep } from './weaponPatterns'
 import { WEAPON_PATTERNS, drawKindOf } from './weaponPatterns'
@@ -108,7 +108,7 @@ export function compilePattern(
   const ctx: CompileContext = {
     cls, rarity, tiles: [], edges: [], frontier: [],
     lastResearchBlockTileIds: null, produceBoostApplied: false,
-    rolledDraws, slotCounters: { format: 0, transformation: 0, style: 0, emotion: 0 },
+    rolledDraws, slotCounters: { format: 0, transformation: 0, style: 0 },
   }
   for (const step of steps) compileStep(step, ctx)
   return { tiles: ctx.tiles, edges: ctx.edges }
@@ -120,7 +120,6 @@ function compileStep(step: PatternStep, ctx: CompileContext): void {
     case 'drawFormat':         return compileDrawFormat(ctx)
     case 'drawTransformation': return compileDrawTransformation(ctx)
     case 'drawStyle':          return compileDrawStyle(step, ctx)
-    case 'drawEmotion':        return compileDrawEmotion(step, ctx)
     case 'fixedDraw':          return compileFixedDraw(step, ctx)
     case 'branch':             return compileBranch(step, ctx)
     case 'eitherOr':           return compileEitherOr(step, ctx)
@@ -150,7 +149,7 @@ function compilePhase(step: { stage: AtomicStage; min: number; max: number }, ct
   ctx.lastResearchBlockTileIds = step.stage === 'Research' ? newTiles.map(t => t.id) : null
 }
 
-type DrawValue = ContentProductType | AtomicOrigin | EmotionType | StyleType
+type DrawValue = ContentProductType | AtomicOrigin | StyleType
 
 // Shared tail for every draw kind: format/transformation also retag the
 // preceding Research block (and require one to exist — a structural
@@ -171,7 +170,6 @@ function applyDrawResult(ctx: CompileContext, kind: SlotKind, value: DrawValue):
   const planTile = makeTile('Plan', ctx.cls.time_mod)
   if (kind === 'format') planTile.content_type = value as ContentProductType
   else if (kind === 'transformation') planTile.content_origin = value as AtomicOrigin
-  else planTile.status = value as EmotionType
   ctx.tiles.push(planTile)
   linkFrontier(ctx, planTile.id)
   ctx.frontier = [planTile.id]
@@ -229,26 +227,9 @@ function compileFixedDraw(step: { slotKind: SlotKind; value: DrawValue }, ctx: C
   const planTile = makeTile('Plan', ctx.cls.time_mod)
   if      (kind === 'format')         planTile.content_type  = value as ContentProductType
   else if (kind === 'transformation') planTile.content_origin = value as AtomicOrigin
-  else                                planTile.status        = value as EmotionType
   ctx.tiles.push(planTile)
   linkFrontier(ctx, planTile.id)
   ctx.frontier = [planTile.id]
-}
-
-function compileDrawEmotion(step: { probability: number }, ctx: CompileContext): void {
-  let value: ReturnType<typeof resolveEmotion>
-  if (ctx.rolledDraws) {
-    value = ctx.rolledDraws.emotion[ctx.slotCounters.emotion++]?.[0] ?? null
-  } else {
-    value = resolveEmotion(ctx.cls, step.probability)
-  }
-  if (value === null) return
-  applyDrawResult(ctx, 'emotion', value)
-}
-
-function resolveEmotion(cls: WeaponClassDef, probability: number) {
-  const pool = cls.emotions
-  return (pool.length === 0 || Math.random() >= probability) ? null : pool[Math.floor(Math.random() * pool.length)]
 }
 
 // A pre-rolled instance's rolled_draws already enforces "exactly one
@@ -283,8 +264,7 @@ function legacyResolveKind(cls: WeaponClassDef, kind: SlotKind): DrawValue | nul
     return pool[Math.floor(Math.random() * pool.length)]
   }
   if (kind === 'transformation') return resolveTransformation(cls)
-  if (kind === 'style') return null  // style removed from workflow tiles
-  return resolveEmotion(cls, 1)
+  return null  // style: no value generated for workflow tiles
 }
 
 function compileBranch(step: { paths: PatternStep[][] }, ctx: CompileContext): void {

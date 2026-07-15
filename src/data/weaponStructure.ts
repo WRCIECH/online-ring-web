@@ -1,4 +1,4 @@
-import type { AtomicStage, WeaponInstance, ContentProductType, AtomicOrigin, StyleType, EmotionType, Affix } from '../types/game'
+import type { AtomicStage, WeaponInstance, ContentProductType, AtomicOrigin, StyleType, Affix } from '../types/game'
 import type { TranslationBundle } from '../i18n'
 import type { PatternStep } from './generators/weaponPatterns'
 import { WEAPON_PATTERNS, drawKindOf } from './generators/weaponPatterns'
@@ -17,14 +17,14 @@ export interface PhaseNode {
 
 export interface DrawNode {
   kind: 'draw'
-  label: 'format' | 'transformation' | 'style' | 'emotion'
+  label: 'format' | 'transformation' | 'style'
   // resolved "primary" (state 0) value for this weapon instance. A slot
   // that never triggers for this instance (or predates the fixed-per-
   // instance-draws feature, with no rolled_draws to resolve from) is
   // omitted entirely by describeWeaponPattern rather than appearing here
   // as null — there's nothing to show for a dimension this instance
   // simply doesn't have.
-  value: ContentProductType | AtomicOrigin | StyleType | EmotionType
+  value: ContentProductType | AtomicOrigin | StyleType
   // sequential index among all occurrences of the same label kind within
   // this weapon's pattern — matches the index used by RolledPatternDraws
   // and describeRemasterStates, so callers can correlate per-slot change flags.
@@ -45,14 +45,12 @@ export const DRAW_LABEL_KEY: Record<DrawNode['label'], string> = {
   format: 'draw_format',
   transformation: 'draw_transformation',
   style: 'draw_style',
-  emotion: 'draw_emotion',
 }
 
 export const VALUE_BUCKET: Record<DrawNode['label'], keyof TranslationBundle['content']> = {
   format: 'product',
   transformation: 'origin',
   style: 'style',
-  emotion: 'emotion',
 }
 
 // Turns a weapon instance's class pattern (WEAPON_PATTERNS) into a
@@ -60,13 +58,13 @@ export const VALUE_BUCKET: Record<DrawNode['label'], keyof TranslationBundle['co
 // resolved to that instance's actual fixed "primary" value (see
 // RolledPatternDraws in types/game.ts) when available. A draw node is
 // omitted only when its resolved value is null (e.g. a probability-gated
-// drawStyle/drawEmotion that didn't trigger) — an empty class-level pool
-// no longer disables a draw, it just means any value of that kind is
-// equally likely (see rollSlotValue in patternSlots.ts).
+// drawStyle that didn't trigger) — an empty class-level pool no longer
+// disables a draw, it just means any value of that kind is equally likely
+// (see rollSlotValue in patternSlots.ts).
 export function describeWeaponPattern(weapon: WeaponInstance, stateIndex = 0): PatternNode[] {
   const cls = WEAPON_CLASSES[weapon.weapon_class]
   const steps = WEAPON_PATTERNS[weapon.weapon_class]
-  const counters: Record<SlotKind, number> = { format: 0, transformation: 0, style: 0, emotion: 0 }
+  const counters: Record<SlotKind, number> = { format: 0, transformation: 0, style: 0 }
   return steps
     .map(step => describeStep(step, cls, weapon, counters, stateIndex))
     .filter((n): n is PatternNode => n != null)
@@ -102,11 +100,6 @@ function describeStep(
       const occ = counters.style++
       const value = weapon.rolled_draws?.style[occ]?.[stateIndex] ?? null
       return value === null ? null : { kind: 'draw', label: 'style', value, occurrenceIndex: occ }
-    }
-    case 'drawEmotion': {
-      const occ = counters.emotion++
-      const value = weapon.rolled_draws?.emotion[occ]?.[stateIndex] ?? null
-      return value === null ? null : { kind: 'draw', label: 'emotion', value, occurrenceIndex: occ }
     }
     case 'branch':
       return {

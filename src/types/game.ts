@@ -99,7 +99,6 @@ export interface RolledPatternDraws {
   format:         (ContentProductType | null)[][]   // [occurrenceIndex][stateIndex]
   transformation: (AtomicOrigin | null)[][]   // [occurrenceIndex][stateIndex]
   style:          (StyleType   | null)[][]   // [occurrenceIndex][stateIndex]
-  emotion:        (EmotionType   | null)[][]   // [occurrenceIndex][stateIndex]
   length: AtomicTime
 }
 

@@ -1,4 +1,4 @@
-import type { WeaponClass, StatKey, Grade, StyleType, EmotionType, AtomicOrigin } from '../../types/game'
+import type { WeaponClass, StatKey, Grade, StyleType, AtomicOrigin } from '../../types/game'
 
 type PoiseWeight = 'light' | 'medium' | 'heavy' | 'colossal'
 import type { ContentProductType } from '../contentProducts'
@@ -9,18 +9,17 @@ export interface WeaponClassDef {
   description: string
   poise_weight: PoiseWeight
   base_damage_mult: number
-  // Draw pools for supported_products / styles / emotions /
-  // allowed_transformations: each is sampled uniformly by pick() (see
-  // patternSlots.ts), so an entry's *probability* is its share of the pool's
-  // length — repeating a value gives it proportionally more weight. An empty
-  // pool means *no restriction* — rollSlotValue falls back to a wildcard of
-  // every possible value for that kind, each equally likely — rather than
+  // Draw pools for supported_products / styles / allowed_transformations:
+  // each is sampled uniformly by pick() (see patternSlots.ts), so an
+  // entry's *probability* is its share of the pool's length — repeating a
+  // value gives it proportionally more weight. An empty pool means
+  // *no restriction* — rollSlotValue falls back to a wildcard of every
+  // possible value for that kind, each equally likely — rather than
   // disabling the draw.
   supported_products: ContentProductType[]
   scaling: Partial<Record<StatKey, Grade>>
   styles: StyleType[]
   time_mod: number
-  emotions: EmotionType[]
   allowed_transformations: AtomicOrigin[]
   content_slots: number
 }
@@ -34,9 +33,8 @@ export const WEAPON_CLASSES: Record<WeaponClass, WeaponClassDef> = {
     content_slots: 3,
     time_mod: 1.0,
 
-    supported_products: ['Plaintext', 'SingleGraphic', 'RawAudio', 'ARollVideo'],
+    supported_products: ['Plaintext', 'SingleGraphic', 'Carousel', 'RawAudio', 'ARollVideo'],
     styles: ['Viral', 'Humor'],
-    emotions: [],
     allowed_transformations: [],
   },
   straight_swords: {
@@ -46,10 +44,9 @@ export const WEAPON_CLASSES: Record<WeaponClass, WeaponClassDef> = {
     content_slots: 4,
     time_mod: 1.0,
 
-    supported_products: ['Plaintext', 'StructuredText', "IllustratedText", "SingleGraphic", 'Carousel', 'RawAudio', 'ARollVideo', 'SlideshowVideo', 'Screencast'],
+    supported_products: ['Plaintext', 'StructuredText', 'RawAudio', 'SlideshowVideo', 'Screencast'],
 
     styles: [],
-    emotions: [],
     allowed_transformations: [],
   },
   greatswords: {
@@ -59,9 +56,8 @@ export const WEAPON_CLASSES: Record<WeaponClass, WeaponClassDef> = {
     content_slots: 5,
     time_mod: 1.0,
 
-    supported_products: ['Plaintext', 'StructuredText', "IllustratedText", "SingleGraphic", 'Carousel', 'RawAudio', 'ARollVideo', 'SlideshowVideo', 'Screencast', 'CinematicVideo', 'MotionGraphics', 'ProducedAudio'],
+    supported_products: ['StructuredText', "IllustratedText", "SingleGraphic", 'RawAudio', 'ARollVideo', 'SlideshowVideo', 'Screencast', 'CinematicVideo', 'MotionGraphics', 'ProducedAudio'],
     styles: ['Wow', 'Hope'],
-    emotions: [],
     allowed_transformations: [],
   },
   katanas: {
@@ -73,7 +69,6 @@ export const WEAPON_CLASSES: Record<WeaponClass, WeaponClassDef> = {
 
     supported_products: ['Plaintext', 'IllustratedText', 'Carousel', 'RawAudio', 'ProducedAudio', 'ARollVideo', 'SlideshowVideo', 'CinematicVideo', 'MotionGraphics', 'LiveStream', 'BranchingNarrative', '_blank'],
     styles: [],
-    emotions: [],
     allowed_transformations: [],
   },
   hammers: {
@@ -85,7 +80,6 @@ export const WEAPON_CLASSES: Record<WeaponClass, WeaponClassDef> = {
 
     supported_products: ['Plaintext', 'StructuredText', 'IllustratedText', 'Carousel', 'RawAudio', 'ProducedAudio', 'ARollVideo', 'SlideshowVideo', 'CinematicVideo', 'MotionGraphics', 'LiveStream'],
     styles: ['Shock', 'Narration', 'Segmentation', 'Fast', 'Passion', 'Cliffhanger'],
-    emotions: [],
     allowed_transformations: [],
   },
   spears: {
@@ -97,7 +91,6 @@ export const WEAPON_CLASSES: Record<WeaponClass, WeaponClassDef> = {
 
     supported_products: [],
     styles: ['Wow', 'Hope'],
-    emotions: [],
     allowed_transformations: ['Compression', 'Expansion', 'ZoomIn', 'ZoomOut', 'Opposite'],
   },
   axes: {
@@ -109,7 +102,6 @@ export const WEAPON_CLASSES: Record<WeaponClass, WeaponClassDef> = {
 
     supported_products: [],
     styles: [],
-    emotions: [],
     allowed_transformations: [],
   },
   bows: {
@@ -121,7 +113,6 @@ export const WEAPON_CLASSES: Record<WeaponClass, WeaponClassDef> = {
 
     supported_products: ['Plaintext', 'SingleGraphic', 'Carousel', 'RawAudio', 'ARollVideo', 'LiveStream', 'CurationFeed', 'CommunitySpace'],
     styles: ['Comfort', 'Hope', 'Parasocial', 'Desire'],
-    emotions: [],
     allowed_transformations: [],
   },
   fists: {
@@ -133,7 +124,6 @@ export const WEAPON_CLASSES: Record<WeaponClass, WeaponClassDef> = {
 
     supported_products: ['Plaintext', 'SingleGraphic', 'RawAudio', 'ARollVideo'],
     styles: ['Viral', 'Humor', 'Parasocial'],
-    emotions: [],
     allowed_transformations: [],
   },
   colossal_swords: {
@@ -145,7 +135,6 @@ export const WEAPON_CLASSES: Record<WeaponClass, WeaponClassDef> = {
 
     supported_products: ['Plaintext', 'StructuredText', "IllustratedText", "SingleGraphic", 'Carousel', 'RawAudio', 'ARollVideo', 'SlideshowVideo', 'Screencast', 'CinematicVideo', 'MotionGraphics', 'ProducedAudio'],
     styles: ['Wow', 'Hope', 'Comfort'],
-    emotions: [],
     allowed_transformations: [],
   },
   thrusting_swords: {
@@ -157,7 +146,6 @@ export const WEAPON_CLASSES: Record<WeaponClass, WeaponClassDef> = {
 
     supported_products: ['Plaintext', 'StructuredText', 'IllustratedText', 'SingleGraphic', 'Carousel', 'RawAudio', 'ProducedAudio', 'ARollVideo', 'SlideshowVideo', 'CinematicVideo', 'MotionGraphics', 'LiveStream', 'MultimediaPage', 'BranchingNarrative', 'CommunitySpace'],
     styles: ['Controversy', 'Drama', 'Humor'],
-    emotions: [],
     allowed_transformations: [],
   },
   heavy_thrusting: {
@@ -169,7 +157,6 @@ export const WEAPON_CLASSES: Record<WeaponClass, WeaponClassDef> = {
 
     supported_products: ['Plaintext', 'StructuredText', 'IllustratedText', 'SingleGraphic', 'Carousel', 'RawAudio', 'ProducedAudio', 'ARollVideo', 'SlideshowVideo', 'CinematicVideo', 'MotionGraphics', 'LiveStream', 'MultimediaPage', 'BranchingNarrative', 'CommunitySpace'],
     styles: ['Controversy', 'Fear', 'Wow'],
-    emotions: [],
     allowed_transformations: [],
   },
   curved_swords: {
@@ -181,7 +168,6 @@ export const WEAPON_CLASSES: Record<WeaponClass, WeaponClassDef> = {
 
     supported_products: [],
     styles: ['Comfort', 'Drama', 'Hope'],
-    emotions: [],
     allowed_transformations: ['Expansion', 'ZoomIn', 'ZoomOut', 'Similar', 'Opposite'],
   },
   curved_greatswords: {
@@ -193,7 +179,6 @@ export const WEAPON_CLASSES: Record<WeaponClass, WeaponClassDef> = {
 
     supported_products: [],
     styles: ['Comfort', 'Drama', 'Parasocial', 'Hope'],
-    emotions: [],
     allowed_transformations: ['Compression', 'ZoomIn', 'ZoomOut', 'Similar', 'Opposite'],
   },
   twinblades: {
@@ -205,7 +190,6 @@ export const WEAPON_CLASSES: Record<WeaponClass, WeaponClassDef> = {
 
     supported_products: [],
     styles: ['Viral', 'Desire'],
-    emotions: [],
     allowed_transformations: [],
   },
   great_hammers: {
@@ -217,7 +201,6 @@ export const WEAPON_CLASSES: Record<WeaponClass, WeaponClassDef> = {
 
     supported_products: ['Plaintext', 'StructuredText', 'IllustratedText', 'Carousel', 'RawAudio', 'ProducedAudio', 'ARollVideo', 'SlideshowVideo', 'CinematicVideo', 'MotionGraphics', 'LiveStream'],
     styles: ['Shock', 'Narration', 'Segmentation', 'Fast', 'Passion', 'Cliffhanger', 'Controversy', 'Drama', 'Fear'],
-    emotions: [],
     allowed_transformations: [],
   },
   great_axes: {
@@ -229,7 +212,6 @@ export const WEAPON_CLASSES: Record<WeaponClass, WeaponClassDef> = {
 
     supported_products: [],
     styles: [],
-    emotions: [],
     allowed_transformations: [],
   },
   flails: {
@@ -241,7 +223,6 @@ export const WEAPON_CLASSES: Record<WeaponClass, WeaponClassDef> = {
 
     supported_products: ['StructuredText', 'IllustratedText', 'Infographic', 'ProducedAudio', 'ARollVideo', 'SlideshowVideo', 'Screencast', 'CinematicVideo', 'MotionGraphics', 'LiveStream', 'MultimediaPage', 'BranchingNarrative', 'AssetPack', 'CurationFeed', 'InteractiveApp', '_blank'],
     styles: ['Viral', 'Humor', 'Wow'],
-    emotions: [],
     allowed_transformations: [],
   },
   colossal_weapons: {
@@ -253,7 +234,6 @@ export const WEAPON_CLASSES: Record<WeaponClass, WeaponClassDef> = {
 
     supported_products: ['StructuredText', 'IllustratedText', 'Infographic', 'ProducedAudio', 'CinematicVideo', 'SlideshowVideo', 'MotionGraphics', 'MultimediaPage', 'BranchingNarrative', 'AssetPack', 'InteractiveApp', '_blank'],
     styles: ['Wow', 'Drama', 'Hope'],
-    emotions: [],
     allowed_transformations: [],
   },
   great_spears: {
@@ -265,7 +245,6 @@ export const WEAPON_CLASSES: Record<WeaponClass, WeaponClassDef> = {
 
     supported_products: [],
     styles: ['Controversy', 'Fear', 'Wow'],
-    emotions: [],
     allowed_transformations: ['Compression', 'Expansion', 'Similar', 'Opposite'],
   },
   halberds: {
@@ -277,7 +256,6 @@ export const WEAPON_CLASSES: Record<WeaponClass, WeaponClassDef> = {
 
     supported_products: ['StructuredText', 'IllustratedText', 'Infographic', 'SlideshowVideo', 'Screencast', 'MultimediaPage', 'AssetPack', 'CurationFeed', 'InteractiveApp', '_blank'],
     styles: ['Minimalism', 'Segmentation', 'Intellectual', 'Intellectual', 'Intellectual', 'ProblemSolving', 'ProblemSolving', 'Wow', 'Fear'],
-    emotions: [],
     allowed_transformations: [],
   },
   reapers: {
@@ -289,7 +267,6 @@ export const WEAPON_CLASSES: Record<WeaponClass, WeaponClassDef> = {
 
     supported_products: ['StructuredText', 'IllustratedText', 'Carousel', 'RawAudio', 'SlideshowVideo', 'CurationFeed', 'ARollVideo'],
     styles: ['Controversy', 'Drama', 'Fear', 'Humor'],
-    emotions: [],
     allowed_transformations: [],
   },
   whips: {
@@ -301,7 +278,6 @@ export const WEAPON_CLASSES: Record<WeaponClass, WeaponClassDef> = {
 
     supported_products: ['ARollVideo', 'CinematicVideo', 'SlideshowVideo', 'MotionGraphics', 'LiveStream'],
     styles: ['Comfort', 'Parasocial', 'Desire'],
-    emotions: [],
     allowed_transformations: [],
   },
   greatbows: {
@@ -313,7 +289,6 @@ export const WEAPON_CLASSES: Record<WeaponClass, WeaponClassDef> = {
 
     supported_products: ['Carousel', 'BranchingNarrative', 'InteractiveApp', 'LiveStream', 'MultimediaPage', 'CommunitySpace', '_blank'],
     styles: ['Comfort', 'Parasocial', 'Hope', 'Desire'],
-    emotions: [],
     allowed_transformations: [],
   },
   crossbows: {
@@ -325,7 +300,6 @@ export const WEAPON_CLASSES: Record<WeaponClass, WeaponClassDef> = {
 
     supported_products: [],
     styles: ['Viral', 'Desire'],
-    emotions: [],
     allowed_transformations: ['Compression', 'Expansion', 'ZoomIn', 'ZoomOut', 'Similar'],
   },
   ballistas: {
@@ -337,7 +311,6 @@ export const WEAPON_CLASSES: Record<WeaponClass, WeaponClassDef> = {
 
     supported_products: ['StructuredText', 'IllustratedText', 'Infographic', 'ProducedAudio', 'SlideshowVideo', 'CinematicVideo', 'MotionGraphics', 'MultimediaPage', 'BranchingNarrative', 'AssetPack', 'CurationFeed', 'InteractiveApp', '_blank'],
     styles: ['Controversy', 'Wow', 'Fear', 'Desire'],
-    emotions: [],
     allowed_transformations: [],
   },
   torches: {
@@ -349,7 +322,6 @@ export const WEAPON_CLASSES: Record<WeaponClass, WeaponClassDef> = {
 
     supported_products: ['Plaintext', 'SingleGraphic', 'Carousel', 'RawAudio', 'ARollVideo', 'CinematicVideo', 'LiveStream', 'CommunitySpace'],
     styles: ['Shock', 'Narration', 'Fast', 'Passion', 'Cliffhanger', 'Viral', 'Humor', 'Parasocial', 'Comfort'],
-    emotions: [],
     allowed_transformations: [],
   },
 }

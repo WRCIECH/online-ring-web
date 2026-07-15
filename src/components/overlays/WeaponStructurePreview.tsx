@@ -1,5 +1,5 @@
 import { useMemo, useState, useEffect, useRef } from 'react'
-import type { WeaponInstance, ContentProductType, AtomicOrigin, StyleType, EmotionType } from '../../types/game'
+import type { WeaponInstance, ContentProductType, AtomicOrigin, StyleType } from '../../types/game'
 import { describeWeaponPattern, DRAW_LABEL_KEY, VALUE_BUCKET, type PatternNode, type DrawNode } from '../../data/weaponStructure'
 import { spiralLayout, type SpiralPos } from '../../engine/spiralLayout'
 import { drawEdge, drawTile } from '../../engine/workflowRenderer'
@@ -540,189 +540,6 @@ function drawStyleIcon(
   }
 }
 
-// ── Emotion icons (EmotionType) ───────────────────────────────────────────────
-
-function drawEmotionIcon(
-  ctx: CanvasRenderingContext2D,
-  cx: number, cy: number, size: number,
-  value: EmotionType,
-): void {
-  const sc = size / 18
-  ctx.strokeStyle = 'rgba(230,100,130,0.9)'
-  ctx.fillStyle   = 'rgba(230,100,130,0.9)'
-  ctx.lineWidth   = 1 * sc
-
-  switch (value) {
-    case 'Viral':
-      // center dot + 5 radiating spokes with end-dots
-      ctx.beginPath(); ctx.arc(cx, cy, 1.2*sc, 0, Math.PI * 2); ctx.fill()
-      for (let i = 0; i < 5; i++) {
-        const a = (i / 5) * Math.PI * 2 - Math.PI / 2
-        ctx.beginPath()
-        ctx.moveTo(cx + Math.cos(a)*2*sc, cy + Math.sin(a)*2*sc)
-        ctx.lineTo(cx + Math.cos(a)*4.5*sc, cy + Math.sin(a)*4.5*sc)
-        ctx.stroke()
-        ctx.beginPath(); ctx.arc(cx + Math.cos(a)*5.5*sc, cy + Math.sin(a)*5.5*sc, 1*sc, 0, Math.PI*2); ctx.fill()
-      }
-      break
-
-    case 'Polarization':
-      // two downward arrows side by side
-      for (const ox of [-2.5, 2.5]) {
-        ctx.beginPath()
-        ctx.moveTo(cx + ox*sc, cy - 4*sc)
-        ctx.lineTo(cx + ox*sc, cy + 1*sc)
-        ctx.stroke()
-        ctx.beginPath()
-        ctx.moveTo(cx + (ox - 1.5)*sc, cy - 0.5*sc)
-        ctx.lineTo(cx + ox*sc, cy + 2.5*sc)
-        ctx.lineTo(cx + (ox + 1.5)*sc, cy - 0.5*sc)
-        ctx.fill()
-      }
-      break
-
-    case 'Envy': {
-      // eye: outer oval + pupil
-      ctx.beginPath()
-      ctx.ellipse(cx, cy, 5.5*sc, 3*sc, 0, 0, Math.PI * 2)
-      ctx.stroke()
-      ctx.beginPath(); ctx.arc(cx, cy, 1.5*sc, 0, Math.PI * 2); ctx.fill()
-      break
-    }
-
-    case 'Controversion': {
-      // lightning bolt
-      ctx.beginPath()
-      ctx.moveTo(cx + 2*sc, cy - 5.5*sc)
-      ctx.lineTo(cx - 1.5*sc, cy - 0.5*sc)
-      ctx.lineTo(cx + 1.5*sc, cy - 0.5*sc)
-      ctx.lineTo(cx - 2*sc, cy + 5.5*sc)
-      ctx.stroke()
-      break
-    }
-
-    case 'Comfort':
-      // gentle S-wave (comfort/ease)
-      ctx.beginPath()
-      ctx.moveTo(cx - 5*sc, cy)
-      ctx.bezierCurveTo(cx - 2*sc, cy - 4*sc, cx + 2*sc, cy + 4*sc, cx + 5*sc, cy)
-      ctx.stroke()
-      break
-
-    case 'Drama':
-      // two overlapping ovals (tragedy/comedy masks simplified)
-      ctx.beginPath(); ctx.ellipse(cx - 2*sc, cy, 3.5*sc, 4.5*sc, -0.3, 0, Math.PI * 2); ctx.stroke()
-      ctx.beginPath(); ctx.ellipse(cx + 2*sc, cy, 3.5*sc, 4.5*sc,  0.3, 0, Math.PI * 2); ctx.stroke()
-      break
-
-    case 'Wow': {
-      // ! inside a starburst
-      for (let i = 0; i < 8; i++) {
-        const a = (i / 8) * Math.PI * 2
-        ctx.beginPath()
-        ctx.moveTo(cx + Math.cos(a)*3.5*sc, cy + Math.sin(a)*3.5*sc)
-        ctx.lineTo(cx + Math.cos(a)*5.5*sc, cy + Math.sin(a)*5.5*sc)
-        ctx.stroke()
-      }
-      ctx.lineWidth = 1.5*sc
-      ctx.beginPath(); ctx.moveTo(cx, cy - 2*sc); ctx.lineTo(cx, cy + 1*sc); ctx.stroke()
-      ctx.beginPath(); ctx.arc(cx, cy + 3*sc, 0.7*sc, 0, Math.PI * 2); ctx.fill()
-      break
-    }
-
-    case 'Humor':
-      // upward smile arc
-      ctx.beginPath()
-      ctx.arc(cx, cy - 1*sc, 4.5*sc, Math.PI * 0.1, Math.PI * 0.9, false)
-      ctx.stroke()
-      // eye dots
-      ctx.beginPath(); ctx.arc(cx - 2*sc, cy - 3*sc, 0.8*sc, 0, Math.PI * 2); ctx.fill()
-      ctx.beginPath(); ctx.arc(cx + 2*sc, cy - 3*sc, 0.8*sc, 0, Math.PI * 2); ctx.fill()
-      break
-
-    case 'Parasocial':
-      // small person circle + heart to the right
-      ctx.beginPath(); ctx.arc(cx - 2*sc, cy - 2*sc, 2*sc, 0, Math.PI * 2); ctx.stroke()
-      ctx.beginPath()
-      ctx.arc(cx - 2*sc, cy + 4.5*sc, 3*sc, -Math.PI * 0.8, -Math.PI * 0.2, false)
-      ctx.stroke()
-      // tiny heart
-      ctx.beginPath()
-      ctx.moveTo(cx + 4*sc, cy + 1.5*sc)
-      ctx.bezierCurveTo(cx + 4*sc, cy - 0.5*sc, cx + 2*sc, cy - 0.5*sc, cx + 3*sc, cy + 1.5*sc)
-      ctx.bezierCurveTo(cx + 4*sc, cy - 0.5*sc, cx + 6*sc, cy - 0.5*sc, cx + 6*sc, cy + 1.5*sc)
-      ctx.bezierCurveTo(cx + 6*sc, cy + 3*sc, cx + 4*sc, cy + 4*sc, cx + 4*sc, cy + 1.5*sc)
-      ctx.fill()
-      break
-
-    case 'Fomo': {
-      // clock face: circle + hands showing almost-midnight
-      ctx.beginPath(); ctx.arc(cx, cy, 4.5*sc, 0, Math.PI * 2); ctx.stroke()
-      // minute hand (near 12)
-      ctx.beginPath()
-      ctx.moveTo(cx, cy)
-      ctx.lineTo(cx + Math.cos(-Math.PI * 0.5 + 0.3)*3.5*sc, cy + Math.sin(-Math.PI * 0.5 + 0.3)*3.5*sc)
-      ctx.stroke()
-      // hour hand
-      ctx.beginPath()
-      ctx.moveTo(cx, cy)
-      ctx.lineTo(cx + Math.cos(-Math.PI * 0.5 - 0.8)*2.5*sc, cy + Math.sin(-Math.PI * 0.5 - 0.8)*2.5*sc)
-      ctx.stroke()
-      break
-    }
-
-    case 'Fear':
-      // three downward zigzag lines (trembling)
-      for (const ox of [-3, 0, 3]) {
-        ctx.beginPath()
-        ctx.moveTo(cx + ox*sc, cy - 5*sc)
-        ctx.lineTo(cx + (ox + 1.5)*sc, cy - 1.5*sc)
-        ctx.lineTo(cx + (ox - 1.5)*sc, cy + 2*sc)
-        ctx.lineTo(cx + ox*sc, cy + 5*sc)
-        ctx.stroke()
-      }
-      break
-
-    case 'Rumor': {
-      // two overlapping speech bubbles
-      ctx.beginPath(); ctx.roundRect(cx - 5.5*sc, cy - 4.5*sc, 7*sc, 5*sc, 1.5*sc); ctx.stroke()
-      ctx.beginPath()
-      ctx.moveTo(cx - 3.5*sc, cy + 0.5*sc)
-      ctx.lineTo(cx - 5*sc, cy + 3*sc)
-      ctx.lineTo(cx - 1*sc, cy + 0.5*sc)
-      ctx.stroke()
-      ctx.beginPath(); ctx.roundRect(cx - 1*sc, cy - 1.5*sc, 7*sc, 5*sc, 1.5*sc); ctx.stroke()
-      ctx.beginPath()
-      ctx.moveTo(cx + 5*sc, cy + 3.5*sc)
-      ctx.lineTo(cx + 7*sc, cy + 5.5*sc)
-      ctx.lineTo(cx + 3*sc, cy + 3.5*sc)
-      ctx.stroke()
-      break
-    }
-
-    case 'Hope': {
-      // upward arrow + small rays at top (sunrise)
-      ctx.beginPath()
-      ctx.moveTo(cx, cy + 5*sc)
-      ctx.lineTo(cx, cy - 2*sc)
-      ctx.stroke()
-      ctx.beginPath()
-      ctx.moveTo(cx - 2.5*sc, cy)
-      ctx.lineTo(cx, cy - 2*sc)
-      ctx.lineTo(cx + 2.5*sc, cy)
-      ctx.fill()
-      // rays
-      for (const a of [-0.7, 0, 0.7]) {
-        ctx.beginPath()
-        ctx.moveTo(cx + Math.sin(a)*3*sc, cy - 2*sc - Math.cos(a)*3*sc)
-        ctx.lineTo(cx + Math.sin(a)*4.5*sc, cy - 2*sc - Math.cos(a)*4.5*sc)
-        ctx.stroke()
-      }
-      break
-    }
-  }
-}
-
 function drawDrawNode(
   ctx: CanvasRenderingContext2D,
   cx: number, cy: number,
@@ -738,7 +555,6 @@ function drawDrawNode(
   if (node.label === 'format')              bg = FORMAT_BG[node.value as ContentProductType] ?? '#2a2a3a'
   else if (node.label === 'transformation') bg = '#122a22'
   else if (node.label === 'style')          bg = '#1e1848'
-  else if (node.label === 'emotion')        bg = '#3a0e1e'
 
   ctx.beginPath()
   ctx.roundRect(cx - half, cy - half, size, size, rx)
@@ -773,8 +589,6 @@ function drawDrawNode(
     drawTransformationIcon(ctx, cx, cy, size, node.value as AtomicOrigin)
   } else if (node.label === 'style') {
     drawStyleIcon(ctx, cx, cy, size, node.value as StyleType)
-  } else if (node.label === 'emotion') {
-    drawEmotionIcon(ctx, cx, cy, size, node.value as EmotionType)
   }
 
   ctx.restore()
