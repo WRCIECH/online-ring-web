@@ -1,12 +1,11 @@
 import type {
   WeaponClass, WeaponRarity, AtomicStage, WorkflowTile, WorkflowEdge, WorkflowGraph, RolledPatternDraws,
-  ContentProductType, AtomicOrigin, StyleType,
+  ContentProductType,
 } from '../../types/game'
 import type { PatternStep } from './weaponPatterns'
-import { WEAPON_PATTERNS, drawKindOf } from './weaponPatterns'
+import { WEAPON_PATTERNS } from './weaponPatterns'
 import { WEAPON_CLASSES, type WeaponClassDef } from './weaponClasses'
 import type { SlotKind } from './patternSlots'
-import { pickWeighted } from './patternSlots'
 
 // ── Time tables (seconds), keyed by the 6-stage vocabulary ────────────────
 // Carried over 1:1 from the old TileType table: research->Research,
@@ -108,7 +107,7 @@ export function compilePattern(
   const ctx: CompileContext = {
     cls, rarity, tiles: [], edges: [], frontier: [],
     lastResearchBlockTileIds: null, produceBoostApplied: false,
-    rolledDraws, slotCounters: { format: 0, transformation: 0, style: 0 },
+    rolledDraws, slotCounters: { format: 0 },
   }
   for (const step of steps) compileStep(step, ctx)
   return { tiles: ctx.tiles, edges: ctx.edges }
@@ -116,13 +115,10 @@ export function compilePattern(
 
 function compileStep(step: PatternStep, ctx: CompileContext): void {
   switch (step.kind) {
-    case 'phase':              return compilePhase(step, ctx)
-    case 'drawFormat':         return compileDrawFormat(ctx)
-    case 'drawTransformation': return compileDrawTransformation(ctx)
-    case 'drawStyle':          return compileDrawStyle(step, ctx)
-    case 'fixedDraw':          return compileFixedDraw(step, ctx)
-    case 'branch':             return compileBranch(step, ctx)
-    case 'eitherOr':           return compileEitherOr(step, ctx)
+    case 'phase':      return compilePhase(step, ctx)
+    case 'drawFormat': return compileDrawFormat(ctx)
+    case 'fixedDraw':  return compileFixedDraw(step, ctx)
+    case 'branch':     return compileBranch(step, ctx)
   }
 }
 
@@ -149,27 +145,16 @@ function compilePhase(step: { stage: AtomicStage; min: number; max: number }, ct
   ctx.lastResearchBlockTileIds = step.stage === 'Research' ? newTiles.map(t => t.id) : null
 }
 
-type DrawValue = ContentProductType | AtomicOrigin | StyleType
-
-// Shared tail for every draw kind: format/transformation also retag the
-// preceding Research block (and require one to exist — a structural
-// pattern requirement, independent of whether a value was actually
-// rolled); all 4 kinds append one Plan tile carrying the value.
-function applyDrawResult(ctx: CompileContext, kind: SlotKind, value: DrawValue): void {
-  if (kind === 'format' || kind === 'transformation') {
-    if (ctx.lastResearchBlockTileIds === null) {
-      const fnName = kind === 'format' ? 'drawFormat' : 'drawTransformation'
-      throw new Error(`${fnName}() in ${ctx.cls.id}'s pattern has no preceding phase('Research', ...) block`)
-    }
-    for (const id of ctx.lastResearchBlockTileIds) {
-      const t = ctx.tiles.find(t => t.id === id)!
-      if (kind === 'format') t.content_type = value as ContentProductType
-      else t.content_origin = value as AtomicOrigin
-    }
+function applyDrawResult(ctx: CompileContext, value: ContentProductType): void {
+  if (ctx.lastResearchBlockTileIds === null) {
+    throw new Error(`drawFormat() in ${ctx.cls.id}'s pattern has no preceding phase('Research', ...) block`)
+  }
+  for (const id of ctx.lastResearchBlockTileIds) {
+    const t = ctx.tiles.find(t => t.id === id)!
+    t.content_type = value
   }
   const planTile = makeTile('Plan', ctx.cls.time_mod)
-  if (kind === 'format') planTile.content_type = value as ContentProductType
-  else if (kind === 'transformation') planTile.content_origin = value as AtomicOrigin
+  planTile.content_type = value
   ctx.tiles.push(planTile)
   linkFrontier(ctx, planTile.id)
   ctx.frontier = [planTile.id]
@@ -177,94 +162,31 @@ function applyDrawResult(ctx: CompileContext, kind: SlotKind, value: DrawValue):
 
 function compileDrawFormat(ctx: CompileContext): void {
   const pool = ctx.cls.supported_products
-  const value = ctx.rolledDraws
-    ? (ctx.rolledDraws.format[ctx.slotCounters.format++]?.[0] ?? pool[Math.floor(Math.random() * pool.length)])
+  const occ = ctx.slotCounters.format++
+  const value: ContentProductType = ctx.rolledDraws
+    ? (ctx.rolledDraws.format[occ]?.[0] ?? pool[Math.floor(Math.random() * pool.length)])
     : pool[Math.floor(Math.random() * pool.length)]
-  applyDrawResult(ctx, 'format', value)
+  applyDrawResult(ctx, value)
 }
 
-function compileDrawTransformation(ctx: CompileContext): void {
-  let value: ReturnType<typeof resolveTransformation>
-  if (ctx.rolledDraws) {
-    value = ctx.rolledDraws.transformation[ctx.slotCounters.transformation++]?.[0] ?? null
-  } else {
-    value = resolveTransformation(ctx.cls)
-  }
-  if (value === null) return
-  applyDrawResult(ctx, 'transformation', value)
-}
+function compileFixedDraw(step: Extract<PatternStep, { kind: 'fixedDraw' }>, ctx: CompileContext): void {
+  const occ = ctx.slotCounters.format++
+  const value: ContentProductType = ctx.rolledDraws
+    ? ((ctx.rolledDraws.format[occ]?.[0] as ContentProductType) ?? step.value)
+    : step.value
 
-function resolveTransformation(cls: WeaponClassDef) {
-  const pool = cls.allowed_transformations
-  return pool.length === 0 ? null : pool[Math.floor(Math.random() * pool.length)]
-}
-
-function compileDrawStyle(_step: { probability: number }, ctx: CompileContext): void {
-  // Style is specified by campaign edges, not by workflow tiles — skip tile creation
-  // but advance the slot counter so rolled_draws stay in sync.
-  if (ctx.rolledDraws) ctx.slotCounters.style++
-}
-
-function compileFixedDraw(step: { slotKind: SlotKind; value: DrawValue }, ctx: CompileContext): void {
-  const kind = step.slotKind
-  let value: DrawValue
-  if (ctx.rolledDraws) {
-    value = (ctx.rolledDraws[kind][ctx.slotCounters[kind]++]?.[0] as DrawValue) ?? step.value
-  } else {
-    value = step.value
-  }
-
-  // Tag preceding Research tiles only if a Research block is in scope —
-  // fixed draws can legally appear after non-Research phases.
-  if ((kind === 'format' || kind === 'transformation') && ctx.lastResearchBlockTileIds !== null) {
+  if (ctx.lastResearchBlockTileIds !== null) {
     for (const id of ctx.lastResearchBlockTileIds) {
       const t = ctx.tiles.find(t => t.id === id)!
-      if (kind === 'format') t.content_type = value as ContentProductType
-      else                   t.content_origin = value as AtomicOrigin
+      t.content_type = value
     }
   }
 
   const planTile = makeTile('Plan', ctx.cls.time_mod)
-  if      (kind === 'format')         planTile.content_type  = value as ContentProductType
-  else if (kind === 'transformation') planTile.content_origin = value as AtomicOrigin
+  planTile.content_type = value
   ctx.tiles.push(planTile)
   linkFrontier(ctx, planTile.id)
   ctx.frontier = [planTile.id]
-}
-
-// A pre-rolled instance's rolled_draws already enforces "exactly one
-// option non-null" (see patternSlots.ts's resolveGroupState) — every
-// option's counter still needs incrementing to stay in lockstep with how
-// patternSlots.ts indexed them, even the losing ones. Legacy weapons (no
-// rolled_draws) instead do a live weighted pick and only ever resolve the
-// winner.
-function compileEitherOr(step: { options: { step: PatternStep; weight: number }[] }, ctx: CompileContext): void {
-  if (ctx.rolledDraws) {
-    let resolvedKind: SlotKind | null = null
-    let resolvedValue: DrawValue | null = null
-    for (const opt of step.options) {
-      const kind = drawKindOf(opt.step)!
-      const occ = ctx.slotCounters[kind]++
-      const value = ctx.rolledDraws[kind][occ]?.[0] ?? null
-      if (value !== null) { resolvedKind = kind; resolvedValue = value }
-    }
-    if (resolvedKind !== null && resolvedValue !== null) applyDrawResult(ctx, resolvedKind, resolvedValue)
-    return
-  }
-  const winnerIdx = pickWeighted(step.options.map(o => o.weight))
-  const winner = step.options[winnerIdx]
-  const kind = drawKindOf(winner.step)!
-  const value = legacyResolveKind(ctx.cls, kind)
-  if (value !== null) applyDrawResult(ctx, kind, value)
-}
-
-function legacyResolveKind(cls: WeaponClassDef, kind: SlotKind): DrawValue | null {
-  if (kind === 'format') {
-    const pool = cls.supported_products
-    return pool[Math.floor(Math.random() * pool.length)]
-  }
-  if (kind === 'transformation') return resolveTransformation(cls)
-  return null  // style: no value generated for workflow tiles
 }
 
 function compileBranch(step: { paths: PatternStep[][] }, ctx: CompileContext): void {

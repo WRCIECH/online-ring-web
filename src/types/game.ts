@@ -96,9 +96,7 @@ export interface Weapon {
 // 3 parallel Style draws), its occurrences are redrawn together as one group
 // on the round-robin's turn rather than independently — see patternSlots.ts.
 export interface RolledPatternDraws {
-  format:         (ContentProductType | null)[][]   // [occurrenceIndex][stateIndex]
-  transformation: (AtomicOrigin | null)[][]   // [occurrenceIndex][stateIndex]
-  style:          (StyleType   | null)[][]   // [occurrenceIndex][stateIndex]
+  format: (ContentProductType | null)[][]   // [occurrenceIndex][stateIndex]
   length: AtomicTime
 }
 
