@@ -563,7 +563,7 @@ export default function CampaignOverlay({ onClose }: Props) {
                           </span>
                         )}
 
-                        {!campaign.completed && (
+                        {isActivated && !campaign.completed && (
                           confirmDetachId === weaponId ? (
                             <div className={s.detachConfirm}>
                               <button
