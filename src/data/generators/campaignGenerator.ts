@@ -1,4 +1,6 @@
 import type { CampaignNode, CampaignEdge, WeaponCampaign, ContentTransformation, WeaponInstance } from '../../types/game'
+import { WEAPON_CLASSES } from './weaponClasses'
+import type { ContentTransformationsConfig } from './weaponClasses'
 
 function genId(): string {
   return 'cn_' + Math.random().toString(36).slice(2, 9)
@@ -34,10 +36,23 @@ function nodeDepth(_nodes: CampaignNode[], edges: CampaignEdge[], nodeId: string
   return depth
 }
 
-function drawEdgeLabel(pool: ContentTransformation[]): ContentTransformation | null {
-  if (Math.random() < 0.50) return null
-  const effectivePool = pool.length > 0 ? pool : GLOBAL_EDGE_POOL
-  return effectivePool[Math.floor(Math.random() * effectivePool.length)]
+function drawEdgeLabel(config: ContentTransformationsConfig): ContentTransformation {
+  const { S, A, B, Excluded } = config
+  const wildcard = GLOBAL_EDGE_POOL.filter(
+    t => !Excluded.includes(t) && !S.includes(t) && !A.includes(t) && !B.includes(t)
+  )
+  const buckets = [
+    { pool: S,        weight: 50 },
+    { pool: A,        weight: 25 },
+    { pool: B,        weight: 15 },
+    { pool: wildcard, weight: 10 },
+  ].filter(b => b.pool.length > 0)
+  if (buckets.length === 0) {
+    const fallback = GLOBAL_EDGE_POOL.filter(t => !Excluded.includes(t))
+    return fallback[Math.floor(Math.random() * fallback.length)]
+  }
+  const bucket = weightedSample(buckets, buckets.map(b => b.weight))
+  return bucket.pool[Math.floor(Math.random() * bucket.pool.length)]
 }
 
 export function isNodeAvailable(nodes: CampaignNode[], edges: CampaignEdge[], node: CampaignNode): boolean {
@@ -68,7 +83,7 @@ export function generateWeaponCampaign(weapon: WeaponInstance): WeaponCampaign {
   const nodeCount = minNodes + Math.floor(Math.random() * (maxNodes - minNodes + 1))
   const maxBranch = 3
 
-  const edgePool = GLOBAL_EDGE_POOL
+  const transformConfig = WEAPON_CLASSES[weapon.weapon_class].content_transformations
 
   function makeNode(): CampaignNode {
     return { id: genId(), name: '', completed: false, published: false }
@@ -87,7 +102,7 @@ export function generateWeaponCampaign(weapon: WeaponInstance): WeaponCampaign {
     const parent  = weightedSample(eligible, weights)
     const child   = makeNode()
     nodes.push(child)
-    edges.push({ from_id: parent.id, to_id: child.id, label: drawEdgeLabel(edgePool) })
+    edges.push({ from_id: parent.id, to_id: child.id, label: drawEdgeLabel(transformConfig) })
   }
 
   return {
