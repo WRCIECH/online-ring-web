@@ -607,16 +607,9 @@ export const useGameStore = create<GameStore>((set, get) => ({
 
   detachCampaign: (weaponId) => {
     set(s => {
-      const old = s.weapon_campaigns[weaponId]
-      const weapon = s.weapon_instances.find(w => w.instance_id === weaponId)
-      if (!weapon) return s
-      const fresh = {
-        ...generateWeaponCampaign(weapon),
-        activated: false,
-        done_count: old?.done_count ?? 0,
-        ordinal: old?.ordinal ?? 1,
-      }
-      return { weapon_campaigns: { ...s.weapon_campaigns, [weaponId]: fresh } }
+      const c = s.weapon_campaigns[weaponId]
+      if (!c) return s
+      return { weapon_campaigns: { ...s.weapon_campaigns, [weaponId]: { ...c, activated: false } } }
     })
     get().save()
   },
