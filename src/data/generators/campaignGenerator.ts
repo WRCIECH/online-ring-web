@@ -1,5 +1,4 @@
 import type { CampaignNode, CampaignEdge, WeaponCampaign, AtomicOrigin, StyleType, WeaponInstance } from '../../types/game'
-import { WEAPON_CLASSES } from './weaponClasses'
 
 function genId(): string {
   return 'cn_' + Math.random().toString(36).slice(2, 9)
@@ -61,16 +60,11 @@ const NODE_COUNT_BY_WEIGHT: Record<string, [number, number]> = {
 }
 
 export function generateWeaponCampaign(weapon: WeaponInstance): WeaponCampaign {
-  const cls = WEAPON_CLASSES[weapon.weapon_class]
   const [minNodes, maxNodes] = NODE_COUNT_BY_WEIGHT[weapon.poise_weight ?? 'medium'] ?? [7, 10]
   const nodeCount = minNodes + Math.floor(Math.random() * (maxNodes - minNodes + 1))
   const maxBranch = 3
 
-  const classPool: (AtomicOrigin | StyleType)[] = [
-    ...(cls.allowed_transformations as AtomicOrigin[]),
-    ...(cls.styles as StyleType[]),
-  ]
-  const edgePool = classPool.length > 0 ? classPool : GLOBAL_EDGE_POOL
+  const edgePool = GLOBAL_EDGE_POOL
 
   function makeNode(): CampaignNode {
     return { id: genId(), name: '', completed: false, published: false }
