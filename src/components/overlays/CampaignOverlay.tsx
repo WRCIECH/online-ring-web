@@ -244,9 +244,10 @@ export default function CampaignOverlay({ onClose }: Props) {
   function handleSell() {
     if (!selectedWeapon) return
     if (isConfirmSell) {
+      const remaining = store.weapon_instances.filter(w => w.instance_id !== wid)
       store.sellWeapon(wid)
       setConfirmSellId(null)
-      setSelectedWeaponId(null)
+      setSelectedWeaponId(remaining[0]?.instance_id ?? null)
     } else {
       setConfirmSellId(wid)
     }
