@@ -17,8 +17,8 @@ export default function AnalyticsOverlay({ onClose }: Props) {
   const clearedCount   = store.completed_locations.length
   const clearedPct     = totalLocations > 0 ? (clearedCount / totalLocations) * 100 : 0
 
-  // All campaigns: active (on weapons) + library
-  const activeCampaigns = Object.values(store.weapon_campaigns)
+  // Only activated campaigns (on weapons) + library (all library entries were once activated)
+  const activeCampaigns = Object.values(store.weapon_campaigns).filter(c => c.activated)
   const libCampaigns    = store.campaign_library
 
   // Merge: library entry wins if same id (has done_count); add any active-only ones
