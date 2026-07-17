@@ -338,8 +338,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
       run_defeated_enemies: [],
       current_hp: calcMaxHp(get().stats.VIG),
       run_location_name: loc.id,
-      workflow_progress: {},
-      content_streak: {},
+      // workflow_progress and content_streak are campaign data that span multiple runs — do NOT clear
       active_content_id: null,
       pending_weapon_id: null,
       last_fight_ended_at: undefined,
