@@ -75,6 +75,7 @@ function layoutGraph(graph: WorkflowGraph): {
 
   const byLayer = new Map<number, string[]>()
   for (const t of graph.tiles) {
+    if (t.is_advance) continue
     const l   = layer.get(t.id) ?? 0
     const arr = byLayer.get(l) ?? []
     arr.push(t.id)
@@ -131,11 +132,12 @@ function render(
 
   // Edges
   for (const e of graph.edges) {
+    const toTile = graph.tiles.find(t => t.id === e.to)
+    if (toTile?.is_advance) continue
     const from = positions.get(e.from)
     const to   = positions.get(e.to)
     if (!from || !to) continue
     const fromTile = graph.tiles.find(t => t.id === e.from)
-    const toTile   = graph.tiles.find(t => t.id === e.to)
     drawEdge(
       ctx,
       from.x + TILE / 2, from.y + TILE / 2,
@@ -146,6 +148,7 @@ function render(
 
   // Tiles
   for (const tile of graph.tiles) {
+    if (tile.is_advance) continue
     const p = positions.get(tile.id)
     if (!p) continue
     const done  = tile.is_completed

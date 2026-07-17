@@ -17,7 +17,6 @@ import WorkflowCanvas from '../components/combat/WorkflowCanvas'
 import MoveRadialMenu, { type RadialMoveItem } from '../components/combat/MoveRadialMenu'
 import CombatBottomBar from '../components/combat/CombatBottomBar'
 import CombatMusic  from '../components/combat/CombatMusic'
-import PreFightPicker from '../components/overlays/PreFightPicker'
 import { COMBAT_MUSIC } from '../data/combatMusic'
 import { useT } from '../i18n'
 import s from './CombatScreen.module.css'
@@ -195,7 +194,9 @@ export default function CombatScreen() {
   }, [state.phase, loc, lootItems, store.run_defeated_enemies])
 
   // ── Victory ───────────────────────────────────────────────────────────────
-  const handleVictoryContinue = useCallback(() => {
+  // finalizeContent=true  → mark campaign node complete, clear workflow
+  // finalizeContent=false → save workflow progress for next fight
+  const doVictoryEnd = useCallback((finalizeContent: boolean) => {
     if (!loc) return
     store.syncCombatResult(state.playerHp, state.playerEstus)
     store.addRunes(state.runesEarned)
@@ -204,14 +205,8 @@ export default function CombatScreen() {
     if (rewardDrop) store.addReward(rewardDrop)
     store.addDefeatedEnemy(loc.enemy_id)
     store.recordFightEnd()
-    // Persist or clear workflow; always save streak
-    // Exclude the synthetic advance tile — only regular content tiles determine completion
-    const allDone = state.workflow.tiles.filter(t => !t.is_advance).every(t => t.is_completed)
-    if (allDone) {
-      if (store.active_content_id) {
-        store.completeCampaignNode(state.equippedWeaponId, store.active_content_id, state.workflow)
-        // completeCampaignNode clears the streak for this node
-      }
+    if (finalizeContent && store.active_content_id) {
+      store.completeCampaignNode(state.equippedWeaponId, store.active_content_id, state.workflow)
       store.clearActiveWorkflow()
     } else {
       store.saveWorkflowProgress(state.workflow)
@@ -221,7 +216,7 @@ export default function CombatScreen() {
     store.advanceRun()
     if (isLast) { store.endRunVictory(); navigate('/run-complete') }
     else        { store.setPendingEncounter(null); navigate('/map') }
-  }, [loc, store, navigate, state, lootItems, rewardDrop, enemyData])
+  }, [loc, store, navigate, state, lootItems, rewardDrop])
 
   // ── Defeat ────────────────────────────────────────────────────────────────
   const handleDefeat = useCallback(() => {
@@ -260,8 +255,6 @@ export default function CombatScreen() {
     })
   }, [])
   const [showAbandonConfirm, setShowAbandonConfirm] = useState(false)
-  const [showAdvancePicker, setShowAdvancePicker]   = useState(false)
-  // If a campaign node was already locked in the store, skip the picker entirely
   const [selectedContentId, setSelectedContentId] = useState<string | null>(
     store.active_content_id ?? null
   )
@@ -338,62 +331,10 @@ export default function CombatScreen() {
       return sum + base + promotes
     }, 0)
 
-  const handleContinueContent = () => {
-    // Mark the completed node before opening picker so children are unblocked immediately
-    if (selectedContentId) {
-      store.completeCampaignNode(state.equippedWeaponId, selectedContentId, state.workflow)
-      setSelectedContentId(null)
-    }
-    setShowAdvancePicker(true)
-  }
-
-  function handleAdvanceConfirm(pickedWeaponId: string, contentId: string) {
-    setShowAdvancePicker(false)
-    const cur = stateRef.current
-    const pickedWeapon = WEAPONS[pickedWeaponId] as WeaponInstance | undefined
-
-    if (pickedWeaponId !== cur.equippedWeaponId) {
-      dispatch({ type: 'SWITCH_WEAPON', weaponId: pickedWeaponId, weaponLevel: store.weapon_level[pickedWeaponId] ?? 0 })
-    }
-
-    const newWorkflow = contentCache.current[contentId]?.workflow
-      ?? store.workflow_progress[contentId]
-      ?? generateWorkflow(
-        pickedWeapon?.weapon_class ?? 'straight_swords',
-        pickedWeapon?.rarity       ?? 'common',
-        loc?.sublocation_type === 'boss',
-        pickedWeapon?.rolled_draws,
-      )
-    const savedStreak = store.content_streak[contentId] ?? 0
-    setSelectedContentId(contentId)
-    store.setActiveContentId(contentId)
-    dispatch({ type: 'SWITCH_WORKFLOW', workflow: newWorkflow, consistencyStreak: savedStreak })
-  }
-
-  function handleAdvanceClose() {
-    setShowAdvancePicker(false)
-    const cur = stateRef.current
-    const w = WEAPONS[cur.equippedWeaponId] as WeaponInstance | undefined
-    const newWorkflow = generateWorkflow(
-      w?.weapon_class ?? 'straight_swords',
-      w?.rarity ?? 'common',
-      loc?.sublocation_type === 'boss',
-      w?.rolled_draws,
-    )
-    dispatch({ type: 'SWITCH_WORKFLOW', workflow: newWorkflow })
-  }
-
   // ── Selected tile (derived) ───────────────────────────────────────────────
   const selectedTile = state.selectedTileId
     ? state.workflow.tiles.find(t => t.id === state.selectedTileId) ?? null
     : null
-
-  // ── Finishing blow (VICTORY only) — one fresh tile left, not yet completed ──
-  const finalizableTile = state.phase === 'VICTORY' && selectedContentId
-    ? state.workflow.tiles.find(t => !t.is_advance && !t.is_completed && t.repeat_count === 0) ?? null
-    : null
-  const canFinalize = finalizableTile !== null
-    && state.workflow.tiles.filter(t => !t.is_advance && !t.is_completed).length === 1
 
   // ── Move radial menu (click a tile → circles to pick Light/Heavy) ────────
   const isPlayerTurn = state.phase === 'PLAYER_TURN'
@@ -404,11 +345,11 @@ export default function CombatScreen() {
     if (!isPlayerTurn) return
     const tile = state.workflow.tiles.find(t => t.id === tileId)
     if (!tile) return
+    if (tile.is_advance) return
     if (!tile.is_completed && !reachableTiles.has(tileId)) return
-    if (tile.is_advance) { handleContinueContent(); return }
     dispatch({ type: 'SELECT_TILE', tileId })
     setRadialPos({ x, y })
-  }, [isPlayerTurn, state.workflow, reachableTiles, handleContinueContent])
+  }, [isPlayerTurn, state.workflow, reachableTiles])
 
   const radialItems = useMemo<RadialMoveItem[]>(() => {
     if (!radialPos || !selectedTile) return []
@@ -659,26 +600,25 @@ export default function CombatScreen() {
               </div>
             )}
 
-            {canFinalize && (
+            {selectedContentId && state.workflow.tiles.filter(t => !t.is_advance).every(t => t.is_completed) ? (
               <div className={s.finalizeBanner}>
                 <div className={s.finalizePrompt}>
-                  {(t.ui as Record<string, string>).victory_last_tile_prompt}
+                  {(t.ui as Record<string, string>).victory_content_done_prompt}
                 </div>
-                <button className={s.finalizeBtn} onClick={() => dispatch({ type: 'MARK_LAST_TILE_COMPLETE' })}>
-                  {(t.ui as Record<string, string>).victory_last_tile_btn}
-                </button>
+                <div className={s.confirmActions}>
+                  <button className={s.finalizeBtn} onClick={() => doVictoryEnd(true)}>
+                    {(t.ui as Record<string, string>).victory_finalize_yes}
+                  </button>
+                  <button className={s.btnCancel} onClick={() => doVictoryEnd(false)}>
+                    {(t.ui as Record<string, string>).victory_finalize_no}
+                  </button>
+                </div>
               </div>
+            ) : (
+              <button className={s.endBtn} onClick={() => doVictoryEnd(false)}>
+                Continue →
+              </button>
             )}
-            {!canFinalize && selectedContentId
-              && state.workflow.tiles.filter(t => !t.is_advance).every(t => t.is_completed) && (
-              <div className={s.finalizeComplete}>
-                {(t.ui as Record<string, string>).victory_last_tile_done}
-              </div>
-            )}
-
-            <button className={s.endBtn} onClick={handleVictoryContinue}>
-              Continue →
-            </button>
           </div>
         </div>
       )}
@@ -729,15 +669,6 @@ export default function CombatScreen() {
             </div>
           </div>
         </div>
-      )}
-
-      {/* ── Advance picker — opened when the advance tile is clicked ───── */}
-      {showAdvancePicker && loc && (
-        <PreFightPicker
-          loc={loc}
-          onConfirm={handleAdvanceConfirm}
-          onCancel={handleAdvanceClose}
-        />
       )}
 
       {/* ── Fled overlay ───────────────────────────────────────────────── */}

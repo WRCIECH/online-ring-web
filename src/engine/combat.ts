@@ -71,7 +71,6 @@ export type CombatAction =
   | { type: 'SWITCH_WEAPON'; weaponId: string; weaponLevel: number }
   | { type: 'ADD_LOG'; text: string; color?: string }
   | { type: 'SUPERHIT'; tile: WorkflowTile }
-  | { type: 'MARK_LAST_TILE_COMPLETE' }
 
 // ── Constants ─────────────────────────────────────────────────────────────
 
@@ -408,21 +407,22 @@ export function combatReducer(state: CombatState, action: CombatAction): CombatS
       const affinityMult    = calcAffinityMultiplier(tile, state.enemyData)
       const rawTheme        = calcThemeBonus(tile, state.locationTheme)  // 1.0 or 1.2
 
+      const isRepeat      = tile.is_completed   // true if tile was already done before this run
+
       const updatedTiles = state.workflow.tiles.map(t => {
         if (t.id !== tile.id) return t
         return { ...t, is_completed: true, repeat_count: t.repeat_count + 1 }
       })
       const newWorkflow = { ...state.workflow, tiles: updatedTiles }
       const allTilesDone = newWorkflow.tiles.filter(t => !t.is_advance).every(t => t.is_completed)
-      const finisherMult  = allTilesDone ? FINISHER_MULT : 1.0
+      // Finisher mult only on a first-time completion of the last normal tile (never on repeats)
+      const finisherMult  = (allTilesDone && !isRepeat) ? FINISHER_MULT : 1.0
 
       const bonusPool = Math.min(0.5, 0.05 * state.consistencyStreak)
                       + (state.flowMult - 1)
                       + (rawTheme - 1)
                       + (state.campaignDoneMult - 1)
       const rewardMult = 1 + bonusPool
-
-      const isRepeat      = tile.is_completed
       const rawDamage     = calcTileDamage(tile, move, weapon, state.weaponLevel, state.playerStats)
       const repeatDamage  = isRepeat ? Math.round(rawDamage * (1 - REPEAT_DAMAGE_PENALTY)) : rawDamage
       const damage        = Math.round(
@@ -533,14 +533,6 @@ export function combatReducer(state: CombatState, action: CombatAction): CombatS
         return { ...s, phase: 'VICTORY' }
       }
       return { ...s, phase: 'PLAYER_TURN' }
-    }
-
-    case 'MARK_LAST_TILE_COMPLETE': {
-      if (state.phase !== 'VICTORY') return state
-      const updatedTiles = state.workflow.tiles.map(t =>
-        (!t.is_advance && !t.is_completed && t.repeat_count === 0) ? { ...t, is_completed: true } : t
-      )
-      return { ...state, workflow: { ...state.workflow, tiles: updatedTiles } }
     }
 
     default:
