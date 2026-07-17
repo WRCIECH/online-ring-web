@@ -235,8 +235,10 @@ export default function CombatScreen() {
   const handleFlee = useCallback(() => {
     store.syncCombatResult(state.playerHp, state.playerEstus)
     store.setAbandonPenalty(ABANDON_PENALTY)
+    // Save completed tile progress so the player doesn't redo work they already did.
+    // Only the streak is broken — fleeing resets consistency, not content.
+    store.saveWorkflowProgress(state.workflow)
     if (store.active_content_id) store.clearContentStreak(store.active_content_id)
-    store.clearActiveWorkflow()
     store.endRunFailure()
     navigate('/')
   }, [store, navigate, state])
