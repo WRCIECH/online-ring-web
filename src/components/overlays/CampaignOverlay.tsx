@@ -314,8 +314,9 @@ export default function CampaignOverlay({ onClose }: Props) {
                       {(() => {
                         const primaryFormat = selectedWeapon.rolled_draws?.format[0]?.[0]
                         if (!primaryFormat) return null
-                        const label = t.content.product[primaryFormat]?.badge_label ?? primaryFormat
-                        return <span className={s.mediumChip}>{label}</span>
+                        const label   = t.content.product[primaryFormat]?.badge_label ?? primaryFormat
+                        const detail  = t.content.product[primaryFormat]?.detail
+                        return <span className={s.mediumChip} data-tooltip={detail || undefined}>{label}</span>
                       })()}
                       <span className={s.statChip}>×{(dmgCurrent / 100).toFixed(2)} dmg</span>
                       {classDef && <>

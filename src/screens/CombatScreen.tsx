@@ -205,7 +205,8 @@ export default function CombatScreen() {
     store.addDefeatedEnemy(loc.enemy_id)
     store.recordFightEnd()
     // Persist or clear workflow; always save streak
-    const allDone = state.workflow.tiles.every(t => t.is_completed)
+    // Exclude the synthetic advance tile — only regular content tiles determine completion
+    const allDone = state.workflow.tiles.filter(t => !t.is_advance).every(t => t.is_completed)
     if (allDone) {
       if (store.active_content_id) {
         store.completeCampaignNode(state.equippedWeaponId, store.active_content_id, state.workflow)
@@ -377,6 +378,13 @@ export default function CombatScreen() {
   const selectedTile = state.selectedTileId
     ? state.workflow.tiles.find(t => t.id === state.selectedTileId) ?? null
     : null
+
+  // ── Finishing blow (VICTORY only) — one fresh tile left, not yet completed ──
+  const finalizableTile = state.phase === 'VICTORY' && selectedContentId
+    ? state.workflow.tiles.find(t => !t.is_advance && !t.is_completed && t.repeat_count === 0) ?? null
+    : null
+  const canFinalize = finalizableTile !== null
+    && state.workflow.tiles.filter(t => !t.is_advance && !t.is_completed).length === 1
 
   // ── Move radial menu (click a tile → circles to pick Light/Heavy) ────────
   const isPlayerTurn = state.phase === 'PLAYER_TURN'
@@ -639,6 +647,23 @@ export default function CombatScreen() {
                 <span className={s.rewardDropTier} style={{ color: REWARD_COLOURS[rewardDrop] }}>
                   {store.reward_names[rewardDrop] || t.ui[`reward_tier_${rewardDrop}` as keyof typeof t.ui] || rewardDrop}
                 </span>
+              </div>
+            )}
+
+            {canFinalize && (
+              <div className={s.finalizeBanner}>
+                <div className={s.finalizePrompt}>
+                  {(t.ui as Record<string, string>).victory_last_tile_prompt}
+                </div>
+                <button className={s.finalizeBtn} onClick={() => dispatch({ type: 'MARK_LAST_TILE_COMPLETE' })}>
+                  {(t.ui as Record<string, string>).victory_last_tile_btn}
+                </button>
+              </div>
+            )}
+            {!canFinalize && selectedContentId
+              && state.workflow.tiles.filter(t => !t.is_advance).every(t => t.is_completed) && (
+              <div className={s.finalizeComplete}>
+                {(t.ui as Record<string, string>).victory_last_tile_done}
               </div>
             )}
 

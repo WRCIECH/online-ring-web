@@ -408,3 +408,45 @@
 }
 .rewardDropLabel { color: var(--color-text-dim); font-size: 0.8rem; letter-spacing: 0.08em; text-transform: uppercase; }
 .rewardDropTier  { font-weight: 600; letter-spacing: 0.06em; }
+
+/* ── Finishing-blow panel (victory, 1 fresh tile left) ─────────────────── */
+.finalizeBanner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  border: 1px solid rgba(230, 190, 50, 0.30);
+  border-radius: 6px;
+  background: rgba(230, 190, 50, 0.06);
+  animation: lootItemReveal 0.3s ease both;
+}
+
+.finalizePrompt {
+  font-size: 0.80rem;
+  color: rgba(230, 190, 50, 0.85);
+  line-height: 1.45;
+  text-align: center;
+}
+
+.finalizeBtn {
+  padding: 5px 16px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  background: rgba(230, 190, 50, 0.12);
+  border: 1px solid rgba(230, 190, 50, 0.40);
+  border-radius: 4px;
+  color: #e6bf33;
+  cursor: pointer;
+  transition: background 0.12s, box-shadow 0.12s;
+}
+.finalizeBtn:hover { background: rgba(230, 190, 50, 0.22); box-shadow: 0 0 8px rgba(230,190,50,0.25); }
+
+.finalizeComplete {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: #66dd88;
+  letter-spacing: 0.04em;
+  animation: lootItemReveal 0.3s ease both;
+}
