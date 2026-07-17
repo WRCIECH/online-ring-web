@@ -235,10 +235,17 @@ export default function CombatScreen() {
   const handleFlee = useCallback(() => {
     store.syncCombatResult(state.playerHp, state.playerEstus)
     store.setAbandonPenalty(ABANDON_PENALTY)
-    // Save completed tile progress so the player doesn't redo work they already did.
-    // Only the streak is broken — fleeing resets consistency, not content.
-    store.saveWorkflowProgress(state.workflow)
-    if (store.active_content_id) store.clearContentStreak(store.active_content_id)
+    const allDone = state.workflow.tiles.filter(t => !t.is_advance).every(t => t.is_completed)
+    if (allDone && store.active_content_id) {
+      // All content tasks finished before fleeing — mark the node complete and clear the workflow
+      // so it doesn't reappear in the picker on the next run.
+      store.completeCampaignNode(state.equippedWeaponId, store.active_content_id, state.workflow)
+      store.clearActiveWorkflow()
+    } else {
+      // Partial progress — preserve completed tiles, but break the streak.
+      store.saveWorkflowProgress(state.workflow)
+      if (store.active_content_id) store.clearContentStreak(store.active_content_id)
+    }
     store.endRunFailure()
     navigate('/')
   }, [store, navigate, state])
