@@ -17,6 +17,7 @@ import WorkflowCanvas from '../components/combat/WorkflowCanvas'
 import MoveRadialMenu, { type RadialMoveItem } from '../components/combat/MoveRadialMenu'
 import CombatBottomBar from '../components/combat/CombatBottomBar'
 import CombatMusic  from '../components/combat/CombatMusic'
+import PreFightPicker from '../components/overlays/PreFightPicker'
 import { COMBAT_MUSIC } from '../data/combatMusic'
 import { useT } from '../i18n'
 import s from './CombatScreen.module.css'
@@ -254,7 +255,10 @@ export default function CombatScreen() {
       return next
     })
   }, [])
-  const [showAbandonConfirm, setShowAbandonConfirm] = useState(false)
+  const [showAbandonConfirm,    setShowAbandonConfirm]    = useState(false)
+  const [showWorkflowDonePrompt, setShowWorkflowDonePrompt] = useState(false)
+  const [showAdvancePicker,      setShowAdvancePicker]      = useState(false)
+  const workflowDoneShownRef = useRef(false)
   const [selectedContentId, setSelectedContentId] = useState<string | null>(
     store.active_content_id ?? null
   )
@@ -294,6 +298,60 @@ export default function CombatScreen() {
     // No consistencyStreak → defaults to 0 → breaks the streak
     dispatch({ type: 'SWITCH_WORKFLOW', workflow: newWorkflow })
   }, [selectedContentId, loc, store])
+
+  // All normal (non-advance) tiles done — used for mid-fight prompt and victory panel
+  const allNormalTilesDone = useMemo(
+    () => state.workflow.tiles.filter(t => !t.is_advance).every(t => t.is_completed),
+    [state.workflow.tiles],
+  )
+
+  // Reset the shown-flag whenever a genuinely new workflow loads
+  useEffect(() => { workflowDoneShownRef.current = false }, [state.workflow.start_id])
+
+  // Mid-fight: show prompt once when all tiles complete and enemy is still alive
+  useEffect(() => {
+    if (
+      allNormalTilesDone &&
+      state.phase === 'PLAYER_TURN' &&
+      selectedContentId &&
+      !workflowDoneShownRef.current
+    ) {
+      workflowDoneShownRef.current = true
+      setShowWorkflowDonePrompt(true)
+    }
+  }, [allNormalTilesDone, state.phase, selectedContentId])
+
+  // After marking the current node complete, switch to the chosen new content
+  function handleAdvanceConfirm(pickedWeaponId: string, contentId: string) {
+    setShowAdvancePicker(false)
+    setShowWorkflowDonePrompt(false)
+    const cur = stateRef.current
+    if (selectedContentId) {
+      store.completeCampaignNode(cur.equippedWeaponId, selectedContentId, cur.workflow)
+      store.clearActiveWorkflow()
+    }
+    if (pickedWeaponId !== cur.equippedWeaponId) {
+      dispatch({ type: 'SWITCH_WEAPON', weaponId: pickedWeaponId, weaponLevel: store.weapon_level[pickedWeaponId] ?? 0 })
+    }
+    const pickedWeapon = WEAPONS[pickedWeaponId] as WeaponInstance | undefined
+    const newWorkflow = contentCache.current[contentId]?.workflow
+      ?? store.workflow_progress[contentId]
+      ?? generateWorkflow(
+        pickedWeapon?.weapon_class ?? 'straight_swords',
+        pickedWeapon?.rarity       ?? 'common',
+        loc?.sublocation_type === 'boss',
+        pickedWeapon?.rolled_draws,
+      )
+    const savedStreak = store.content_streak[contentId] ?? 0
+    setSelectedContentId(contentId)
+    store.setActiveContentId(contentId)
+    dispatch({ type: 'SWITCH_WORKFLOW', workflow: newWorkflow, consistencyStreak: savedStreak })
+  }
+
+  function handleAdvanceClose() {
+    // Player cancelled picker — stay with current workflow (tiles repeatable)
+    setShowAdvancePicker(false)
+  }
 
   // Flow countdown — seconds until the current flow tier expires
   const [flowCountdown, setFlowCountdown] = useState('')
@@ -600,7 +658,7 @@ export default function CombatScreen() {
               </div>
             )}
 
-            {selectedContentId && state.workflow.tiles.filter(t => !t.is_advance).every(t => t.is_completed) ? (
+            {selectedContentId && allNormalTilesDone ? (
               <div className={s.finalizeBanner}>
                 <div className={s.finalizePrompt}>
                   {(t.ui as Record<string, string>).victory_content_done_prompt}
@@ -683,6 +741,40 @@ export default function CombatScreen() {
             <button className={s.endBtn} onClick={handleFlee}>Return</button>
           </div>
         </div>
+      )}
+
+      {/* ── Mid-fight: all tiles done, enemy still alive ───────────────── */}
+      {showWorkflowDonePrompt && (
+        <div className={s.endOverlay}>
+          <div className={s.endBox}>
+            <div className={`${s.endTitle} ${s.workflowDoneTitle}`}>
+              {(t.ui as Record<string, string>).workflow_done_title}
+            </div>
+            <div className={s.endSub}>
+              {(t.ui as Record<string, string>).workflow_done_body}
+            </div>
+            <div className={s.confirmActions}>
+              <button className={s.finalizeBtn} onClick={() => {
+                setShowWorkflowDonePrompt(false)
+                setShowAdvancePicker(true)
+              }}>
+                {(t.ui as Record<string, string>).workflow_done_finish}
+              </button>
+              <button className={s.btnCancel} onClick={() => setShowWorkflowDonePrompt(false)}>
+                {(t.ui as Record<string, string>).workflow_done_repeat}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── Content picker — after mid-fight workflow completion ──────── */}
+      {showAdvancePicker && loc && (
+        <PreFightPicker
+          loc={loc}
+          onConfirm={handleAdvanceConfirm}
+          onCancel={handleAdvanceClose}
+        />
       )}
     </div>
   )

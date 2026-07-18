@@ -236,9 +236,10 @@
   text-transform: uppercase;
 }
 
-.victoryTitle { color: var(--color-gold);        text-shadow: var(--glow-gold); }
-.defeatTitle  { color: var(--color-text-danger);  text-shadow: var(--glow-red); }
-.fleedTitle   { color: #7a9a7a; }
+.victoryTitle      { color: var(--color-gold);        text-shadow: var(--glow-gold); }
+.defeatTitle       { color: var(--color-text-danger);  text-shadow: var(--glow-red); }
+.fleedTitle        { color: #7a9a7a; }
+.workflowDoneTitle { color: #88aadd; }
 
 .endSub {
   font-size: 0.88rem;
