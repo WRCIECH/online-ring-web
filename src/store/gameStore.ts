@@ -1,5 +1,6 @@
 import { create } from 'zustand'
 import type { GameState, LocationData, Stats, WeaponInstance, SublocationType, CampaignNode, Locale, WorkflowGraph, LocationTheme, RewardTier } from '../types/game'
+import { DEFAULT_MUSIC_TRACKS } from '../data/combatMusic'
 import { ENEMIES } from '../data/enemies'
 import { saveGame, loadGame } from '../engine/save'
 import { registerWeapon } from '../data/weapons'
@@ -232,6 +233,8 @@ function initialState(): GameState {
     reward_names: {},
     reward_used_count: {},
     weapon_pending_superhits: {},
+    run_music_seed: 0,
+    music_tracks: DEFAULT_MUSIC_TRACKS,
   }
 }
 
@@ -311,6 +314,9 @@ export interface GameStore extends GameState {
   // Locale
   setLocale: (locale: Locale) => void
 
+  // Music playlist
+  setMusicTracks: (tracks: string[]) => void
+
   // Persistence
   save:  () => void
   load:  () => boolean
@@ -338,6 +344,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
       run_defeated_enemies: [],
       current_hp: calcMaxHp(get().stats.VIG),
       run_location_name: loc.id,
+      run_music_seed: Math.floor(Math.random() * 10000),
       // workflow_progress and content_streak are campaign data that span multiple runs — do NOT clear
       active_content_id: null,
       pending_weapon_id: null,
@@ -747,6 +754,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
   },
 
   setLocale: (locale) => { set({ locale }); get().save() },
+  setMusicTracks: (tracks) => { set({ music_tracks: tracks }); get().save() },
 
   save: () => saveGame(get()),
 

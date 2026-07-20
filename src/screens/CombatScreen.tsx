@@ -18,7 +18,7 @@ import MoveRadialMenu, { type RadialMoveItem } from '../components/combat/MoveRa
 import CombatBottomBar from '../components/combat/CombatBottomBar'
 import CombatMusic  from '../components/combat/CombatMusic'
 import PreFightPicker from '../components/overlays/PreFightPicker'
-import { COMBAT_MUSIC } from '../data/combatMusic'
+import { DEFAULT_MUSIC_TRACKS } from '../data/combatMusic'
 import { useT } from '../i18n'
 import s from './CombatScreen.module.css'
 
@@ -468,6 +468,10 @@ export default function CombatScreen() {
 
   const enemyLabel = loc.boss_name ?? enemyData.name
 
+  const _musicTracks = store.music_tracks ?? DEFAULT_MUSIC_TRACKS
+  const _musicSeed   = store.run_music_seed ?? 0
+  const combatVideoId = _musicTracks[(_musicSeed + store.run_current_index) % _musicTracks.length]
+
   return (
     <div className={s.root}>
       <RunHeader
@@ -697,7 +701,7 @@ export default function CombatScreen() {
 
       {/* ── Music ─────────────────────────────────────────────────────── */}
       <CombatMusic
-        videoId={COMBAT_MUSIC[loc.enemy_id]}
+        videoId={combatVideoId}
         label={enemyLabel}
         muted={musicMuted}
         onToggleMute={toggleMusicMuted}

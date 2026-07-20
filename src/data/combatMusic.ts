@@ -2,6 +2,21 @@
 // Swap any ID with your preferred YouTube video — just replace the string value.
 // T1 enemies share a track, T2 share a track, T3 gets its own, each T4 boss is unique.
 
+// Global playlist — all unique IDs collected from COMBAT_MUSIC. Used as default
+// when no custom playlist has been saved.
+export const DEFAULT_MUSIC_TRACKS: string[] = [
+  'ajuY4ervxIg', 'IyOAoj_Qzjc', '1FyPE0u2muE',
+  'O0xolF2TQVE', 'y4b0x0-IMZI', '_tknxEFZSsY',
+  '57rEF9ZT0rg', 'Y1vGBukbYAo', 'jhdFe3evXpk',
+  '_GKQi4a78ZE', 'czL48Pnidtw', '64elMyXoBtQ',
+  'c7s9eKDQn9c', '88sARuFu-tc', 'lkY0cTOQKHs',
+  'K-a8s8OLBSE', 'pNt0iVG2VOA', 'j_KyxK-9LYU',
+  'MiMF2Wy6Chk', 'd2uE4P3P5sI', 'Ww2J-RMNBf0',
+  'f-Nd5aWM2Ks', 'FM7MFYoylVs', 'QQB_pPMw5cs',
+  'JDVIXexHJao', 'nPkoXItrLSM', '27t_q_jAvD0',
+  '77VUJ12kcSQ', 'ZQRrpxz104Y',
+]
+
 export const COMBAT_MUSIC: Partial<Record<string, string>> = {
 
   // ── T1 — background Fear / dark lofi ──────────────────────────────────────

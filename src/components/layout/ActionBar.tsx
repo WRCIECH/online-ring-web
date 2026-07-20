@@ -5,6 +5,7 @@ import CampaignOverlay from '../overlays/CampaignOverlay'
 import AnalyticsOverlay from '../overlays/AnalyticsOverlay'
 import RewardsOverlay from '../overlays/RewardsOverlay'
 import CodexOverlay from '../overlays/CodexOverlay'
+import MusicOverlay from '../overlays/MusicOverlay'
 import { useT } from '../../i18n'
 import s from './ActionBar.module.css'
 
@@ -19,6 +20,7 @@ export default function ActionBar({ canLevel = true }: Props) {
   const [showAnalytics, setShowAnalytics] = useState(false)
   const [showRewards,   setShowRewards]   = useState(false)
   const [showCodex,     setShowCodex]     = useState(false)
+  const [showMusic,     setShowMusic]     = useState(false)
 
   return (
     <>
@@ -62,12 +64,21 @@ export default function ActionBar({ canLevel = true }: Props) {
             <line x1="6" y1="12" x2="9" y2="12"/>
           </svg>
         </button>
+        {/* Music settings */}
+        <button className={s.btn} data-tooltip={(t.ui as Record<string, string>).btn_music_settings ?? 'Music'} onClick={() => setShowMusic(true)}>
+          <svg viewBox="0 0 20 20" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M9 17V5l10-2v12"/>
+            <circle cx="6" cy="17" r="3"/>
+            <circle cx="16" cy="15" r="3"/>
+          </svg>
+        </button>
       </div>
       {showStats     && createPortal(<CharacterOverlay onClose={() => setShowStats(false)}    canLevel={canLevel} />, document.body)}
       {showContent   && createPortal(<CampaignOverlay  onClose={() => setShowContent(false)} />, document.body)}
       {showAnalytics && createPortal(<AnalyticsOverlay onClose={() => setShowAnalytics(false)} />, document.body)}
       {showRewards   && createPortal(<RewardsOverlay   onClose={() => setShowRewards(false)}  />, document.body)}
       {showCodex     && createPortal(<CodexOverlay     onClose={() => setShowCodex(false)}    />, document.body)}
+      {showMusic     && createPortal(<MusicOverlay     onClose={() => setShowMusic(false)}    />, document.body)}
     </>
   )
 }

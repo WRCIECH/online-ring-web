@@ -251,4 +251,7 @@ export interface GameState {
   reward_used_count: Partial<Record<RewardTier, number>>
   // Unconsumed Superhit/promote charges carried over when a campaign is finalized
   weapon_pending_superhits: Record<string, number>
+  // Music playlist
+  run_music_seed?: number   // rolled at startRun; undefined in old saves → treated as 0
+  music_tracks?:   string[] // YouTube video IDs; undefined in old saves → uses DEFAULT_MUSIC_TRACKS
 }

@@ -1,0 +1,123 @@
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.75);
+  z-index: 20;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 24px 16px;
+  overflow-y: auto;
+}
+
+.panel {
+  background: var(--color-bg-panel);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: 28px 36px;
+  width: 560px;
+  max-width: 96vw;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.title {
+  font-size: 0.75rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--color-text-dim);
+}
+
+.btnClose {
+  background: transparent;
+  border: none;
+  color: var(--color-text-dim);
+  font-size: 1rem;
+  padding: 2px 6px;
+  cursor: pointer;
+  line-height: 1;
+}
+.btnClose:hover { color: var(--color-text); }
+
+.hint {
+  font-size: 0.75rem;
+  color: var(--color-text-dim);
+  line-height: 1.5;
+  margin-top: -8px;
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.trackRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.indexChip {
+  font-size: 0.68rem;
+  letter-spacing: 0.06em;
+  color: var(--color-text-dim);
+  width: 24px;
+  text-align: right;
+  flex-shrink: 0;
+}
+
+.urlInput {
+  flex: 1;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  padding: 6px 10px;
+  font-size: 0.78rem;
+  color: var(--color-text);
+  font-family: inherit;
+}
+.urlInput:focus {
+  outline: none;
+  border-color: var(--color-accent-dim);
+}
+
+.btnDelete {
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: var(--radius);
+  color: var(--color-text-dim);
+  font-size: 0.85rem;
+  padding: 4px 8px;
+  cursor: pointer;
+  flex-shrink: 0;
+  line-height: 1;
+}
+.btnDelete:hover:not(:disabled) {
+  color: var(--color-text-danger);
+  border-color: rgba(180,30,30,0.3);
+}
+.btnDelete:disabled {
+  opacity: 0.25;
+  cursor: default;
+}
+
+.btnAdd {
+  align-self: flex-start;
+  padding: 7px 16px;
+  font-size: 0.82rem;
+  letter-spacing: 0.06em;
+  background: rgba(74,158,255,0.06);
+  border: 1px solid var(--color-accent-dim);
+  border-radius: var(--radius);
+  color: var(--color-accent);
+  cursor: pointer;
+}
+.btnAdd:hover { background: rgba(74,158,255,0.14); }
