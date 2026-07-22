@@ -7,8 +7,8 @@ import { WEAPON_CLASSES } from './weaponClasses'
 // ── Time tables (seconds) ─────────────────────────────────────────────────
 
 export const STAGE_TIME: Record<AtomicStage, { light: number; heavy: number }> = {
-  Research: { light: 300, heavy: 900 },
-  Produce:  { light: 600, heavy: 1800 },
+  Research: { light: 480, heavy: 1500 },
+  Produce:  { light: 480, heavy: 1500 },
 }
 
 // ── Tile name generation ──────────────────────────────────────────────────
