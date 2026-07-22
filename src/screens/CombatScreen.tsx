@@ -100,7 +100,7 @@ export default function CombatScreen() {
         ? activeWeaponCampaign?.nodes.find(n => n.id === store.active_content_id)
         : undefined
       const initialContentType = initialNode?.content_type
-        ?? initialWeapon?.rolled_draws?.format?.[0]?.[0]
+        ?? initialWeapon?.rolled_draws?.format?.[0]?.[0] ?? undefined
       const workflow = (store.active_content_id ? store.workflow_progress[store.active_content_id] : undefined)
         ?? generateWorkflow(initialWeaponClass, initialWeaponRarity, spawnAsBoss, initialContentType)
 
@@ -293,7 +293,7 @@ export default function CombatScreen() {
     const pickedCampaign = store.weapon_campaigns[weaponId]
     const pickedNode     = pickedCampaign?.nodes.find(n => n.id === contentId)
     const pickedContentType = pickedNode?.content_type
-      ?? pickedWeapon?.rolled_draws?.format?.[0]?.[0]
+      ?? pickedWeapon?.rolled_draws?.format?.[0]?.[0] ?? undefined
     const newWorkflow  = cached?.workflow
       ?? store.workflow_progress[contentId]
       ?? generateWorkflow(
@@ -346,7 +346,7 @@ export default function CombatScreen() {
     const advCampaign       = store.weapon_campaigns[pickedWeaponId]
     const advNode           = advCampaign?.nodes.find(n => n.id === contentId)
     const advContentType    = advNode?.content_type
-      ?? pickedWeapon?.rolled_draws?.format?.[0]?.[0]
+      ?? pickedWeapon?.rolled_draws?.format?.[0]?.[0] ?? undefined
     const newWorkflow = contentCache.current[contentId]?.workflow
       ?? store.workflow_progress[contentId]
       ?? generateWorkflow(
