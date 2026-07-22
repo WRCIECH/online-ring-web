@@ -49,7 +49,7 @@ export const WEAPON_CLASSES: Record<WeaponClass, WeaponClassDef> = {
     time_mod: 1.0,
     supported_products: ['Plaintext', 'StructuredText', 'RawAudio', 'SlideshowVideo', 'Screencast'],
     content_transformations: {
-      S:        ['New', 'Follows', 'ProblemSolving', 'Expansion'],
+      S:        ['Follows', 'ProblemSolving', 'Expansion', 'ZoomIn'],
       A:        ['Evidence', 'Similar', 'Segmentation', 'ZoomIn'],
       B:        ['Narration', 'Compression', 'Simplify', 'Critique'],
       Excluded: ['Shock', 'Viral', 'Drama', 'Cliffhanger'],
@@ -64,7 +64,7 @@ export const WEAPON_CLASSES: Record<WeaponClass, WeaponClassDef> = {
     content_transformations: {
       S:        ['Expansion', 'ZoomIn', 'FirstPrinciples', 'DataDriven'],
       A:        ['Evidence', 'Synthesis', 'Technicalize', 'Intellectual'],
-      B:        ['Narration', 'New', 'Critique', 'Socratic'],
+      B:        ['Narration', 'Critique', 'Socratic', 'Analogy'],
       Excluded: ['Fast', 'Viral', 'Shock', 'Cliffhanger', 'Humor', 'Drama', 'Compression'],
     },
   },
@@ -75,7 +75,7 @@ export const WEAPON_CLASSES: Record<WeaponClass, WeaponClassDef> = {
     time_mod: 1.0,
     supported_products: ['Plaintext', 'IllustratedText', 'Carousel', 'RawAudio', 'ProducedAudio', 'ARollVideo', 'SlideshowVideo', 'CinematicVideo', 'MotionGraphics', 'LiveStream', 'BranchingNarrative', '_blank'],
     content_transformations: {
-      S:        ['New', 'Estetic', 'Narration', 'Analogy'],
+      S:        ['Estetic', 'Narration', 'Analogy', 'Passion'],
       A:        ['ZoomIn', 'Simplify', 'Follows', 'Passion'],
       B:        ['AudienceShift', 'Wow', 'Expansion', 'Comfort'],
       Excluded: ['Shock', 'Controversy', 'Drama', 'Viral', 'Fast', 'Cliffhanger', 'Split'],
@@ -88,7 +88,7 @@ export const WEAPON_CLASSES: Record<WeaponClass, WeaponClassDef> = {
     time_mod: 1.0,
     supported_products: ['Plaintext', 'StructuredText', 'IllustratedText', 'Carousel', 'RawAudio', 'ProducedAudio', 'ARollVideo', 'SlideshowVideo', 'CinematicVideo', 'MotionGraphics', 'LiveStream'],
     content_transformations: {
-      S:        ['Opposite', 'Controversy', 'Critique', 'New'],
+      S:        ['Opposite', 'Controversy', 'Critique', 'Shock'],
       A:        ['Shock', 'Cliffhanger', 'Fear', 'Passion'],
       B:        ['ZoomOut', 'Drama', 'Humor', 'Viral'],
       Excluded: ['Simplify', 'Comfort', 'FirstPrinciples', 'DataDriven', 'Follows', 'Similar'],
@@ -102,7 +102,7 @@ export const WEAPON_CLASSES: Record<WeaponClass, WeaponClassDef> = {
     supported_products: [],
     content_transformations: {
       S:        ['Evidence', 'DataDriven', 'ZoomIn', 'FirstPrinciples'],
-      A:        ['Synthesis', 'New', 'Expansion', 'Technicalize'],
+      A:        ['Synthesis', 'Expansion', 'Technicalize', 'ZoomOut'],
       B:        ['DomainTransfer', 'Critique', 'Socratic', 'ZoomOut'],
       Excluded: ['Shock', 'Viral', 'Drama', 'Cliffhanger', 'Humor', 'Fast', 'Comfort', 'Passion'],
     },
@@ -117,7 +117,7 @@ export const WEAPON_CLASSES: Record<WeaponClass, WeaponClassDef> = {
       S:        ['Compression', 'Split', 'Simplify', 'Synthesis'],
       A:        ['ZoomIn', 'Critique', 'Similar', 'AudienceShift'],
       B:        ['Segmentation', 'Follows', 'Evidence', 'RemixFusion'],
-      Excluded: ['New', 'Viral', 'Shock', 'Drama', 'Cliffhanger', 'FirstPrinciples'],
+      Excluded: ['Viral', 'Shock', 'Drama', 'Cliffhanger', 'FirstPrinciples'],
     },
   },
   bows: {
@@ -127,7 +127,7 @@ export const WEAPON_CLASSES: Record<WeaponClass, WeaponClassDef> = {
     time_mod: 1.0,
     supported_products: ['Plaintext', 'SingleGraphic', 'Carousel', 'RawAudio', 'ARollVideo', 'LiveStream', 'CurationFeed', 'CommunitySpace'],
     content_transformations: {
-      S:        ['Follows', 'New', 'Segmentation', 'ProblemSolving'],
+      S:        ['Follows', 'Segmentation', 'ProblemSolving', 'Similar'],
       A:        ['Similar', 'AudienceShift', 'Evidence', 'Synthesis'],
       B:        ['Narration', 'ZoomOut', 'Simplify', 'DataDriven'],
       Excluded: ['Shock', 'Viral', 'Drama', 'Cliffhanger', 'Fast'],
@@ -141,7 +141,7 @@ export const WEAPON_CLASSES: Record<WeaponClass, WeaponClassDef> = {
     supported_products: ['Plaintext', 'SingleGraphic', 'RawAudio', 'ARollVideo'],
     content_transformations: {
       S:        ['Follows', 'Narration', 'Parasocial', 'Passion'],
-      A:        ['New', 'Similar', 'Comfort', 'Hope'],
+      A:        ['Similar', 'Comfort', 'Hope', 'Wow'],
       B:        ['ZoomIn', 'Humor', 'Wow', 'Drama'],
       Excluded: ['DataDriven', 'FirstPrinciples', 'Technicalize', 'Evidence', 'Synthesis', 'Segmentation', 'Critique'],
     },
@@ -153,7 +153,7 @@ export const WEAPON_CLASSES: Record<WeaponClass, WeaponClassDef> = {
     time_mod: 1.0,
     supported_products: ['Plaintext', 'StructuredText', 'IllustratedText', 'SingleGraphic', 'Carousel', 'RawAudio', 'ARollVideo', 'SlideshowVideo', 'Screencast', 'CinematicVideo', 'MotionGraphics', 'ProducedAudio'],
     content_transformations: {
-      S:        ['Synthesis', 'FirstPrinciples', 'Expansion', 'New'],
+      S:        ['Synthesis', 'FirstPrinciples', 'Expansion', 'Evidence'],
       A:        ['Evidence', 'DataDriven', 'Technicalize', 'ZoomIn'],
       B:        ['Narration', 'Socratic', 'AudienceShift', 'Analogy'],
       Excluded: ['Fast', 'Viral', 'Shock', 'Cliffhanger', 'Humor', 'Drama', 'Compression', 'Split'],
@@ -192,7 +192,7 @@ export const WEAPON_CLASSES: Record<WeaponClass, WeaponClassDef> = {
     time_mod: 1.0,
     supported_products: [],
     content_transformations: {
-      S:        ['Narration', 'Follows', 'Expansion', 'New'],
+      S:        ['Narration', 'Follows', 'Expansion', 'Analogy'],
       A:        ['Similar', 'Analogy', 'Passion', 'AudienceShift'],
       B:        ['ZoomIn', 'Comfort', 'Hope', 'Drama'],
       Excluded: ['DataDriven', 'FirstPrinciples', 'Segmentation', 'Technicalize', 'Shock', 'Controversy'],
@@ -206,7 +206,7 @@ export const WEAPON_CLASSES: Record<WeaponClass, WeaponClassDef> = {
     supported_products: [],
     content_transformations: {
       S:        ['Follows', 'Narration', 'Expansion', 'Similar'],
-      A:        ['New', 'Passion', 'Parasocial', 'Hope'],
+      A:        ['Passion', 'Parasocial', 'Hope', 'Comfort'],
       B:        ['AudienceShift', 'Drama', 'Analogy', 'ZoomIn'],
       Excluded: ['Fast', 'Shock', 'Viral', 'DataDriven', 'FirstPrinciples', 'Segmentation', 'Compression'],
     },
@@ -220,7 +220,7 @@ export const WEAPON_CLASSES: Record<WeaponClass, WeaponClassDef> = {
     content_transformations: {
       S:        ['Similar', 'Compression', 'AudienceShift', 'Localize'],
       A:        ['Follows', 'RemixFusion', 'Split', 'Fast'],
-      B:        ['New', 'Simplify', 'Segmentation', 'Viral'],
+      B:        ['Simplify', 'Segmentation', 'Viral', 'Compression'],
       Excluded: ['FirstPrinciples', 'DataDriven', 'Synthesis', 'Technicalize', 'Expansion', 'Socratic'],
     },
   },
@@ -231,7 +231,7 @@ export const WEAPON_CLASSES: Record<WeaponClass, WeaponClassDef> = {
     time_mod: 1.0,
     supported_products: ['Plaintext', 'StructuredText', 'IllustratedText', 'Carousel', 'RawAudio', 'ProducedAudio', 'ARollVideo', 'SlideshowVideo', 'CinematicVideo', 'MotionGraphics', 'LiveStream'],
     content_transformations: {
-      S:        ['New', 'Opposite', 'Controversy', 'Critique'],
+      S:        ['Opposite', 'Controversy', 'Critique', 'FirstPrinciples'],
       A:        ['FirstPrinciples', 'Expansion', 'ZoomOut', 'Passion'],
       B:        ['Evidence', 'DataDriven', 'Narration', 'Fear'],
       Excluded: ['Similar', 'Follows', 'Compression', 'Split', 'Fast', 'Cliffhanger', 'AudienceShift'],
@@ -246,7 +246,7 @@ export const WEAPON_CLASSES: Record<WeaponClass, WeaponClassDef> = {
     content_transformations: {
       S:        ['Synthesis', 'Similar', 'Compression', 'ZoomOut'],
       A:        ['Segmentation', 'Evidence', 'DataDriven', 'Follows'],
-      B:        ['New', 'Split', 'AudienceShift', 'Narration'],
+      B:        ['Split', 'AudienceShift', 'Narration', 'ZoomOut'],
       Excluded: ['Shock', 'Viral', 'Cliffhanger', 'Opposite', 'Controversy', 'Drama', 'Passion'],
     },
   },
@@ -257,7 +257,7 @@ export const WEAPON_CLASSES: Record<WeaponClass, WeaponClassDef> = {
     time_mod: 1.0,
     supported_products: ['StructuredText', 'IllustratedText', 'Infographic', 'ProducedAudio', 'ARollVideo', 'SlideshowVideo', 'Screencast', 'CinematicVideo', 'MotionGraphics', 'LiveStream', 'MultimediaPage', 'BranchingNarrative', 'AssetPack', 'CurationFeed', 'InteractiveApp', '_blank'],
     content_transformations: {
-      S:        ['New', 'Follows', 'Passion', 'Humor'],
+      S:        ['Follows', 'Passion', 'Humor', 'Similar'],
       A:        ['Similar', 'Opposite', 'Narration', 'Comfort'],
       B:        ['Wow', 'Viral', 'Drama', 'ZoomOut'],
       Excluded: ['FirstPrinciples', 'DataDriven', 'Evidence', 'Technicalize', 'Synthesis', 'Segmentation'],
@@ -270,7 +270,7 @@ export const WEAPON_CLASSES: Record<WeaponClass, WeaponClassDef> = {
     time_mod: 1.0,
     supported_products: ['StructuredText', 'IllustratedText', 'Infographic', 'ProducedAudio', 'CinematicVideo', 'SlideshowVideo', 'MotionGraphics', 'MultimediaPage', 'BranchingNarrative', 'AssetPack', 'InteractiveApp', '_blank'],
     content_transformations: {
-      S:        ['New', 'Synthesis', 'Narration', 'FirstPrinciples'],
+      S:        ['Synthesis', 'Narration', 'FirstPrinciples', 'Expansion'],
       A:        ['Expansion', 'Evidence', 'DataDriven', 'ZoomIn'],
       B:        ['Technicalize', 'AudienceShift', 'Analogy', 'Socratic'],
       Excluded: ['Fast', 'Viral', 'Shock', 'Cliffhanger', 'Humor', 'Compression', 'Split', 'Similar'],
@@ -283,7 +283,7 @@ export const WEAPON_CLASSES: Record<WeaponClass, WeaponClassDef> = {
     time_mod: 1.0,
     supported_products: [],
     content_transformations: {
-      S:        ['Evidence', 'DataDriven', 'Critique', 'New'],
+      S:        ['Evidence', 'DataDriven', 'Critique', 'ZoomIn'],
       A:        ['ZoomIn', 'Expansion', 'FirstPrinciples', 'Technicalize'],
       B:        ['DomainTransfer', 'Synthesis', 'Controversy', 'ZoomOut'],
       Excluded: ['Viral', 'Shock', 'Humor', 'Drama', 'Cliffhanger', 'Fast', 'Comfort', 'Follows'],
@@ -297,7 +297,7 @@ export const WEAPON_CLASSES: Record<WeaponClass, WeaponClassDef> = {
     supported_products: ['StructuredText', 'IllustratedText', 'Infographic', 'SlideshowVideo', 'Screencast', 'MultimediaPage', 'AssetPack', 'CurationFeed', 'InteractiveApp', '_blank'],
     content_transformations: {
       S:        ['Evidence', 'Opposite', 'ZoomIn', 'Critique'],
-      A:        ['DataDriven', 'Expansion', 'Analogy', 'New'],
+      A:        ['DataDriven', 'Expansion', 'Analogy', 'Opposite'],
       B:        ['AudienceShift', 'FirstPrinciples', 'Narration', 'Synthesis'],
       Excluded: ['Viral', 'Fast', 'Shock', 'Cliffhanger', 'Drama', 'Humor'],
     },
@@ -322,7 +322,7 @@ export const WEAPON_CLASSES: Record<WeaponClass, WeaponClassDef> = {
     time_mod: 1.0,
     supported_products: ['ARollVideo', 'CinematicVideo', 'SlideshowVideo', 'MotionGraphics', 'LiveStream'],
     content_transformations: {
-      S:        ['Follows', 'Similar', 'Expansion', 'New'],
+      S:        ['Follows', 'Similar', 'Expansion', 'Narration'],
       A:        ['Narration', 'Passion', 'AudienceShift', 'Split'],
       B:        ['ZoomIn', 'Controversy', 'Opposite', 'RemixFusion'],
       Excluded: ['Shock', 'Viral', 'Fast', 'DataDriven', 'FirstPrinciples', 'Technicalize', 'Compression'],
@@ -335,7 +335,7 @@ export const WEAPON_CLASSES: Record<WeaponClass, WeaponClassDef> = {
     time_mod: 1.0,
     supported_products: ['Carousel', 'BranchingNarrative', 'InteractiveApp', 'LiveStream', 'MultimediaPage', 'CommunitySpace', '_blank'],
     content_transformations: {
-      S:        ['New', 'ProblemSolving', 'Simplify', 'AudienceShift'],
+      S:        ['ProblemSolving', 'Simplify', 'AudienceShift', 'Analogy'],
       A:        ['Evidence', 'DataDriven', 'Analogy', 'Socratic'],
       B:        ['Follows', 'Narration', 'ZoomIn', 'FirstPrinciples'],
       Excluded: ['Shock', 'Viral', 'Cliffhanger', 'Drama', 'Fear', 'Controversy', 'Fast'],
@@ -361,7 +361,7 @@ export const WEAPON_CLASSES: Record<WeaponClass, WeaponClassDef> = {
     time_mod: 1.0,
     supported_products: ['StructuredText', 'IllustratedText', 'Infographic', 'ProducedAudio', 'SlideshowVideo', 'CinematicVideo', 'MotionGraphics', 'MultimediaPage', 'BranchingNarrative', 'AssetPack', 'CurationFeed', 'InteractiveApp', '_blank'],
     content_transformations: {
-      S:        ['New', 'Evidence', 'DataDriven', 'ProblemSolving'],
+      S:        ['Evidence', 'DataDriven', 'ProblemSolving', 'Synthesis'],
       A:        ['Narration', 'Wow', 'Expansion', 'Analogy'],
       B:        ['AudienceShift', 'Technicalize', 'ZoomIn', 'Segmentation'],
       Excluded: ['Compression', 'Similar', 'Split', 'Follows', 'Shock', 'Viral', 'Drama', 'Opposite'],
@@ -375,7 +375,7 @@ export const WEAPON_CLASSES: Record<WeaponClass, WeaponClassDef> = {
     supported_products: ['Plaintext', 'SingleGraphic', 'Carousel', 'RawAudio', 'ARollVideo', 'CinematicVideo', 'LiveStream', 'CommunitySpace'],
     content_transformations: {
       S:        ['Follows', 'Narration', 'Parasocial', 'Comfort'],
-      A:        ['New', 'Similar', 'Passion', 'Hope'],
+      A:        ['Similar', 'Passion', 'Hope', 'Comfort'],
       B:        ['Wow', 'Humor', 'Drama', 'AudienceShift'],
       Excluded: ['DataDriven', 'FirstPrinciples', 'Technicalize', 'Evidence', 'Critique', 'Controversy', 'Segmentation'],
     },

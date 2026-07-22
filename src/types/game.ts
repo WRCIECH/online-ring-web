@@ -9,7 +9,7 @@ export type MoveType = 'Light' | 'Heavy'
 // Unified content transformation type — annotates campaign edges and tiles.
 // Combines the former AtomicOrigin (relation types) and StyleType (style types).
 export type ContentTransformation =
-  | 'New' | 'Compression' | 'Expansion' | 'ZoomIn' | 'ZoomOut' | 'Similar' | 'Opposite'
+  | 'Compression' | 'Expansion' | 'ZoomIn' | 'ZoomOut' | 'Similar' | 'Opposite'
   | 'Minimalism' | 'Shock' | 'Narration' | 'Segmentation' | 'Fast'
   | 'Passion' | 'Intellectual' | 'ProblemSolving' | 'Estetic' | 'Interactive' | 'Cliffhanger'
   | 'Viral' | 'Controversy' | 'Comfort' | 'Drama' | 'Humor'

@@ -15,7 +15,7 @@ export const ENEMIES: Record<string, Enemy> = {
       love:    { stages: ['Research', 'Plan'] },
       like:    { products: ['CurationFeed'], emotions: ['Comfort'] },
       dislike: { stages: ['Refine'] },
-      hate:    { transformations: ['New'], stages: ['Produce'] },
+      hate:    { stages: ['Produce'] },
     },
   },
 
@@ -37,7 +37,7 @@ export const ENEMIES: Record<string, Enemy> = {
     boss_name: 'Terror Próżni',
     drops: [{ id: 'weapon', first_kill_chance: 1.0, repeat_chance: 0.0 }],
     affinities: {
-      love:    { transformations: ['New'], stages: ['Research', 'Plan'] },
+      love:    { stages: ['Research', 'Plan'] },
       like:    { products: ['Plaintext'], emotions: ['Fear'] },
       dislike: { stages: ['Refine'] },
       hate:    { transformations: ['Shock'], stages: ['Produce'] },
@@ -105,7 +105,7 @@ export const ENEMIES: Record<string, Enemy> = {
     affinities: {
       love:    { products: ['ARollVideo', 'LiveStream'], transformations: ['Shock', 'Fast'] },
       like:    { transformations: ['Compression'], emotions: ['Viral', 'Controversion'] },
-      dislike: { products: ['Plaintext', 'MultimediaPage'], transformations: ['New', 'ZoomOut'] },
+      dislike: { products: ['Plaintext', 'MultimediaPage'], transformations: ['ZoomOut'] },
       hate:    { products: ['InteractiveApp', 'BranchingNarrative'], transformations: ['Intellectual'], stages: ['Research', 'Plan'] },
     },
   },
@@ -119,7 +119,7 @@ export const ENEMIES: Record<string, Enemy> = {
     affinities: {
       love:    { products: ['StructuredText', 'CurationFeed'], stages: ['Research'] },
       like:    { products: ['AssetPack', 'Infographic'], transformations: ['Segmentation'], emotions: ['Wow'] },
-      dislike: { products: ['Plaintext', 'RawAudio'], transformations: ['New'] },
+      dislike: { products: ['Plaintext', 'RawAudio'] },
       hate:    { products: ['InteractiveApp', 'LiveStream'], transformations: ['Interactive'], stages: ['Produce'] },
     },
   },

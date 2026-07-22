@@ -18,7 +18,7 @@ type Tab = 'formats' | 'transformations' | 'stages' | 'multipliers' | 'weapons'
 const CATEGORY_ORDER = ['Text', 'Visual', 'Audio', 'Video', 'Hybrid', 'Exotic'] as const
 
 const TRANSFORMATION_KEYS: ContentTransformation[] = [
-  'New', 'Compression', 'Expansion', 'ZoomIn', 'ZoomOut', 'Similar', 'Opposite',
+  'Compression', 'Expansion', 'ZoomIn', 'ZoomOut', 'Similar', 'Opposite',
   'Minimalism', 'Shock', 'Narration', 'Segmentation', 'Fast', 'Passion', 'Intellectual',
   'ProblemSolving', 'Estetic', 'Interactive', 'Cliffhanger', 'Viral', 'Controversy',
   'Comfort', 'Drama', 'Humor', 'Parasocial', 'Wow', 'Hope', 'Fear', 'Desire',

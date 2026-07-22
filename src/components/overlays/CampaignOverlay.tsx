@@ -18,7 +18,6 @@ interface Props {
 
 const LABEL_DISPLAY: Record<string, string> = {
   // ContentTransformation — relation types
-  New:           'New',
   Compression:   'Compression',
   Expansion:     'Expansion',
   ZoomIn:        'Zoom In',
@@ -51,7 +50,6 @@ const LABEL_DISPLAY: Record<string, string> = {
 
 const LABEL_TOOLTIP: Record<string, string> = {
   // ContentTransformation — relation types
-  New:           'New — fresh angle on the topic, not derived from previous content.',
   Compression:   'Compression — distils and summarises the parent into a denser form.',
   Expansion:     'Expansion — takes one idea from the parent and develops it in depth.',
   ZoomIn:        'Zoom In — narrows focus to a specific detail or sub-topic of the parent.',

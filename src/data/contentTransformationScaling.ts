@@ -5,7 +5,6 @@ import type { ContentTransformation, StatKey } from '../types/game'
 // in CONTENT_TYPE_STAT_BONUS (constants.ts) — shared with content-type scaling.
 export const CONTENT_TRANSFORMATION_STATS: Record<ContentTransformation, { label: string; stats: StatKey[] }> = {
   // ── Relation types (formerly AtomicOrigin) ────────────────────────────────
-  New:            { label: 'New',           stats: ['TEXT'] },
   Compression:    { label: 'Compression',   stats: ['VELOCITY'] },
   Expansion:      { label: 'Expansion',     stats: ['DEPTH', 'TEXT'] },
   ZoomIn:         { label: 'Zoom In',       stats: ['DEPTH'] },
