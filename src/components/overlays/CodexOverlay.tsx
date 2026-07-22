@@ -32,7 +32,7 @@ const STAGE_KEYS = ['Research', 'Produce'] as const
 const BONUS_MULTS = [
   { key: 'mult_heavyBonus',   value: `+${Math.round((HEAVY_TIME_BONUS - 1) * 100)}%` },
   { key: 'mult_flow',         value: `+${Math.round((FLOW_MULT_HOT - 1) * 100)}% / +${Math.round((FLOW_MULT_WARM - 1) * 100)}%` },
-  { key: 'mult_streak',       value: '+5% / tile (cap +50%)' },
+  { key: 'mult_streak',       value: '+1% / tile (cap +10%)' },
   { key: 'mult_theme',        value: '+20%' },
   { key: 'mult_campaignDone', value: '+5% / cycle' },
   { key: 'mult_bonusPool',    value: 'additive' },

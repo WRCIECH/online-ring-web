@@ -187,7 +187,7 @@ export function previewMove(state: CombatState, tile: WorkflowTile, move: MoveTy
   const finisherMult   = wouldFinishAll ? FINISHER_MULT : 1.0
   // Streak, flow, theme, and campaignDone pool their bonuses additively to prevent
   // exponential stacking — each adds a % on top of a shared base instead of compounding.
-  const streakBonus   = Math.min(0.5, 0.05 * state.consistencyStreak)
+  const streakBonus   = Math.min(0.1, 0.01 * state.consistencyStreak)
   const flowBonus     = state.flowMult - 1
   const themeBonus    = rawTheme - 1
   const campaignBonus = state.campaignDoneMult - 1
@@ -418,7 +418,7 @@ export function combatReducer(state: CombatState, action: CombatAction): CombatS
       // Finisher mult only on a first-time completion of the last normal tile (never on repeats)
       const finisherMult  = (allTilesDone && !isRepeat) ? FINISHER_MULT : 1.0
 
-      const bonusPool = Math.min(0.5, 0.05 * state.consistencyStreak)
+      const bonusPool = Math.min(0.1, 0.01 * state.consistencyStreak)
                       + (state.flowMult - 1)
                       + (rawTheme - 1)
                       + (state.campaignDoneMult - 1)
