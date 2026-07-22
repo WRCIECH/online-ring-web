@@ -1,6 +1,5 @@
 import type { WeaponClass, StatKey, Grade, ContentTransformation } from '../../types/game'
 
-type PoiseWeight = 'light' | 'medium' | 'heavy' | 'colossal'
 import type { ContentProductType } from '../contentProducts'
 
 export interface ContentTransformationsConfig {
@@ -15,12 +14,13 @@ export interface WeaponClassDef {
   id: WeaponClass
   name: string
   description: string
-  poise_weight: PoiseWeight
+  /** Total normal tile count (Research + Produce, excluding advance tile). */
+  poise_weight: number
+  /** Fraction of tiles that are Research (0–1). Produce = 1 − research_weight. */
+  research_weight: number
   base_damage_mult: number
-  // Candidate pool for format draws — sampled uniformly by pick() (see
-  // patternSlots.ts). An empty pool means *no restriction* — rollSlotValue
-  // falls back to a wildcard of every ContentProductType equally likely —
-  // rather than disabling the draw.
+  // Candidate pool for format draws — sampled uniformly. An empty pool means
+  // *no restriction* — falls back to a wildcard of every ContentProductType.
   supported_products: ContentProductType[]
   scaling: Partial<Record<StatKey, Grade>>
   time_mod: number
@@ -31,7 +31,7 @@ export interface WeaponClassDef {
 export const WEAPON_CLASSES: Record<WeaponClass, WeaponClassDef> = {
   daggers: {
     id: 'daggers', name: 'Dagger', description: 'Micro-content: tweets, shorts, quick reactions.',
-    poise_weight: 'light', base_damage_mult: 0.7,
+    poise_weight: 4, research_weight: 0.25, base_damage_mult: 0.7,
     scaling: { VELOCITY: 'S' },
     time_mod: 1.0,
     supported_products: ['Plaintext', 'SingleGraphic', 'Carousel', 'RawAudio', 'ARollVideo'],
@@ -44,7 +44,7 @@ export const WEAPON_CLASSES: Record<WeaponClass, WeaponClassDef> = {
   },
   straight_swords: {
     id: 'straight_swords', name: 'Straight Sword', description: 'Standard articles and blog posts.',
-    poise_weight: 'medium', base_damage_mult: 1.0,
+    poise_weight: 8, research_weight: 0.25, base_damage_mult: 1.0,
     scaling: { TEXT: 'D', VELOCITY: 'D' },
     time_mod: 1.0,
     supported_products: ['Plaintext', 'StructuredText', 'RawAudio', 'SlideshowVideo', 'Screencast'],
@@ -57,7 +57,7 @@ export const WEAPON_CLASSES: Record<WeaponClass, WeaponClassDef> = {
   },
   greatswords: {
     id: 'greatswords', name: 'Greatsword', description: 'Long-form essays and deep dives.',
-    poise_weight: 'heavy', base_damage_mult: 1.5,
+    poise_weight: 10, research_weight: 0.30, base_damage_mult: 1.5,
     scaling: { DEPTH: 'B', TEXT: 'D' },
     time_mod: 1.0,
     supported_products: ['StructuredText', 'IllustratedText', 'SingleGraphic', 'RawAudio', 'ARollVideo', 'SlideshowVideo', 'Screencast', 'CinematicVideo', 'MotionGraphics', 'ProducedAudio'],
@@ -70,7 +70,7 @@ export const WEAPON_CLASSES: Record<WeaponClass, WeaponClassDef> = {
   },
   katanas: {
     id: 'katanas', name: 'Katana', description: 'Polished craft pieces — quality over quantity.',
-    poise_weight: 'medium', base_damage_mult: 1.1,
+    poise_weight: 10, research_weight: 0.20, base_damage_mult: 1.1,
     scaling: { GRAPHIC: 'A' },
     time_mod: 1.0,
     supported_products: ['Plaintext', 'IllustratedText', 'Carousel', 'RawAudio', 'ProducedAudio', 'ARollVideo', 'SlideshowVideo', 'CinematicVideo', 'MotionGraphics', 'LiveStream', 'BranchingNarrative', '_blank'],
@@ -83,7 +83,7 @@ export const WEAPON_CLASSES: Record<WeaponClass, WeaponClassDef> = {
   },
   hammers: {
     id: 'hammers', name: 'Hammer', description: 'Hot takes and opinion pieces.',
-    poise_weight: 'heavy', base_damage_mult: 1.3,
+    poise_weight: 10, research_weight: 0.30, base_damage_mult: 1.3,
     scaling: { FRICTION: 'A' },
     time_mod: 1.0,
     supported_products: ['Plaintext', 'StructuredText', 'IllustratedText', 'Carousel', 'RawAudio', 'ProducedAudio', 'ARollVideo', 'SlideshowVideo', 'CinematicVideo', 'MotionGraphics', 'LiveStream'],
@@ -96,7 +96,7 @@ export const WEAPON_CLASSES: Record<WeaponClass, WeaponClassDef> = {
   },
   spears: {
     id: 'spears', name: 'Spear', description: 'Research-driven content.',
-    poise_weight: 'medium', base_damage_mult: 1.0,
+    poise_weight: 14, research_weight: 0.29, base_damage_mult: 1.0,
     scaling: { DEPTH: 'B', TEXT: 'D' },
     time_mod: 1.0,
     supported_products: [],
@@ -109,7 +109,7 @@ export const WEAPON_CLASSES: Record<WeaponClass, WeaponClassDef> = {
   },
   axes: {
     id: 'axes', name: 'Axe', description: 'Editing and compression of existing content.',
-    poise_weight: 'medium', base_damage_mult: 0.9,
+    poise_weight: 10, research_weight: 0.30, base_damage_mult: 0.9,
     scaling: { FRICTION: 'C', VELOCITY: 'D' },
     time_mod: 1.0,
     supported_products: [],
@@ -122,7 +122,7 @@ export const WEAPON_CLASSES: Record<WeaponClass, WeaponClassDef> = {
   },
   bows: {
     id: 'bows', name: 'Bow', description: 'Async content — newsletters, scheduled posts.',
-    poise_weight: 'light', base_damage_mult: 0.85,
+    poise_weight: 6, research_weight: 0.33, base_damage_mult: 0.85,
     scaling: { TEXT: 'A' },
     time_mod: 1.0,
     supported_products: ['Plaintext', 'SingleGraphic', 'Carousel', 'RawAudio', 'ARollVideo', 'LiveStream', 'CurationFeed', 'CommunitySpace'],
@@ -135,7 +135,7 @@ export const WEAPON_CLASSES: Record<WeaponClass, WeaponClassDef> = {
   },
   fists: {
     id: 'fists', name: 'Fists', description: 'Raw BTS content and vlogs.',
-    poise_weight: 'light', base_damage_mult: 0.65,
+    poise_weight: 5, research_weight: 0.20, base_damage_mult: 0.65,
     scaling: { VELOCITY: 'C', GRAPHIC: 'C' },
     time_mod: 1.0,
     supported_products: ['Plaintext', 'SingleGraphic', 'RawAudio', 'ARollVideo'],
@@ -148,7 +148,7 @@ export const WEAPON_CLASSES: Record<WeaponClass, WeaponClassDef> = {
   },
   colossal_swords: {
     id: 'colossal_swords', name: 'Colossal Sword', description: 'Books, courses, and long-form products.',
-    poise_weight: 'colossal', base_damage_mult: 2.2,
+    poise_weight: 14, research_weight: 0.29, base_damage_mult: 2.2,
     scaling: { DEPTH: 'S' },
     time_mod: 1.0,
     supported_products: ['Plaintext', 'StructuredText', 'IllustratedText', 'SingleGraphic', 'Carousel', 'RawAudio', 'ARollVideo', 'SlideshowVideo', 'Screencast', 'CinematicVideo', 'MotionGraphics', 'ProducedAudio'],
@@ -161,7 +161,7 @@ export const WEAPON_CLASSES: Record<WeaponClass, WeaponClassDef> = {
   },
   thrusting_swords: {
     id: 'thrusting_swords', name: 'Thrusting Sword', description: 'Comments and reply content.',
-    poise_weight: 'light', base_damage_mult: 0.75,
+    poise_weight: 8, research_weight: 0.25, base_damage_mult: 0.75,
     scaling: { DEPTH: 'A', VELOCITY: 'D' },
     time_mod: 1.0,
     supported_products: ['Plaintext', 'StructuredText', 'IllustratedText', 'SingleGraphic', 'Carousel', 'RawAudio', 'ProducedAudio', 'ARollVideo', 'SlideshowVideo', 'CinematicVideo', 'MotionGraphics', 'LiveStream', 'MultimediaPage', 'BranchingNarrative', 'CommunitySpace'],
@@ -174,7 +174,7 @@ export const WEAPON_CLASSES: Record<WeaponClass, WeaponClassDef> = {
   },
   heavy_thrusting: {
     id: 'heavy_thrusting', name: 'Heavy Thrusting Sword', description: 'In-depth analysis and commentary.',
-    poise_weight: 'medium', base_damage_mult: 1.1,
+    poise_weight: 12, research_weight: 0.25, base_damage_mult: 1.1,
     scaling: { DEPTH: 'B', TEXT: 'D' },
     time_mod: 1.0,
     supported_products: ['Plaintext', 'StructuredText', 'IllustratedText', 'SingleGraphic', 'Carousel', 'RawAudio', 'ProducedAudio', 'ARollVideo', 'SlideshowVideo', 'CinematicVideo', 'MotionGraphics', 'LiveStream', 'MultimediaPage', 'BranchingNarrative', 'CommunitySpace'],
@@ -187,7 +187,7 @@ export const WEAPON_CLASSES: Record<WeaponClass, WeaponClassDef> = {
   },
   curved_swords: {
     id: 'curved_swords', name: 'Curved Sword', description: 'Storytelling and narrative content.',
-    poise_weight: 'medium', base_damage_mult: 1.0,
+    poise_weight: 10, research_weight: 0.20, base_damage_mult: 1.0,
     scaling: { AUDIO: 'A' },
     time_mod: 1.0,
     supported_products: [],
@@ -200,7 +200,7 @@ export const WEAPON_CLASSES: Record<WeaponClass, WeaponClassDef> = {
   },
   curved_greatswords: {
     id: 'curved_greatswords', name: 'Curved Greatsword', description: 'Epic series and narrative sagas.',
-    poise_weight: 'heavy', base_damage_mult: 1.4,
+    poise_weight: 14, research_weight: 0.21, base_damage_mult: 1.4,
     scaling: { PARASOCIAL: 'B', AUDIO: 'D' },
     time_mod: 1.0,
     supported_products: [],
@@ -213,7 +213,7 @@ export const WEAPON_CLASSES: Record<WeaponClass, WeaponClassDef> = {
   },
   twinblades: {
     id: 'twinblades', name: 'Twinblade', description: 'Multi-platform cross-posting.',
-    poise_weight: 'medium', base_damage_mult: 0.9,
+    poise_weight: 16, research_weight: 0.25, base_damage_mult: 0.9,
     scaling: { VELOCITY: 'S' },
     time_mod: 1.0,
     supported_products: [],
@@ -226,7 +226,7 @@ export const WEAPON_CLASSES: Record<WeaponClass, WeaponClassDef> = {
   },
   great_hammers: {
     id: 'great_hammers', name: 'Great Hammer', description: 'Manifestos and major opinion pieces.',
-    poise_weight: 'heavy', base_damage_mult: 1.7,
+    poise_weight: 14, research_weight: 0.29, base_damage_mult: 1.7,
     scaling: { FRICTION: 'A' },
     time_mod: 1.0,
     supported_products: ['Plaintext', 'StructuredText', 'IllustratedText', 'Carousel', 'RawAudio', 'ProducedAudio', 'ARollVideo', 'SlideshowVideo', 'CinematicVideo', 'MotionGraphics', 'LiveStream'],
@@ -239,7 +239,7 @@ export const WEAPON_CLASSES: Record<WeaponClass, WeaponClassDef> = {
   },
   great_axes: {
     id: 'great_axes', name: 'Great Axe', description: 'Recaps, roundups, and year-in-review content.',
-    poise_weight: 'heavy', base_damage_mult: 1.35,
+    poise_weight: 16, research_weight: 0.25, base_damage_mult: 1.35,
     scaling: { FRICTION: 'A' },
     time_mod: 1.0,
     supported_products: [],
@@ -252,7 +252,7 @@ export const WEAPON_CLASSES: Record<WeaponClass, WeaponClassDef> = {
   },
   flails: {
     id: 'flails', name: 'Flail', description: 'Spontaneous and improv content.',
-    poise_weight: 'medium', base_damage_mult: 0.95,
+    poise_weight: 5, research_weight: 0.20, base_damage_mult: 0.95,
     scaling: { INSIGHT: 'B', VIDEO: 'D' },
     time_mod: 1.0,
     supported_products: ['StructuredText', 'IllustratedText', 'Infographic', 'ProducedAudio', 'ARollVideo', 'SlideshowVideo', 'Screencast', 'CinematicVideo', 'MotionGraphics', 'LiveStream', 'MultimediaPage', 'BranchingNarrative', 'AssetPack', 'CurationFeed', 'InteractiveApp', '_blank'],
@@ -265,7 +265,7 @@ export const WEAPON_CLASSES: Record<WeaponClass, WeaponClassDef> = {
   },
   colossal_weapons: {
     id: 'colossal_weapons', name: 'Colossal Weapon', description: 'Mega-projects — documentaries, full series.',
-    poise_weight: 'colossal', base_damage_mult: 2.4,
+    poise_weight: 18, research_weight: 0.22, base_damage_mult: 2.4,
     scaling: { DEPTH: 'S' },
     time_mod: 1.0,
     supported_products: ['StructuredText', 'IllustratedText', 'Infographic', 'ProducedAudio', 'CinematicVideo', 'SlideshowVideo', 'MotionGraphics', 'MultimediaPage', 'BranchingNarrative', 'AssetPack', 'InteractiveApp', '_blank'],
@@ -278,7 +278,7 @@ export const WEAPON_CLASSES: Record<WeaponClass, WeaponClassDef> = {
   },
   great_spears: {
     id: 'great_spears', name: 'Great Spear', description: 'Investigative content.',
-    poise_weight: 'heavy', base_damage_mult: 1.25,
+    poise_weight: 14, research_weight: 0.29, base_damage_mult: 1.25,
     scaling: { FRICTION: 'B', DEPTH: 'C' },
     time_mod: 1.0,
     supported_products: [],
@@ -291,7 +291,7 @@ export const WEAPON_CLASSES: Record<WeaponClass, WeaponClassDef> = {
   },
   halberds: {
     id: 'halberds', name: 'Halberd', description: 'Hybrid research and opinion.',
-    poise_weight: 'medium', base_damage_mult: 1.1,
+    poise_weight: 7, research_weight: 0.29, base_damage_mult: 1.1,
     scaling: { DEPTH: 'C', PARASOCIAL: 'D' },
     time_mod: 1.0,
     supported_products: ['StructuredText', 'IllustratedText', 'Infographic', 'SlideshowVideo', 'Screencast', 'MultimediaPage', 'AssetPack', 'CurationFeed', 'InteractiveApp', '_blank'],
@@ -304,7 +304,7 @@ export const WEAPON_CLASSES: Record<WeaponClass, WeaponClassDef> = {
   },
   reapers: {
     id: 'reapers', name: 'Reaper', description: 'Commentary, takedowns, and critiques.',
-    poise_weight: 'heavy', base_damage_mult: 1.2,
+    poise_weight: 10, research_weight: 0.20, base_damage_mult: 1.2,
     scaling: { FRICTION: 'A', VELOCITY: 'D' },
     time_mod: 1.0,
     supported_products: ['StructuredText', 'IllustratedText', 'Carousel', 'RawAudio', 'SlideshowVideo', 'CurationFeed', 'ARollVideo'],
@@ -317,7 +317,7 @@ export const WEAPON_CLASSES: Record<WeaponClass, WeaponClassDef> = {
   },
   whips: {
     id: 'whips', name: 'Whip', description: 'Series and content cycles.',
-    poise_weight: 'medium', base_damage_mult: 0.9,
+    poise_weight: 12, research_weight: 0.25, base_damage_mult: 0.9,
     scaling: { FRICTION: 'B', INSIGHT: 'C' },
     time_mod: 1.0,
     supported_products: ['ARollVideo', 'CinematicVideo', 'SlideshowVideo', 'MotionGraphics', 'LiveStream'],
@@ -330,7 +330,7 @@ export const WEAPON_CLASSES: Record<WeaponClass, WeaponClassDef> = {
   },
   greatbows: {
     id: 'greatbows', name: 'Greatbow', description: 'Long-tail evergreen content.',
-    poise_weight: 'colossal', base_damage_mult: 1.6,
+    poise_weight: 12, research_weight: 0.25, base_damage_mult: 1.6,
     scaling: { PARASOCIAL: 'A', VELOCITY: 'D' },
     time_mod: 1.0,
     supported_products: ['Carousel', 'BranchingNarrative', 'InteractiveApp', 'LiveStream', 'MultimediaPage', 'CommunitySpace', '_blank'],
@@ -343,7 +343,7 @@ export const WEAPON_CLASSES: Record<WeaponClass, WeaponClassDef> = {
   },
   crossbows: {
     id: 'crossbows', name: 'Crossbow', description: 'Email blasts and push notifications.',
-    poise_weight: 'medium', base_damage_mult: 0.85,
+    poise_weight: 10, research_weight: 0.20, base_damage_mult: 0.85,
     scaling: { VELOCITY: 'B' },
     time_mod: 1.0,
     supported_products: [],
@@ -356,7 +356,7 @@ export const WEAPON_CLASSES: Record<WeaponClass, WeaponClassDef> = {
   },
   ballistas: {
     id: 'ballistas', name: 'Ballista', description: 'Major product launches.',
-    poise_weight: 'colossal', base_damage_mult: 2.2,
+    poise_weight: 14, research_weight: 0.29, base_damage_mult: 2.2,
     scaling: { DEPTH: 'C', VIDEO: 'D' },
     time_mod: 1.0,
     supported_products: ['StructuredText', 'IllustratedText', 'Infographic', 'ProducedAudio', 'SlideshowVideo', 'CinematicVideo', 'MotionGraphics', 'MultimediaPage', 'BranchingNarrative', 'AssetPack', 'CurationFeed', 'InteractiveApp', '_blank'],
@@ -369,7 +369,7 @@ export const WEAPON_CLASSES: Record<WeaponClass, WeaponClassDef> = {
   },
   torches: {
     id: 'torches', name: 'Torch', description: 'Lifestyle and lo-fi vlog content.',
-    poise_weight: 'light', base_damage_mult: 0.6,
+    poise_weight: 5, research_weight: 0.20, base_damage_mult: 0.6,
     scaling: { AUDIO: 'A', PARASOCIAL: 'D' },
     time_mod: 1.0,
     supported_products: ['Plaintext', 'SingleGraphic', 'Carousel', 'RawAudio', 'ARollVideo', 'CinematicVideo', 'LiveStream', 'CommunitySpace'],

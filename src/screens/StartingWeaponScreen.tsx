@@ -18,16 +18,18 @@ const WEIGHT_GROUPS: WeaponClass[][] = [
    'flails', 'reapers', 'great_spears', 'colossal_swords', 'greatbows', 'ballistas'],
 ]
 
-const WEIGHT_COLOUR: Record<string, string> = {
-  light: '#2ecc88',
-  medium: '#ccaa22',
-  heavy: '#cc6622',
+function poiseColour(n: number): string {
+  if (n <= 5)  return '#2ecc88'
+  if (n <= 10) return '#ccaa22'
+  if (n <= 16) return '#cc6622'
+  return '#cc3333'
 }
 
-const WEIGHT_LABEL: Record<string, string> = {
-  light:  'Light — fast, frequent strikes',
-  medium: 'Medium — balanced approach',
-  heavy:  'Heavy — slow, powerful blows',
+function poiseLabel(n: number): string {
+  if (n <= 5)  return 'Light — fast, frequent strikes'
+  if (n <= 10) return 'Medium — balanced approach'
+  if (n <= 16) return 'Heavy — slow, powerful blows'
+  return 'Colossal — immense, infrequent blows'
 }
 
 
@@ -64,8 +66,8 @@ export default function StartingWeaponScreen() {
         {options.map((w, i) => {
           const cls        = WEAPON_CLASSES[w.weapon_class]
           const isChosen   = chosen === i
-          const poiseWeight = w.poise_weight ?? 'medium'
-          const colour     = WEIGHT_COLOUR[poiseWeight] ?? '#888'
+          const poiseWeight = w.poise_weight ?? 8
+          const colour     = poiseColour(poiseWeight)
 
           return (
             <button
@@ -90,7 +92,7 @@ export default function StartingWeaponScreen() {
                 <div className={s.className}>{cls.name}</div>
 
                 <div className={s.weightBadge} style={{ color: colour, borderColor: `${colour}55` }}>
-                  {WEIGHT_LABEL[poiseWeight]}
+                  {poiseLabel(poiseWeight)}
                 </div>
 
                 <p className={s.desc}>{w.description}</p>

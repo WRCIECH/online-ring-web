@@ -242,7 +242,7 @@ export default function CharacterOverlay({ onClose, canLevel = true }: Props) {
                       <WeaponSprite
                         weaponClass={w.weapon_class}
                         rarity={w.rarity ?? 'common'}
-                        poiseWeight={w.poise_weight ?? 'medium'}
+                        poiseWeight={w.poise_weight ?? 8}
                         size={36}
                       />
                       <span className={s.weaponTabTip}>

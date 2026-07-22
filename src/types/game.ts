@@ -102,7 +102,7 @@ export interface WeaponInstance extends Weapon {
   affixes: Affix[]
   base_damage_mult: number
   // kept for WeaponSprite rendering
-  poise_weight?: 'light' | 'medium' | 'heavy' | 'colossal'
+  poise_weight?: number
   // absent on legacy saves predating this feature — consumers fall back
   // to the old per-call random roll whenever this is undefined
   rolled_draws?: RolledPatternDraws

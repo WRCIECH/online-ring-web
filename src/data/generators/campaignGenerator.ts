@@ -71,15 +71,10 @@ const GLOBAL_EDGE_POOL: ContentTransformation[] = [
   'Analogy', 'FirstPrinciples', 'DataDriven',
 ]
 
-const NODE_COUNT_BY_WEIGHT: Record<string, [number, number]> = {
-  light:    [5, 7],
-  medium:   [7, 10],
-  heavy:    [10, 13],
-  colossal: [13, 15],
-}
-
 export function generateWeaponCampaign(weapon: WeaponInstance): WeaponCampaign {
-  const [minNodes, maxNodes] = NODE_COUNT_BY_WEIGHT[weapon.poise_weight ?? 'medium'] ?? [7, 10]
+  const pw       = weapon.poise_weight ?? 8
+  const minNodes = Math.max(5, Math.round(pw * 0.5))
+  const maxNodes = Math.max(7, Math.round(pw * 0.8))
   const nodeCount = minNodes + Math.floor(Math.random() * (maxNodes - minNodes + 1))
   const maxBranch = 3
 

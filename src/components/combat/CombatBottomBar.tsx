@@ -79,7 +79,7 @@ export default function CombatBottomBar({
                 <WeaponSprite
                   weaponClass={weapon.weapon_class}
                   rarity={weapon.rarity ?? 'common'}
-                  poiseWeight={weapon.poise_weight ?? 'medium'}
+                  poiseWeight={weapon.poise_weight ?? 8}
                   size={44}
                 />
               ) : (

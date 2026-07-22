@@ -197,7 +197,7 @@ export default function CodexOverlay({ onClose }: Props) {
                     <div className={s.weaponInfo}>
                       <div className={s.entryTop}>
                         <span className={s.entryName}>{wt?.name ?? wc}</span>
-                        <span className={s.poiseChip}>{cls.poise_weight}</span>
+                        <span className={s.poiseChip}>{cls.poise_weight} tiles</span>
                         <span className={s.dmgChip}>×{cls.base_damage_mult}</span>
                       </div>
                       <div className={s.entryDesc}>{wt?.description}</div>

@@ -1,13 +1,12 @@
 import { memo } from 'react'
 import type { WeaponClass, WeaponRarity } from '../../types/game'
 
-type PoiseWeight = 'light' | 'medium' | 'heavy' | 'colossal'
 import s from './WeaponSprite.module.css'
 
 interface Props {
   weaponClass: WeaponClass
   rarity: WeaponRarity
-  poiseWeight: PoiseWeight
+  poiseWeight: number
   size?: number  // height in px; width = size * 0.5
 }
 
@@ -20,8 +19,12 @@ const SECONDARY: Record<WeaponRarity, string> = {
 const GLOW: Record<WeaponRarity, string | null> = {
   common: null, Intellectual: '#4488cc', rare: '#ccaa22', epic: '#9944cc', legendary: '#ee8822',
 }
-const SCALE: Record<PoiseWeight, number> = {
-  light: 0.88, medium: 1.0, heavy: 1.1, colossal: 1.2,
+
+function poiseScale(n: number): number {
+  if (n <= 5)  return 0.88
+  if (n <= 10) return 1.0
+  if (n <= 16) return 1.1
+  return 1.2
 }
 
 // All shapes in a 32×64 viewBox, centred at x=16
@@ -237,7 +240,7 @@ const WeaponSprite = memo(function WeaponSprite({ weaponClass, rarity, poiseWeig
   const blade     = BLADE[rarity]
   const secondary = SECONDARY[rarity]
   const glow      = GLOW[rarity]
-  const scale     = SCALE[poiseWeight]
+  const scale     = poiseScale(poiseWeight)
   const width     = Math.round(size * 0.5)
 
   const glowStyle = glow ? { filter: `drop-shadow(0 0 ${rarity === 'legendary' ? 5 : 3}px ${glow})` } : undefined
