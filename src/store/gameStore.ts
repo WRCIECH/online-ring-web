@@ -297,7 +297,9 @@ export interface GameStore extends GameState {
 
   // Campaign modification actions (spend stat modification slots on inactive campaigns)
   modifyNodeContentType: (weaponId: string, nodeId: string, newType: ContentProductType, stat: StatKey) => boolean
+  resetNodeContentType:  (weaponId: string, nodeId: string) => void
   modifyEdgeLabel:       (weaponId: string, fromId: string, toId: string, newLabel: ContentTransformation | null, stat: StatKey) => boolean
+  resetEdgeLabel:        (weaponId: string, fromId: string, toId: string) => void
 
   // Campaign finalization
   finalizeCampaign: (weaponId: string, freshCampaignName?: string) => void
@@ -633,20 +635,45 @@ export const useGameStore = create<GameStore>((set, get) => ({
     set(prev => ({
       weapon_campaigns: {
         ...prev.weapon_campaigns,
-        [weaponId]: { ...c, nodes: c.nodes.map(n => n.id === nodeId ? { ...n, content_type: newType } : n) },
+        [weaponId]: {
+          ...c,
+          nodes: c.nodes.map(n => {
+            if (n.id !== nodeId) return n
+            return {
+              ...n,
+              content_type: newType,
+              content_type_modified: true,
+              original_content_type: n.content_type_modified ? n.original_content_type : n.content_type,
+            }
+          }),
+        },
       },
-      // Clear saved workflow for this node so it regenerates with the new content type
-      workflow_progress: (() => {
-        const { [nodeId]: _, ...rest } = prev.workflow_progress
-        return rest
-      })(),
-      stat_modifications_used: {
-        ...prev.stat_modifications_used,
-        [stat]: (prev.stat_modifications_used[stat] ?? 0) + 1,
-      },
+      workflow_progress: (() => { const { [nodeId]: _, ...rest } = prev.workflow_progress; return rest })(),
+      stat_modifications_used: { ...prev.stat_modifications_used, [stat]: (prev.stat_modifications_used[stat] ?? 0) + 1 },
     }))
     get().save()
     return true
+  },
+
+  resetNodeContentType: (weaponId, nodeId) => {
+    const s = get()
+    const c = s.weapon_campaigns[weaponId]
+    if (!c || c.activated === true) return
+    set(prev => ({
+      weapon_campaigns: {
+        ...prev.weapon_campaigns,
+        [weaponId]: {
+          ...c,
+          nodes: c.nodes.map(n => {
+            if (n.id !== nodeId || !n.content_type_modified) return n
+            const { content_type_modified: _, original_content_type, ...rest } = n
+            return { ...rest, content_type: original_content_type }
+          }),
+        },
+      },
+      workflow_progress: (() => { const { [nodeId]: _, ...rest } = prev.workflow_progress; return rest })(),
+    }))
+    get().save()
   },
 
   modifyEdgeLabel: (weaponId, fromId, toId, newLabel, stat) => {
@@ -660,16 +687,41 @@ export const useGameStore = create<GameStore>((set, get) => ({
         ...prev.weapon_campaigns,
         [weaponId]: {
           ...c,
-          edges: c.edges.map(e => e.from_id === fromId && e.to_id === toId ? { ...e, label: newLabel } : e),
+          edges: c.edges.map(e => {
+            if (e.from_id !== fromId || e.to_id !== toId) return e
+            return {
+              ...e,
+              label: newLabel,
+              label_modified: true,
+              original_label: e.label_modified ? e.original_label : e.label,
+            }
+          }),
         },
       },
-      stat_modifications_used: {
-        ...prev.stat_modifications_used,
-        [stat]: (prev.stat_modifications_used[stat] ?? 0) + 1,
-      },
+      stat_modifications_used: { ...prev.stat_modifications_used, [stat]: (prev.stat_modifications_used[stat] ?? 0) + 1 },
     }))
     get().save()
     return true
+  },
+
+  resetEdgeLabel: (weaponId, fromId, toId) => {
+    const s = get()
+    const c = s.weapon_campaigns[weaponId]
+    if (!c || c.activated === true) return
+    set(prev => ({
+      weapon_campaigns: {
+        ...prev.weapon_campaigns,
+        [weaponId]: {
+          ...c,
+          edges: c.edges.map(e => {
+            if (e.from_id !== fromId || e.to_id !== toId || !e.label_modified) return e
+            const { label_modified: _, original_label, ...rest } = e
+            return { ...rest, label: original_label ?? null }
+          }),
+        },
+      },
+    }))
+    get().save()
   },
 
   finalizeCampaign: (weaponId, freshCampaignName) => {

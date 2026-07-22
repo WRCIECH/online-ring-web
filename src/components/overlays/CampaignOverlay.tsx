@@ -1,11 +1,12 @@
 import { useState, useRef, useEffect } from 'react'
-import { useGameStore } from '../../store/gameStore'
+import { useGameStore, selectRemainingModifications } from '../../store/gameStore'
 import { isNodeAvailable } from '../../data/generators/campaignGenerator'
 import { calcCampaignOverloadMult, countActiveCampaigns, isCampaignFullyDefined } from '../../engine/combat'
 import { LEVEL_MULT, weaponUpgradeCost, calcWeaponScaledDamage } from '../../data/weapons'
 import { WEAPON_CLASSES } from '../../data/generators/weaponClasses'
 import { WEAPON_SELL_PRICE } from '../../data/constants'
-import type { CampaignNode, CampaignEdge, WeaponCampaign, WeaponInstance } from '../../types/game'
+import { MODIFICATION_STATS, STAT_CONTENT_TYPES, STAT_TRANSFORMATIONS } from '../../data/statModifications'
+import type { CampaignNode, CampaignEdge, WeaponCampaign, WeaponInstance, StatKey, ContentProductType } from '../../types/game'
 import WeaponIcon from '../WeaponIcon'
 import { useT, localizeWeaponName } from '../../i18n'
 import s from './CampaignOverlay.module.css'
@@ -182,6 +183,10 @@ export default function CampaignOverlay({ onClose }: Props) {
   const [confirmSellId,    setConfirmSellId]    = useState<string | null>(null)
   const [confirmUpgradeId, setConfirmUpgradeId] = useState<string | null>(null)
   const [hoveredUpgrade,   setHoveredUpgrade]   = useState(false)
+  // Modification picker
+  const [modifyNodeId,  setModifyNodeId]  = useState<string | null>(null)
+  const [modifyEdge,    setModifyEdge]    = useState<{ from: string; to: string } | null>(null)
+  const [pickerPos,     setPickerPos]     = useState<{ x: number; y: number }>({ x: 0, y: 0 })
 
   const nodeInputRef = useRef<HTMLInputElement>(null)
   const nameInputRef = useRef<HTMLInputElement>(null)
@@ -208,6 +213,8 @@ export default function CampaignOverlay({ onClose }: Props) {
     setEditingNodeId(null)
     setConfirmSellId(null)
     setConfirmUpgradeId(null)
+    setModifyNodeId(null)
+    setModifyEdge(null)
   }, [selectedWeaponId])
 
   const selectedWeapon = selectedWeaponId
@@ -263,6 +270,8 @@ export default function CampaignOverlay({ onClose }: Props) {
     if (name) store.renameCampaign(weaponId, name)
     setNameOpen(false)
   }
+
+  const remainingMods = selectRemainingModifications(store)
 
   const weapons = store.weapon_instances
 
@@ -588,7 +597,7 @@ export default function CampaignOverlay({ onClose }: Props) {
                       <svg
                         width={svgW}
                         height={svgH}
-                        style={{ display: 'block', overflow: 'visible', minWidth: svgW }}
+                        style={{ display: 'block', overflow: 'visible', minWidth: svgW, marginTop: 18 }}
                       >
                         {/* Edges first (behind nodes) */}
                         {edges.map(edge => {
@@ -606,11 +615,18 @@ export default function CampaignOverlay({ onClose }: Props) {
                           const displayText = edge.label == null ? 'Follows' : (LABEL_DISPLAY[edge.label] ?? edge.label)
                           const tooltip     = edge.label == null ? FOLLOWS_TOOLTIP : (LABEL_TOOLTIP[edge.label] ?? edge.label)
                           const labelW = displayText.length * 6.2 + 14
+                          const edgeIsModified = !!edge.label_modified
+                          const edgeCanModify = !isActivated && (
+                            edgeIsModified ||
+                            MODIFICATION_STATS.some(st => (remainingMods[st] ?? 0) > 0 && (STAT_TRANSFORMATIONS[st]?.length ?? 0) > 0)
+                          )
+                          const edgeKey = `${edge.from_id}|${edge.to_id}`
+                          const edgeIsOpen = modifyEdge?.from === edge.from_id && modifyEdge?.to === edge.to_id
                           return (
-                            <g key={`${edge.from_id}-${edge.to_id}`}>
+                            <g key={edgeKey}>
                               <path d={d} fill="none" stroke="rgba(100,80,200,0.28)" strokeWidth={1.5} />
                               <g
-                                style={{ cursor: 'default' }}
+                                style={{ cursor: edgeCanModify ? 'pointer' : 'default' }}
                                 onMouseEnter={e => {
                                   const pane = treePaneRef.current
                                   if (!pane) return
@@ -624,12 +640,23 @@ export default function CampaignOverlay({ onClose }: Props) {
                                   setEdgeTooltip(prev => prev ? { ...prev, x: e.clientX - r.left, y: e.clientY - r.top } : prev)
                                 }}
                                 onMouseLeave={() => setEdgeTooltip(null)}
+                                onClick={edgeCanModify ? e => {
+                                  e.stopPropagation()
+                                  const pane = treePaneRef.current
+                                  if (!pane) return
+                                  const pr = pane.getBoundingClientRect()
+                                  if (edgeIsOpen) { setModifyEdge(null) } else {
+                                    setModifyEdge({ from: edge.from_id, to: edge.to_id })
+                                    setModifyNodeId(null)
+                                    setPickerPos({ x: e.clientX - pr.left, y: e.clientY - pr.top + 10 })
+                                  }
+                                } : undefined}
                               >
                                 <rect
                                   x={lx - labelW / 2} y={ly - 10}
                                   width={labelW} height={20} rx={4}
-                                  fill="rgba(100,80,200,0.11)"
-                                  stroke="rgba(100,80,200,0.24)"
+                                  fill={edgeIsModified ? 'rgba(200,140,40,0.15)' : 'rgba(100,80,200,0.11)'}
+                                  stroke={edgeIsModified ? 'rgba(200,140,40,0.45)' : 'rgba(100,80,200,0.24)'}
                                   strokeWidth={1}
                                 />
                                 <text
@@ -637,7 +664,7 @@ export default function CampaignOverlay({ onClose }: Props) {
                                   textAnchor="middle"
                                   fontSize={10}
                                   fontFamily="system-ui,sans-serif"
-                                  fill="rgba(180,160,255,0.88)"
+                                  fill={edgeIsModified ? 'rgba(240,185,90,0.92)' : 'rgba(180,160,255,0.88)'}
                                 >
                                   {displayText}
                                 </text>
@@ -704,7 +731,34 @@ export default function CampaignOverlay({ onClose }: Props) {
 
                                 {node.content_type && (() => {
                                   const label = (t.content.product as Record<string, { badge_label?: string } | undefined>)[node.content_type]?.badge_label ?? node.content_type
-                                  return <span className={s.nodeContentBadge}>{label}</span>
+                                  const canModify = !isActivated && (
+                                    node.content_type_modified ||
+                                    MODIFICATION_STATS.some(st => (remainingMods[st] ?? 0) > 0 && (STAT_CONTENT_TYPES[st]?.filter(x => x !== '_blank').length ?? 0) > 0)
+                                  )
+                                  const isOpen = modifyNodeId === node.id
+                                  return (
+                                    <span
+                                      className={[
+                                        s.nodeContentBadge,
+                                        node.content_type_modified ? s.nodeContentBadgeModified : '',
+                                        canModify ? s.nodeContentBadgeClickable : '',
+                                      ].filter(Boolean).join(' ')}
+                                      title={canModify ? 'Click to change content type' : undefined}
+                                      onClick={canModify ? e => {
+                                        e.stopPropagation()
+                                        const pane = treePaneRef.current
+                                        if (!pane) return
+                                        const pr = pane.getBoundingClientRect()
+                                        if (isOpen) { setModifyNodeId(null) } else {
+                                          setModifyNodeId(node.id)
+                                          setModifyEdge(null)
+                                          setPickerPos({ x: e.clientX - pr.left, y: e.clientY - pr.top + 10 })
+                                        }
+                                      } : undefined}
+                                    >
+                                      {label}{canModify ? ' ✎' : ''}
+                                    </span>
+                                  )
                                 })()}
 
                                 {finished && (
@@ -746,6 +800,132 @@ export default function CampaignOverlay({ onClose }: Props) {
                         <div className={s.completedHint}>
                           Campaign complete — assign a new campaign to this weapon to continue growing this content tree.
                         </div>
+                      )}
+
+                      {/* ── Modification picker (node content type) ── */}
+                      {modifyNodeId && !isActivated && (
+                        <>
+                          <div className={s.modPickerBackdrop} onClick={() => setModifyNodeId(null)} />
+                          <div className={s.modPicker} style={{ left: pickerPos.x, top: pickerPos.y }}>
+                            <div className={s.modPickerTitle}>Change content type</div>
+                            {(() => {
+                              const targetNode = campaign.nodes.find(n => n.id === modifyNodeId)
+                              const groups = MODIFICATION_STATS.filter(stat =>
+                                (remainingMods[stat] ?? 0) > 0 &&
+                                (STAT_CONTENT_TYPES[stat]?.filter(x => x !== '_blank').length ?? 0) > 0
+                              )
+                              return (
+                                <>
+                                  {targetNode?.content_type_modified && (
+                                    <div className={s.modPickerGroup}>
+                                      <div className={s.modPickerStat}>Original</div>
+                                      <div className={s.modPickerOptions}>
+                                        <button
+                                          className={s.modPickerReset}
+                                          onClick={() => {
+                                            store.resetNodeContentType(weaponId, modifyNodeId!)
+                                            setModifyNodeId(null)
+                                          }}
+                                        >
+                                          ↩ {(t.content.product as Record<string, { badge_label?: string } | undefined>)[targetNode.original_content_type!]?.badge_label ?? targetNode.original_content_type}
+                                        </button>
+                                      </div>
+                                    </div>
+                                  )}
+                                  {groups.length === 0 && !targetNode?.content_type_modified && (
+                                    <div className={s.modPickerEmpty}>{t.ui.stat_mod_unavailable}</div>
+                                  )}
+                                  {groups.map(stat => (
+                                    <div key={stat} className={s.modPickerGroup}>
+                                      <div className={s.modPickerStat}>
+                                        {(t.ui as Record<string,string>)[`stat_${stat}`] ?? stat}
+                                        <span className={s.modPickerRemaining}> {remainingMods[stat]} left</span>
+                                      </div>
+                                      <div className={s.modPickerOptions}>
+                                        {STAT_CONTENT_TYPES[stat]!.filter(x => x !== '_blank').map(type => (
+                                          <button
+                                            key={type}
+                                            className={s.modPickerOption}
+                                            onClick={() => {
+                                              store.modifyNodeContentType(weaponId, modifyNodeId!, type as ContentProductType, stat as StatKey)
+                                              setModifyNodeId(null)
+                                            }}
+                                          >
+                                            {(t.content.product as Record<string, { badge_label?: string } | undefined>)[type]?.badge_label ?? type}
+                                          </button>
+                                        ))}
+                                      </div>
+                                    </div>
+                                  ))}
+                                </>
+                              )
+                            })()}
+                          </div>
+                        </>
+                      )}
+
+                      {/* ── Modification picker (edge transformation) ── */}
+                      {modifyEdge && !isActivated && (
+                        <>
+                          <div className={s.modPickerBackdrop} onClick={() => setModifyEdge(null)} />
+                          <div className={s.modPicker} style={{ left: pickerPos.x, top: pickerPos.y }}>
+                            <div className={s.modPickerTitle}>Change transformation</div>
+                            {(() => {
+                              const targetEdge = campaign.edges.find(e => e.from_id === modifyEdge!.from && e.to_id === modifyEdge!.to)
+                              const groups = MODIFICATION_STATS.filter(stat =>
+                                (remainingMods[stat] ?? 0) > 0 &&
+                                (STAT_TRANSFORMATIONS[stat]?.length ?? 0) > 0
+                              )
+                              const origLabel = targetEdge?.label_modified ? targetEdge.original_label : undefined
+                              const origDisplay = origLabel == null ? 'Follows' : (LABEL_DISPLAY[origLabel] ?? origLabel)
+                              return (
+                                <>
+                                  {targetEdge?.label_modified && (
+                                    <div className={s.modPickerGroup}>
+                                      <div className={s.modPickerStat}>Original</div>
+                                      <div className={s.modPickerOptions}>
+                                        <button
+                                          className={s.modPickerReset}
+                                          onClick={() => {
+                                            store.resetEdgeLabel(weaponId, modifyEdge!.from, modifyEdge!.to)
+                                            setModifyEdge(null)
+                                          }}
+                                        >
+                                          ↩ {origDisplay}
+                                        </button>
+                                      </div>
+                                    </div>
+                                  )}
+                                  {groups.length === 0 && !targetEdge?.label_modified && (
+                                    <div className={s.modPickerEmpty}>{t.ui.stat_mod_unavailable}</div>
+                                  )}
+                                  {groups.map(stat => (
+                                    <div key={stat} className={s.modPickerGroup}>
+                                      <div className={s.modPickerStat}>
+                                        {(t.ui as Record<string,string>)[`stat_${stat}`] ?? stat}
+                                        <span className={s.modPickerRemaining}> {remainingMods[stat]} left</span>
+                                      </div>
+                                      <div className={s.modPickerOptions}>
+                                        {STAT_TRANSFORMATIONS[stat]!.map(transformation => (
+                                          <button
+                                            key={transformation}
+                                            className={s.modPickerOption}
+                                            onClick={() => {
+                                              store.modifyEdgeLabel(weaponId, modifyEdge!.from, modifyEdge!.to, transformation, stat as StatKey)
+                                              setModifyEdge(null)
+                                            }}
+                                          >
+                                            {LABEL_DISPLAY[transformation] ?? transformation}
+                                          </button>
+                                        ))}
+                                      </div>
+                                    </div>
+                                  ))}
+                                </>
+                              )
+                            })()}
+                          </div>
+                        </>
                       )}
                     </>
                   )

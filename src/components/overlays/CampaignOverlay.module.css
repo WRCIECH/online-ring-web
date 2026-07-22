@@ -611,6 +611,129 @@
   text-overflow: ellipsis;
   max-width: 80px;
   pointer-events: none;
+  user-select: none;
+}
+
+.nodeContentBadgeModified {
+  background: rgba(200, 140, 40, 0.18);
+  border-color: rgba(200, 140, 40, 0.45);
+  color: rgba(240, 185, 90, 0.92);
+}
+
+.nodeContentBadgeClickable {
+  pointer-events: all;
+  cursor: pointer;
+}
+
+.nodeContentBadgeClickable:not(.nodeContentBadgeModified):hover {
+  background: rgba(120, 90, 230, 0.4);
+  border-color: rgba(100, 80, 200, 0.55);
+  color: #c8b8ff;
+}
+
+.nodeContentBadgeModified.nodeContentBadgeClickable:hover {
+  background: rgba(220, 160, 50, 0.30);
+  border-color: rgba(220, 160, 50, 0.65);
+  color: #f5c060;
+}
+
+/* ── Modification picker ────────────────────────────────────────────────── */
+
+.modPickerBackdrop {
+  position: absolute;
+  inset: 0;
+  z-index: 19;
+}
+
+.modPicker {
+  position: absolute;
+  z-index: 20;
+  background: color-mix(in srgb, var(--color-bg) 92%, #2a2050);
+  border: 1px solid rgba(100, 80, 200, 0.45);
+  border-radius: 6px;
+  padding: 10px 12px;
+  min-width: 220px;
+  max-width: 320px;
+  max-height: 360px;
+  overflow-y: auto;
+  box-shadow: 0 6px 24px rgba(0,0,0,0.6);
+}
+
+.modPickerTitle {
+  font-size: 0.65rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgba(180,160,255,0.55);
+  margin-bottom: 8px;
+  border-bottom: 1px solid rgba(100,80,200,0.2);
+  padding-bottom: 5px;
+}
+
+.modPickerGroup {
+  margin-bottom: 8px;
+}
+
+.modPickerStat {
+  font-size: 0.64rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(180,160,255,0.75);
+  margin-bottom: 4px;
+}
+
+.modPickerRemaining {
+  font-weight: 400;
+  color: rgba(255,255,255,0.35);
+  text-transform: none;
+  letter-spacing: 0;
+}
+
+.modPickerOptions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.modPickerOption {
+  font-size: 0.64rem;
+  padding: 2px 8px;
+  border-radius: 3px;
+  background: rgba(100,80,200,0.12);
+  border: 1px solid rgba(100,80,200,0.30);
+  color: var(--color-text-dim);
+  cursor: pointer;
+  transition: background 0.12s, border-color 0.12s;
+}
+
+.modPickerOption:hover {
+  background: rgba(120,90,230,0.28);
+  border-color: rgba(140,110,255,0.6);
+  color: #c8b8ff;
+}
+
+.modPickerReset {
+  font-size: 0.64rem;
+  padding: 3px 10px;
+  border-radius: 3px;
+  background: rgba(200,140,40,0.12);
+  border: 1px solid rgba(200,140,40,0.45);
+  color: rgba(240,185,90,0.92);
+  cursor: pointer;
+  font-weight: 600;
+  transition: background 0.12s, border-color 0.12s;
+}
+
+.modPickerReset:hover {
+  background: rgba(220,160,50,0.25);
+  border-color: rgba(220,160,50,0.7);
+  color: #f5c060;
+}
+
+.modPickerEmpty {
+  font-size: 0.70rem;
+  color: rgba(255,255,255,0.30);
+  font-style: italic;
 }
 
 .btnPublish {

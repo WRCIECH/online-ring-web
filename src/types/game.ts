@@ -179,12 +179,16 @@ export interface CampaignNode {
   promote_count?: number        // 0–3; each promote adds one extra Superhit charge
   promotes_consumed?: number    // how many promote-charges have been consumed in combat
   content_type?: ContentProductType  // rolled at node creation; undefined in old saves
+  content_type_modified?: boolean    // true when player has changed content_type
+  original_content_type?: ContentProductType  // first value before any player modification
 }
 
 export interface CampaignEdge {
   from_id: string
   to_id: string
   label: ContentTransformation | null  // null = chronological/follows
+  label_modified?: boolean             // true when player has changed label
+  original_label?: ContentTransformation | null  // first value before any player modification
 }
 
 export interface WeaponCampaign {

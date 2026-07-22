@@ -188,7 +188,7 @@ export default function ClassSelectScreen() {
                 <div className={s.spBar}>
                   <div
                     className={s.spBarFill}
-                    style={{ width: `${Math.max(0, (activeCls.startingStats[k] - 7) / 9 * 100)}%` }}
+                    style={{ width: `${Math.max(0, activeCls.startingStats[k] / 15 * 100)}%` }}
                   />
                 </div>
                 <span className={s.spStatVal}>{activeCls.startingStats[k]}</span>
