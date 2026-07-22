@@ -1,8 +1,8 @@
 import { useState, useCallback } from 'react'
-import { useGameStore, calcMaxHp } from '../../store/gameStore'
-import { WEAPONS, statLevelCost, LEVEL_MULT, calcWeaponScaledDamage } from '../../data/weapons'
-import { DMG_PER_MIN, HEAVY_TIME_BONUS } from '../../data/constants'
-import type { StatKey, WeaponInstance, Grade, Stats, WeaponRarity } from '../../types/game'
+import { useGameStore, calcMaxHp, selectRemainingModifications } from '../../store/gameStore'
+import { WEAPONS, statLevelCost, LEVEL_MULT } from '../../data/weapons'
+import { MODIFICATION_STATS } from '../../data/statModifications'
+import type { StatKey, WeaponInstance, Stats, WeaponRarity } from '../../types/game'
 import { useT, localizeWeaponName } from '../../i18n'
 import WeaponSprite from '../icons/WeaponSprite'
 import s from './CharacterOverlay.module.css'
@@ -61,14 +61,9 @@ export default function CharacterOverlay({ onClose, canLevel = true }: Props) {
   const pwId       = weaponIds[safeIdx] ?? null
   const pw         = pwId ? (WEAPONS[pwId] as WeaponInstance | undefined) : undefined
   const pwLevel    = pwId ? (store.weapon_level[pwId] ?? 0) : 0
-  // Reference: Research stage (5 min light / 15 min heavy) — common first tile
-  const REF_LIGHT_BASE  = (300 / 60) * DMG_PER_MIN
-  const REF_HEAVY_BASE  = (900 / 60) * DMG_PER_MIN * HEAVY_TIME_BONUS
 
-  const curLight   = pw ? calcWeaponScaledDamage(REF_LIGHT_BASE,  pw, pwLevel, store.stats)  : 0
-  const prevLight  = pw ? calcWeaponScaledDamage(REF_LIGHT_BASE,  pw, pwLevel, pendingStats) : 0
-  const curHeavy   = pw ? calcWeaponScaledDamage(REF_HEAVY_BASE,  pw, pwLevel, store.stats)  : 0
-  const prevHeavy  = pw ? calcWeaponScaledDamage(REF_HEAVY_BASE,  pw, pwLevel, pendingStats) : 0
+  // ── Modification pools ───────────────────────────────────────────────────
+  const remainingMods = selectRemainingModifications(store)
 
   // ── Handlers ─────────────────────────────────────────────────────────────
   function handlePlus(stat: StatKey) {
@@ -270,48 +265,42 @@ export default function CharacterOverlay({ onClose, canLevel = true }: Props) {
                     +{((LEVEL_MULT[pw.rarity] ?? 0.03) * 100).toFixed(0)}%/lvl
                   </span>
                 </div>
-
-                {Object.keys(pw.scaling).length > 0 ? (
-                  <>
-                    <div className={s.scalingGrades}>
-                      {(Object.entries(pw.scaling) as [string, Grade][]).map(([stat, grade]) => (
-                        <span key={stat} className={s.scalingChip}>{stat} {grade}</span>
-                      ))}
-                    </div>
-
-                    <div className={s.previewTable}>
-                      <div className={s.previewHeaderRow}>
-                        <span/>
-                        <span>{t.ui.lv_col_current}</span>
-                        <span>{t.ui.lv_col_preview}</span>
-                      </div>
-                      <div className={s.previewDataRow}>
-                        <span className={s.previewLabel}>{t.ui.lv_damage_light}</span>
-                        <span className={s.previewCurrent}>{curLight}</span>
-                        <span className={[s.previewAfter, prevLight > curLight ? s.previewUp : ''].join(' ')}>
-                          {prevLight}{prevLight > curLight ? ' ↑' : ''}
-                        </span>
-                      </div>
-                      <div className={s.previewDataRow}>
-                        <span className={s.previewLabel}>{t.ui.lv_damage_heavy}</span>
-                        <span className={s.previewCurrent}>{curHeavy}</span>
-                        <span className={[s.previewAfter, prevHeavy > curHeavy ? s.previewUp : ''].join(' ')}>
-                          {prevHeavy}{prevHeavy > curHeavy ? ' ↑' : ''}
-                        </span>
-                      </div>
-                    </div>
-
-                    <div className={s.previewNote}>
-                      {t.ui.lv_damage_note}
-                    </div>
-                  </>
-                ) : (
-                  <div className={s.noScalingNote}>{t.ui.lv_no_scaling}</div>
-                )}
               </div>
             ) : (
               <div className={s.noScalingNote}>{t.ui.equip_no_weapons}</div>
             )}
+
+            <hr className={s.sep} />
+
+            {/* ── Modification pools ────────────────────────────────── */}
+            <div className={s.sectionTitle}>{t.ui.stat_mod_pools_section}</div>
+            <div className={s.modPoolGrid}>
+              {MODIFICATION_STATS.map(stat => {
+                const total = store.stats[stat] ?? 0
+                const remaining = remainingMods[stat] ?? 0
+                const pending_n = pending[stat] ?? 0
+                return (
+                  <div key={stat} className={s.modPoolRow}>
+                    <span className={s.modPoolStat}>{STAT_LABELS[stat]}</span>
+                    <span className={s.modPoolVal}>
+                      {pending_n > 0 ? (
+                        <>
+                          <span className={s.valBase}>{remaining}</span>
+                          <span className={s.valArrow}> → </span>
+                          <span className={s.valPending}>{remaining + pending_n}</span>
+                          <span className={s.modPoolTotal}>/{total + pending_n}</span>
+                        </>
+                      ) : (
+                        <>
+                          {remaining}
+                          <span className={s.modPoolTotal}>/{total}</span>
+                        </>
+                      )}
+                    </span>
+                  </div>
+                )
+              })}
+            </div>
           </div>
         </div>
       </div>

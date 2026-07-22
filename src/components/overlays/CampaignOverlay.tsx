@@ -223,8 +223,8 @@ export default function CampaignOverlay({ onClose }: Props) {
   const isMax = level >= 10
   const cost = weaponUpgradeCost(level)
   const canAfford = !isMax && store.runes >= cost
-  const dmgCurrent = selectedWeapon ? calcWeaponScaledDamage(100, selectedWeapon, level, store.stats) : 0
-  const dmgNext = (selectedWeapon && !isMax) ? calcWeaponScaledDamage(100, selectedWeapon, level + 1, store.stats) : null
+  const dmgCurrent = selectedWeapon ? calcWeaponScaledDamage(100, selectedWeapon, level) : 0
+  const dmgNext = (selectedWeapon && !isMax) ? calcWeaponScaledDamage(100, selectedWeapon, level + 1) : null
   const classDef = selectedWeapon ? WEAPON_CLASSES[selectedWeapon.weapon_class] : null
   const isConfirmUpgrade = confirmUpgradeId === wid
   const isConfirmSell = confirmSellId === wid

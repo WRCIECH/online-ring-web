@@ -70,11 +70,6 @@ export const STATUS_BUILDUP_PER_HIT = 35
 /** Multiplier applied to self-damage when sacrificing time remaining on a task. */
 export const SACRIFICE_MULT = 2.0
 
-// ── Content-type stat scaling ──────────────────────────────────────────────────
-
-/** Bonus per stat point above 8, for each stat a tile's content type lists. Flat grade-B equivalent. */
-export const CONTENT_TYPE_STAT_BONUS = 0.015
-
 /** Seconds after combat start before an idle player is kicked back to the map. */
 export const IDLE_KICK_MS = 2 * 60 * 1000
 

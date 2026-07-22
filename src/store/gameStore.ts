@@ -1,5 +1,5 @@
 import { create } from 'zustand'
-import type { GameState, LocationData, Stats, WeaponInstance, SublocationType, CampaignNode, Locale, WorkflowGraph, LocationTheme, RewardTier } from '../types/game'
+import type { GameState, LocationData, Stats, WeaponInstance, SublocationType, CampaignNode, Locale, WorkflowGraph, LocationTheme, RewardTier, ContentProductType, ContentTransformation, StatKey } from '../types/game'
 import { DEFAULT_MUSIC_TRACKS } from '../data/combatMusic'
 import { ENEMIES } from '../data/enemies'
 import { saveGame, loadGame } from '../engine/save'
@@ -14,7 +14,7 @@ function hydrateRegistries(state: GameState): void {
   state.weapon_instances.forEach(w => registerWeapon(w))
 }
 
-const DEFAULT_STATS: Stats = { VIG: 10, END: 10, TEXT: 8, VIDEO: 8, AUDIO: 8, GRAPHIC: 8, VELOCITY: 8, DEPTH: 8, PARASOCIAL: 8, FRICTION: 8, INSIGHT: 8 }
+const DEFAULT_STATS: Stats = { VIG: 10, END: 10, TEXT: 0, VIDEO: 0, AUDIO: 0, GRAPHIC: 0, VELOCITY: 0, DEPTH: 0, PARASOCIAL: 0, FRICTION: 0, INSIGHT: 0 }
 
 export function calcMaxHp(vig: number): number {
   if (vig <= 25) return 300 + vig * 12
@@ -229,6 +229,7 @@ function initialState(): GameState {
 
     total_task_time_s: 0,
     locale: 'pl',
+    stat_modifications_used: {},
     rewards: { C: 0, B1: 0, B2: 0, A1: 0, A2: 0, S: 0 },
     reward_names: {},
     reward_used_count: {},
@@ -294,7 +295,9 @@ export interface GameStore extends GameState {
   activateCampaign:             (weaponId: string) => void
   detachCampaign:               (weaponId: string) => void
 
-  // Learning items
+  // Campaign modification actions (spend stat modification slots on inactive campaigns)
+  modifyNodeContentType: (weaponId: string, nodeId: string, newType: ContentProductType, stat: StatKey) => boolean
+  modifyEdgeLabel:       (weaponId: string, fromId: string, toId: string, newLabel: ContentTransformation | null, stat: StatKey) => boolean
 
   // Campaign finalization
   finalizeCampaign: (weaponId: string, freshCampaignName?: string) => void
@@ -517,6 +520,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
       content_streak: {},
       active_content_id: null,
       weapon_pending_superhits: {},
+      stat_modifications_used: {},
     })
     get().save()
   },
@@ -618,6 +622,54 @@ export const useGameStore = create<GameStore>((set, get) => ({
       return { weapon_campaigns: { ...s.weapon_campaigns, [weaponId]: { ...c, activated: false } } }
     })
     get().save()
+  },
+
+  modifyNodeContentType: (weaponId, nodeId, newType, stat) => {
+    const s = get()
+    const c = s.weapon_campaigns[weaponId]
+    if (!c || c.activated === true) return false
+    const remaining = (s.stats[stat] ?? 0) - (s.stat_modifications_used[stat] ?? 0)
+    if (remaining <= 0) return false
+    set(prev => ({
+      weapon_campaigns: {
+        ...prev.weapon_campaigns,
+        [weaponId]: { ...c, nodes: c.nodes.map(n => n.id === nodeId ? { ...n, content_type: newType } : n) },
+      },
+      // Clear saved workflow for this node so it regenerates with the new content type
+      workflow_progress: (() => {
+        const { [nodeId]: _, ...rest } = prev.workflow_progress
+        return rest
+      })(),
+      stat_modifications_used: {
+        ...prev.stat_modifications_used,
+        [stat]: (prev.stat_modifications_used[stat] ?? 0) + 1,
+      },
+    }))
+    get().save()
+    return true
+  },
+
+  modifyEdgeLabel: (weaponId, fromId, toId, newLabel, stat) => {
+    const s = get()
+    const c = s.weapon_campaigns[weaponId]
+    if (!c || c.activated === true) return false
+    const remaining = (s.stats[stat] ?? 0) - (s.stat_modifications_used[stat] ?? 0)
+    if (remaining <= 0) return false
+    set(prev => ({
+      weapon_campaigns: {
+        ...prev.weapon_campaigns,
+        [weaponId]: {
+          ...c,
+          edges: c.edges.map(e => e.from_id === fromId && e.to_id === toId ? { ...e, label: newLabel } : e),
+        },
+      },
+      stat_modifications_used: {
+        ...prev.stat_modifications_used,
+        [stat]: (prev.stat_modifications_used[stat] ?? 0) + 1,
+      },
+    }))
+    get().save()
+    return true
   },
 
   finalizeCampaign: (weaponId, freshCampaignName) => {
@@ -762,9 +814,10 @@ export const useGameStore = create<GameStore>((set, get) => ({
     const data = loadGame()
     if (!data) return false
     // Migration safety
-    if (!data.locale)               data.locale               = 'pl'
-    if (!data.weapon_campaigns)     data.weapon_campaigns     = {}
-    if (!data.campaign_library)     data.campaign_library     = []
+    if (!data.locale)                    data.locale                    = 'pl'
+    if (!data.weapon_campaigns)          data.weapon_campaigns          = {}
+    if (!data.campaign_library)          data.campaign_library          = []
+    if (!data.stat_modifications_used)   data.stat_modifications_used   = {}
     // Legacy campaigns (pre-activated field) were all active by definition
     for (const wid of Object.keys(data.weapon_campaigns)) {
       const c = data.weapon_campaigns[wid]
@@ -824,4 +877,13 @@ export const selectAvailableNodes = (s: GameStore, weaponId: string): CampaignNo
   const c = s.weapon_campaigns[weaponId]
   if (!c) return []
   return c.nodes.filter(n => !n.completed && n.name.trim() !== '' && isNodeAvailable(c.nodes, c.edges, n))
+}
+
+export const selectRemainingModifications = (s: GameStore): Partial<Record<StatKey, number>> => {
+  const result: Partial<Record<StatKey, number>> = {}
+  const modStats: StatKey[] = ['TEXT','VIDEO','AUDIO','GRAPHIC','VELOCITY','DEPTH','PARASOCIAL','FRICTION','INSIGHT']
+  for (const stat of modStats) {
+    result[stat] = (s.stats[stat] ?? 0) - (s.stat_modifications_used[stat] ?? 0)
+  }
+  return result
 }

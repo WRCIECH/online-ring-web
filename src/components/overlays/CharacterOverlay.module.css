@@ -474,6 +474,42 @@
   font-style: italic;
 }
 
+/* ── Modification pool grid ────────────────────────────────────────────── */
+
+.modPoolGrid {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  margin-top: 6px;
+}
+
+.modPoolRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.modPoolStat {
+  font-family: var(--font-meta);
+  font-size: 0.65rem;
+  color: var(--color-text-dim);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  min-width: 80px;
+}
+
+.modPoolVal {
+  font-size: 0.74rem;
+  font-variant-numeric: tabular-nums;
+  color: var(--color-text);
+}
+
+.modPoolTotal {
+  font-size: 0.64rem;
+  color: rgba(255,255,255,0.28);
+  margin-left: 1px;
+}
+
 /* ── Stat hover tooltip ────────────────────────────────────────────────── */
 
 .tooltip {

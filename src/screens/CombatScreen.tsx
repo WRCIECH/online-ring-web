@@ -453,7 +453,7 @@ export default function CombatScreen() {
       const i     = MOVE_DEFS.length
       const angle = Math.PI - (i / allDefs) * 2 * Math.PI
       const superhitDmg = Math.round(
-        calcTileDamage(selectedTile, 'Light', weapon, store.weapon_level[state.equippedWeaponId] ?? 0, store.stats) * 5
+        calcTileDamage(selectedTile, 'Light', weapon, store.weapon_level[state.equippedWeaponId] ?? 0) * 5
       )
       items.push({
         id: 'Superhit',

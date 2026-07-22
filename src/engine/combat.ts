@@ -119,11 +119,11 @@ function tileDamageBase(tile: WorkflowTile, move: MoveType): number {
 // Damage dealt to enemy when a tile is completed.
 export function calcTileDamage(
   tile: WorkflowTile, move: MoveType, weapon: WeaponInstance | undefined,
-  weaponLevel: number, stats: Stats,
+  weaponLevel: number,
 ): number {
   const base = tileDamageBase(tile, move)
   return weapon
-    ? calcWeaponScaledDamage(base, weapon, weaponLevel, stats, tile.content_type, tile.status)
+    ? calcWeaponScaledDamage(base, weapon, weaponLevel)
     : Math.round(base)
 }
 
@@ -179,7 +179,7 @@ export function previewMove(state: CombatState, tile: WorkflowTile, move: MoveTy
   const affinityMult     = calcAffinityMultiplier(tile, state.enemyData)
   const rawTheme         = calcThemeBonus(tile, state.locationTheme)  // 1.0 or 1.2
   const isRepeat       = tile.is_completed
-  const rawDamage      = calcTileDamage(tile, move, weapon, state.weaponLevel, state.playerStats)
+  const rawDamage      = calcTileDamage(tile, move, weapon, state.weaponLevel)
   const repeatDamage   = isRepeat ? Math.round(rawDamage * (1 - REPEAT_DAMAGE_PENALTY)) : rawDamage
   const wouldFinishAll = state.workflow.tiles
     .filter(t => !t.is_advance)
@@ -423,7 +423,7 @@ export function combatReducer(state: CombatState, action: CombatAction): CombatS
                       + (rawTheme - 1)
                       + (state.campaignDoneMult - 1)
       const rewardMult = 1 + bonusPool
-      const rawDamage     = calcTileDamage(tile, move, weapon, state.weaponLevel, state.playerStats)
+      const rawDamage     = calcTileDamage(tile, move, weapon, state.weaponLevel)
       const repeatDamage  = isRepeat ? Math.round(rawDamage * (1 - REPEAT_DAMAGE_PENALTY)) : rawDamage
       const damage        = Math.round(
         repeatDamage * (1 - repeatPenalty) * (1 - state.incomingPenalty)
@@ -516,7 +516,7 @@ export function combatReducer(state: CombatState, action: CombatAction): CombatS
     case 'SUPERHIT': {
       const tile    = action.tile
       const weapon  = WEAPONS[state.equippedWeaponId] as WeaponInstance | undefined
-      const rawDmg  = calcTileDamage(tile, 'Light', weapon, state.weaponLevel, state.playerStats)
+      const rawDmg  = calcTileDamage(tile, 'Light', weapon, state.weaponLevel)
       const damage  = Math.round(rawDmg * 5)
       const newEnemyHp = Math.max(0, state.enemyHp - damage)
       let s = log(

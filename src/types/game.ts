@@ -255,4 +255,6 @@ export interface GameState {
   // Music playlist
   run_music_seed?: number   // rolled at startRun; undefined in old saves → treated as 0
   music_tracks?:   string[] // YouTube video IDs; undefined in old saves → uses DEFAULT_MUSIC_TRACKS
+  // Campaign modification actions spent (keyed by stat); stat value - used = remaining
+  stat_modifications_used: Partial<Record<StatKey, number>>
 }
