@@ -500,7 +500,8 @@
   border-radius: 6px;
   border: 1px solid rgba(100, 80, 200, 0.55);
   background: rgba(15, 13, 34, 0.95);
-  overflow: hidden;
+  overflow: visible;
+  position: relative;
 }
 
 .svgNodeCard:hover { background: rgba(255, 255, 255, 0.03); }
@@ -595,17 +596,21 @@
 }
 
 .nodeContentBadge {
-  font-size: 0.62rem;
-  padding: 1px 5px;
-  border-radius: 3px;
-  background: rgba(100, 80, 200, 0.12);
-  border: 1px solid rgba(100, 80, 200, 0.28);
+  position: absolute;
+  top: -13px;
+  left: 2px;
+  font-size: 0.56rem;
+  padding: 1px 4px;
+  border-radius: 3px 3px 0 0;
+  background: rgba(100, 80, 200, 0.18);
+  border: 1px solid rgba(100, 80, 200, 0.30);
+  border-bottom: none;
   color: var(--color-text-dim);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  max-width: 70px;
-  flex-shrink: 0;
+  max-width: 80px;
+  pointer-events: none;
 }
 
 .btnPublish {
