@@ -86,9 +86,7 @@ const en: TranslationBundle = {
     },
     stage: {
       Research: { badge_label: 'Research Stage', label: 'Research — gather evidence and reference', detail: 'Actively gather evidence, examples, and reference material.',          example: 'Reading three competing articles before starting your own piece.' },
-      Plan:     { badge_label: 'Plan Stage',     label: 'Plan — map the structure first',           detail: 'Plan the full structure before writing a word.',                        example: 'Creating a numbered list of sections and the key point of each before drafting.' },
       Produce:  { badge_label: 'Produce Stage',  label: 'Produce — write the first draft',           detail: 'Write your raw first draft — commit without stopping.',                 example: 'Setting a timer and writing continuously until the draft is done, no backspace.' },
-      Refine:   { badge_label: 'Refine Stage',   label: 'Refine — connect, cut, and elevate',        detail: 'Connect and order pieces into a coherent narrative, then cut the fat and elevate the writing.', example: 'Stitching together separate sections with transitions, then reading the draft out loud and cutting every sentence that slows the pace.' },
     },
   },
 
@@ -403,9 +401,7 @@ const en: TranslationBundle = {
     analytics_time_hdr:  'Time Invested',
     analytics_no_campaigns: 'No campaigns yet.',
     stage_research: 'Research',
-    stage_plan:     'Plan',
     stage_produce:  'Produce',
-    stage_refine:   'Refine',
     analytics_runs_hdr:  'Expeditions',
     analytics_published: 'Published',
     analytics_in_progress: 'In Progress',

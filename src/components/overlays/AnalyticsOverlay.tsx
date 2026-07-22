@@ -4,7 +4,7 @@ import { useT } from '../../i18n'
 import type { WeaponCampaign, AtomicStage } from '../../types/game'
 import s from './AnalyticsOverlay.module.css'
 
-const STAGES: AtomicStage[] = ['Research', 'Plan', 'Produce', 'Refine']
+const STAGES: AtomicStage[] = ['Research', 'Produce']
 
 interface Props { onClose: () => void }
 
@@ -64,7 +64,7 @@ export default function AnalyticsOverlay({ onClose }: Props) {
                 <div className={s.nodeList}>
                   {nodes.map(node => {
                     const workflow = store.workflow_progress[node.id]
-                    const stageCounts: Record<AtomicStage, number> = { Research: 0, Plan: 0, Produce: 0, Refine: 0 }
+                    const stageCounts: Record<AtomicStage, number> = { Research: 0, Produce: 0 }
                     let totalDone = 0
                     if (workflow) {
                       for (const tile of workflow.tiles) {

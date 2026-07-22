@@ -33,7 +33,7 @@ export type WeaponClass =
   | 'greatbows' | 'crossbows' | 'ballistas' | 'torches'
 
 // ── Content creation dimensions ────────────────────────────────────────────
-export type AtomicStage = 'Research' | 'Plan' | 'Produce' | 'Refine'
+export type AtomicStage = 'Research' | 'Produce'
 export type AtomicTime = 'Micro' | 'Short' | 'Medium' | 'Long' | 'Deep'
 
 import type { ContentProductType } from '../data/contentProducts'

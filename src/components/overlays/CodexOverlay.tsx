@@ -27,7 +27,7 @@ const TRANSFORMATION_KEYS: ContentTransformation[] = [
   'Analogy', 'FirstPrinciples', 'DataDriven',
 ]
 
-const STAGE_KEYS = ['Research', 'Plan', 'Produce', 'Refine'] as const
+const STAGE_KEYS = ['Research', 'Produce'] as const
 
 const BONUS_MULTS = [
   { key: 'mult_heavyBonus',   value: `+${Math.round((HEAVY_TIME_BONUS - 1) * 100)}%` },

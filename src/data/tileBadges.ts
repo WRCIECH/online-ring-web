@@ -5,9 +5,7 @@ import { STATUS_TYPE_STATS } from './statusTypeScaling'
 
 export const STAGE_COLOR: Record<AtomicStage, string> = {
   Research: '#334488',
-  Plan:     '#335566',
   Produce:  '#664422',
-  Refine:   '#445533',
 }
 
 export interface TileBadge {

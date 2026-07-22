@@ -14,9 +14,7 @@ import type { SlotKind } from './patternSlots'
 
 export const STAGE_TIME: Record<AtomicStage, { light: number; heavy: number }> = {
   Research: { light: 300, heavy: 900 },
-  Plan:     { light: 240, heavy: 600 },
   Produce:  { light: 600, heavy: 1800 },
-  Refine:   { light: 360, heavy: 900 },
 }
 
 // ── Tile name generation ──────────────────────────────────────────────────
@@ -28,8 +26,6 @@ const STAGE_NAMES: Record<AtomicStage, string[]> = {
     'Research your topic and sources',
     'Read and annotate your references',
     'Collect supporting material',
-  ],
-  Plan: [
     'Map the full structure',
     'Draft your table of contents',
     'Arrange your main points',
@@ -42,8 +38,6 @@ const STAGE_NAMES: Record<AtomicStage, string[]> = {
     'Write continuously without stopping',
     'Draft the core argument',
     'Write the body section',
-  ],
-  Refine: [
     'Cut the fat and tighten sentences',
     'Review and revise the draft',
     'Refine clarity and flow',
@@ -153,7 +147,7 @@ function applyDrawResult(ctx: CompileContext, value: ContentProductType): void {
     const t = ctx.tiles.find(t => t.id === id)!
     t.content_type = value
   }
-  const planTile = makeTile('Plan', ctx.cls.time_mod)
+  const planTile = makeTile('Research', ctx.cls.time_mod)
   planTile.content_type = value
   ctx.tiles.push(planTile)
   linkFrontier(ctx, planTile.id)
@@ -182,7 +176,7 @@ function compileFixedDraw(step: Extract<PatternStep, { kind: 'fixedDraw' }>, ctx
     }
   }
 
-  const planTile = makeTile('Plan', ctx.cls.time_mod)
+  const planTile = makeTile('Research', ctx.cls.time_mod)
   planTile.content_type = value
   ctx.tiles.push(planTile)
   linkFrontier(ctx, planTile.id)

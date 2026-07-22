@@ -7,9 +7,7 @@ export const TILE_RX = 8
 
 export const TILE_LABEL: Record<AtomicStage, string> = {
   Research: 'Research',
-  Plan:     'Plan',
   Produce:  'Produce',
-  Refine:   'Refine',
 }
 
 export type TileState = 'normal' | 'done' | 'locked' | 'selected' | 'reachable'

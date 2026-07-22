@@ -53,133 +53,133 @@ export const WEAPON_PATTERNS: Record<WeaponClass, PatternStep[]> = {
   // ── light / quick ───────────────────────────────────────────────────
   daggers: [
     phase('Research'), drawFormat(),
-    phase('Produce', 1), phase('Refine'),
+    phase('Produce', 1), phase('Produce'),
   ],
   fists: [
     phase('Research'), drawFormat(),
-    phase('Produce', 1), phase('Produce', 1), phase('Refine'),
+    phase('Produce', 1), phase('Produce', 1), phase('Produce'),
   ],
   bows: [
     phase('Research', 2), drawFormat(),
-    phase('Produce', 3), phase('Refine'),
+    phase('Produce', 3), phase('Produce'),
   ],
   torches: [
     phase('Research'), drawFormat(),
-    phase('Produce', 2), phase('Refine'),
+    phase('Produce', 2), phase('Produce'),
   ],
 
   // ── standard ────────────────────────────────────────────────────────
   straight_swords: [
     phase('Research', 2), drawFormat(),
-    phase('Produce', 3), phase('Refine', 2),
+    phase('Produce', 3), phase('Produce', 2),
   ],
   thrusting_swords: [
     phase('Research'), drawFormat(),
-    phase('Produce', 3), phase('Refine', 2),
-    phase('Produce', 3), phase('Refine', 2),
+    phase('Produce', 3), phase('Produce', 2),
+    phase('Produce', 3), phase('Produce', 2),
   ],
   flails: [
     phase('Research'), drawFormat(),
-    phase('Produce', 2), phase('Refine'),
+    phase('Produce', 2), phase('Produce'),
   ],
   crossbows: [
     phase('Research', 2), drawFormat(),
-    phase('Produce', 3), phase('Refine', 2),
-    phase('Produce', 3), phase('Refine', 2),
+    phase('Produce', 3), phase('Produce', 2),
+    phase('Produce', 3), phase('Produce', 2),
   ],
 
   // ── medium ──────────────────────────────────────────────────────────
   hammers: [
     phase('Research', 2, 4), drawFormat(),
-    phase('Produce', 3, 6), phase('Refine', 2, 4),
+    phase('Produce', 3, 6), phase('Produce', 2, 4),
   ],
   katanas: [
     phase('Research', 2), drawFormat(),
-    phase('Produce', 3), phase('Refine', 2),
-    phase('Produce', 3), phase('Refine', 2),
+    phase('Produce', 3), phase('Produce', 2),
+    phase('Produce', 3), phase('Produce', 2),
   ],
   reapers: [
     phase('Research', 2), drawFormat(),
-    phase('Produce', 3), phase('Refine', 2),
-    phase('Produce', 3), phase('Refine', 2),
+    phase('Produce', 3), phase('Produce', 2),
+    phase('Produce', 3), phase('Produce', 2),
   ],
   heavy_thrusting: [
     phase('Research', 2), drawFormat(),
-    phase('Produce', 4), phase('Refine', 2),
-    phase('Produce', 4), phase('Refine', 2),
+    phase('Produce', 4), phase('Produce', 2),
+    phase('Produce', 4), phase('Produce', 2),
   ],
   halberds: [
     phase('Research', 2), drawFormat(),
-    phase('Produce', 2), phase('Refine'),
+    phase('Produce', 2), phase('Produce'),
   ],
   whips: [
     phase('Research', 4), drawFormat(),
-    phase('Produce', 8), phase('Refine', 3),
+    phase('Produce', 8), phase('Produce', 3),
   ],
   axes: [
     phase('Research', 3), drawFormat(), phase('Produce', 1),
-    phase('Research', 2), phase('Produce', 5), phase('Refine', 2),
+    phase('Research', 2), phase('Produce', 5), phase('Produce', 2),
   ],
   twinblades: [
     phase('Research', 6), drawFormat(), phase('Produce', 2),
-    phase('Research', 4), phase('Produce', 8), phase('Refine', 3),
+    phase('Research', 4), phase('Produce', 8), phase('Produce', 3),
   ],
 
   // ── long-form / deep ────────────────────────────────────────────────
   greatswords: [
     phase('Research', 3), drawFormat(),
-    phase('Produce', 5), phase('Refine', 3),
+    phase('Produce', 5), phase('Produce', 3),
   ],
   spears: [
     phase('Research', 2), drawFormat(),
-    phase('Produce', 3), phase('Refine', 2),
-    phase('Produce', 3), phase('Refine', 2),
-    phase('Produce', 2), phase('Refine', 1),
+    phase('Produce', 3), phase('Produce', 2),
+    phase('Produce', 3), phase('Produce', 2),
+    phase('Produce', 2), phase('Produce', 1),
   ],
   great_spears: [
     phase('Research', 2), drawFormat(),
-    phase('Produce', 3), phase('Refine', 2),
-    phase('Produce', 3), phase('Refine', 2),
-    phase('Produce', 2), phase('Refine', 1),
+    phase('Produce', 3), phase('Produce', 2),
+    phase('Produce', 3), phase('Produce', 2),
+    phase('Produce', 2), phase('Produce', 1),
   ],
   curved_swords: [
     phase('Research', 2), drawFormat(),
-    phase('Produce', 3), phase('Refine', 2),
-    phase('Produce', 2), phase('Refine', 1),
-    phase('Produce', 1), phase('Refine', 1),
+    phase('Produce', 3), phase('Produce', 2),
+    phase('Produce', 2), phase('Produce', 1),
+    phase('Produce', 1), phase('Produce', 1),
   ],
   curved_greatswords: [
     phase('Research', 2), drawFormat(),
-    phase('Produce', 3), phase('Refine', 2),
-    phase('Produce', 3), phase('Refine', 2),
-    phase('Produce', 2), phase('Refine', 1),
+    phase('Produce', 3), phase('Produce', 2),
+    phase('Produce', 3), phase('Produce', 2),
+    phase('Produce', 2), phase('Produce', 1),
   ],
 
   // ── heavy ───────────────────────────────────────────────────────────
   great_axes: [
     phase('Research', 6), drawFormat(), phase('Produce', 2),
-    phase('Research', 4), phase('Produce', 8), phase('Refine', 3),
+    phase('Research', 4), phase('Produce', 8), phase('Produce', 3),
   ],
   great_hammers: [
     phase('Research', 4, 8), drawFormat(),
-    phase('Produce', 6, 10), phase('Refine', 3, 6),
+    phase('Produce', 6, 10), phase('Produce', 3, 6),
   ],
 
   // ── colossal ────────────────────────────────────────────────────────
   colossal_swords: [
     phase('Research', 4), drawFormat(),
-    phase('Produce', 8), phase('Refine', 3),
+    phase('Produce', 8), phase('Produce', 3),
   ],
   colossal_weapons: [
     phase('Research', 4), drawFormat(),
-    phase('Produce', 12, 16), phase('Refine', 3),
+    phase('Produce', 12, 16), phase('Produce', 3),
   ],
   greatbows: [
     phase('Research', 4), drawFormat(),
-    phase('Produce', 8), phase('Refine', 2),
+    phase('Produce', 8), phase('Produce', 2),
   ],
   ballistas: [
     phase('Research', 10), drawFormat(),
-    phase('Produce', 5), phase('Refine', 2),
+    phase('Produce', 5), phase('Produce', 2),
   ],
 }

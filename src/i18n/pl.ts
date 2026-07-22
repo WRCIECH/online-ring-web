@@ -86,9 +86,7 @@ const pl: TranslationBundle = {
     },
     stage: {
       Research: { badge_label: 'Etap badań',      label: 'Badania — zbieraj dowody i materiały',    detail: 'Aktywnie zbieraj dowody, przykłady i materiały referencyjne.',                    example: 'Przeczytanie trzech konkurencyjnych artykułów przed napisaniem własnego.' },
-      Plan:     { badge_label: 'Etap planu',      label: 'Plan — najpierw zaplanuj strukturę',      detail: 'Zaplanuj pełną strukturę zanim napiszesz choć słowo.',                            example: 'Tworzenie numerowanej listy sekcji i kluczowego punktu każdej z nich przed napisaniem szkicu.' },
       Produce:  { badge_label: 'Etap produkcji',  label: 'Produkcja — napisz pierwszy szkic',        detail: 'Napisz surowy pierwszy szkic — angażuj się bez zatrzymywania.',                   example: "Ustawienie timera i ciągłe pisanie do czasu ukończenia szkicu, bez backspace'a." },
-      Refine:   { badge_label: 'Etap dopracowania',label: 'Dopracowanie — połącz, wytnij i podnieś poziom', detail: 'Połącz i ułóż elementy w spójną narrację, następnie wytnij tłuszcz i podnieś poziom pisania.', example: 'Łączenie osobnych sekcji przejściami, a potem głośne odczytanie szkicu i wycięcie każdego zdania, które spowalnia tempo.' },
     },
   },
 
@@ -398,9 +396,7 @@ const pl: TranslationBundle = {
     analytics_time_hdr:  'Czas pracy',
     analytics_no_campaigns: 'Brak kampanii.',
     stage_research: 'Badania',
-    stage_plan:     'Plan',
     stage_produce:  'Produkcja',
-    stage_refine:   'Dopracowanie',
     analytics_runs_hdr:  'Ekspedycje',
     analytics_published: 'Opublikowane',
     analytics_in_progress: 'W toku',
