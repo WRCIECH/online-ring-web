@@ -96,8 +96,13 @@ export default function CombatScreen() {
       }
       // Resume persisted workflow or generate fresh
       const spawnAsBoss = loc.sublocation_type === 'boss'
+      const initialNode = store.active_content_id
+        ? activeWeaponCampaign?.nodes.find(n => n.id === store.active_content_id)
+        : undefined
+      const initialContentType = initialNode?.content_type
+        ?? initialWeapon?.rolled_draws?.format?.[0]?.[0]
       const workflow = (store.active_content_id ? store.workflow_progress[store.active_content_id] : undefined)
-        ?? generateWorkflow(initialWeaponClass, initialWeaponRarity, spawnAsBoss, initialWeapon?.rolled_draws)
+        ?? generateWorkflow(initialWeaponClass, initialWeaponRarity, spawnAsBoss, initialContentType)
 
       const activeCampaignCount = countActiveCampaigns(store.weapon_campaigns, store.owned_weapons)
       const campaignOverloadMult = calcCampaignOverloadMult(activeCampaignCount, store.stats.END)
@@ -283,15 +288,19 @@ export default function CombatScreen() {
       dispatch({ type: 'SWITCH_WEAPON', weaponId, weaponLevel: store.weapon_level[weaponId] ?? 0 })
     }
 
-    const pickedWeapon = WEAPONS[weaponId] as WeaponInstance | undefined
-    const cached       = contentCache.current[contentId]
+    const pickedWeapon   = WEAPONS[weaponId] as WeaponInstance | undefined
+    const cached         = contentCache.current[contentId]
+    const pickedCampaign = store.weapon_campaigns[weaponId]
+    const pickedNode     = pickedCampaign?.nodes.find(n => n.id === contentId)
+    const pickedContentType = pickedNode?.content_type
+      ?? pickedWeapon?.rolled_draws?.format?.[0]?.[0]
     const newWorkflow  = cached?.workflow
       ?? store.workflow_progress[contentId]
       ?? generateWorkflow(
         pickedWeapon?.weapon_class ?? 'straight_swords',
         pickedWeapon?.rarity       ?? 'common',
         loc?.sublocation_type === 'boss',
-        pickedWeapon?.rolled_draws,
+        pickedContentType,
       )
     setSelectedContentId(contentId)
     store.setActiveContentId(contentId)
@@ -333,14 +342,18 @@ export default function CombatScreen() {
     if (pickedWeaponId !== cur.equippedWeaponId) {
       dispatch({ type: 'SWITCH_WEAPON', weaponId: pickedWeaponId, weaponLevel: store.weapon_level[pickedWeaponId] ?? 0 })
     }
-    const pickedWeapon = WEAPONS[pickedWeaponId] as WeaponInstance | undefined
+    const pickedWeapon      = WEAPONS[pickedWeaponId] as WeaponInstance | undefined
+    const advCampaign       = store.weapon_campaigns[pickedWeaponId]
+    const advNode           = advCampaign?.nodes.find(n => n.id === contentId)
+    const advContentType    = advNode?.content_type
+      ?? pickedWeapon?.rolled_draws?.format?.[0]?.[0]
     const newWorkflow = contentCache.current[contentId]?.workflow
       ?? store.workflow_progress[contentId]
       ?? generateWorkflow(
         pickedWeapon?.weapon_class ?? 'straight_swords',
         pickedWeapon?.rarity       ?? 'common',
         loc?.sublocation_type === 'boss',
-        pickedWeapon?.rolled_draws,
+        advContentType,
       )
     const savedStreak = store.content_streak[contentId] ?? 0
     setSelectedContentId(contentId)
@@ -490,8 +503,8 @@ export default function CombatScreen() {
         const parentNode = parentEdge
           ? currentCampaign?.nodes.find(n => n.id === parentEdge.from_id)
           : null
-        const primaryFormat = (WEAPONS[state.equippedWeaponId] as WeaponInstance | undefined)
-          ?.rolled_draws?.format[0]?.[0]
+        const primaryFormat = selectedContent?.content_type
+          ?? (WEAPONS[state.equippedWeaponId] as WeaponInstance | undefined)?.rolled_draws?.format?.[0]?.[0]
         const formatLabel = primaryFormat
           ? (t.content.product[primaryFormat]?.badge_label ?? primaryFormat)
           : null
@@ -614,7 +627,7 @@ export default function CombatScreen() {
               w.instance_id,
               (c?.nodes ?? [])
                 .filter(n => !n.completed && isNodeAvailable(c!.nodes, c!.edges, n))
-                .map(n => ({ id: n.id, name: n.name || 'Untitled' })),
+                .map(n => ({ id: n.id, name: n.name || 'Untitled', content_type: n.content_type })),
             ]
           })
         )}

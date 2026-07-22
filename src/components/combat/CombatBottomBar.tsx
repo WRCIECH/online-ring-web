@@ -1,11 +1,11 @@
 import { useState, useRef, useEffect } from 'react'
-import type { WeaponInstance } from '../../types/game'
+import type { WeaponInstance, ContentProductType } from '../../types/game'
 import { WEAPONS } from '../../data/weapons'
 import WeaponSprite from '../icons/WeaponSprite'
 import { useT } from '../../i18n'
 import s from './CombatBottomBar.module.css'
 
-export interface ContentNode { id: string; name: string }
+export interface ContentNode { id: string; name: string; content_type?: ContentProductType }
 
 interface Props {
   equippedWeaponIds:  string[]
@@ -114,6 +114,11 @@ export default function CombatBottomBar({
                         >
                           <span className={s.menuNodeDot}>{isCurrent ? '●' : '○'}</span>
                           <span className={s.menuNodeName}>{node.name || 'Untitled'}</span>
+                          {node.content_type && (
+                            <span className={s.menuNodeType}>
+                              {(t.content.product[node.content_type] as { badge_label?: string } | undefined)?.badge_label ?? node.content_type}
+                            </span>
+                          )}
                         </button>
                       )
                     })}

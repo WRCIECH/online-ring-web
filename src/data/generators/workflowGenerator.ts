@@ -1,5 +1,5 @@
 import type {
-  WeaponClass, WeaponRarity, AtomicStage, WorkflowTile, WorkflowEdge, WorkflowGraph, RolledPatternDraws,
+  WeaponClass, WeaponRarity, AtomicStage, WorkflowTile, WorkflowEdge, WorkflowGraph,
   ContentProductType,
 } from '../../types/game'
 import { WEAPON_CLASSES } from './weaponClasses'
@@ -87,7 +87,7 @@ export function generateWorkflow(
   weaponClass: WeaponClass,
   rarity: WeaponRarity,
   isBoss = false,
-  rolledDraws?: RolledPatternDraws,
+  contentType?: ContentProductType,
 ): WorkflowGraph {
   const cls         = WEAPON_CLASSES[weaponClass]
   const rarityBonus = RARITY_EXTRA[rarity] ?? 0
@@ -95,12 +95,12 @@ export function generateWorkflow(
   const produceCount  = Math.max(1, cls.poise_weight - researchCount + rarityBonus)
 
   const pool = cls.supported_products.length > 0 ? cls.supported_products : ALL_CONTENT_PRODUCTS
-  const contentType: ContentProductType =
-    rolledDraws?.format?.[0]?.[0] ?? pool[Math.floor(Math.random() * pool.length)]
+  const effectiveType: ContentProductType =
+    contentType ?? pool[Math.floor(Math.random() * pool.length)]
 
   const researchTiles = Array.from({ length: researchCount }, () => {
     const t = makeTile('Research', cls.time_mod)
-    t.content_type = contentType
+    t.content_type = effectiveType
     return t
   })
   const produceTiles = Array.from({ length: produceCount }, () => makeTile('Produce', cls.time_mod))

@@ -268,4 +268,16 @@
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  flex: 1;
+}
+
+.menuNodeType {
+  font-size: 0.68rem;
+  color: var(--color-text-dim);
+  background: rgba(100, 80, 200, 0.12);
+  border: 1px solid rgba(100, 80, 200, 0.25);
+  border-radius: 3px;
+  padding: 1px 5px;
+  white-space: nowrap;
+  flex-shrink: 0;
 }

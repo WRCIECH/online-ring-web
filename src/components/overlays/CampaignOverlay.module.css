@@ -594,6 +594,20 @@
   flex-shrink: 0;
 }
 
+.nodeContentBadge {
+  font-size: 0.62rem;
+  padding: 1px 5px;
+  border-radius: 3px;
+  background: rgba(100, 80, 200, 0.12);
+  border: 1px solid rgba(100, 80, 200, 0.28);
+  color: var(--color-text-dim);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 70px;
+  flex-shrink: 0;
+}
+
 .btnPublish {
   font-size: 0.65rem;
   padding: 2px 8px;

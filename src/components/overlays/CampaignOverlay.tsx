@@ -310,13 +310,6 @@ export default function CampaignOverlay({ onClose }: Props) {
                   <div className={s.weaponInfoTop}>
                     <div className={s.weaponInfoLeft}>
                       <span className={s.weaponLevel}>+{level}</span>
-                      {(() => {
-                        const primaryFormat = selectedWeapon.rolled_draws?.format[0]?.[0]
-                        if (!primaryFormat) return null
-                        const label   = t.content.product[primaryFormat]?.badge_label ?? primaryFormat
-                        const detail  = t.content.product[primaryFormat]?.detail
-                        return <span className={s.mediumChip} data-tooltip={detail || undefined}>{label}</span>
-                      })()}
                       <span className={s.statChip}>×{(dmgCurrent / 100).toFixed(2)} dmg</span>
                       {classDef && <>
                         <span className={s.statChip}>+{((LEVEL_MULT[selectedWeapon.rarity] ?? 0.03) * 100).toFixed(0)}% / lv</span>
@@ -708,6 +701,11 @@ export default function CampaignOverlay({ onClose }: Props) {
                                     }
                                   </span>
                                 )}
+
+                                {node.content_type && (() => {
+                                  const label = (t.content.product as Record<string, { badge_label?: string } | undefined>)[node.content_type]?.badge_label ?? node.content_type
+                                  return <span className={s.nodeContentBadge}>{label}</span>
+                                })()}
 
                                 {finished && (
                                   <button

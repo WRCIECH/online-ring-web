@@ -178,6 +178,7 @@ export interface CampaignNode {
   superhit_used?: boolean       // true once the base Superhit charge has been used
   promote_count?: number        // 0–3; each promote adds one extra Superhit charge
   promotes_consumed?: number    // how many promote-charges have been consumed in combat
+  content_type?: ContentProductType  // rolled at node creation; undefined in old saves
 }
 
 export interface CampaignEdge {
