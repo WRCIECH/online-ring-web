@@ -643,6 +643,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
               ...n,
               content_type: newType,
               content_type_modified: true,
+              content_type_modified_stat: stat,
               original_content_type: n.content_type_modified ? n.original_content_type : n.content_type,
             }
           }),
@@ -659,19 +660,28 @@ export const useGameStore = create<GameStore>((set, get) => ({
     const s = get()
     const c = s.weapon_campaigns[weaponId]
     if (!c || c.activated === true) return
+    const node = c.nodes.find(n => n.id === nodeId)
+    if (!node?.content_type_modified) return
+    const refundStat = node.content_type_modified_stat
     set(prev => ({
       weapon_campaigns: {
         ...prev.weapon_campaigns,
         [weaponId]: {
           ...c,
           nodes: c.nodes.map(n => {
-            if (n.id !== nodeId || !n.content_type_modified) return n
-            const { content_type_modified: _, original_content_type, ...rest } = n
+            if (n.id !== nodeId) return n
+            const { content_type_modified: _a, original_content_type, content_type_modified_stat: _b, ...rest } = n
             return { ...rest, content_type: original_content_type }
           }),
         },
       },
       workflow_progress: (() => { const { [nodeId]: _, ...rest } = prev.workflow_progress; return rest })(),
+      ...(refundStat ? {
+        stat_modifications_used: {
+          ...prev.stat_modifications_used,
+          [refundStat]: Math.max(0, (prev.stat_modifications_used[refundStat] ?? 0) - 1),
+        },
+      } : {}),
     }))
     get().save()
   },
@@ -693,6 +703,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
               ...e,
               label: newLabel,
               label_modified: true,
+              label_modified_stat: stat,
               original_label: e.label_modified ? e.original_label : e.label,
             }
           }),
@@ -708,18 +719,27 @@ export const useGameStore = create<GameStore>((set, get) => ({
     const s = get()
     const c = s.weapon_campaigns[weaponId]
     if (!c || c.activated === true) return
+    const edge = c.edges.find(e => e.from_id === fromId && e.to_id === toId)
+    if (!edge?.label_modified) return
+    const refundStat = edge.label_modified_stat
     set(prev => ({
       weapon_campaigns: {
         ...prev.weapon_campaigns,
         [weaponId]: {
           ...c,
           edges: c.edges.map(e => {
-            if (e.from_id !== fromId || e.to_id !== toId || !e.label_modified) return e
-            const { label_modified: _, original_label, ...rest } = e
+            if (e.from_id !== fromId || e.to_id !== toId) return e
+            const { label_modified: _a, original_label, label_modified_stat: _b, ...rest } = e
             return { ...rest, label: original_label ?? null }
           }),
         },
       },
+      ...(refundStat ? {
+        stat_modifications_used: {
+          ...prev.stat_modifications_used,
+          [refundStat]: Math.max(0, (prev.stat_modifications_used[refundStat] ?? 0) - 1),
+        },
+      } : {}),
     }))
     get().save()
   },

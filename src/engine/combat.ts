@@ -519,11 +519,20 @@ export function combatReducer(state: CombatState, action: CombatAction): CombatS
       const rawDmg  = calcTileDamage(tile, 'Light', weapon, state.weaponLevel)
       const damage  = Math.round(rawDmg * 5)
       const newEnemyHp = Math.max(0, state.enemyHp - damage)
+
+      // Advance the tile (skip the writing work)
+      const updatedTiles = state.workflow.tiles.map(t =>
+        t.id !== tile.id ? t : { ...t, is_completed: true, repeat_count: t.repeat_count + (t.is_completed ? 1 : 0) }
+      )
+      const newWorkflow  = { ...state.workflow, tiles: updatedTiles }
+      const allTilesDone = newWorkflow.tiles.filter(t => !t.is_advance).every(t => t.is_completed)
+
       let s = log(
-        { ...state, enemyHp: newEnemyHp, selectedTileId: null },
-        `💥 SUPERHIT! ⚔ −${damage} HP (5× light attack)`,
+        { ...state, workflow: newWorkflow, enemyHp: newEnemyHp, currentTileId: tile.id, selectedTileId: null },
+        `💥 SUPERHIT! ✓ ${tile.name} skipped. ⚔ −${damage} HP`,
         '#eecc44'
       )
+      if (allTilesDone) s = log(s, '⚡ All tasks complete!', '#e6bf33')
       if (newEnemyHp <= 0) {
         s = log(
           { ...s, enemyHp: 0, mobsDefeated: s.mobsDefeated + 1, runesEarned: state.enemyData.rune_reward },

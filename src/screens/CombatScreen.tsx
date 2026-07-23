@@ -458,7 +458,7 @@ export default function CombatScreen() {
       items.push({
         id: 'Superhit',
         label: 'SUPER',
-        sublabel: `×${totalSuperhitCharges} · 5× light · instant`,
+        sublabel: `×${totalSuperhitCharges} · skip tile · 5× light dmg`,
         metaParts: [
           { text: `⚔ ${superhitDmg}`, color: '#eecc44' },
           { text: `published: ${superhitSourceNode.name || 'Untitled'}`, color: '#aaaaaa' },
