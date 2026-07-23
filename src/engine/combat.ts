@@ -252,7 +252,7 @@ export function countActiveCampaigns(
 export function calcCampaignOverloadMult(activeCampaigns: number, endurance: number): number {
   const excess = Math.max(0, activeCampaigns - 1)
   if (excess === 0) return 1.0
-  const penaltyPerSlot = Math.max(0, CAMPAIGN_PENALTY_BASE - endurance * END_MITIGATION_PER_POINT)
+  const penaltyPerSlot = Math.max(0, CAMPAIGN_PENALTY_BASE - (endurance + 8) * END_MITIGATION_PER_POINT)
   return 1 - Math.min(CAMPAIGN_PENALTY_CAP, excess * penaltyPerSlot)
 }
 

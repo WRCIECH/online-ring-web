@@ -107,5 +107,3 @@ export const REPEAT_DAMAGE_PENALTY = 0.20
 
 // ── Economy ───────────────────────────────────────────────────────────────────
 
-/** Runes received when selling a weapon. */
-export const WEAPON_SELL_PRICE = 100

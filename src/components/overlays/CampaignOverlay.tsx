@@ -2,9 +2,8 @@ import { useState, useRef, useEffect } from 'react'
 import { useGameStore, selectRemainingModifications } from '../../store/gameStore'
 import { isNodeAvailable } from '../../data/generators/campaignGenerator'
 import { calcCampaignOverloadMult, countActiveCampaigns, isCampaignFullyDefined } from '../../engine/combat'
-import { LEVEL_MULT, weaponUpgradeCost, calcWeaponScaledDamage } from '../../data/weapons'
+import { LEVEL_MULT, weaponUpgradeCost, calcWeaponScaledDamage, calcWeaponSellPrice } from '../../data/weapons'
 import { WEAPON_CLASSES } from '../../data/generators/weaponClasses'
-import { WEAPON_SELL_PRICE } from '../../data/constants'
 import { MODIFICATION_STATS, STAT_CONTENT_TYPES, STAT_TRANSFORMATIONS } from '../../data/statModifications'
 import type { CampaignNode, CampaignEdge, WeaponCampaign, WeaponInstance, StatKey, ContentProductType } from '../../types/game'
 import WeaponIcon from '../WeaponIcon'
@@ -372,7 +371,7 @@ export default function CampaignOverlay({ onClose }: Props) {
                         >
                           {isConfirmSell
                             ? t.ui.btn_sell_confirm
-                            : `${t.ui.btn_sell_weapon} (${WEAPON_SELL_PRICE} ✦)`}
+                            : `${t.ui.btn_sell_weapon} (${selectedWeapon ? calcWeaponSellPrice(selectedWeapon) : 75} ✦)`}
                         </button>
                       )}
                     </div>

@@ -24,6 +24,19 @@ export function calcWeaponScaledDamage(
   return Math.floor(baseValue * weapon.base_damage_mult * affixMult * (1 + level * levelMult))
 }
 
+const SELL_RARITY_BONUS: Record<WeaponRarity, number> = {
+  common:       0,
+  Intellectual: 25,
+  rare:         75,
+  epic:         175,
+  legendary:    425,
+}
+
+/** Runes received when selling a weapon. Scales with rarity and poise weight. */
+export function calcWeaponSellPrice(weapon: WeaponInstance): number {
+  return 75 + SELL_RARITY_BONUS[weapon.rarity] + (weapon.poise_weight ?? 8) * 5
+}
+
 export { statLevelCost, weaponUpgradeCost } from './constants'
 
 export function registerWeapon(w: WeaponInstance): void {

@@ -3,8 +3,8 @@ import type { GameState, LocationData, Stats, WeaponInstance, SublocationType, C
 import { DEFAULT_MUSIC_TRACKS } from '../data/combatMusic'
 import { ENEMIES } from '../data/enemies'
 import { saveGame, loadGame } from '../engine/save'
-import { registerWeapon } from '../data/weapons'
-import { RUN_DURATION_SECONDS, RUN_ESTUS_MAX, ESTUS_HEAL_HP, statLevelCost, weaponUpgradeCost, WEAPON_SELL_PRICE } from '../data/constants'
+import { registerWeapon, calcWeaponSellPrice } from '../data/weapons'
+import { RUN_DURATION_SECONDS, RUN_ESTUS_MAX, ESTUS_HEAL_HP, statLevelCost, weaponUpgradeCost } from '../data/constants'
 import { rollWeapon } from '../data/generators/weaponGenerator'
 import { CLASS_DEFINITIONS } from '../data/classes'
 import { generateWeaponCampaign, isNodeAvailable } from '../data/generators/campaignGenerator'
@@ -16,12 +16,13 @@ function hydrateRegistries(state: GameState): void {
   state.weapon_instances.forEach(w => registerWeapon(w))
 }
 
-const DEFAULT_STATS: Stats = { VIG: 10, END: 10, TEXT: 0, VIDEO: 0, AUDIO: 0, GRAPHIC: 0, VELOCITY: 0, DEPTH: 0, PARASOCIAL: 0, FRICTION: 0, INSIGHT: 0 }
+const DEFAULT_STATS: Stats = { VIG: 2, END: 2, TEXT: 0, VIDEO: 0, AUDIO: 0, GRAPHIC: 0, VELOCITY: 0, DEPTH: 0, PARASOCIAL: 0, FRICTION: 0, INSIGHT: 0 }
 
 export function calcMaxHp(vig: number): number {
-  if (vig <= 25) return 300 + vig * 12
-  if (vig <= 40) return 600 + (vig - 25) * 18
-  return 870 + (vig - 40) * 8
+  const v = vig + 8
+  if (v <= 25) return 300 + v * 12
+  if (v <= 40) return 600 + (v - 25) * 18
+  return 870 + (v - 40) * 8
 }
 const LOCATION_NAMES = [
   'The Endless Feed', 'Deadline Flats', 'The Comparison Pit', 'Scroll Abyss',
@@ -443,13 +444,15 @@ export const useGameStore = create<GameStore>((set, get) => ({
 
   sellWeapon: (weaponInstanceId) => {
     set(s => {
+      const instance = s.weapon_instances.find(w => w.instance_id === weaponInstanceId)
+      const sellPrice = instance ? calcWeaponSellPrice(instance) : 75
       const { [weaponInstanceId]: _dropped, ...remainingCampaigns } = s.weapon_campaigns
       return {
         owned_weapons:    s.owned_weapons.filter(id => id !== weaponInstanceId),
         weapon_instances: s.weapon_instances.filter(w => w.instance_id !== weaponInstanceId),
         weapon_level:     Object.fromEntries(Object.entries(s.weapon_level).filter(([k]) => k !== weaponInstanceId)),
         weapon_campaigns: remainingCampaigns,
-        runes: s.runes + WEAPON_SELL_PRICE,
+        runes: s.runes + sellPrice,
       }
     })
     get().save()
