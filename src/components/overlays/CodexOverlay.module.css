@@ -261,22 +261,6 @@
   flex-shrink: 0;
   font-variant-numeric: tabular-nums;
 }
-
-.scalingRow {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 4px;
-  margin-top: 1px;
-}
-
-.scalingChip {
-  font-size: 0.58rem;
-  padding: 1px 5px;
-  border-radius: 3px;
-  background: rgba(130,100,220,0.10);
-  border: 1px solid rgba(130,100,220,0.20);
-  color: var(--color-accent, #8264dc);
-  font-variant-numeric: tabular-nums;
 }
 
 .multValuePenalty {

@@ -77,7 +77,6 @@ export function rollWeapon(
     name:             generateWeaponName(cls, rarity),
     description:      classDef.description,
     stat_req:         {},
-    scaling:          { ...classDef.scaling },
     rolled_draws:     rollFormatDraw(cls),
   }
 

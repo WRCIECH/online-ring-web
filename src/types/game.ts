@@ -1,7 +1,6 @@
 export type Locale = 'pl' | 'en'
 export type RewardTier = 'C' | 'B1' | 'B2' | 'A1' | 'A2' | 'S'
 export type StatKey = 'VIG' | 'END' | 'TEXT' | 'VIDEO' | 'AUDIO' | 'GRAPHIC' | 'VELOCITY' | 'DEPTH' | 'PARASOCIAL' | 'FRICTION' | 'INSIGHT'
-export type Grade = 'S' | 'A' | 'B' | 'C' | 'D' | 'E'
 export type WeaponRarity = 'common' | 'Intellectual' | 'rare' | 'epic' | 'legendary'
 export type SublocationType = 'mob' | 'elite' | 'event' | 'boss'
 export type MoveType = 'Light' | 'Heavy'
@@ -78,7 +77,6 @@ export interface Weapon {
   name: string
   description: string
   stat_req: Partial<Record<StatKey, number>>
-  scaling: Partial<Record<StatKey, Grade>>
 }
 
 // All draws a weapon instance's pattern can make (Format/Transformation/

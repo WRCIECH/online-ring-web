@@ -323,9 +323,6 @@ export default function CampaignOverlay({ onClose }: Props) {
                         <span className={s.statChip}>+{((LEVEL_MULT[selectedWeapon.rarity] ?? 0.03) * 100).toFixed(0)}% / lv</span>
                         <span className={s.statChip}>×{classDef.base_damage_mult} base</span>
                       </>}
-                      {Object.entries(selectedWeapon.scaling).map(([stat, grade]) => (
-                        <span key={stat} className={s.scalingChip}>{stat} {grade}</span>
-                      ))}
                     </div>
                     <div className={s.weaponInfoActions}>
                       {/* Upgrade */}

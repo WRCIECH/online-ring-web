@@ -399,17 +399,6 @@
   gap: 5px;
 }
 
-.scalingChip {
-  font-family: var(--font-meta);
-  font-size: 0.68rem;
-  padding: 2px 7px;
-  border: 1px solid rgba(74,158,255,0.22);
-  border-radius: 3px;
-  color: var(--color-accent-dim);
-  background: rgba(74,158,255,0.05);
-  letter-spacing: 0.08em;
-}
-
 /* ── Preview two-column table ──────────────────────────────────────────── */
 
 .previewTable {

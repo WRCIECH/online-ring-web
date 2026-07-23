@@ -188,7 +188,6 @@ export default function CodexOverlay({ onClose }: Props) {
               {ALL_WEAPON_CLASSES.map(wc => {
                 const cls = WEAPON_CLASSES[wc]
                 const wt = (t.weapons as Record<string, { name: string; description: string }>)[wc]
-                const scalingEntries = Object.entries(cls.scaling)
                 return (
                   <div key={wc} className={s.weaponEntry}>
                     <div className={s.weaponIcon}>
@@ -201,13 +200,6 @@ export default function CodexOverlay({ onClose }: Props) {
                         <span className={s.dmgChip}>×{cls.base_damage_mult}</span>
                       </div>
                       <div className={s.entryDesc}>{wt?.description}</div>
-                      {scalingEntries.length > 0 && (
-                        <div className={s.scalingRow}>
-                          {scalingEntries.map(([stat, grade]) => (
-                            <span key={stat} className={s.scalingChip}>{stat} {grade}</span>
-                          ))}
-                        </div>
-                      )}
                     </div>
                   </div>
                 )
