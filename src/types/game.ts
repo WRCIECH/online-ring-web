@@ -162,6 +162,9 @@ export interface LocationData {
   locationTheme?: LocationTheme
 }
 
+// ── Location definition fields added by region expansion ──────────────────
+// region_id and is_final_location are on LocationDef in locations.ts
+
 // ── Player stats ─────────────────────────────────────────────────────────
 export interface Stats {
   VIG: number; END: number
@@ -263,4 +266,8 @@ export interface GameState {
   music_tracks?:   string[] // YouTube video IDs; undefined in old saves → uses DEFAULT_MUSIC_TRACKS
   // Campaign modification actions spent (keyed by stat); stat value - used = remaining
   stat_modifications_used: Partial<Record<StatKey, number>>
+  // World region progress
+  completed_regions: string[]   // region IDs whose final boss was defeated
+  current_region_id: string     // region currently selected on the world map
+  game_won?: boolean            // true when region_6 final boss is defeated
 }

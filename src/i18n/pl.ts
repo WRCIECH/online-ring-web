@@ -212,8 +212,19 @@ const pl: TranslationBundle = {
     btn_select_class:   'Wybierz klasę',
     btn_begin_as:       'Zacznij jako',
 
+    // WorldMapScreen
+    world_map_title:         'Online Lands',
+    world_regions_cleared:   'regionów ukończonych',
+    world_difficulty:        'trudność',
+    world_locked_requires:   'Najpierw ukończ poprzedni region',
+    world_map_completed:     'Ukończono',
+    world_map_enter:         'Wejdź do regionu',
+    world_back:              'Mapa świata',
+    game_won_title:          'Algorytm milknie',
+    game_won_body:           'Przeżyłeś shadowbany, fale hejtu i wypalenie. Feed należy do Ciebie.',
+    game_won_return:         'Wróć do tytułu',
+
     // LocationSelectScreen
-    world_map_title:      'Online Lands',
     locations_visited:    'lokacji odwiedzonych',
     choose_dungeon_title: 'Wybierz lokację',
     choose_dungeon_first: 'Rozpocznij podróż — tylko pierwsze kroki są dla ciebie otwarte',

@@ -9,6 +9,8 @@ import { rollWeapon } from '../data/generators/weaponGenerator'
 import { CLASS_DEFINITIONS } from '../data/classes'
 import { generateWeaponCampaign, isNodeAvailable } from '../data/generators/campaignGenerator'
 import type { LocationDef } from '../data/locations'
+import { LOCATION_DEFINITIONS } from '../data/locations'
+import { REGION_DEFINITIONS } from '../data/regions'
 
 function hydrateRegistries(state: GameState): void {
   state.weapon_instances.forEach(w => registerWeapon(w))
@@ -146,6 +148,7 @@ function generateLocationSequence(
   difficulty: number,
   theme: LocationTheme,
   runCount: number,
+  regionDiffMult: number = 1.0,
 ): LocationData[] {
   const [t1, t2, t3] = calcTierCounts(numSublocations)
   const tier1    = shuffle(ENCOUNTER_POOL.filter(e => e.tier === 1)).slice(0, t1)
@@ -166,7 +169,7 @@ function generateLocationSequence(
       return {
         enemy_id: enc.enemy_id,
         name: LOCATION_NAMES[i] ?? `Location ${i + 1}`,
-        mult: baseMult * diffMult * runMult,
+        mult: baseMult * diffMult * runMult * regionDiffMult,
         tier: enc.tier,
         sublocation_type: 'boss' as SublocationType,
         boss_name: bossEnemy?.boss_name ?? bossEnemy?.name ?? enc.enemy_id,
@@ -185,7 +188,7 @@ function generateLocationSequence(
       if (Math.random() < 0.6) type = 'mob'
       else event_type = 'trial'
     }
-    const finalMult = (type === 'elite' ? baseMult * 1.3 : baseMult) * diffMult * runMult
+    const finalMult = (type === 'elite' ? baseMult * 1.3 : baseMult) * diffMult * runMult * regionDiffMult
     return {
       enemy_id: enc.enemy_id,
       name: LOCATION_NAMES[i] ?? `Location ${i + 1}`,
@@ -230,6 +233,9 @@ function initialState(): GameState {
     total_task_time_s: 0,
     locale: 'pl',
     stat_modifications_used: {},
+    completed_regions: [],
+    current_region_id: 'region_0',
+    game_won: false,
     rewards: { C: 0, B1: 0, B2: 0, A1: 0, A2: 0, S: 0 },
     reward_names: {},
     reward_used_count: {},
@@ -316,6 +322,9 @@ export interface GameStore extends GameState {
   // Analytics
   addTaskTime: (seconds: number) => void
 
+  // World regions
+  setCurrentRegion: (regionId: string) => void
+
   // Locale
   setLocale: (locale: Locale) => void
 
@@ -338,7 +347,8 @@ export const useGameStore = create<GameStore>((set, get) => ({
 
   startRun: (loc: LocationDef) => {
     const runCount = get().run_count
-    const seq = generateLocationSequence(loc.numSublocations, loc.difficulty, loc.theme, runCount)
+    const regionDiffMult = REGION_DEFINITIONS.find(r => r.id === loc.region_id)?.difficultyMult ?? 1.0
+    const seq = generateLocationSequence(loc.numSublocations, loc.difficulty, loc.theme, runCount, regionDiffMult)
     set({
       run_active: true,
       run_location_sequence: seq,
@@ -364,13 +374,30 @@ export const useGameStore = create<GameStore>((set, get) => ({
   },
 
   endRunVictory: () => {
-    set(s => ({
-      run_active: false,
-      run_count:  s.run_count + 1,
-      completed_locations: s.completed_locations.includes(s.run_location_name)
+    set(s => {
+      const completedLocs = s.completed_locations.includes(s.run_location_name)
         ? s.completed_locations
-        : [...s.completed_locations, s.run_location_name],
-    }))
+        : [...s.completed_locations, s.run_location_name]
+
+      const loc    = LOCATION_DEFINITIONS.find(l => l.id === s.run_location_name)
+      const regionId = loc?.region_id ?? 'region_0'
+      const region   = REGION_DEFINITIONS.find(r => r.id === regionId)
+      const isGateBoss = loc?.is_final_location === true
+
+      const completedRegions = isGateBoss && !s.completed_regions.includes(regionId)
+        ? [...s.completed_regions, regionId]
+        : s.completed_regions
+
+      const gameWon = s.game_won || (isGateBoss && region?.isFinalRegion === true)
+
+      return {
+        run_active:         false,
+        run_count:          s.run_count + 1,
+        completed_locations: completedLocs,
+        completed_regions:  completedRegions,
+        game_won:           gameWon,
+      }
+    })
     get().save()
   },
 
@@ -523,6 +550,9 @@ export const useGameStore = create<GameStore>((set, get) => ({
       active_content_id: null,
       weapon_pending_superhits: {},
       stat_modifications_used: {},
+      completed_regions: [],
+      current_region_id: 'region_0',
+      game_won: false,
     })
     get().save()
   },
@@ -877,6 +907,8 @@ export const useGameStore = create<GameStore>((set, get) => ({
     get().save()
   },
 
+  setCurrentRegion: (regionId) => { set({ current_region_id: regionId }); get().save() },
+
   setLocale: (locale) => { set({ locale }); get().save() },
   setMusicTracks: (tracks) => { set({ music_tracks: tracks }); get().save() },
 
@@ -890,6 +922,9 @@ export const useGameStore = create<GameStore>((set, get) => ({
     if (!data.weapon_campaigns)          data.weapon_campaigns          = {}
     if (!data.campaign_library)          data.campaign_library          = []
     if (!data.stat_modifications_used)   data.stat_modifications_used   = {}
+    if (!data.completed_regions)         data.completed_regions         = []
+    if (!data.current_region_id)         data.current_region_id         = 'region_0'
+    if (data.game_won === undefined)     data.game_won                  = false
     // Legacy campaigns (pre-activated field) were all active by definition
     for (const wid of Object.keys(data.weapon_campaigns)) {
       const c = data.weapon_campaigns[wid]

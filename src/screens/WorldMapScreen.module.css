@@ -1,0 +1,178 @@
+.root {
+  position: relative;
+  width: 100%;
+  height: 100vh;
+  overflow: hidden;
+  background:
+    radial-gradient(ellipse 60% 50% at 20% 30%, rgba(80,20,140,0.25) 0%, transparent 70%),
+    radial-gradient(ellipse 55% 45% at 75% 70%, rgba(20,50,120,0.20) 0%, transparent 70%),
+    radial-gradient(ellipse 40% 35% at 50% 50%, rgba(100,20,80,0.15) 0%, transparent 70%),
+    #080610;
+}
+
+.mapWrap {
+  position: absolute;
+  top: 60px;
+  bottom: 48px;
+  left: 56px;
+  right: 56px;
+}
+
+.svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+/* ── Top bar ────────────────────────────────────────────────────────────── */
+.topBar {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 10;
+  height: 52px;
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  padding: 0 20px;
+  background: linear-gradient(to bottom, rgba(8,6,16,0.95) 60%, transparent);
+  pointer-events: none;
+}
+.topBar > * { pointer-events: auto; }
+
+.worldTitle {
+  font-size: 0.72rem;
+  font-weight: 300;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: var(--color-gold-dim);
+  text-align: center;
+}
+
+.topRight {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  justify-content: flex-end;
+}
+
+.progress {
+  font-size: 0.72rem;
+  color: var(--color-text-dim);
+  letter-spacing: 0.04em;
+}
+
+/* ── Info panel ─────────────────────────────────────────────────────────── */
+.infoPanel {
+  position: absolute;
+  bottom: 20px;
+  right: 20px;
+  z-index: 10;
+  width: 280px;
+  background: rgba(10,8,22,0.92);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  padding: 16px 18px 18px;
+  backdrop-filter: blur(8px);
+  transition: border-color 0.18s, box-shadow 0.18s;
+}
+
+.infoPanelSelected {
+  box-shadow: 0 0 24px rgba(0,0,0,0.6);
+}
+
+.infoName {
+  font-size: 1.0rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  line-height: 1.25;
+  margin-bottom: 5px;
+  text-shadow: 0 0 18px currentColor;
+}
+
+.infoLore {
+  font-size: 0.70rem;
+  color: var(--color-text-dim);
+  line-height: 1.55;
+  margin-bottom: 10px;
+  letter-spacing: 0.02em;
+}
+
+.infoMeta {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+}
+
+.diffBadge {
+  font-size: 0.60rem;
+  letter-spacing: 0.10em;
+  border: 1px solid;
+  border-radius: 3px;
+  padding: 2px 7px;
+  text-transform: uppercase;
+}
+
+.locProgress {
+  font-size: 0.64rem;
+  color: var(--color-text-dim);
+}
+
+.lockedMsg {
+  font-size: 0.66rem;
+  color: rgba(200,180,220,0.40);
+  letter-spacing: 0.04em;
+  margin-bottom: 8px;
+  font-style: italic;
+}
+
+.completedTag {
+  font-size: 0.68rem;
+  color: #2ecc88;
+  margin-bottom: 10px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+}
+
+.btnEnter {
+  width: 100%;
+  margin-top: 4px;
+  padding: 10px;
+  font-size: 0.82rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid;
+  border-radius: var(--radius);
+  transition: background 0.15s, box-shadow 0.15s;
+}
+.btnEnter:hover {
+  background: rgba(255,255,255,0.10);
+  box-shadow: 0 0 16px rgba(0,0,0,0.4);
+}
+
+.clickHint {
+  margin-top: 8px;
+  font-size: 0.64rem;
+  color: rgba(255,255,255,0.25);
+  letter-spacing: 0.1em;
+  text-align: center;
+}
+
+.nameTooltip {
+  position: fixed;
+  pointer-events: none;
+  z-index: 20;
+  background: rgba(10,8,22,0.92);
+  border: 1px solid var(--color-border);
+  border-radius: 5px;
+  padding: 5px 10px;
+  font-size: 0.78rem;
+  color: var(--color-gold-text);
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.5);
+}

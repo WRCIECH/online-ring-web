@@ -60,7 +60,7 @@ export default function ClassSelectScreen() {
 
   function handleConfirm() {
     store.initClass(CLASS_DEFINITIONS[activeIndex].id)
-    navigate('/locations')
+    navigate('/world')
   }
 
   const activeCls = CLASS_DEFINITIONS[activeIndex]

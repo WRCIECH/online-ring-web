@@ -3,6 +3,7 @@ import { useEffect } from 'react'
 import { initSound } from './engine/sound'
 import TitleScreen from './screens/TitleScreen'
 import ClassSelectScreen from './screens/ClassSelectScreen'
+import WorldMapScreen from './screens/WorldMapScreen'
 import LocationSelectScreen from './screens/LocationSelectScreen'
 import RunMapScreen from './screens/RunMapScreen'
 import CombatScreen from './screens/CombatScreen'
@@ -19,6 +20,7 @@ export default function App() {
       <Routes>
         <Route path="/"             element={<TitleScreen />} />
         <Route path="/start-class"  element={<ClassSelectScreen />} />
+        <Route path="/world"        element={<WorldMapScreen />} />
         <Route path="/locations"    element={<LocationSelectScreen />} />
         <Route path="/map"          element={<RunMapScreen />} />
         <Route path="/combat"       element={<CombatScreen />} />

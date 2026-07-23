@@ -15,6 +15,29 @@ export default function RunCompleteScreen() {
     ? (LOC_MAP[store.run_location_name]?.displayName ?? store.run_location_name)
     : `Run #${store.run_count}`
 
+  if (store.game_won) {
+    return (
+      <div className={s.root}>
+        <div className={s.homeLogoWrap}><HomeLogo /></div>
+        <h1 className={s.title} style={{ color: '#6c3483', textShadow: '0 0 32px #6c348388' }}>
+          {t.ui.game_won_title ?? 'The Algorithm Falls Silent'}
+        </h1>
+        <p className={s.subtitle}>{locDisplayName}</p>
+        <div className={s.runeBalance}>
+          <span className={s.runeIcon}>✦</span>
+          <span className={s.runeCount}>{store.runes.toLocaleString()}</span>
+          <span className={s.runeLabel}>{t.ui.runes}</span>
+        </div>
+        <p className={s.hint} style={{ maxWidth: 440, textAlign: 'center', opacity: 0.8, fontSize: '0.85rem', color: 'rgba(180,160,220,0.8)' }}>
+          {t.ui.game_won_body ?? 'You have survived shadowbans, hate floods, and burnout. The feed is yours.'}
+        </p>
+        <button className={s.btnContinue} onClick={() => navigate('/')}>
+          {t.ui.game_won_return ?? 'Return to Title'}
+        </button>
+      </div>
+    )
+  }
+
   return (
     <div className={s.root}>
       <div className={s.homeLogoWrap}><HomeLogo /></div>
@@ -29,7 +52,7 @@ export default function RunCompleteScreen() {
 
       <p className={s.hint}>{t.ui.run_complete_hint}</p>
 
-      <button className={s.btnContinue} onClick={() => navigate('/locations')}>
+      <button className={s.btnContinue} onClick={() => navigate('/world')}>
         {t.ui.btn_continue_arrow}
       </button>
     </div>

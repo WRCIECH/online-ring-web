@@ -1,8 +1,8 @@
 import { useMemo, memo, useState } from 'react'
 import { Delaunay } from 'd3-delaunay'
-import { LOCATION_DEFINITIONS, SIZE_COLOUR } from '../data/locations'
+import type { LocationDef } from '../data/locations'
+import { SIZE_COLOUR } from '../data/locations'
 import type { LocationSize } from '../data/locations'
-import { LOCATION_SEEDS } from '../data/locationSeeds'
 import s from './LocationMap.module.css'
 
 const MAP_W = 1100
@@ -11,6 +11,10 @@ const MAP_H = 720
 export type RegionState = 'locked' | 'available' | 'completed'
 
 interface Props {
+  locations:    LocationDef[]
+  seeds:        Record<string, { x: number; y: number }>
+  regionColor:  string
+  regionBgColor: string
   completedSet: Set<string>
   unlockedSet:  Set<string>
   selectedId:   string | null
@@ -24,25 +28,25 @@ function hexToRgb(hex: string): [number, number, number] {
   return [parseInt(hex.slice(1,3),16), parseInt(hex.slice(3,5),16), parseInt(hex.slice(5,7),16)]
 }
 
-function cellFill(state: RegionState, size: LocationSize, hov: boolean, sel: boolean): string {
+function cellFill(state: RegionState, size: LocationSize, hov: boolean, sel: boolean, regionColor: string): string {
   if (state === 'locked') return hov ? 'rgba(255,255,255,0.08)' : 'rgba(255,255,255,0.03)'
   if (state === 'completed') {
     if (sel) return 'rgba(46,204,136,0.55)'
     if (hov) return 'rgba(46,204,136,0.38)'
     return 'rgba(46,204,136,0.20)'
   }
-  const [r,g,b] = hexToRgb(SIZE_COLOUR[size])
+  const [r,g,b] = hexToRgb(regionColor !== '#7c5cbf' ? regionColor : SIZE_COLOUR[size])
   if (sel) return `rgba(${r},${g},${b},0.80)`
   if (hov) return `rgba(${r},${g},${b},0.58)`
   return `rgba(${r},${g},${b},0.26)`
 }
 
-function cellStroke(state: RegionState, size: LocationSize, hov: boolean, sel: boolean): string {
+function cellStroke(state: RegionState, size: LocationSize, hov: boolean, sel: boolean, regionColor: string): string {
   if (state === 'locked') return hov ? 'rgba(255,255,255,0.16)' : 'rgba(255,255,255,0.06)'
   if (state === 'completed') {
     return (sel || hov) ? 'rgba(46,204,136,0.88)' : 'rgba(46,204,136,0.32)'
   }
-  const [r,g,b] = hexToRgb(SIZE_COLOUR[size])
+  const [r,g,b] = hexToRgb(regionColor !== '#7c5cbf' ? regionColor : SIZE_COLOUR[size])
   if (sel) return `rgba(${r},${g},${b},1.0)`
   if (hov) return `rgba(${r},${g},${b},0.90)`
   return `rgba(${r},${g},${b},0.28)`
@@ -57,11 +61,12 @@ function stableJitter(id: string, axis: 0 | 1): number {
   return ((h >>> 0) / 0xffffffff - 0.5) * JITTER
 }
 
-// Static base layer — only re-renders when completedSet/unlockedSet change (not on hover)
-const StaticCells = memo(function StaticCells({ cells, completedSet, unlockedSet }: {
+// Static base layer — only re-renders when locations/completedSet/unlockedSet change
+const StaticCells = memo(function StaticCells({ cells, completedSet, unlockedSet, regionColor }: {
   cells: Cell[]
   completedSet: Set<string>
   unlockedSet: Set<string>
+  regionColor: string
 }) {
   return (
     <g filter="url(#map-organic)" style={{ pointerEvents: 'none' }}>
@@ -71,8 +76,8 @@ const StaticCells = memo(function StaticCells({ cells, completedSet, unlockedSet
           <path
             key={cell.id}
             d={cell.path}
-            fill={cellFill(state, cell.size, false, false)}
-            stroke={cellStroke(state, cell.size, false, false)}
+            fill={cellFill(state, cell.size, false, false, regionColor)}
+            stroke={cellStroke(state, cell.size, false, false, regionColor)}
             strokeWidth={0.5}
             className={s.region}
           />
@@ -82,13 +87,12 @@ const StaticCells = memo(function StaticCells({ cells, completedSet, unlockedSet
   )
 })
 
-const LocationMap = memo(function LocationMapInner({ completedSet, unlockedSet, selectedId, onHover, onSelect }: Props) {
+const LocationMap = memo(function LocationMapInner({ locations, seeds, regionColor, regionBgColor, completedSet, unlockedSet, selectedId, onHover, onSelect }: Props) {
   const [hoveredId, setHoveredId] = useState<string | null>(null)
 
   const cells = useMemo<Cell[]>(() => {
-    const locs = LOCATION_DEFINITIONS
-    const pts: [number, number][] = locs.map(l => {
-      const base = LOCATION_SEEDS[l.id]
+    const pts: [number, number][] = locations.map(l => {
+      const base = seeds[l.id] ?? { x: MAP_W / 2, y: MAP_H / 2 }
       return [
         base.x + stableJitter(l.id, 0),
         base.y + stableJitter(l.id, 1),
@@ -96,12 +100,12 @@ const LocationMap = memo(function LocationMapInner({ completedSet, unlockedSet, 
     })
     const delaunay = Delaunay.from(pts)
     const voronoi  = delaunay.voronoi([0, 0, MAP_W, MAP_H])
-    return locs.map((loc, i) => ({
+    return locations.map((loc, i) => ({
       id:   loc.id,
       path: voronoi.renderCell(i),
       size: loc.size,
     }))
-  }, [])
+  }, [locations, seeds])
 
   function handleHover(id: string | null) {
     setHoveredId(id)
@@ -112,7 +116,7 @@ const LocationMap = memo(function LocationMapInner({ completedSet, unlockedSet, 
     <svg
       viewBox={`0 0 ${MAP_W} ${MAP_H}`}
       className={s.svg}
-      style={{ cursor: 'pointer' }}
+      style={{ cursor: 'pointer', background: regionBgColor }}
       preserveAspectRatio="xMidYMid meet"
       onMouseLeave={() => handleHover(null)}
     >
@@ -127,10 +131,8 @@ const LocationMap = memo(function LocationMapInner({ completedSet, unlockedSet, 
         </filter>
       </defs>
 
-      {/* Static base: displacement filter applied once, never re-renders on hover */}
-      <StaticCells cells={cells} completedSet={completedSet} unlockedSet={unlockedSet} />
+      <StaticCells cells={cells} completedSet={completedSet} unlockedSet={unlockedSet} regionColor={regionColor} />
 
-      {/* Dynamic highlight: no filter, renders only the 0–2 active cells */}
       <g style={{ pointerEvents: 'none' }}>
         {cells.filter(c => c.id === hoveredId || c.id === selectedId).map(cell => {
           const hov   = hoveredId  === cell.id
@@ -140,8 +142,8 @@ const LocationMap = memo(function LocationMapInner({ completedSet, unlockedSet, 
             <path
               key={cell.id}
               d={cell.path}
-              fill={cellFill(state, cell.size, hov, sel)}
-              stroke={cellStroke(state, cell.size, hov, sel)}
+              fill={cellFill(state, cell.size, hov, sel, regionColor)}
+              stroke={cellStroke(state, cell.size, hov, sel, regionColor)}
               strokeWidth={sel ? 2 : 1.5}
               filter={sel ? 'url(#map-glow)' : undefined}
             />
@@ -149,7 +151,6 @@ const LocationMap = memo(function LocationMapInner({ completedSet, unlockedSet, 
         })}
       </g>
 
-      {/* Interaction layer: transparent paths for hit-testing */}
       <g>
         {cells.map(cell => {
           const state: RegionState = completedSet.has(cell.id) ? 'completed' : unlockedSet.has(cell.id) ? 'available' : 'locked'

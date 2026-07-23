@@ -3,7 +3,9 @@ import { useNavigate } from 'react-router-dom'
 import { useGameStore } from '../store/gameStore'
 import { LOCATION_DEFINITIONS, getUnlockedLocationIds, SIZE_LABEL, SIZE_COLOUR } from '../data/locations'
 import type { LocationDef } from '../data/locations'
+import { REGION_DEFINITIONS } from '../data/regions'
 import { LOCATION_THEMES } from '../data/locationThemes'
+import { REGION_LOCATION_SEEDS } from '../data/locationSeeds'
 import LocationMap from '../components/LocationMap'
 import HomeLogo from '../components/HomeLogo'
 import ActionBar from '../components/layout/ActionBar'
@@ -25,8 +27,31 @@ export default function LocationSelectScreen() {
   const mousePosRef = useRef({ x: 0, y: 0 })
   const tooltipRef  = useRef<HTMLDivElement>(null)
 
+  const region = useMemo(
+    () => REGION_DEFINITIONS.find(r => r.id === store.current_region_id) ?? REGION_DEFINITIONS[0],
+    [store.current_region_id]
+  )
+
+  const regionLocs = useMemo(
+    () => LOCATION_DEFINITIONS.filter(l => l.region_id === region.id),
+    [region.id]
+  )
+
+  const regionSeeds = useMemo(
+    () => REGION_LOCATION_SEEDS[region.id] ?? {},
+    [region.id]
+  )
+
   const completedSet = useMemo(() => new Set(store.completed_locations), [store.completed_locations])
-  const unlockedSet  = useMemo(() => getUnlockedLocationIds(store.completed_locations), [store.completed_locations])
+  const unlockedSet  = useMemo(
+    () => getUnlockedLocationIds(store.completed_locations, region.id),
+    [store.completed_locations, region.id]
+  )
+
+  const regionCompletedCount = useMemo(
+    () => regionLocs.filter(l => completedSet.has(l.id)).length,
+    [regionLocs, completedSet]
+  )
 
   const handleSelect = useCallback((id: string) => {
     setSelectedId(prev => prev === id ? null : id)
@@ -37,9 +62,8 @@ export default function LocationSelectScreen() {
     navigate('/map')
   }
 
-  // Info panel: selected takes priority over hovered
-  const activeId  = selectedId ?? hoveredId
-  const activeLoc = activeId ? LOC_MAP[activeId] : null
+  const activeId    = selectedId ?? hoveredId
+  const activeLoc   = activeId ? LOC_MAP[activeId] : null
   const activeState = activeLoc
     ? completedSet.has(activeLoc.id) ? 'completed'
       : unlockedSet.has(activeLoc.id) ? 'available'
@@ -58,6 +82,10 @@ export default function LocationSelectScreen() {
           }
         }}>
         <LocationMap
+          locations={regionLocs}
+          seeds={regionSeeds}
+          regionColor={region.color}
+          regionBgColor={region.bgColor}
           completedSet={completedSet}
           unlockedSet={unlockedSet}
           selectedId={selectedId}
@@ -69,10 +97,13 @@ export default function LocationSelectScreen() {
       {/* ── Top overlay bar ── */}
       <div className={s.topBar}>
         <HomeLogo />
-        <span className={s.worldTitle}>{t.ui.world_map_title}</span>
+        <span className={s.worldTitle}>{region.name}</span>
         <div className={s.topRight}>
+          <button className={s.btnBack} onClick={() => navigate('/world')}>
+            ← {t.ui.world_back ?? 'World Map'}
+          </button>
           <span className={s.progress}>
-            {store.completed_locations.length} / {LOCATION_DEFINITIONS.length} {t.ui.locations_visited}
+            {regionCompletedCount} / {regionLocs.length} {t.ui.locations_visited}
           </span>
           <ActionBar />
         </div>
@@ -83,7 +114,6 @@ export default function LocationSelectScreen() {
         <div className={[s.infoPanel, selectedId ? s.infoPanelSelected : ''].join(' ')}>
           <div className={s.infoName}>{activeLoc.displayName}</div>
 
-          {/* Theme badge + boss */}
           <div className={s.infoThemeRow}>
             <span
               className={s.themeBadge}
@@ -108,6 +138,12 @@ export default function LocationSelectScreen() {
               <>
                 <span className={s.metaDot}>·</span>
                 <span className={s.diffBadge}>Depth {activeLoc.difficulty}</span>
+              </>
+            )}
+            {activeLoc.is_final_location && (
+              <>
+                <span className={s.metaDot}>·</span>
+                <span className={s.gateBadge}>★ Gate Boss</span>
               </>
             )}
           </div>

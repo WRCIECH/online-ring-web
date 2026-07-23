@@ -212,8 +212,19 @@ const en: TranslationBundle = {
     btn_select_class:   'Select a Class',
     btn_begin_as:       'Begin as',
 
+    // WorldMapScreen
+    world_map_title:         'Online Lands',
+    world_regions_cleared:   'regions cleared',
+    world_difficulty:        'difficulty',
+    world_locked_requires:   'Complete the previous region first',
+    world_map_completed:     'Completed',
+    world_map_enter:         'Enter Region',
+    world_back:              'World Map',
+    game_won_title:          'The Algorithm Falls Silent',
+    game_won_body:           'You have survived shadowbans, hate floods, and burnout. The feed is yours.',
+    game_won_return:         'Return to Title',
+
     // LocationSelectScreen
-    world_map_title:      'Online Lands',
     locations_visited:    'locations visited',
     choose_dungeon_title: 'Choose Your Dungeon',
     choose_dungeon_first: 'Begin your journey — only the first steps are open to you',
