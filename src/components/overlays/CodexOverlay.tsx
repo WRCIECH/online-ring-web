@@ -6,7 +6,6 @@ import WeaponIcon from '../WeaponIcon'
 import {
   HEAVY_TIME_BONUS, FINISHER_MULT,
   FLOW_MULT_HOT, FLOW_MULT_WARM, FLOW_GAP_HOT_MINS, FLOW_GAP_WARM_MINS,
-  CAMPAIGN_PENALTY_BASE, END_MITIGATION_PER_POINT, CAMPAIGN_PENALTY_CAP,
   ABANDON_PENALTY, REPEAT_DAMAGE_PENALTY, REPEAT_PENALTY_PER_RETRY, REPEAT_PENALTY_MAX,
 } from '../../data/constants'
 import { useT } from '../../i18n'
@@ -44,7 +43,6 @@ const PENALTY_MULTS = [
   { key: 'mult_repeatFlat',    value: `−${Math.round(REPEAT_DAMAGE_PENALTY * 100)}%` },
   { key: 'mult_repeatScaling', value: `−${Math.round(REPEAT_PENALTY_PER_RETRY * 100)}% / try (cap −${Math.round(REPEAT_PENALTY_MAX * 100)}%)` },
   { key: 'mult_abandon',       value: `−${Math.round(ABANDON_PENALTY * 100)}%` },
-  { key: 'mult_campaignOverload', value: `−${Math.round(CAMPAIGN_PENALTY_BASE * 100)}% / campaign (cap −${Math.round(CAMPAIGN_PENALTY_CAP * 100)}%)` },
 ] as const
 
 interface Props { onClose: () => void }
@@ -172,11 +170,6 @@ export default function CodexOverlay({ onClose }: Props) {
                       <span className={s.multValuePenalty}>{value}</span>
                     </div>
                     <div className={s.entryDesc}>{ui[`${key}_desc`]}</div>
-                    {key === 'mult_campaignOverload' && (
-                      <div className={s.entryNote}>
-                        {`${Math.round(END_MITIGATION_PER_POINT * 100 * 10) / 10}% mitigation per END point`}
-                      </div>
-                    )}
                   </div>
                 ))}
               </div>

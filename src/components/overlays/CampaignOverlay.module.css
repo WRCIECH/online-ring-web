@@ -1062,3 +1062,56 @@
 }
 
 .btnSellConfirm:hover { color: #f09070; border-color: #e07050; }
+
+/* ── Skip allowance control ─────────────────────────────────────────────── */
+
+.skipAllowanceRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 8px;
+  padding: 6px 10px;
+  background: rgba(80, 60, 160, 0.12);
+  border: 1px solid rgba(100, 80, 200, 0.2);
+  border-radius: var(--radius);
+}
+
+.skipLabel {
+  font-size: 0.72rem;
+  color: var(--color-text-dim);
+  flex-shrink: 0;
+}
+
+.skipBtn {
+  font-size: 0.8rem;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  border-radius: var(--radius);
+  background: transparent;
+  border: 1px solid var(--color-sep);
+  color: var(--color-text);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+  transition: border-color 0.1s, color 0.1s;
+}
+
+.skipBtn:hover:not(:disabled) { border-color: var(--color-border); color: var(--color-accent); }
+.skipBtn:disabled { opacity: 0.35; cursor: not-allowed; }
+
+.skipValue {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--color-text);
+  min-width: 18px;
+  text-align: center;
+}
+
+.skipHint {
+  font-size: 0.68rem;
+  color: var(--color-text-dim);
+  opacity: 0.7;
+}

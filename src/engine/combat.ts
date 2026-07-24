@@ -9,7 +9,6 @@ import {
   HEAVY_TIME_BONUS, DMG_PER_MIN, FINISHER_MULT,
   FLOW_GAP_HOT_MINS, FLOW_GAP_WARM_MINS, FLOW_GAP_COLD_MINS,
   FLOW_MULT_HOT, FLOW_MULT_WARM, FLOW_MULT_COLD, FLOW_MULT_DEAD,
-  CAMPAIGN_PENALTY_BASE, END_MITIGATION_PER_POINT, CAMPAIGN_PENALTY_CAP,
   ESTUS_HEAL_HP,
 } from '../data/constants'
 
@@ -29,7 +28,6 @@ export interface CombatState {
   weaponLevel: number
   playerStats: Stats
   incomingPenalty: number       // from prior abandon; 0.0 = none
-  campaignOverloadMult: number  // damage multiplier from active campaign count vs END
   campaignDoneMult: number      // 1.0 + 0.05 × done_count of the active campaign
   consistencyStreak: number   // consecutive completions without switching weapon/content; resets on either
   // Enemy
@@ -204,7 +202,6 @@ export function previewMove(state: CombatState, tile: WorkflowTile, move: MoveTy
 
   const damage         = Math.round(
     repeatDamage * (1 - repeatPenalty) * (1 - state.incomingPenalty)
-      * state.campaignOverloadMult
       * rewardMult * affinityMult * finisherMult
   )
   const multipliers: DamageMultiplier[] = [
@@ -212,7 +209,6 @@ export function previewMove(state: CombatState, tile: WorkflowTile, move: MoveTy
     { key: 'repeatFlat',        value: 1 - REPEAT_DAMAGE_PENALTY,      active: isRepeat },
     { key: 'repeatScaling',     value: 1 - repeatPenalty,              active: repeatPenalty > 0 },
     { key: 'abandon',           value: 1 - state.incomingPenalty,      active: state.incomingPenalty > 0 },
-    { key: 'campaignOverload',  value: state.campaignOverloadMult,     active: state.campaignOverloadMult < 1.0 },
     { key: 'bonusPool',         value: rewardMult,                     active: rewardMult > 1.0, detail: bonusDetail || undefined },
     { key: 'affinity',          value: affinityMult,                   active: affinityMult !== 1.0 },
     { key: 'finisher',          value: FINISHER_MULT,                  active: wouldFinishAll },
@@ -239,23 +235,6 @@ export function isCampaignFullyDefined(c: WeaponCampaign): boolean {
   )
 }
 
-export function countActiveCampaigns(
-  campaigns: Record<string, WeaponCampaign>,
-  ownedWeaponIds: string[],
-): number {
-  return ownedWeaponIds.filter(wid => {
-    const c = campaigns[wid]
-    return c && c.activated === true && !c.completed
-  }).length
-}
-
-export function calcCampaignOverloadMult(activeCampaigns: number, endurance: number): number {
-  const excess = Math.max(0, activeCampaigns - 1)
-  if (excess === 0) return 1.0
-  const penaltyPerSlot = Math.max(0, CAMPAIGN_PENALTY_BASE - (endurance + 8) * END_MITIGATION_PER_POINT)
-  return 1 - Math.min(CAMPAIGN_PENALTY_CAP, excess * penaltyPerSlot)
-}
-
 // ── Init ──────────────────────────────────────────────────────────────────
 
 export function initCombatState(
@@ -272,7 +251,6 @@ export function initCombatState(
   spawnAsBoss = false,
   locationTheme?: LocationTheme,
   flowMult = 1.0,
-  campaignOverloadMult = 1.0,
   campaignDoneMult = 1.0,
   initialStreak = 0,
   lastFightEndedAt?: number,
@@ -292,7 +270,6 @@ export function initCombatState(
     playerEstus,
     equippedWeaponId, weaponLevel, playerStats,
     incomingPenalty,
-    campaignOverloadMult,
     campaignDoneMult,
     consistencyStreak: initialStreak,
     enemyData: effectiveEnemy, isBoss,
@@ -312,9 +289,6 @@ export function initCombatState(
   state = log(state, effectiveEnemy.description, '#7a7570')
   if (incomingPenalty > 0) {
     state = log(state, `⚠ Abandon penalty active: −${Math.round(incomingPenalty * 100)}% damage.`, '#cc6622')
-  }
-  if (campaignOverloadMult < 1.0) {
-    state = log(state, `⚠ Campaign overload: −${Math.round((1 - campaignOverloadMult) * 100)}% damage.`, '#cc6622')
   }
   if (campaignDoneMult > 1.0) {
     state = log(state, `⚡ Campaign mastery: +${Math.round((campaignDoneMult - 1) * 100)}% damage.`, '#88dd99')
@@ -427,7 +401,6 @@ export function combatReducer(state: CombatState, action: CombatAction): CombatS
       const repeatDamage  = isRepeat ? Math.round(rawDamage * (1 - REPEAT_DAMAGE_PENALTY)) : rawDamage
       const damage        = Math.round(
         repeatDamage * (1 - repeatPenalty) * (1 - state.incomingPenalty)
-          * state.campaignOverloadMult
           * rewardMult * affinityMult * finisherMult
       )
       const newEnemyHp    = Math.max(0, state.enemyHp - damage)

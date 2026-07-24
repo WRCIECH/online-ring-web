@@ -1,6 +1,6 @@
 import { useReducer, useEffect, useCallback, useState, useMemo, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { combatReducer, initCombatState, getReachableTiles, previewMove, formatMultiplierPct, calcTileDamage, calcFlowMult, calcCampaignOverloadMult, countActiveCampaigns, ABANDON_PENALTY } from '../engine/combat'
+import { combatReducer, initCombatState, getReachableTiles, previewMove, formatMultiplierPct, calcTileDamage, calcFlowMult, ABANDON_PENALTY } from '../engine/combat'
 import { FLOW_GAP_HOT_MINS, FLOW_GAP_WARM_MINS } from '../data/constants'
 import { useGameStore, selectAvailableNodes } from '../store/gameStore'
 import { ENEMIES } from '../data/enemies'
@@ -104,8 +104,6 @@ export default function CombatScreen() {
       const workflow = (store.active_content_id ? store.workflow_progress[store.active_content_id] : undefined)
         ?? generateWorkflow(initialWeaponClass, initialWeaponRarity, spawnAsBoss, initialContentType)
 
-      const activeCampaignCount = countActiveCampaigns(store.weapon_campaigns, store.owned_weapons)
-      const campaignOverloadMult = calcCampaignOverloadMult(activeCampaignCount, store.stats.END)
       const campaignDoneMult = 1.0 + 0.05 * (activeWeaponCampaign?.done_count ?? 0)
 
       const initialStreak = store.active_content_id ? (store.content_streak[store.active_content_id] ?? 0) : 0
@@ -120,7 +118,6 @@ export default function CombatScreen() {
         spawnAsBoss,
         loc.locationTheme,
         initialFlowMult,
-        campaignOverloadMult,
         campaignDoneMult,
         initialStreak,
         store.last_fight_ended_at,
@@ -556,12 +553,6 @@ export default function CombatScreen() {
             label: `✦ ${tui.mult_campaignDone} +${Math.round((state.campaignDoneMult - 1) * 100)}%`,
             cls: s.badgeStreak,
             tooltip: tui.mult_campaignDone_desc,
-          },
-          state.campaignOverloadMult < 1.0 && {
-            key: 'overload',
-            label: `⚠ ${tui.mult_campaignOverload} −${Math.round((1 - state.campaignOverloadMult) * 100)}%`,
-            cls: s.badgeDebuff,
-            tooltip: tui.mult_campaignOverload_desc,
           },
           state.incomingPenalty > 0 && {
             key: 'abandon',

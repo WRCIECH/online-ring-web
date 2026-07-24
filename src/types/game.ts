@@ -199,11 +199,12 @@ export interface WeaponCampaign {
   nodes: CampaignNode[]
   edges: CampaignEdge[]
   created_at: number
-  completed: boolean            // >= 60% of nodes published
-  campaign_name?: string        // player-editable title
-  activated?: boolean           // false = draft, true = counts toward overload penalty
-  done_count?: number           // times finalized across all weapons; drives +5%/completion damage mult
+  completed: boolean
+  campaign_name?: string
+  activated?: boolean           // false = draft; true = in progress (editing blocked)
+  done_count?: number           // times finalized; drives +5%/completion damage mult
   ordinal?: number              // sequential number for this weapon (1 = first, 2 = after first finalization, …)
+  skip_allowance?: number       // nodes that may be left unpublished; 0 = all required; max = END stat
 }
 
 // ── Game state ────────────────────────────────────────────────────────────

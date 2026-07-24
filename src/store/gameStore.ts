@@ -301,6 +301,7 @@ export interface GameStore extends GameState {
   applyLibraryCampaignToWeapon: (campaignId: string, weaponId: string) => void
   activateCampaign:             (weaponId: string) => void
   detachCampaign:               (weaponId: string) => void
+  setCampaignSkipAllowance:     (weaponInstanceId: string, value: number) => void
 
   // Campaign modification actions (spend stat modification slots on inactive campaigns)
   modifyNodeContentType: (weaponId: string, nodeId: string, newType: ContentProductType, stat: StatKey) => boolean
@@ -563,7 +564,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
   assignCampaignToWeapon: (weaponId, defaultName) => {
     const weapon = get().weapon_instances.find(w => w.instance_id === weaponId)
     if (!weapon) return
-    const campaign = { ...generateWeaponCampaign(weapon), activated: false, campaign_name: defaultName }
+    const campaign = { ...generateWeaponCampaign(weapon), activated: false, campaign_name: defaultName, skip_allowance: get().stats.END }
     set(s => ({ weapon_campaigns: { ...s.weapon_campaigns, [weaponId]: campaign } }))
     get().save()
   },
@@ -591,7 +592,8 @@ export const useGameStore = create<GameStore>((set, get) => ({
       const updated: CampaignNode = { ...node, completed: true }
       const nodes = c.nodes.map(n => n.id === nodeId ? updated : n)
       const publishedCount = nodes.filter(n => n.published).length
-      const campaignDone = publishedCount / nodes.length >= 0.6
+      const skipAllowance = c.skip_allowance ?? 0
+      const campaignDone = publishedCount >= nodes.length - skipAllowance
       const { [nodeId]: _, ...streakRest } = s.content_streak
       return {
         weapon_campaigns: {
@@ -610,7 +612,8 @@ export const useGameStore = create<GameStore>((set, get) => ({
       if (!c) return s
       const nodes = c.nodes.map(n => n.id === nodeId ? { ...n, published: true } : n)
       const publishedCount = nodes.filter(n => n.published).length
-      const campaignDone = publishedCount / nodes.length >= 0.6
+      const skipAllowance = c.skip_allowance ?? 0
+      const campaignDone = publishedCount >= nodes.length - skipAllowance
       const updatedCampaign = { ...c, nodes, completed: campaignDone }
       const library = campaignDone
         ? [...s.campaign_library.filter(lc => lc.id !== updatedCampaign.id), updatedCampaign]
@@ -636,7 +639,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
     const libraryEntry = get().campaign_library.find(c => c.id === campaignId)
     const weapon = get().weapon_instances.find(w => w.instance_id === weaponId)
     if (!libraryEntry || !weapon) return
-    const fresh = { ...generateWeaponCampaign(weapon), campaign_name: libraryEntry.campaign_name, activated: false }
+    const fresh = { ...generateWeaponCampaign(weapon), campaign_name: libraryEntry.campaign_name, activated: false, skip_allowance: get().stats.END }
     set(s => ({ weapon_campaigns: { ...s.weapon_campaigns, [weaponId]: fresh } }))
     get().save()
   },
@@ -655,6 +658,23 @@ export const useGameStore = create<GameStore>((set, get) => ({
       const c = s.weapon_campaigns[weaponId]
       if (!c) return s
       return { weapon_campaigns: { ...s.weapon_campaigns, [weaponId]: { ...c, activated: false } } }
+    })
+    get().save()
+  },
+
+  setCampaignSkipAllowance: (weaponId, value) => {
+    set(s => {
+      const c = s.weapon_campaigns[weaponId]
+      if (!c || c.activated) return s
+      const clamped = Math.max(0, Math.min(s.stats.END, value))
+      const publishedCount = c.nodes.filter(n => n.published).length
+      const campaignDone = publishedCount >= c.nodes.length - clamped
+      return {
+        weapon_campaigns: {
+          ...s.weapon_campaigns,
+          [weaponId]: { ...c, skip_allowance: clamped, completed: campaignDone },
+        },
+      }
     })
     get().save()
   },
@@ -796,7 +816,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
       const newDoneCount = (campaign.done_count ?? 0) + 1
       const updated = { ...campaign, done_count: newDoneCount }
 
-      const freshCampaign = { ...generateWeaponCampaign(weapon), activated: false, ordinal: newDoneCount + 1, campaign_name: freshCampaignName }
+      const freshCampaign = { ...generateWeaponCampaign(weapon), activated: false, ordinal: newDoneCount + 1, campaign_name: freshCampaignName, skip_allowance: get().stats.END }
 
       return {
         weapon_campaigns: { ...s.weapon_campaigns, [weaponId]: freshCampaign },

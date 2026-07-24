@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from 'react'
 import { useGameStore, selectRemainingModifications } from '../../store/gameStore'
 import { isNodeAvailable } from '../../data/generators/campaignGenerator'
-import { calcCampaignOverloadMult, countActiveCampaigns, isCampaignFullyDefined } from '../../engine/combat'
+import { isCampaignFullyDefined } from '../../engine/combat'
 import { LEVEL_MULT, weaponUpgradeCost, calcWeaponScaledDamage, calcWeaponSellPrice } from '../../data/weapons'
 import { WEAPON_CLASSES } from '../../data/generators/weaponClasses'
 import { MODIFICATION_STATS, STAT_CONTENT_TYPES, STAT_TRANSFORMATIONS } from '../../data/statModifications'
@@ -383,12 +383,10 @@ export default function CampaignOverlay({ onClose }: Props) {
                   const roots = getRoots(nodes, edges)
                   const publishedCount  = nodes.filter(n => n.published).length
                   const namedCount     = nodes.filter(n => n.name.trim()).length
-                  const targetPublished = Math.ceil(nodes.length * 0.6)
+                  const skipAllowance  = campaign.skip_allowance ?? 0
+                  const targetPublished = nodes.length - skipAllowance
                   const needMore       = Math.max(0, targetPublished - publishedCount)
                   const weaponId = selectedWeapon.instance_id
-
-                  const activeCampaignCount = countActiveCampaigns(store.weapon_campaigns, store.owned_weapons)
-                  const overloadMult = calcCampaignOverloadMult(activeCampaignCount, store.stats.END)
 
                   const campaignOrdinal = campaign.ordinal ?? 1
                   const defaultCampaignName = `Kampania #${campaignOrdinal} · ${localizeWeaponName(selectedWeapon, t)}`
@@ -396,11 +394,6 @@ export default function CampaignOverlay({ onClose }: Props) {
 
                   const isFullyDefined = isCampaignFullyDefined(campaign)
                   const isActivated = campaign.activated === true
-
-                  // For activation confirm preview
-                  const futureCount = activeCampaignCount + 1
-                  const futureOverloadMult = calcCampaignOverloadMult(futureCount, store.stats.END)
-                  const futurePenaltyPct = Math.round((1 - futureOverloadMult) * 100)
 
                   // Library suggestions for combobox
                   const libSuggestions = store.campaign_library.filter(lc =>
@@ -514,15 +507,35 @@ export default function CampaignOverlay({ onClose }: Props) {
                           )
                         )}
 
+                        {/* Skip allowance control — only editable when not activated */}
+                        {!isActivated && (
+                          <div className={s.skipAllowanceRow}>
+                            <span className={s.skipLabel}>
+                              {(t.ui as Record<string, string>).campaign_skip_allowance ?? 'Skip allowance'}
+                            </span>
+                            <button
+                              className={s.skipBtn}
+                              disabled={skipAllowance <= 0}
+                              onClick={() => store.setCampaignSkipAllowance(weaponId, skipAllowance - 1)}
+                            >−</button>
+                            <span className={s.skipValue}>{skipAllowance}</span>
+                            <button
+                              className={s.skipBtn}
+                              disabled={skipAllowance >= store.stats.END}
+                              onClick={() => store.setCampaignSkipAllowance(weaponId, skipAllowance + 1)}
+                            >+</button>
+                            <span className={s.skipHint}>
+                              / {store.stats.END} {(t.ui as Record<string, string>).campaign_skip_hint ?? 'nodes may be left unpublished'}
+                            </span>
+                          </div>
+                        )}
+
                         {/* Activation section */}
                         {!campaign.completed && !isActivated && (
                           showActivateConfirm ? (
                             <div className={s.activateConfirm}>
                               <span className={s.activateConfirmText}>
-                                Will count as #{futureCount} active campaign.
-                                {futurePenaltyPct > 0
-                                  ? ` Penalty: −${futurePenaltyPct}% dmg (END ${store.stats.END}).`
-                                  : ` No penalty at END ${store.stats.END}.`}
+                                {(t.ui as Record<string, string>).campaign_activate_confirm ?? 'Activate this campaign? You won\'t be able to edit it while active.'}
                               </span>
                               <div className={s.activateActions}>
                                 <button
@@ -549,16 +562,6 @@ export default function CampaignOverlay({ onClose }: Props) {
                               Activate Campaign
                             </button>
                           )
-                        )}
-                        {isActivated && !campaign.completed && overloadMult < 1.0 && (
-                          <span className={s.overloadWarning}>
-                            ⚠ {activeCampaignCount} active · END {store.stats.END} → −{Math.round((1 - overloadMult) * 100)}% dmg
-                          </span>
-                        )}
-                        {isActivated && !campaign.completed && overloadMult >= 1.0 && activeCampaignCount > 1 && (
-                          <span className={s.overloadOk}>
-                            {activeCampaignCount} active · no penalty
-                          </span>
                         )}
 
                         {isActivated && !campaign.completed && (
