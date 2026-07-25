@@ -384,6 +384,8 @@ export default function CampaignOverlay({ onClose }: Props) {
                   const publishedCount  = nodes.filter(n => n.published).length
                   const namedCount     = nodes.filter(n => n.name.trim()).length
                   const skipAllowance  = campaign.skip_allowance ?? 0
+                  const allSkipsUsed   = Object.values(store.weapon_campaigns).reduce((sum, c) => sum + (c.skip_allowance ?? 0), 0)
+                  const poolRemaining  = store.stats.END - allSkipsUsed
                   const targetPublished = nodes.length - skipAllowance
                   const needMore       = Math.max(0, targetPublished - publishedCount)
                   const weaponId = selectedWeapon.instance_id
@@ -521,11 +523,11 @@ export default function CampaignOverlay({ onClose }: Props) {
                             <span className={s.skipValue}>{skipAllowance}</span>
                             <button
                               className={s.skipBtn}
-                              disabled={skipAllowance >= store.stats.END}
+                              disabled={poolRemaining <= 0}
                               onClick={() => store.setCampaignSkipAllowance(weaponId, skipAllowance + 1)}
                             >+</button>
                             <span className={s.skipHint}>
-                              / {store.stats.END} {(t.ui as Record<string, string>).campaign_skip_hint ?? 'nodes may be left unpublished'}
+                              {poolRemaining} / {store.stats.END} {(t.ui as Record<string, string>).campaign_skip_hint ?? 'pool remaining'}
                             </span>
                           </div>
                         )}
