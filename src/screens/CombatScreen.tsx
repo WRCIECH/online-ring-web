@@ -22,6 +22,18 @@ import { DEFAULT_MUSIC_TRACKS } from '../data/combatMusic'
 import { useT } from '../i18n'
 import s from './CombatScreen.module.css'
 
+// Disables a button for `delayMs` after its trigger goes true, preventing accidental / double-click misfire.
+function useTimeLocked(active: boolean, delayMs: number): boolean {
+  const [ready, setReady] = useState(false)
+  useEffect(() => {
+    if (!active) { setReady(false); return }
+    setReady(false)
+    const id = setTimeout(() => setReady(true), delayMs)
+    return () => clearTimeout(id)
+  }, [active, delayMs])
+  return ready
+}
+
 const MOVE_DEFS: Array<{ move: MoveType; label: string; desc: string; colorVar: string }> = [
   { move: 'Light', label: 'Light', desc: 'Less time',                  colorVar: '#88aadd' },
   { move: 'Heavy', label: 'Heavy', desc: 'More time, bonus for it',    colorVar: '#dd9977' },
@@ -260,6 +272,12 @@ export default function CombatScreen() {
   const [showAbandonConfirm,    setShowAbandonConfirm]    = useState(false)
   const [showWorkflowDonePrompt, setShowWorkflowDonePrompt] = useState(false)
   const [showAdvancePicker,      setShowAdvancePicker]      = useState(false)
+
+  // ── Time-locks: buttons become interactive only after the overlay has been visible for a moment ──
+  const abandonBtnReady = useTimeLocked(showAbandonConfirm,           700)
+  const victoryBtnReady = useTimeLocked(state.phase === 'VICTORY',    600)
+  const defeatBtnReady  = useTimeLocked(state.phase === 'DEFEAT',     600)
+  const fledBtnReady    = useTimeLocked(state.phase === 'FLED',       600)
   const workflowDoneShownRef = useRef(false)
   const [selectedContentId, setSelectedContentId] = useState<string | null>(
     store.active_content_id ?? null
@@ -672,16 +690,28 @@ export default function CombatScreen() {
                   {(t.ui as Record<string, string>).victory_content_done_prompt}
                 </div>
                 <div className={s.confirmActions}>
-                  <button className={s.finalizeBtn} onClick={() => doVictoryEnd(true)}>
+                  <button
+                    className={[s.finalizeBtn, !victoryBtnReady ? s.btnLocked : ''].filter(Boolean).join(' ')}
+                    style={!victoryBtnReady ? { '--lock-ms': '600ms' } as React.CSSProperties : undefined}
+                    onClick={() => doVictoryEnd(true)}
+                  >
                     {(t.ui as Record<string, string>).victory_finalize_yes}
                   </button>
-                  <button className={s.btnCancel} onClick={() => doVictoryEnd(false)}>
+                  <button
+                    className={[s.btnCancel, !victoryBtnReady ? s.btnLocked : ''].filter(Boolean).join(' ')}
+                    style={!victoryBtnReady ? { '--lock-ms': '600ms' } as React.CSSProperties : undefined}
+                    onClick={() => doVictoryEnd(false)}
+                  >
                     {(t.ui as Record<string, string>).victory_finalize_no}
                   </button>
                 </div>
               </div>
             ) : (
-              <button className={s.endBtn} onClick={() => doVictoryEnd(false)}>
+              <button
+                className={[s.endBtn, !victoryBtnReady ? s.btnLocked : ''].filter(Boolean).join(' ')}
+                style={!victoryBtnReady ? { '--lock-ms': '600ms' } as React.CSSProperties : undefined}
+                onClick={() => doVictoryEnd(false)}
+              >
                 Continue →
               </button>
             )}
@@ -698,7 +728,13 @@ export default function CombatScreen() {
               The corruption overwhelmed you.<br />
               {store.runes > 0 ? `✦ ${store.runes} runes dropped here.` : 'Your run ends.'}
             </div>
-            <button className={s.endBtn} onClick={handleDefeat}>Return</button>
+            <button
+              className={[s.endBtn, !defeatBtnReady ? s.btnLocked : ''].filter(Boolean).join(' ')}
+              style={!defeatBtnReady ? { '--lock-ms': '600ms' } as React.CSSProperties : undefined}
+              onClick={handleDefeat}
+            >
+              Return
+            </button>
           </div>
         </div>
       )}
@@ -722,12 +758,14 @@ export default function CombatScreen() {
               <li className={s.abandonCon}>✗ −{Math.round(ABANDON_PENALTY * 100)}% rewards on your next run's first workflow.</li>
               <li className={s.abandonPro}>✓ Your banked runes stay safe — nothing drops here, unlike a defeat.</li>
             </ul>
-            <div className={s.confirmActions}>
+            <div className={s.confirmActionsStack}>
               <button className={s.btnCancel} onClick={() => setShowAbandonConfirm(false)}>
                 Keep fighting
               </button>
+              <div className={s.dangerSeparator} />
               <button
-                className={s.btnConfirmDanger}
+                className={[s.btnConfirmDanger, !abandonBtnReady ? s.btnLocked : ''].filter(Boolean).join(' ')}
+                style={!abandonBtnReady ? { '--lock-ms': '700ms' } as React.CSSProperties : undefined}
                 onClick={() => { setShowAbandonConfirm(false); dispatch({ type: 'ABANDON' }) }}
               >
                 Abandon anyway
@@ -746,7 +784,13 @@ export default function CombatScreen() {
               You abandoned the workflow.<br />
               Next workflow rewards will be penalised by {Math.round(ABANDON_PENALTY * 100)}%.
             </div>
-            <button className={s.endBtn} onClick={handleFlee}>Return</button>
+            <button
+              className={[s.endBtn, !fledBtnReady ? s.btnLocked : ''].filter(Boolean).join(' ')}
+              style={!fledBtnReady ? { '--lock-ms': '600ms' } as React.CSSProperties : undefined}
+              onClick={handleFlee}
+            >
+              Return
+            </button>
           </div>
         </div>
       )}

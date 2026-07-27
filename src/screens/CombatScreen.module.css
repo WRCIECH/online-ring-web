@@ -451,3 +451,29 @@
   letter-spacing: 0.04em;
   animation: lootItemReveal 0.3s ease both;
 }
+
+/* ── Time-lock: prevents accidental / double-click on dangerous confirm buttons ── */
+
+@keyframes lockFadeIn {
+  from { opacity: 0.28; }
+  to   { opacity: 1; }
+}
+
+.btnLocked {
+  pointer-events: none;
+  animation: lockFadeIn var(--lock-ms, 700ms) linear forwards;
+}
+
+/* Stacked layout for the abandon confirm — safe action on top, danger below */
+.confirmActionsStack {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0;
+}
+
+.dangerSeparator {
+  height: 1px;
+  background: rgba(180, 30, 30, 0.25);
+  margin: 14px 0 12px;
+}
