@@ -3,6 +3,7 @@ import { useGameStore, selectRemainingModifications } from '../../store/gameStor
 import { isNodeAvailable } from '../../data/generators/campaignGenerator'
 import { isCampaignFullyDefined } from '../../engine/combat'
 import { LEVEL_MULT, weaponUpgradeCost, calcWeaponScaledDamage, calcWeaponSellPrice } from '../../data/weapons'
+import { STAGE_TIME, calcWorkflowTileCounts } from '../../data/generators/workflowGenerator'
 import { WEAPON_CLASSES } from '../../data/generators/weaponClasses'
 import { MODIFICATION_STATS, STAT_CONTENT_TYPES, STAT_TRANSFORMATIONS } from '../../data/statModifications'
 import type { CampaignNode, CampaignEdge, WeaponCampaign, WeaponInstance, StatKey, ContentProductType } from '../../types/game'
@@ -319,10 +320,24 @@ export default function CampaignOverlay({ onClose }: Props) {
                     <div className={s.weaponInfoLeft}>
                       <span className={s.weaponLevel}>+{level}</span>
                       <span className={s.statChip}>×{(dmgCurrent / 100).toFixed(2)} dmg</span>
-                      {classDef && <>
-                        <span className={s.statChip}>+{((LEVEL_MULT[selectedWeapon.rarity] ?? 0.03) * 100).toFixed(0)}% / lv</span>
-                        <span className={s.statChip}>×{classDef.base_damage_mult} base</span>
-                      </>}
+                      {classDef && (() => {
+                        const { research, produce } = calcWorkflowTileCounts(selectedWeapon.weapon_class, selectedWeapon.rarity)
+                        const lightSecs = Math.round(STAGE_TIME.Research.light * classDef.time_mod)
+                        const lightMin  = Math.floor(lightSecs / 60)
+                        const lightSec  = lightSecs % 60
+                        const lightFmt  = lightMin > 0
+                          ? (lightSec > 0 ? `${lightMin}m ${lightSec}s` : `${lightMin}m`)
+                          : `${lightSec}s`
+                        return (
+                          <>
+                            <span className={s.statChip}>+{((LEVEL_MULT[selectedWeapon.rarity] ?? 0.03) * 100).toFixed(0)}% / lv</span>
+                            <span className={s.statChip}>×{classDef.base_damage_mult} base</span>
+                            <span className={s.statChipResearch} title="Research tiles × light-attack time each">R×{research}</span>
+                            <span className={s.statChipProduce}  title="Produce tiles × light-attack time each">P×{produce}</span>
+                            <span className={s.statChip} title="Light-attack duration per tile">{lightFmt} / tile</span>
+                          </>
+                        )
+                      })()}
                     </div>
                     <div className={s.weaponInfoActions}>
                       {/* Upgrade */}

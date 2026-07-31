@@ -50,6 +50,17 @@ const RARITY_EXTRA: Record<WeaponRarity, number> = {
   common: 0, Intellectual: 1, rare: 2, epic: 3, legendary: 4,
 }
 
+export function calcWorkflowTileCounts(
+  weaponClass: WeaponClass,
+  rarity: WeaponRarity,
+): { research: number; produce: number } {
+  const cls = WEAPON_CLASSES[weaponClass]
+  const rarityBonus = RARITY_EXTRA[rarity] ?? 0
+  const research = Math.max(1, Math.round(cls.poise_weight * cls.research_weight))
+  const produce  = Math.max(1, cls.poise_weight - research + rarityBonus)
+  return { research, produce }
+}
+
 // ── UID ───────────────────────────────────────────────────────────────────
 
 let _seq = 0

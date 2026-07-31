@@ -886,6 +886,26 @@
   padding: 2px 7px;
 }
 
+.statChipResearch {
+  font-family: var(--font-meta);
+  font-size: 0.7rem;
+  color: #7ab8e0;
+  background: rgba(100, 160, 220, 0.08);
+  border: 1px solid rgba(100, 160, 220, 0.25);
+  border-radius: 3px;
+  padding: 2px 7px;
+}
+
+.statChipProduce {
+  font-family: var(--font-meta);
+  font-size: 0.7rem;
+  color: #e0a060;
+  background: rgba(220, 140, 60, 0.08);
+  border: 1px solid rgba(220, 140, 60, 0.25);
+  border-radius: 3px;
+  padding: 2px 7px;
+}
+
 /* ── Workflow sequence ──────────────────────────────────────────────────── */
 
 .sequenceWrap {
