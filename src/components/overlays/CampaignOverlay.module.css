@@ -887,6 +887,7 @@
 }
 
 .statChipResearch {
+  position: relative;
   font-family: var(--font-meta);
   font-size: 0.7rem;
   color: #7ab8e0;
@@ -897,6 +898,7 @@
 }
 
 .statChipProduce {
+  position: relative;
   font-family: var(--font-meta);
   font-size: 0.7rem;
   color: #e0a060;
@@ -905,6 +907,33 @@
   border-radius: 3px;
   padding: 2px 7px;
 }
+
+.statChipResearch[data-tooltip]::after,
+.statChipProduce[data-tooltip]::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  background: rgba(14, 12, 32, 0.97);
+  border: 1px solid rgba(100, 80, 200, 0.35);
+  border-radius: 6px;
+  padding: 7px 11px;
+  font-size: 0.72rem;
+  font-weight: 400;
+  color: rgba(210, 200, 255, 0.9);
+  white-space: normal;
+  width: max-content;
+  max-width: 240px;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.12s;
+  z-index: 60;
+  line-height: 1.55;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+}
+
+.statChipResearch[data-tooltip]:hover::after,
+.statChipProduce[data-tooltip]:hover::after { opacity: 1; }
 
 /* ── Workflow sequence ──────────────────────────────────────────────────── */
 

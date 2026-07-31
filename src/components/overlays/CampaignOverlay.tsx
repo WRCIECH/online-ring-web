@@ -332,9 +332,9 @@ export default function CampaignOverlay({ onClose }: Props) {
                           <>
                             <span className={s.statChip}>+{((LEVEL_MULT[selectedWeapon.rarity] ?? 0.03) * 100).toFixed(0)}% / lv</span>
                             <span className={s.statChip}>×{classDef.base_damage_mult} base</span>
-                            <span className={s.statChipResearch} title="Research tiles × light-attack time each">R×{research}</span>
-                            <span className={s.statChipProduce}  title="Produce tiles × light-attack time each">P×{produce}</span>
-                            <span className={s.statChip} title="Light-attack duration per tile">{lightFmt} / tile</span>
+                            <span className={s.statChipResearch} data-tooltip="Research tiles per content node">R×{research}</span>
+                            <span className={s.statChipProduce}  data-tooltip="Produce tiles per content node">P×{produce}</span>
+                            <span className={s.statChip}>{lightFmt} / tile</span>
                           </>
                         )
                       })()}
