@@ -582,24 +582,39 @@ export default function CampaignOverlay({ onClose }: Props) {
                         )}
 
                         {isActivated && !campaign.completed && (
-                          confirmDetachId === weaponId ? (
+                          confirmDetachId === weaponId ? (() => {
+                            const forfeitCharges = campaign.nodes.reduce((sum, n) => {
+                              if (!n.published) return sum
+                              const base = n.superhit_used ? 0 : 1
+                              const promotes = Math.max(0, (n.promote_count ?? 0) - (n.promotes_consumed ?? 0))
+                              return sum + base + promotes
+                            }, 0) + ((store.weapon_pending_superhits ?? {})[weaponId] ?? 0)
+                            return (
                             <div className={s.detachConfirm}>
-                              <button
-                                className={s.btnDetachConfirm}
-                                onClick={() => {
-                                  store.detachCampaign(weaponId)
-                                  setConfirmDetachId(null)
-                                  setShowActivateConfirm(false)
-                                  setConfirmFinalize(false)
-                                }}
-                              >
-                                {(t.ui as Record<string, string>).btn_detach_confirm ?? 'Abandon?'}
-                              </button>
-                              <button className={s.btnActivateCancel} onClick={() => setConfirmDetachId(null)}>
-                                {t.ui.btn_cancel ?? 'Cancel'}
-                              </button>
+                              {forfeitCharges > 0 && (
+                                <div className={s.detachWarning}>
+                                  ⚠ {(t.ui as Record<string, string>).detach_superhit_warning?.replace('{n}', String(forfeitCharges)) ?? `Forfeits ${forfeitCharges} superhit charge${forfeitCharges !== 1 ? 's' : ''}`}
+                                </div>
+                              )}
+                              <div className={s.detachConfirmButtons}>
+                                <button
+                                  className={s.btnDetachConfirm}
+                                  onClick={() => {
+                                    store.detachCampaign(weaponId)
+                                    setConfirmDetachId(null)
+                                    setShowActivateConfirm(false)
+                                    setConfirmFinalize(false)
+                                  }}
+                                >
+                                  {(t.ui as Record<string, string>).btn_detach_confirm ?? 'Abandon?'}
+                                </button>
+                                <button className={s.btnActivateCancel} onClick={() => setConfirmDetachId(null)}>
+                                  {t.ui.btn_cancel ?? 'Cancel'}
+                                </button>
+                              </div>
                             </div>
-                          ) : (
+                            )
+                          })() : (
                             <button
                               className={s.btnDetach}
                               onClick={() => setConfirmDetachId(weaponId)}

@@ -655,7 +655,19 @@ export const useGameStore = create<GameStore>((set, get) => ({
     set(s => {
       const c = s.weapon_campaigns[weaponId]
       if (!c) return s
-      return { weapon_campaigns: { ...s.weapon_campaigns, [weaponId]: { ...c, activated: false } } }
+      const zeroed = {
+        ...c,
+        activated: false,
+        nodes: c.nodes.map(n => ({
+          ...n,
+          superhit_used: true,
+          promotes_consumed: n.promote_count ?? 0,
+        })),
+      }
+      return {
+        weapon_campaigns: { ...s.weapon_campaigns, [weaponId]: zeroed },
+        weapon_pending_superhits: { ...(s.weapon_pending_superhits ?? {}), [weaponId]: 0 },
+      }
     })
     get().save()
   },

@@ -388,6 +388,7 @@ const pl: TranslationBundle = {
     workflow_done_repeat:        'Zostań i powtarzaj kafelki',
     btn_detach_campaign:     'Odepnij kampanię',
     btn_detach_confirm:      'Porzucić?',
+    detach_superhit_warning: 'Utracisz {n} ładunek/ładunki superciosu — nie do odzyskania.',
     campaign_done_count:     'Ukończone',
     campaign_done_bonus:     'bonus dmg',
     mult_campaignDone:      'Mistrzostwo kampanii',

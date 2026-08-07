@@ -393,6 +393,7 @@ const en: TranslationBundle = {
     workflow_done_repeat:        'Stay and repeat tiles',
     btn_detach_campaign:     'Detach Campaign',
     btn_detach_confirm:      'Abandon?',
+    detach_superhit_warning: 'Forfeits {n} superhit charge(s) — cannot be recovered.',
     campaign_done_count:     'Completed',
     campaign_done_bonus:     'dmg bonus',
     mult_campaignDone:      'Campaign mastery',

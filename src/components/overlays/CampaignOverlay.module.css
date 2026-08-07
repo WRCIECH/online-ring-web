@@ -337,9 +337,25 @@
 
 .detachConfirm {
   display: flex;
-  align-items: center;
+  flex-direction: column;
+  align-items: flex-start;
   gap: 6px;
   flex-shrink: 0;
+}
+
+.detachWarning {
+  font-size: 0.62rem;
+  color: #cc8844;
+  padding: 3px 6px;
+  background: rgba(200,120,40,0.12);
+  border: 1px solid rgba(200,120,40,0.30);
+  border-radius: 3px;
+}
+
+.detachConfirmButtons {
+  display: flex;
+  align-items: center;
+  gap: 6px;
 }
 
 .btnDetachConfirm {
