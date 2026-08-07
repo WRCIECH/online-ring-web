@@ -257,6 +257,8 @@ export interface GameState {
   campaign_library: WeaponCampaign[]
   // Analytics
   total_task_time_s: number
+  // Real wall-clock seconds spent per content node, split by stage
+  node_time_spent: Record<string, { Research: number; Produce: number }>
   last_fight_ended_at?: number   // epoch ms; updated on fight VICTORY, used to compute flow mult
   // UI locale
   locale: Locale

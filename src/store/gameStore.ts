@@ -231,6 +231,7 @@ function initialState(): GameState {
     campaign_library: [],
 
     total_task_time_s: 0,
+    node_time_spent: {},
     locale: 'pl',
     stat_modifications_used: {},
     completed_regions: [],
@@ -321,6 +322,7 @@ export interface GameStore extends GameState {
 
   // Analytics
   addTaskTime: (seconds: number) => void
+  recordNodeTime: (nodeId: string, stage: 'Research' | 'Produce', seconds: number) => void
 
   // World regions
   setCurrentRegion: (regionId: string) => void
@@ -897,6 +899,20 @@ export const useGameStore = create<GameStore>((set, get) => ({
     get().save()
   },
 
+  recordNodeTime: (nodeId, stage, seconds) => {
+    set(s => {
+      const prev = s.node_time_spent[nodeId] ?? { Research: 0, Produce: 0 }
+      return {
+        total_task_time_s: (s.total_task_time_s ?? 0) + seconds,
+        node_time_spent: {
+          ...s.node_time_spent,
+          [nodeId]: { ...prev, [stage]: prev[stage] + seconds },
+        },
+      }
+    })
+    get().save()
+  },
+
   recordFightEnd: () => { set({ last_fight_ended_at: Date.now() }); get().save() },
 
   addReward: (tier) => {
@@ -971,6 +987,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
       if (c && c.activated === undefined) c.activated = true
     }
     if (!data.total_task_time_s)    data.total_task_time_s    = 0
+    if (!data.node_time_spent)      data.node_time_spent      = {}
     if (data.active_content_id === undefined)  data.active_content_id  = null
     if (data.pending_weapon_id === undefined)  data.pending_weapon_id  = null
     if (!data.content_streak)                  data.content_streak     = {}

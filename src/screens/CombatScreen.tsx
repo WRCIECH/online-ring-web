@@ -285,6 +285,22 @@ export default function CombatScreen() {
     store.active_content_id ?? null
   )
 
+  // Wraps dispatch to record real wall-clock time spent per node/stage on success
+  const selectedContentIdRef = useRef(selectedContentId)
+  useEffect(() => { selectedContentIdRef.current = selectedContentId }, [selectedContentId])
+  const trackedDispatch = useCallback((action: Parameters<typeof dispatch>[0]) => {
+    if (action.type === 'TIMER_RESULT' && action.accomplished) {
+      const s = stateRef.current
+      const elapsed = Math.round(s.stepTotal - s.stepTimer)
+      const nodeId  = selectedContentIdRef.current
+      const stage   = s.pendingTile?.type
+      if (nodeId && stage && elapsed > 0) {
+        store.recordNodeTime(nodeId, stage, elapsed)
+      }
+    }
+    dispatch(action)
+  }, [store])
+
   // Switches weapon + content from the bottom bar dropdown; streak always resets to 0
   const handleSelectContent = useCallback((weaponId: string, contentId: string) => {
     const cur = stateRef.current
@@ -659,7 +675,7 @@ export default function CombatScreen() {
 
       {/* ── Timer overlay ──────────────────────────────────────────────── */}
       {state.phase === 'STEP_TIMER' && (
-        <TimerOverlay state={state} dispatch={dispatch} contentName={selectedContent?.name} />
+        <TimerOverlay state={state} dispatch={trackedDispatch} contentName={selectedContent?.name} />
       )}
 
       {/* ── Victory overlay ────────────────────────────────────────────── */}

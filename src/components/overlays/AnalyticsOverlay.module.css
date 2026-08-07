@@ -134,6 +134,12 @@
   font-variant-numeric: tabular-nums;
 }
 
+.campaignTime {
+  font-size: 0.75rem;
+  color: #d4a843;
+  font-variant-numeric: tabular-nums;
+}
+
 /* ── Node list ────────────────────────────────────────────────────────────── */
 
 .nodeList {
