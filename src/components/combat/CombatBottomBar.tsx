@@ -147,7 +147,7 @@ export default function CombatBottomBar({
         {showEstusTip && (
           <div className={s.tooltip}>
             <div className={s.tipName}>{t.ui.estus_flask}</div>
-            <div className={s.tipSub}>{playerEstus} / 3 {t.ui.estus_remaining}</div>
+            <div className={s.tipSub}>{playerEstus} {t.ui.estus_remaining}</div>
             <div className={s.tipHint}>{t.ui.estus_heal}</div>
           </div>
         )}

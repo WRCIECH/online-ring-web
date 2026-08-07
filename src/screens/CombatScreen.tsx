@@ -1,7 +1,7 @@
 import { useReducer, useEffect, useCallback, useState, useMemo, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { combatReducer, initCombatState, getReachableTiles, previewMove, formatMultiplierPct, calcTileDamage, calcFlowMult, ABANDON_PENALTY } from '../engine/combat'
-import { FLOW_GAP_HOT_MINS, FLOW_GAP_WARM_MINS } from '../data/constants'
+import { FLOW_GAP_HOT_MINS, FLOW_GAP_WARM_MINS, ESTUS_MOB_DROP_CHANCE } from '../data/constants'
 import { useGameStore, selectAvailableNodes } from '../store/gameStore'
 import { ENEMIES } from '../data/enemies'
 import { WEAPONS } from '../data/weapons'
@@ -175,6 +175,7 @@ export default function CombatScreen() {
   interface LootItem { name: string; rarity: WeaponRarity; instance: WeaponInstance }
   const [lootItems,  setLootItems]  = useState<LootItem[] | null>(null)
   const [rewardDrop, setRewardDrop] = useState<RewardTier | null>(null)
+  const [estusBonus, setEstusBonus] = useState(false)
 
   function rollRewardTier(): RewardTier {
     const r = Math.random()
@@ -202,6 +203,9 @@ export default function CombatScreen() {
         items.push({ name: w.name, rarity: w.rarity, instance: w })
       }
     }
+    if (sub === 'mob' && Math.random() < ESTUS_MOB_DROP_CHANCE) {
+      setEstusBonus(true)
+    }
     setLootItems(items)
     setRewardDrop(rollRewardTier())
     playSound('RUNE_GAIN')
@@ -219,6 +223,7 @@ export default function CombatScreen() {
     lootItems?.forEach(item => store.addWeaponInstance(item.instance))
     if (rewardDrop) store.addReward(rewardDrop)
     store.addDefeatedEnemy(loc.enemy_id)
+    if (estusBonus) store.addEstus(1)
     store.recordFightEnd()
     if (finalizeContent && store.active_content_id) {
       store.completeCampaignNode(state.equippedWeaponId, store.active_content_id, state.workflow)
@@ -231,7 +236,7 @@ export default function CombatScreen() {
     store.advanceRun()
     if (isLast) { store.endRunVictory(); navigate('/run-complete') }
     else        { store.setPendingEncounter(null); navigate('/map') }
-  }, [loc, store, navigate, state, lootItems, rewardDrop])
+  }, [loc, store, navigate, state, lootItems, rewardDrop, estusBonus])
 
   // ── Defeat ────────────────────────────────────────────────────────────────
   const handleDefeat = useCallback(() => {
@@ -660,6 +665,7 @@ export default function CombatScreen() {
             <div className={s.lootEnemyName}>{enemyLabel} vanquished</div>
 
             <div className={s.lootRunes}>✦ {state.runesEarned} runes earned</div>
+            {estusBonus && <div className={s.lootRunes}>🧪 +1 Estus found</div>}
 
             {lootItems && lootItems.length > 0 && (
               <div className={s.lootSection}>

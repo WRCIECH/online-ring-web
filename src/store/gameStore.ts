@@ -4,7 +4,7 @@ import { DEFAULT_MUSIC_TRACKS } from '../data/combatMusic'
 import { ENEMIES } from '../data/enemies'
 import { saveGame, loadGame } from '../engine/save'
 import { registerWeapon, calcWeaponSellPrice } from '../data/weapons'
-import { RUN_DURATION_SECONDS, RUN_ESTUS_MAX, ESTUS_HEAL_HP, statLevelCost, weaponUpgradeCost } from '../data/constants'
+import { RUN_DURATION_SECONDS, ESTUS_START, ESTUS_HEAL_HP, statLevelCost, weaponUpgradeCost } from '../data/constants'
 import { rollWeapon } from '../data/generators/weaponGenerator'
 import { CLASS_DEFINITIONS } from '../data/classes'
 import { generateWeaponCampaign, isNodeAvailable } from '../data/generators/campaignGenerator'
@@ -217,7 +217,7 @@ function initialState(): GameState {
     run_current_index: 0,
     run_start_time: 0,
     run_duration_seconds: RUN_DURATION_SECONDS,
-    run_estus_count: RUN_ESTUS_MAX,
+    run_estus_count: ESTUS_START,
     run_defeated_enemies: [],
     pending_encounter: null,
     pending_run_reward: '',
@@ -262,6 +262,7 @@ export interface GameStore extends GameState {
   // HP / resources
   takePlayerDamage:  (amount: number) => void
   healPlayer:        (amount: number) => void
+  addEstus:          (n: number) => void
   drinkEstus:        () => boolean
 
   // Weapon inventory
@@ -357,7 +358,6 @@ export const useGameStore = create<GameStore>((set, get) => ({
       run_current_index: 0,
       run_start_time: Date.now() / 1000,
       run_duration_seconds: loc.runDuration,
-      run_estus_count: RUN_ESTUS_MAX,
       run_defeated_enemies: [],
       current_hp: calcMaxHp(get().stats.VIG),
       run_location_name: loc.id,
@@ -398,6 +398,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
         completed_locations: completedLocs,
         completed_regions:  completedRegions,
         game_won:           gameWon,
+        run_estus_count:    s.run_estus_count + 1,
       }
     })
     get().save()
@@ -414,6 +415,8 @@ export const useGameStore = create<GameStore>((set, get) => ({
   healPlayer:       (amount) => set(s => ({
     current_hp: Math.min(calcMaxHp(s.stats.VIG), s.current_hp + amount),
   })),
+
+  addEstus: (n) => { set(s => ({ run_estus_count: s.run_estus_count + n })); get().save() },
 
   drinkEstus: () => {
     const s = get()

@@ -7,8 +7,11 @@
 /** Default run length in seconds (48 h). */
 export const RUN_DURATION_SECONDS = 172800
 
-/** Maximum estus flasks at run start. */
-export const RUN_ESTUS_MAX = 3
+/** Estus flasks at game start (not reset per run). */
+export const ESTUS_START = 3
+
+/** Probability of finding an estus flask when defeating a mob. */
+export const ESTUS_MOB_DROP_CHANCE = 0.05
 
 /** Minimum active pipeline items required to enter combat. */
 export const MIN_PIPELINE_TO_FIGHT = 2
