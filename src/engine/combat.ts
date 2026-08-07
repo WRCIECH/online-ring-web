@@ -27,7 +27,6 @@ export interface CombatState {
   equippedWeaponId: string
   weaponLevel: number
   playerStats: Stats
-  incomingPenalty: number       // from prior abandon; 0.0 = none
   campaignDoneMult: number      // 1.0 + 0.05 × done_count of the active campaign
   consistencyStreak: number   // consecutive completions without switching weapon/content; resets on either
   // Enemy
@@ -198,13 +197,11 @@ export function previewMove(state: CombatState, tile: WorkflowTile, move: MoveTy
   ].filter(Boolean).join(' · ')
 
   const damage         = Math.round(
-    rawDamage * (1 - repeatPenalty) * (1 - state.incomingPenalty)
-      * rewardMult * affinityMult
+    rawDamage * (1 - repeatPenalty) * rewardMult * affinityMult
   )
   const multipliers: DamageMultiplier[] = [
     { key: 'heavyBonus',        value: HEAVY_TIME_BONUS,               active: move === 'Heavy' },
     { key: 'repeatScaling',     value: 1 - repeatPenalty,              active: repeatPenalty > 0 },
-    { key: 'abandon',           value: 1 - state.incomingPenalty,      active: state.incomingPenalty > 0 },
     { key: 'bonusPool',         value: rewardMult,                     active: rewardMult > 1.0, detail: bonusDetail || undefined },
     { key: 'affinity',          value: affinityMult,                   active: affinityMult !== 1.0 },
   ]
@@ -242,7 +239,6 @@ export function initCombatState(
   playerMaxHp: number,
   playerEstus: number,
   playerStats: Stats,
-  incomingPenalty: number,
   spawnAsBoss = false,
   locationTheme?: LocationTheme,
   flowMult = 1.0,
@@ -264,7 +260,6 @@ export function initCombatState(
     playerHp, playerMaxHp,
     playerEstus,
     equippedWeaponId, weaponLevel, playerStats,
-    incomingPenalty,
     campaignDoneMult,
     consistencyStreak: initialStreak,
     enemyData: effectiveEnemy, isBoss,
@@ -282,9 +277,6 @@ export function initCombatState(
   }
   state = log(state, `${effectiveEnemy.name} — complete tiles to deal damage. Drain HP to win.`, '#c9a93a')
   state = log(state, effectiveEnemy.description, '#7a7570')
-  if (incomingPenalty > 0) {
-    state = log(state, `⚠ Abandon penalty active: −${Math.round(incomingPenalty * 100)}% damage.`, '#cc6622')
-  }
   if (campaignDoneMult > 1.0) {
     state = log(state, `⚡ Campaign mastery: +${Math.round((campaignDoneMult - 1) * 100)}% damage.`, '#88dd99')
   }
@@ -392,8 +384,7 @@ export function combatReducer(state: CombatState, action: CombatAction): CombatS
       const rewardMult = 1 + bonusPool
       const rawDamage     = calcTileDamage(tile, move, weapon, state.weaponLevel)
       const damage        = Math.round(
-        rawDamage * (1 - repeatPenalty) * (1 - state.incomingPenalty)
-          * rewardMult * affinityMult
+        rawDamage * (1 - repeatPenalty) * rewardMult * affinityMult
       )
       const newEnemyHp    = Math.max(0, state.enemyHp - damage)
 
@@ -513,4 +504,4 @@ export function combatReducer(state: CombatState, action: CombatAction): CombatS
 }
 
 // Re-export constants for UI
-export { ABANDON_PENALTY, REPEAT_PENALTY_TABLE } from '../data/constants'
+export { REPEAT_PENALTY_TABLE } from '../data/constants'

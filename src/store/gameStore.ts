@@ -223,7 +223,6 @@ function initialState(): GameState {
     pending_run_reward: '',
     run_location_name: '',
     completed_locations: [],
-    abandon_penalty: 0,
     workflow_progress: {},
     content_streak: {},
     active_content_id: null,
@@ -278,8 +277,6 @@ export interface GameStore extends GameState {
   spendRunesOnStat: (stat: keyof Stats) => boolean
 
   // Abandon penalty
-  setAbandonPenalty:    (v: number) => void
-  clearAbandonPenalty:  () => void
 
   saveWorkflowProgress: (workflow: WorkflowGraph) => void
   setActiveContentId:   (id: string) => void
@@ -503,8 +500,6 @@ export const useGameStore = create<GameStore>((set, get) => ({
     return true
   },
 
-  setAbandonPenalty:   (v) => { set({ abandon_penalty: v }); get().save() },
-  clearAbandonPenalty: ()  => { set({ abandon_penalty: 0 }); get().save() },
 
   saveWorkflowProgress: (workflow) => {
     const id = get().active_content_id
@@ -960,7 +955,6 @@ export const useGameStore = create<GameStore>((set, get) => ({
       if (c && c.activated === undefined) c.activated = true
     }
     if (!data.total_task_time_s)    data.total_task_time_s    = 0
-    if (data.abandon_penalty === undefined)    data.abandon_penalty    = 0
     if (data.active_content_id === undefined)  data.active_content_id  = null
     if (data.pending_weapon_id === undefined)  data.pending_weapon_id  = null
     if (!data.content_streak)                  data.content_streak     = {}

@@ -236,8 +236,6 @@ export interface GameState {
   pending_run_reward: string
   run_location_name: string
   completed_locations: string[]
-  // Workflow abandon penalty (0.0 = none, resets after workflow completion)
-  abandon_penalty: number
   // Per-node saved workflow progress (keyed by CampaignNode id)
   workflow_progress: Record<string, WorkflowGraph>
   // Per-node consistency streak (tiles completed without switching content)

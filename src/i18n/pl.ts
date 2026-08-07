@@ -326,7 +326,6 @@ const pl: TranslationBundle = {
     // Rozbicie mnożników obrażeń (MoveRadialMenu / TimerOverlay)
     mult_heavyBonus:    'Bonus za Heavy',
     mult_repeatScaling: 'Kara za powtórkę',
-    mult_abandon:       'Kara za rezygnację',
     mult_affinity:      'Powinowactwo',
     mult_bonusPool:     'Pula bonusów',
     // Etykiety na odznakach HUD (nadal pokazywane osobno mimo łączenia w matemtyce)
@@ -336,7 +335,6 @@ const pl: TranslationBundle = {
 
     mult_heavyBonus_desc:    'Ruch Heavy wymaga dłuższego skupienia — nagradza wyższy próg czasu bonusem do obrażeń.',
     mult_repeatScaling_desc: 'Kara za powtórzenie ukończonego kafelka — rośnie z każdą powtórką: −20% · −35% · −50% · −60% · −70% · −75% · −80% · −85% · −90% (limit).',
-    mult_abandon_desc:       'Kara naliczona za rezygnację z poprzedniego kafelka przed upływem czasu.',
     mult_affinity_desc:      'Bonus lub kara wynikająca z powinowactwa typu treści do preferencji przeciwnika.',
     mult_bonusPool_desc:     'Łączny bonus z serii konsekwencji, stanu flow, klimatu lokacji i mistrzostwa kampanii — te premie sumują się zamiast się mnożyć.',
     mult_flow_desc:          'Bonus za kolejne walki bez długiej przerwy — nagradza pozostanie w kreatywnym flow.',

@@ -6,7 +6,7 @@ import WeaponIcon from '../WeaponIcon'
 import {
   HEAVY_TIME_BONUS,
   FLOW_MULT_HOT, FLOW_MULT_WARM, FLOW_GAP_HOT_MINS, FLOW_GAP_WARM_MINS,
-  ABANDON_PENALTY, REPEAT_PENALTY_TABLE,
+  REPEAT_PENALTY_TABLE,
 } from '../../data/constants'
 import { useT } from '../../i18n'
 import type { ContentTransformation } from '../../types/game'
@@ -40,7 +40,6 @@ const BONUS_MULTS = [
 
 const PENALTY_MULTS = [
   { key: 'mult_repeatScaling', value: `−${Math.round(REPEAT_PENALTY_TABLE[0] * 100)}% → −${Math.round(REPEAT_PENALTY_TABLE[REPEAT_PENALTY_TABLE.length - 1] * 100)}%` },
-  { key: 'mult_abandon',       value: `−${Math.round(ABANDON_PENALTY * 100)}%` },
 ] as const
 
 interface Props { onClose: () => void }

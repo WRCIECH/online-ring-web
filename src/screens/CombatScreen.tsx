@@ -1,6 +1,6 @@
 import { useReducer, useEffect, useCallback, useState, useMemo, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { combatReducer, initCombatState, getReachableTiles, previewMove, formatMultiplierPct, calcTileDamage, calcFlowMult, ABANDON_PENALTY } from '../engine/combat'
+import { combatReducer, initCombatState, getReachableTiles, previewMove, formatMultiplierPct, calcTileDamage, calcFlowMult } from '../engine/combat'
 import { FLOW_GAP_HOT_MINS, FLOW_GAP_WARM_MINS, ESTUS_MOB_DROP_CHANCE } from '../data/constants'
 import { useGameStore, selectAvailableNodes } from '../store/gameStore'
 import { ENEMIES } from '../data/enemies'
@@ -126,7 +126,6 @@ export default function CombatScreen() {
         store.current_hp, store.maxHp(),
         store.run_estus_count,
         store.stats,
-        store.abandon_penalty,
         spawnAsBoss,
         loc.locationTheme,
         initialFlowMult,
@@ -219,7 +218,6 @@ export default function CombatScreen() {
     if (!loc) return
     store.syncCombatResult(state.playerHp, state.playerEstus)
     store.addRunes(state.runesEarned)
-    store.clearAbandonPenalty()
     lootItems?.forEach(item => store.addWeaponInstance(item.instance))
     if (rewardDrop) store.addReward(rewardDrop)
     store.addDefeatedEnemy(loc.enemy_id)
@@ -249,7 +247,6 @@ export default function CombatScreen() {
   // ── Abandon (flee) ────────────────────────────────────────────────────────
   const handleFlee = useCallback(() => {
     store.syncCombatResult(state.playerHp, state.playerEstus)
-    store.setAbandonPenalty(ABANDON_PENALTY)
     const allDone = state.workflow.tiles.filter(t => !t.is_advance).every(t => t.is_completed)
     if (allDone && store.active_content_id) {
       // All content tasks finished before fleeing — mark the node complete and clear the workflow
@@ -577,12 +574,6 @@ export default function CombatScreen() {
             cls: s.badgeStreak,
             tooltip: tui.mult_campaignDone_desc,
           },
-          state.incomingPenalty > 0 && {
-            key: 'abandon',
-            label: `↓ ${tui.mult_abandon} −${Math.round(state.incomingPenalty * 100)}%`,
-            cls: s.badgeDebuff,
-            tooltip: tui.mult_abandon_desc,
-          },
         ].filter(Boolean) as Array<{ key: string; label: string; cls: string; tooltip: string }>
 
         if (badges.length === 0) return null
@@ -761,7 +752,6 @@ export default function CombatScreen() {
             <ul className={s.abandonList}>
               <li className={s.abandonCon}>✗ Ends this run immediately — same as a defeat.</li>
               <li className={s.abandonCon}>✗ Forfeits all progress and runes earned this fight.</li>
-              <li className={s.abandonCon}>✗ −{Math.round(ABANDON_PENALTY * 100)}% rewards on your next run's first workflow.</li>
               <li className={s.abandonPro}>✓ Your banked runes stay safe — nothing drops here, unlike a defeat.</li>
             </ul>
             <div className={s.confirmActionsStack}>
@@ -787,8 +777,7 @@ export default function CombatScreen() {
           <div className={s.endBox}>
             <div className={`${s.endTitle} ${s.fleedTitle}`}>Abandoned</div>
             <div className={s.endSub}>
-              You abandoned the workflow.<br />
-              Next workflow rewards will be penalised by {Math.round(ABANDON_PENALTY * 100)}%.
+              You abandoned the workflow.
             </div>
             <button
               className={[s.endBtn, !fledBtnReady ? s.btnLocked : ''].filter(Boolean).join(' ')}

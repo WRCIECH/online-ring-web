@@ -87,7 +87,7 @@ export function weaponUpgradeCost(currentLevel: number): number {
 // ── Workflow mechanics ────────────────────────────────────────────────────
 
 /** Flat damage penalty fraction applied when abandoning a workflow (next run). */
-export const ABANDON_PENALTY = 0.25
+
 
 /** Damage penalty fraction by repeat count (index 0 = 1st repeat; capped at last entry). */
 export const REPEAT_PENALTY_TABLE = [0.20, 0.35, 0.50, 0.60, 0.70, 0.75, 0.80, 0.85, 0.90] as const
