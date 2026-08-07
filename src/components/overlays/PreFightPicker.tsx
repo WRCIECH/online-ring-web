@@ -155,7 +155,7 @@ export default function PreFightPicker({ loc, onConfirm, onCancel }: Props) {
                       )}
                       {nodeStreak > 0 && (
                         <span className={s.badgeStreak}>
-                          {t.ui.prefight_badge_streak ?? 'Streak'} +{nodeStreak * 5}%
+                          {t.ui.prefight_badge_streak ?? 'Streak'} +{Math.min(10, nodeStreak)}%
                         </span>
                       )}
                     </div>

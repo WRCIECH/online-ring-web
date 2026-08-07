@@ -552,7 +552,7 @@ export default function CombatScreen() {
 
       {(() => {
         const tui = t.ui as Record<string, string>
-        const streakMult = 1.0 + Math.min(0.5, 0.05 * state.consistencyStreak)
+        const streakMult = 1.0 + Math.min(0.10, 0.01 * state.consistencyStreak)
         const badges = [
           state.flowMult > 1.0 && {
             key: 'flow',
