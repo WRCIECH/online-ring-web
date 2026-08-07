@@ -4,7 +4,7 @@ import { DEFAULT_MUSIC_TRACKS } from '../data/combatMusic'
 import { ENEMIES } from '../data/enemies'
 import { saveGame, loadGame } from '../engine/save'
 import { registerWeapon, calcWeaponSellPrice } from '../data/weapons'
-import { RUN_DURATION_SECONDS, ESTUS_START, ESTUS_HEAL_HP, statLevelCost, weaponUpgradeCost } from '../data/constants'
+import { INITIAL_GAME_TIME_SECONDS, ESTUS_START, ESTUS_HEAL_HP, statLevelCost, weaponUpgradeCost } from '../data/constants'
 import { rollWeapon } from '../data/generators/weaponGenerator'
 import { CLASS_DEFINITIONS } from '../data/classes'
 import { generateWeaponCampaign, isNodeAvailable } from '../data/generators/campaignGenerator'
@@ -215,8 +215,8 @@ function initialState(): GameState {
     run_count: 0, run_active: false,
     run_location_sequence: [],
     run_current_index: 0,
-    run_start_time: 0,
-    run_duration_seconds: RUN_DURATION_SECONDS,
+    run_duration_seconds: INITIAL_GAME_TIME_SECONDS,
+    game_time_end: 0,
     run_estus_count: ESTUS_START,
     run_defeated_enemies: [],
     pending_encounter: null,
@@ -349,12 +349,15 @@ export const useGameStore = create<GameStore>((set, get) => ({
     const runCount = get().run_count
     const regionDiffMult = REGION_DEFINITIONS.find(r => r.id === loc.region_id)?.difficultyMult ?? 1.0
     const seq = generateLocationSequence(loc.numSublocations, loc.difficulty, loc.theme, runCount, regionDiffMult)
+    const currentEnd = get().game_time_end
     set({
       run_active: true,
       run_location_sequence: seq,
       run_current_index: 0,
-      run_start_time: Date.now() / 1000,
       run_duration_seconds: loc.runDuration,
+      game_time_end: currentEnd === 0
+        ? Math.floor(Date.now() / 1000) + INITIAL_GAME_TIME_SECONDS
+        : currentEnd,
       run_defeated_enemies: [],
       current_hp: calcMaxHp(get().stats.VIG),
       run_location_name: loc.id,
@@ -396,6 +399,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
         completed_regions:  completedRegions,
         game_won:           gameWon,
         run_estus_count:    s.run_estus_count + 1,
+        game_time_end:      s.game_time_end + s.run_duration_seconds,
       }
     })
     get().save()
@@ -970,6 +974,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
     if (data.active_content_id === undefined)  data.active_content_id  = null
     if (data.pending_weapon_id === undefined)  data.pending_weapon_id  = null
     if (!data.content_streak)                  data.content_streak     = {}
+    if (data.game_time_end === undefined)      data.game_time_end      = 0
     // Migrate legacy single active_workflow → per-node workflow_progress
     if (!data.workflow_progress) {
       data.workflow_progress = {}
@@ -997,14 +1002,13 @@ export const useGameStore = create<GameStore>((set, get) => ({
 
 // ── Selectors ─────────────────────────────────────────────────────────────
 
-export const selectRunElapsedSeconds = (s: GameStore) =>
-  s.run_active ? Date.now() / 1000 - s.run_start_time : 0
-
 export const selectRunRemainingSeconds = (s: GameStore) =>
-  Math.max(0, s.run_duration_seconds - selectRunElapsedSeconds(s))
+  s.game_time_end > 0
+    ? Math.max(0, s.game_time_end - Date.now() / 1000)
+    : Infinity   // game not yet started — no urgency
 
 export const selectIsRunExpired = (s: GameStore) =>
-  s.run_active && selectRunRemainingSeconds(s) <= 0
+  s.run_active && s.game_time_end > 0 && selectRunRemainingSeconds(s) <= 0
 
 export const selectCurrentLocation = (s: GameStore) =>
   s.run_location_sequence[s.run_current_index] ?? null

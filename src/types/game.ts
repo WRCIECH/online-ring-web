@@ -236,8 +236,8 @@ export interface GameState {
   run_active: boolean
   run_location_sequence: LocationData[]
   run_current_index: number
-  run_start_time: number
   run_duration_seconds: number
+  game_time_end: number          // Unix epoch seconds; 0 = game not yet started
   run_estus_count: number
   run_defeated_enemies: string[]
   pending_encounter: LocationData | null

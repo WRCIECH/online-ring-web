@@ -16,6 +16,7 @@ interface Props {
 }
 
 function fmtTime(secs: number): string {
+  if (!isFinite(secs)) return '--:--:--'
   if (secs <= 0) return '00:00:00'
   const h  = Math.floor(secs / 3600)
   const m  = Math.floor((secs % 3600) / 60)

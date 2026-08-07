@@ -4,8 +4,8 @@
 
 // ── Run ──────────────────────────────────────────────────────────────────────
 
-/** Default run length in seconds (48 h). */
-export const RUN_DURATION_SECONDS = 172800
+/** Starting time budget for the entire game in seconds (100 h). */
+export const INITIAL_GAME_TIME_SECONDS = 360000
 
 /** Estus flasks at game start (not reset per run). */
 export const ESTUS_START = 3
