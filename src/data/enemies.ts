@@ -105,8 +105,8 @@ export const ENEMIES: Record<string, Enemy> = {
     affinities: {
       love:    { products: ['ARollVideo', 'LiveStream'], transformations: ['Shock', 'Fast'] },
       like:    { transformations: ['Compression'], emotions: ['Viral', 'Controversion'] },
-      dislike: { products: ['Plaintext', 'MultimediaPage'], transformations: ['ZoomOut'] },
-      hate:    { products: ['InteractiveApp', 'BranchingNarrative'], transformations: ['Intellectual'], stages: ['Research'] },
+      dislike: { products: ['Plaintext', '_blank'], transformations: ['ZoomOut'] },
+      hate:    { products: ['InteractiveApp', '_blank'], transformations: ['Intellectual'], stages: ['Research'] },
     },
   },
 
@@ -134,7 +134,7 @@ export const ENEMIES: Record<string, Enemy> = {
       love:    { products: ['StructuredText', 'Screencast'] },
       like:    { products: ['IllustratedText', 'ProducedAudio'], stages: ['Research', 'Produce'] },
       dislike: { emotions: ['Humor'] },
-      hate:    { products: ['_blank', 'MultimediaPage'], transformations: ['Opposite', 'Passion'] },
+      hate:    { products: ['_blank'], transformations: ['Opposite', 'Passion'] },
     },
   },
 
@@ -176,7 +176,7 @@ export const ENEMIES: Record<string, Enemy> = {
       love:    { transformations: ['Cliffhanger', 'Shock'], emotions: ['Drama', 'Polarization'] },
       like:    { products: ['Carousel', 'SingleGraphic'], transformations: ['Compression'] },
       dislike: { products: ['StructuredText'], transformations: ['ProblemSolving'] },
-      hate:    { products: ['MultimediaPage', 'AssetPack'], transformations: ['Intellectual'], emotions: ['Hope'] },
+      hate:    { products: ['_blank', 'AssetPack'], transformations: ['Intellectual'], emotions: ['Hope'] },
     },
   },
 
@@ -228,7 +228,7 @@ export const ENEMIES: Record<string, Enemy> = {
     drops: [{ id: 'weapon', first_kill_chance: 0.65, repeat_chance: 0.22 }],
     affinities: {
       love:    { transformations: ['Intellectual'], emotions: ['Wow'] },
-      like:    { products: ['MultimediaPage', 'BranchingNarrative'] },
+      like:    { products: ['_blank'] },
       dislike: { transformations: ['Shock', 'Cliffhanger'] },
       hate:    { emotions: ['Viral'] },
     },
@@ -243,7 +243,7 @@ export const ENEMIES: Record<string, Enemy> = {
       love:    { emotions: ['Viral', 'Humor'] },
       like:    { products: ['SingleGraphic', 'ARollVideo'], transformations: ['Shock'] },
       dislike: { transformations: ['Intellectual'] },
-      hate:    { products: ['MultimediaPage'], stages: ['Research'] },
+      hate:    { products: ['_blank'], stages: ['Research'] },
     },
   },
 
@@ -295,7 +295,7 @@ export const ENEMIES: Record<string, Enemy> = {
       love:    { transformations: ['Shock'], emotions: ['Humor'] },
       like:    { products: ['StructuredText'] },
       dislike: { transformations: ['Intellectual'] },
-      hate:    { products: ['BranchingNarrative', 'InteractiveApp'] },
+      hate:    { products: ['_blank', 'InteractiveApp'] },
     },
   },
 

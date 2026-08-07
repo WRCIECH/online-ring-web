@@ -38,9 +38,7 @@ export type ContentProductType =
 
   // --- GRUPA E: PRODUKTY HYBRYDOWE, NIELINIOWE I ZASOBY ---
   | 'LiveStream'               // 14. Strumień na żywo (wideo-audio real-time, brak postprodukcji, interakcja)
-  | 'MultimediaPage'           // 15. Publikacja wielomedialna (interaktywny reportaż webowy, media konsumowane nieliniowo)
-  | 'BranchingNarrative'       // 16. Treść drzewiasta (wideo/tekst interaktywny typu "wybierz własną przygodę")
-  | 'AssetPack'                // 17. Paczka aktywów / Szablony (presety, sample audio, szablony Notion)
+  | 'AssetPack'                // 15. Paczka aktywów / Szablony (presety, sample audio, szablony Notion)
   | 'CurationFeed'             // 18. Kuracja treści / Agregacja (prasówki, bazy linków, katalogi narzędzi)
   | 'CommunitySpace'           // 19. Przestrzeń społecznościowa (serwer Discord, zamknięte forum, Slack)
   | 'InteractiveApp'           // 20. Aplikacja / Gra / Micro-tool (pełna nieliniowość, kalkulatory, widgety, gry)
@@ -95,8 +93,6 @@ export class ContentRegistry {
     CinematicVideo:     { id: 'CinematicVideo',     displayName: 'Wideo wielowarstwowe (Cinematic)',     category: 'Video',  complexity: 4, description: 'Skomplikowana struktura: zaawansowany montaż, korekcja barwna, wielokamerowość, reżyseria.' },
     MotionGraphics:     { id: 'MotionGraphics',     displayName: 'Animacja cyfrowa (Motion)',            category: 'Video',  complexity: 4, description: 'Obraz wygenerowany w całości cyfrowo (2D/3D). Brak ujęć z realnego świata.' },
     LiveStream:         { id: 'LiveStream',         displayName: 'Strumień na żywo (Live)',              category: 'Hybrid', complexity: 3, description: 'Produkcja i dystrybucja w czasie rzeczywistym. Brak postprodukcji, pełna improwizacja.' },
-    MultimediaPage:     { id: 'MultimediaPage',     displayName: 'Strona wielomedialna',                 category: 'Hybrid', complexity: 4, description: 'Nieliniowy reportaż internetowy łączący tekst, wideo i interaktywne osie czasu.' },
-    BranchingNarrative: { id: 'BranchingNarrative', displayName: 'Treść drzewiasta',                   category: 'Hybrid', complexity: 5, description: 'Interaktywne wideo lub tekst, gdzie decyzje odbiorcy rozgałęziają fabułę.' },
     AssetPack:          { id: 'AssetPack',          displayName: 'Paczka aktywów (Asset Pack)',          category: 'Hybrid', complexity: 4, description: 'Cyfrowe narzędzia dla innych twórców: presety, sample, szablony systemów, kody źródłowe.' },
     CurationFeed:       { id: 'CurationFeed',       displayName: 'Kuracja treści (Agregacja)',           category: 'Hybrid', complexity: 2, description: 'Autorskie filtrowanie chaosu sieci: bazy linków, prasówki, rankingi cudzych dzieł.' },
     CommunitySpace:     { id: 'CommunitySpace',     displayName: 'Przestrzeń społecznościowa',           category: 'Hybrid', complexity: 4, description: 'Tworzenie architektury relacji – serwery, fora i zamknięte ekosystemy dyskusyjne.' },

@@ -57,7 +57,7 @@ export const LOCATION_THEMES: Record<LocationTheme, LocationThemeDef> = {
     id: 'research',
     displayLabel: 'Dark Archive',
     color: '#406080',
-    contentFocus: ['MultimediaPage', 'BranchingNarrative', 'CurationFeed'],
+    contentFocus: ['_blank', 'CurationFeed'],
     stageFocus: ['Research'],
     adjectives: ['Deep', 'Buried', 'Forgotten', 'Dark', 'Hidden', 'Ancient', 'Lost', 'Unindexed', 'Sealed', 'Vast'],
     nouns: ['Archive', 'Study', 'Repository', 'Index', 'Vault', 'Crypt', 'Depths', 'Source', 'Library', 'Catalog'],

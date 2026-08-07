@@ -68,7 +68,7 @@ export const WEAPON_CLASSES: Record<WeaponClass, WeaponClassDef> = {
     id: 'katanas', name: 'Katana', description: 'Polished craft pieces — quality over quantity.',
     poise_weight: 10, research_weight: 0.20, base_damage_mult: 1.1,
     time_mod: 1.0,
-    supported_products: ['Plaintext', 'IllustratedText', 'Carousel', 'RawAudio', 'ProducedAudio', 'ARollVideo', 'SlideshowVideo', 'CinematicVideo', 'MotionGraphics', 'LiveStream', 'BranchingNarrative', '_blank'],
+    supported_products: ['Plaintext', 'IllustratedText', 'Carousel', 'RawAudio', 'ProducedAudio', 'ARollVideo', 'SlideshowVideo', 'CinematicVideo', 'MotionGraphics', 'LiveStream', '_blank'],
     content_transformations: {
       S:        ['Estetic', 'Narration', 'Analogy', 'Passion'],
       A:        ['ZoomIn', 'Simplify', 'Follows', 'Passion'],
@@ -152,7 +152,7 @@ export const WEAPON_CLASSES: Record<WeaponClass, WeaponClassDef> = {
     id: 'thrusting_swords', name: 'Thrusting Sword', description: 'Comments and reply content.',
     poise_weight: 8, research_weight: 0.25, base_damage_mult: 0.75,
     time_mod: 0.70,
-    supported_products: ['Plaintext', 'StructuredText', 'IllustratedText', 'SingleGraphic', 'Carousel', 'RawAudio', 'ProducedAudio', 'ARollVideo', 'SlideshowVideo', 'CinematicVideo', 'MotionGraphics', 'LiveStream', 'MultimediaPage', 'BranchingNarrative', 'CommunitySpace'],
+    supported_products: ['Plaintext', 'StructuredText', 'IllustratedText', 'SingleGraphic', 'Carousel', 'RawAudio', 'ProducedAudio', 'ARollVideo', 'SlideshowVideo', 'CinematicVideo', 'MotionGraphics', 'LiveStream', 'CommunitySpace'],
     content_transformations: {
       S:        ['Opposite', 'Critique', 'Similar', 'Follows'],
       A:        ['Compression', 'ZoomIn', 'Humor', 'Shock'],
@@ -164,7 +164,7 @@ export const WEAPON_CLASSES: Record<WeaponClass, WeaponClassDef> = {
     id: 'heavy_thrusting', name: 'Heavy Thrusting Sword', description: 'In-depth analysis and commentary.',
     poise_weight: 12, research_weight: 0.25, base_damage_mult: 1.1,
     time_mod: 1.0,
-    supported_products: ['Plaintext', 'StructuredText', 'IllustratedText', 'SingleGraphic', 'Carousel', 'RawAudio', 'ProducedAudio', 'ARollVideo', 'SlideshowVideo', 'CinematicVideo', 'MotionGraphics', 'LiveStream', 'MultimediaPage', 'BranchingNarrative', 'CommunitySpace'],
+    supported_products: ['Plaintext', 'StructuredText', 'IllustratedText', 'SingleGraphic', 'Carousel', 'RawAudio', 'ProducedAudio', 'ARollVideo', 'SlideshowVideo', 'CinematicVideo', 'MotionGraphics', 'LiveStream', 'CommunitySpace'],
     content_transformations: {
       S:        ['Critique', 'Opposite', 'ZoomIn', 'Evidence'],
       A:        ['Intellectual', 'Expansion', 'DataDriven', 'Analogy'],
@@ -236,7 +236,7 @@ export const WEAPON_CLASSES: Record<WeaponClass, WeaponClassDef> = {
     id: 'flails', name: 'Flail', description: 'Spontaneous and improv content.',
     poise_weight: 5, research_weight: 0.20, base_damage_mult: 0.95,
     time_mod: 0.70,
-    supported_products: ['StructuredText', 'IllustratedText', 'Infographic', 'ProducedAudio', 'ARollVideo', 'SlideshowVideo', 'Screencast', 'CinematicVideo', 'MotionGraphics', 'LiveStream', 'MultimediaPage', 'BranchingNarrative', 'AssetPack', 'CurationFeed', 'InteractiveApp', '_blank'],
+    supported_products: ['StructuredText', 'IllustratedText', 'Infographic', 'ProducedAudio', 'ARollVideo', 'SlideshowVideo', 'Screencast', 'CinematicVideo', 'MotionGraphics', 'LiveStream', 'AssetPack', 'CurationFeed', 'InteractiveApp', '_blank'],
     content_transformations: {
       S:        ['Follows', 'Passion', 'Humor', 'Similar'],
       A:        ['Similar', 'Opposite', 'Narration', 'Comfort'],
@@ -248,7 +248,7 @@ export const WEAPON_CLASSES: Record<WeaponClass, WeaponClassDef> = {
     id: 'colossal_weapons', name: 'Colossal Weapon', description: 'Mega-projects — documentaries, full series.',
     poise_weight: 18, research_weight: 0.22, base_damage_mult: 2.4,
     time_mod: 1.30,
-    supported_products: ['StructuredText', 'IllustratedText', 'Infographic', 'ProducedAudio', 'CinematicVideo', 'SlideshowVideo', 'MotionGraphics', 'MultimediaPage', 'BranchingNarrative', 'AssetPack', 'InteractiveApp', '_blank'],
+    supported_products: ['StructuredText', 'IllustratedText', 'Infographic', 'ProducedAudio', 'CinematicVideo', 'SlideshowVideo', 'MotionGraphics', 'AssetPack', 'InteractiveApp', '_blank'],
     content_transformations: {
       S:        ['Synthesis', 'Narration', 'FirstPrinciples', 'Expansion'],
       A:        ['Expansion', 'Evidence', 'DataDriven', 'ZoomIn'],
@@ -272,7 +272,7 @@ export const WEAPON_CLASSES: Record<WeaponClass, WeaponClassDef> = {
     id: 'halberds', name: 'Halberd', description: 'Hybrid research and opinion.',
     poise_weight: 7, research_weight: 0.29, base_damage_mult: 1.1,
     time_mod: 0.90,
-    supported_products: ['StructuredText', 'IllustratedText', 'Infographic', 'SlideshowVideo', 'Screencast', 'MultimediaPage', 'AssetPack', 'CurationFeed', 'InteractiveApp', '_blank'],
+    supported_products: ['StructuredText', 'IllustratedText', 'Infographic', 'SlideshowVideo', 'Screencast', 'AssetPack', 'CurationFeed', 'InteractiveApp', '_blank'],
     content_transformations: {
       S:        ['Evidence', 'Opposite', 'ZoomIn', 'Critique'],
       A:        ['DataDriven', 'Expansion', 'Analogy', 'Opposite'],
@@ -308,7 +308,7 @@ export const WEAPON_CLASSES: Record<WeaponClass, WeaponClassDef> = {
     id: 'greatbows', name: 'Greatbow', description: 'Long-tail evergreen content.',
     poise_weight: 12, research_weight: 0.25, base_damage_mult: 1.6,
     time_mod: 1.20,
-    supported_products: ['Carousel', 'BranchingNarrative', 'InteractiveApp', 'LiveStream', 'MultimediaPage', 'CommunitySpace', '_blank'],
+    supported_products: ['Carousel', 'InteractiveApp', 'LiveStream', 'CommunitySpace', '_blank'],
     content_transformations: {
       S:        ['ProblemSolving', 'Simplify', 'AudienceShift', 'Analogy'],
       A:        ['Evidence', 'DataDriven', 'Analogy', 'Socratic'],
@@ -332,7 +332,7 @@ export const WEAPON_CLASSES: Record<WeaponClass, WeaponClassDef> = {
     id: 'ballistas', name: 'Ballista', description: 'Major product launches.',
     poise_weight: 14, research_weight: 0.29, base_damage_mult: 2.2,
     time_mod: 1.20,
-    supported_products: ['StructuredText', 'IllustratedText', 'Infographic', 'ProducedAudio', 'SlideshowVideo', 'CinematicVideo', 'MotionGraphics', 'MultimediaPage', 'BranchingNarrative', 'AssetPack', 'CurationFeed', 'InteractiveApp', '_blank'],
+    supported_products: ['StructuredText', 'IllustratedText', 'Infographic', 'ProducedAudio', 'SlideshowVideo', 'CinematicVideo', 'MotionGraphics', 'AssetPack', 'CurationFeed', 'InteractiveApp', '_blank'],
     content_transformations: {
       S:        ['Evidence', 'DataDriven', 'ProblemSolving', 'Synthesis'],
       A:        ['Narration', 'Wow', 'Expansion', 'Analogy'],

@@ -18,8 +18,6 @@ export const CONTENT_TYPE_STATS: Record<ContentProductType, { label: string; sta
   CinematicVideo:     { label: 'Cinematic Video',     stats: ['VIDEO'] },
   MotionGraphics:     { label: 'Motion Graphics',     stats: ['VIDEO', 'GRAPHIC'] },
   LiveStream:         { label: 'Livestream',          stats: ['PARASOCIAL', 'AUDIO'] },
-  MultimediaPage:     { label: 'Multimedia Page',     stats: ['PARASOCIAL', 'TEXT'] },
-  BranchingNarrative: { label: 'Branching Narrative', stats: ['PARASOCIAL', 'INSIGHT'] },
   AssetPack:          { label: 'Asset Pack',          stats: ['GRAPHIC', 'DEPTH'] },
   CurationFeed:       { label: 'Curation Feed',       stats: ['TEXT', 'INSIGHT'] },
   CommunitySpace:     { label: 'Community Space',     stats: ['PARASOCIAL'] },

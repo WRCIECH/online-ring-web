@@ -2,15 +2,15 @@ import type { ContentProductType, ContentTransformation, StatKey } from '../type
 
 // Reverse mapping: which content types each stat governs (for node modification picker).
 export const STAT_CONTENT_TYPES: Partial<Record<StatKey, ContentProductType[]>> = {
-  TEXT:       ['Plaintext', 'StructuredText', 'IllustratedText', 'CurationFeed', 'MultimediaPage'],
+  TEXT:       ['Plaintext', 'StructuredText', 'IllustratedText', 'CurationFeed'],
   VIDEO:      ['ARollVideo', 'SlideshowVideo', 'Screencast', 'CinematicVideo', 'MotionGraphics'],
   AUDIO:      ['RawAudio', 'ProducedAudio', 'LiveStream'],
   GRAPHIC:    ['SingleGraphic', 'Carousel', 'Infographic', 'AssetPack', 'MotionGraphics'],
   VELOCITY:   ['Carousel', 'SlideshowVideo'],
   DEPTH:      ['StructuredText', 'ProducedAudio', 'Screencast', 'Infographic', 'AssetPack'],
-  PARASOCIAL: ['LiveStream', 'MultimediaPage', 'BranchingNarrative', 'CommunitySpace', 'InteractiveApp'],
+  PARASOCIAL: ['LiveStream', 'CommunitySpace', 'InteractiveApp'],
   FRICTION:   [],
-  INSIGHT:    ['BranchingNarrative', 'CurationFeed', 'InteractiveApp', '_blank'],
+  INSIGHT:    ['CurationFeed', 'InteractiveApp', '_blank'],
 }
 
 // Reverse mapping: which edge transformations each stat governs (for edge modification picker).
