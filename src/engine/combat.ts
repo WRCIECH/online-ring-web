@@ -260,13 +260,15 @@ export function initCombatState(
   campaignDoneMult = 1.0,
   initialStreak = 0,
   lastFightEndedAt?: number,
+  locationMult = 1.0,
 ): CombatState {
   // Derive boss version when the encounter is a boss slot but the enemy entry
   // is a regular mob — scale HP ×2 and swap in the boss display name.
   const isBoss = spawnAsBoss || enemy.is_boss
+  const scaledHp = Math.round(enemy.max_hp * locationMult)
   const effectiveEnemy: Enemy = (spawnAsBoss && !enemy.is_boss)
-    ? { ...enemy, max_hp: enemy.max_hp * 2, name: enemy.boss_name ?? enemy.name }
-    : enemy
+    ? { ...enemy, max_hp: scaledHp * 2, name: enemy.boss_name ?? enemy.name }
+    : { ...enemy, max_hp: scaledHp }
 
   let state: CombatState = {
     phase: 'PLAYER_TURN',

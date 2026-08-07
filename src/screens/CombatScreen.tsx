@@ -132,6 +132,7 @@ export default function CombatScreen() {
         campaignDoneMult,
         initialStreak,
         store.last_fight_ended_at,
+        loc.mult,
       )
     }
   )
