@@ -393,6 +393,23 @@
   color: rgba(255,255,255,0.25);
 }
 
+.perkList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 6px;
+}
+
+.perkChip {
+  font-size: 0.64rem;
+  padding: 2px 7px;
+  border-radius: 3px;
+  background: rgba(212, 168, 67, 0.10);
+  border: 1px solid rgba(212, 168, 67, 0.32);
+  color: #d4a843;
+  white-space: nowrap;
+}
+
 .scalingGrades {
   display: flex;
   flex-wrap: wrap;

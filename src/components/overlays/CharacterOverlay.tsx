@@ -265,6 +265,15 @@ export default function CharacterOverlay({ onClose, canLevel = true }: Props) {
                     +{((LEVEL_MULT[pw.rarity] ?? 0.03) * 100).toFixed(0)}%/lvl
                   </span>
                 </div>
+                {pw.perks && pw.perks.length > 0 && (
+                  <div className={s.perkList}>
+                    {pw.perks.map((p, i) => (
+                      <span key={i} className={s.perkChip}>
+                        {p.type === 'product' ? '📄' : '↺'} {p.target} +{Math.round(p.bonus * 100)}%
+                      </span>
+                    ))}
+                  </div>
+                )}
               </div>
             ) : (
               <div className={s.noScalingNote}>{t.ui.equip_no_weapons}</div>

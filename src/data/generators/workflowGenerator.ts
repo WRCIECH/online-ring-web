@@ -90,7 +90,7 @@ export { ALL_CONTENT_PRODUCTS }
 
 export function generateWorkflow(
   weaponClass: WeaponClass,
-  rarity: WeaponRarity,
+  _rarity: WeaponRarity,
   isBoss = false,
   contentType?: ContentProductType,
 ): WorkflowGraph {

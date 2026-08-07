@@ -328,6 +328,7 @@ const pl: TranslationBundle = {
     mult_repeatScaling: 'Kara za powtórkę',
     mult_affinity:      'Powinowactwo',
     mult_bonusPool:     'Pula bonusów',
+    mult_perk:          'Perk broni',
     // Etykiety na odznakach HUD (nadal pokazywane osobno mimo łączenia w matemtyce)
     mult_flow:          'Stan flow',
     mult_streak:        'Seria konsekwencji',
@@ -339,6 +340,7 @@ const pl: TranslationBundle = {
     mult_bonusPool_desc:     'Łączny bonus z serii konsekwencji, stanu flow, klimatu lokacji i mistrzostwa kampanii — te premie sumują się zamiast się mnożyć.',
     mult_flow_desc:          'Bonus za kolejne walki bez długiej przerwy — nagradza pozostanie w kreatywnym flow.',
     mult_streak_desc:        'Bonus rośnie z każdym kolejnym ukończonym kafelkiem bez pomijania ani rezygnacji.',
+    mult_perk_desc:          'Warunkowy bonus do obrażeń z perka broni — aktywuje się, gdy kafelek pasuje do produktu lub transformacji perka.',
 
     // Podgląd struktury broni (EquipOverlay)
     draw_format:         'Format',

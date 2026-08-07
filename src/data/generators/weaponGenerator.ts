@@ -1,7 +1,8 @@
-import type { WeaponClass, WeaponRarity, WeaponInstance, Affix } from '../../types/game'
+import type { WeaponClass, WeaponRarity, WeaponInstance, Affix, WeaponPerk } from '../../types/game'
 import { WEAPON_CLASSES, ALL_WEAPON_CLASSES } from './weaponClasses'
 import { rollFormatDraw } from './patternSlots'
 import { registerWeapon } from '../weapons'
+import { ALL_CONTENT_PRODUCTS } from './workflowGenerator'
 
 function uid(): string {
   return 'w_' + Math.random().toString(36).slice(2, 10)
@@ -43,6 +44,54 @@ function rollAffixes(rarity: WeaponRarity): Affix[] {
   return [...AFFIXES].sort(() => Math.random() - 0.5).slice(0, n)
 }
 
+const PERK_COUNTS: Record<WeaponRarity, number> = {
+  common: 0, uncommon: 1, rare: 2, epic: 3, legendary: 4,
+}
+
+const PERK_BONUS_TABLE: Array<{ value: number; weight: number }> = [
+  { value: 0.05, weight: 40 },
+  { value: 0.10, weight: 30 },
+  { value: 0.15, weight: 15 },
+  { value: 0.20, weight: 10 },
+  { value: 0.25, weight: 5  },
+]
+
+function rollPerks(rarity: WeaponRarity, cls: WeaponClass): WeaponPerk[] {
+  const count = PERK_COUNTS[rarity]
+  if (count === 0) return []
+
+  const classDef = WEAPON_CLASSES[cls]
+  const productPool = classDef.supported_products.length > 0
+    ? classDef.supported_products
+    : ALL_CONTENT_PRODUCTS
+  const transformPool = classDef.content_transformations.S
+
+  const candidates: Array<{ type: WeaponPerk['type']; target: string }> = [
+    ...productPool.map(p => ({ type: 'product' as const, target: p })),
+    ...transformPool.map(t => ({ type: 'transformation' as const, target: t })),
+  ]
+
+  // Shuffle in-place (Fisher-Yates)
+  for (let i = candidates.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [candidates[i], candidates[j]] = [candidates[j], candidates[i]]
+  }
+
+  const result: WeaponPerk[] = []
+  const seen = new Set<string>()
+  for (const c of candidates) {
+    if (result.length >= count) break
+    if (seen.has(c.target)) continue
+    seen.add(c.target)
+    const bonus = pick(
+      PERK_BONUS_TABLE.map(e => e.value),
+      PERK_BONUS_TABLE.map(e => e.weight),
+    )
+    result.push({ type: c.type, target: c.target, bonus })
+  }
+  return result
+}
+
 const RARITY_PREFIXES: Record<WeaponRarity, string[]> = {
   common:    ['Crude', 'Plain', 'Common', 'Standard', 'Simple'],
   uncommon:     ['Sharp', 'Swift', 'Keen', 'Flowing', 'Measured'],
@@ -78,6 +127,7 @@ export function rollWeapon(
     description:      classDef.description,
     stat_req:         {},
     rolled_draws:     rollFormatDraw(cls),
+    perks:            rollPerks(rarity, cls),
   }
 
   registerWeapon(weapon)

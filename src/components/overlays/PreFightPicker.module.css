@@ -139,6 +139,23 @@
   white-space: nowrap;
 }
 
+.perkRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 3px;
+  margin-top: 3px;
+}
+
+.perkBadge {
+  font-size: 0.60rem;
+  padding: 1px 5px;
+  border-radius: 3px;
+  background: rgba(212, 168, 67, 0.10);
+  border: 1px solid rgba(212, 168, 67, 0.28);
+  color: #c9a030;
+  white-space: nowrap;
+}
+
 .nodeCount {
   font-size: 0.68rem;
   color: var(--color-text-dim);

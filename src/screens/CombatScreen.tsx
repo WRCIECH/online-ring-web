@@ -103,7 +103,7 @@ export default function CombatScreen() {
           'unarmed', 0,
           300, 300, 3,
           { VIG: 2, END: 2, TEXT: 8, VIDEO: 8, AUDIO: 8, GRAPHIC: 8, VELOCITY: 8, DEPTH: 8, PARASOCIAL: 8, FRICTION: 8, INSIGHT: 8 },
-          0,
+          false,
         )
       }
       // Resume persisted workflow or generate fresh
@@ -555,6 +555,19 @@ export default function CombatScreen() {
       {(() => {
         const tui = t.ui as Record<string, string>
         const streakMult = 1.0 + Math.min(0.10, 0.01 * state.consistencyStreak)
+        const perkBadges = (weapon?.perks ?? []).map((p, i) => {
+          const active = selectedTile != null && (
+            (p.type === 'product'        && selectedTile.content_type        === p.target) ||
+            (p.type === 'transformation' && selectedTile.content_transformation === p.target)
+          )
+          return {
+            key: `perk_${i}`,
+            label: `${p.type === 'product' ? '📄' : '↺'} ${p.target} +${Math.round(p.bonus * 100)}%`,
+            cls: active ? s.badgePerk : s.badgePerkDim,
+            tooltip: `${tui.mult_perk ?? 'Weapon perk'}: +${Math.round(p.bonus * 100)}% damage when tile uses ${p.target}.`,
+          }
+        })
+
         const badges = [
           state.flowMult > 1.0 && {
             key: 'flow',
@@ -574,6 +587,7 @@ export default function CombatScreen() {
             cls: s.badgeStreak,
             tooltip: tui.mult_campaignDone_desc,
           },
+          ...perkBadges,
         ].filter(Boolean) as Array<{ key: string; label: string; cls: string; tooltip: string }>
 
         if (badges.length === 0) return null

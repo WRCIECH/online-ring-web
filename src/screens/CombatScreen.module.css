@@ -165,6 +165,18 @@
   color: #dd7755;
 }
 
+.badgePerk {
+  background: rgba(212, 168, 67, 0.14);
+  border: 1px solid rgba(212, 168, 67, 0.50);
+  color: #d4a843;
+}
+
+.badgePerkDim {
+  background: rgba(212, 168, 67, 0.04);
+  border: 1px solid rgba(212, 168, 67, 0.18);
+  color: rgba(180, 140, 50, 0.45);
+}
+
 /* Legacy — kept for any remaining references */
 .flowBadgeHot {
   font-size: 0.7rem;

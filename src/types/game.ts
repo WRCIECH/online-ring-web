@@ -73,6 +73,12 @@ export interface Affix {
   damage_mult?: number
 }
 
+export interface WeaponPerk {
+  type: 'product' | 'transformation'
+  target: string   // ContentProductType or ContentTransformation
+  bonus: number    // additive fraction, e.g. 0.15 = +15%
+}
+
 export interface Weapon {
   name: string
   description: string
@@ -104,6 +110,8 @@ export interface WeaponInstance extends Weapon {
   // absent on legacy saves predating this feature — consumers fall back
   // to the old per-call random roll whenever this is undefined
   rolled_draws?: RolledPatternDraws
+  // absent on legacy saves; undefined → no perks
+  perks?: WeaponPerk[]
 }
 
 // ── Enemy affinity system ─────────────────────────────────────────────────

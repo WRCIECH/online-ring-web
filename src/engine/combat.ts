@@ -140,6 +140,19 @@ export function calcAffinityMultiplier(tile: WorkflowTile, enemy: Enemy): number
   return mult
 }
 
+// Sum of all weapon perk bonuses that match the current tile.
+export function calcPerkMult(weapon: WeaponInstance | undefined, tile: WorkflowTile): number {
+  if (!weapon?.perks?.length) return 1.0
+  let bonus = 0
+  for (const perk of weapon.perks) {
+    const hit =
+      (perk.type === 'product'        && tile.content_type        === perk.target) ||
+      (perk.type === 'transformation' && tile.content_transformation === perk.target)
+    if (hit) bonus += perk.bonus
+  }
+  return 1 + bonus
+}
+
 // +20% if tile content/stage matches the location theme's focus.
 export function calcThemeBonus(tile: WorkflowTile, locationTheme?: LocationTheme): number {
   if (!locationTheme) return 1
@@ -196,14 +209,16 @@ export function previewMove(state: CombatState, tile: WorkflowTile, move: MoveTy
     campaignBonus > 0 ? `${fmtBonusPct(campaignBonus)} done`   : null,
   ].filter(Boolean).join(' · ')
 
+  const perkMult       = calcPerkMult(weapon, tile)
   const damage         = Math.round(
-    rawDamage * (1 - repeatPenalty) * rewardMult * affinityMult
+    rawDamage * (1 - repeatPenalty) * rewardMult * affinityMult * perkMult
   )
   const multipliers: DamageMultiplier[] = [
     { key: 'heavyBonus',        value: HEAVY_TIME_BONUS,               active: move === 'Heavy' },
     { key: 'repeatScaling',     value: 1 - repeatPenalty,              active: repeatPenalty > 0 },
     { key: 'bonusPool',         value: rewardMult,                     active: rewardMult > 1.0, detail: bonusDetail || undefined },
     { key: 'affinity',          value: affinityMult,                   active: affinityMult !== 1.0 },
+    { key: 'perk',              value: perkMult,                       active: perkMult > 1.0 },
   ]
   return { duration, damage, multipliers }
 }
@@ -383,8 +398,9 @@ export function combatReducer(state: CombatState, action: CombatAction): CombatS
                       + (state.campaignDoneMult - 1)
       const rewardMult = 1 + bonusPool
       const rawDamage     = calcTileDamage(tile, move, weapon, state.weaponLevel)
+      const perkMult      = calcPerkMult(weapon, tile)
       const damage        = Math.round(
-        rawDamage * (1 - repeatPenalty) * rewardMult * affinityMult
+        rawDamage * (1 - repeatPenalty) * rewardMult * affinityMult * perkMult
       )
       const newEnemyHp    = Math.max(0, state.enemyHp - damage)
 
@@ -406,6 +422,9 @@ export function combatReducer(state: CombatState, action: CombatAction): CombatS
       }
       if (rawTheme !== 1.0) {
         s = log(s, `Location theme match +20%`, '#88ccff')
+      }
+      if (perkMult > 1.0) {
+        s = log(s, `Weapon perk +${Math.round((perkMult - 1) * 100)}%`, '#d4a843')
       }
 
 
