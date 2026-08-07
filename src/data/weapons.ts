@@ -6,7 +6,7 @@ export const WEAPONS: Record<string, WeaponInstance> = {}
 // Damage bonus per weapon level, by rarity
 export const LEVEL_MULT: Record<WeaponRarity, number> = {
   common:       0.08,
-  Intellectual: 0.09,
+  uncommon: 0.09,
   rare:         0.10,
   epic:         0.12,
   legendary:    0.15,
@@ -26,7 +26,7 @@ export function calcWeaponScaledDamage(
 
 const SELL_RARITY_BONUS: Record<WeaponRarity, number> = {
   common:       0,
-  Intellectual: 25,
+  uncommon: 25,
   rare:         75,
   epic:         175,
   legendary:    425,

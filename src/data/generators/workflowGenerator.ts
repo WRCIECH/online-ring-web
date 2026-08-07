@@ -45,19 +45,13 @@ function pickName(stage: AtomicStage): string {
   return pool[Math.floor(Math.random() * pool.length)]
 }
 
-// Rarity adds extra Produce tiles.
-const RARITY_EXTRA: Record<WeaponRarity, number> = {
-  common: 0, Intellectual: 1, rare: 2, epic: 3, legendary: 4,
-}
-
 export function calcWorkflowTileCounts(
   weaponClass: WeaponClass,
-  rarity: WeaponRarity,
+  _rarity: WeaponRarity,
 ): { research: number; produce: number } {
   const cls = WEAPON_CLASSES[weaponClass]
-  const rarityBonus = RARITY_EXTRA[rarity] ?? 0
   const research = Math.max(1, Math.round(cls.poise_weight * cls.research_weight))
-  const produce  = Math.max(1, cls.poise_weight - research + rarityBonus)
+  const produce  = Math.max(1, cls.poise_weight - research)
   return { research, produce }
 }
 
@@ -101,9 +95,8 @@ export function generateWorkflow(
   contentType?: ContentProductType,
 ): WorkflowGraph {
   const cls         = WEAPON_CLASSES[weaponClass]
-  const rarityBonus = RARITY_EXTRA[rarity] ?? 0
   const researchCount = Math.max(1, Math.round(cls.poise_weight * cls.research_weight))
-  const produceCount  = Math.max(1, cls.poise_weight - researchCount + rarityBonus)
+  const produceCount  = Math.max(1, cls.poise_weight - researchCount)
 
   const pool = cls.supported_products.length > 0 ? cls.supported_products : ALL_CONTENT_PRODUCTS
   const effectiveType: ContentProductType =

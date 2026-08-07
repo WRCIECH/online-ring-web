@@ -12,7 +12,7 @@ interface Props { onClose: () => void; canLevel?: boolean }
 const ALL_STATS: StatKey[] = ['VIG','END','TEXT','VIDEO','AUDIO','GRAPHIC','VELOCITY','DEPTH','PARASOCIAL','FRICTION','INSIGHT']
 
 const RARITY_COLOURS: Record<WeaponRarity, string> = {
-  common: '#9c9c9c', Intellectual: '#5b9bd5', rare: '#b15bd5', epic: '#d5945b', legendary: '#d5c25b',
+  common: '#9c9c9c', uncommon: '#5b9bd5', rare: '#b15bd5', epic: '#d5945b', legendary: '#d5c25b',
 }
 
 interface Tip { title: string; body: string; x: number; y: number }

@@ -11,13 +11,13 @@ interface Props {
 }
 
 const BLADE: Record<WeaponRarity, string> = {
-  common: '#888', Intellectual: '#6699dd', rare: '#ddbb44', epic: '#bb66ee', legendary: '#ff9944',
+  common: '#888', uncommon: '#6699dd', rare: '#ddbb44', epic: '#bb66ee', legendary: '#ff9944',
 }
 const SECONDARY: Record<WeaponRarity, string> = {
-  common: '#555', Intellectual: '#4466aa', rare: '#997733', epic: '#8833bb', legendary: '#cc6622',
+  common: '#555', uncommon: '#4466aa', rare: '#997733', epic: '#8833bb', legendary: '#cc6622',
 }
 const GLOW: Record<WeaponRarity, string | null> = {
-  common: null, Intellectual: '#4488cc', rare: '#ccaa22', epic: '#9944cc', legendary: '#ee8822',
+  common: null, uncommon: '#4488cc', rare: '#ccaa22', epic: '#9944cc', legendary: '#ee8822',
 }
 
 function poiseScale(n: number): number {
