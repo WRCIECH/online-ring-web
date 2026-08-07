@@ -327,8 +327,7 @@ const pl: TranslationBundle = {
 
     // Rozbicie mnożników obrażeń (MoveRadialMenu / TimerOverlay)
     mult_heavyBonus:    'Bonus za Heavy',
-    mult_repeatFlat:    'Powtórka',
-    mult_repeatScaling: 'Powtórka (skalująca)',
+    mult_repeatScaling: 'Kara za powtórkę',
     mult_abandon:       'Kara za rezygnację',
     mult_affinity:      'Powinowactwo',
     mult_finisher:      'Cios finiszujący',
@@ -339,8 +338,7 @@ const pl: TranslationBundle = {
     mult_theme:         'Klimat lokacji',
 
     mult_heavyBonus_desc:    'Ruch Heavy wymaga dłuższego skupienia — nagradza wyższy próg czasu bonusem do obrażeń.',
-    mult_repeatFlat_desc:    'Stałe zmniejszenie za powtórzenie tego samego kafelka w walce.',
-    mult_repeatScaling_desc: 'Dodatkowa kara rosnąca z każdą kolejną powtórką tego kafelka.',
+    mult_repeatScaling_desc: 'Kara za powtórzenie ukończonego kafelka — rośnie z każdą powtórką: −20% · −35% · −50% · −60% · −70% · −75% · −80% · −85% · −90% (limit).',
     mult_abandon_desc:       'Kara naliczona za rezygnację z poprzedniego kafelka przed upływem czasu.',
     mult_affinity_desc:      'Bonus lub kara wynikająca z powinowactwa typu treści do preferencji przeciwnika.',
     mult_finisher_desc:      'To ostatni kafelek w bieżącym przepływie — cios finiszujący zadaje podwójne obrażenia.',

@@ -87,14 +87,8 @@ export function weaponUpgradeCost(currentLevel: number): number {
 /** Flat damage penalty fraction applied when abandoning a workflow (next run). */
 export const ABANDON_PENALTY = 0.25
 
-/** Scaling damage penalty fraction per repeat attempt on a completed tile (stacks with REPEAT_DAMAGE_PENALTY). */
-export const REPEAT_PENALTY_PER_RETRY = 0.15
-
-/** Maximum cumulative scaling repeat penalty (cap). */
-export const REPEAT_PENALTY_MAX = 0.60
-
-/** Flat damage penalty when repeating an already-completed tile. */
-export const REPEAT_DAMAGE_PENALTY = 0.20
+/** Damage penalty fraction by repeat count (index 0 = 1st repeat; capped at last entry). */
+export const REPEAT_PENALTY_TABLE = [0.20, 0.35, 0.50, 0.60, 0.70, 0.75, 0.80, 0.85, 0.90] as const
 
 // ── Economy ───────────────────────────────────────────────────────────────────
 

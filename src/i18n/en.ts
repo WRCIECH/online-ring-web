@@ -332,8 +332,7 @@ const en: TranslationBundle = {
 
     // Damage multiplier breakdown (MoveRadialMenu / TimerOverlay)
     mult_heavyBonus:    'Heavy bonus',
-    mult_repeatFlat:    'Repeat',
-    mult_repeatScaling: 'Repeat (scaling)',
+    mult_repeatScaling: 'Repeat penalty',
     mult_abandon:       'Abandon penalty',
     mult_affinity:      'Affinity',
     mult_finisher:      'Finishing blow',
@@ -344,8 +343,7 @@ const en: TranslationBundle = {
     mult_theme:         'Location theme',
 
     mult_heavyBonus_desc:    'Heavy moves demand longer focus — the higher time threshold rewards you with a damage bonus.',
-    mult_repeatFlat_desc:    'Flat penalty for repeating the same tile in a single fight.',
-    mult_repeatScaling_desc: 'Additional penalty that grows with each further repeat of this tile.',
+    mult_repeatScaling_desc: 'Penalty for repeating a completed tile — grows with each repeat: −20% · −35% · −50% · −60% · −70% · −75% · −80% · −85% · −90% (cap).',
     mult_abandon_desc:       'Penalty carried over from abandoning your previous tile before the timer ran out.',
     mult_affinity_desc:      'Bonus or penalty based on how well your content type matches what the enemy loves or hates.',
     mult_finisher_desc:      'This is the last tile in the current workflow — a finishing blow deals double damage.',

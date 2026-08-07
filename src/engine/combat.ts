@@ -5,7 +5,7 @@ import type {
 import { LOCATION_THEMES } from '../data/locationThemes'
 import { WEAPONS, calcWeaponScaledDamage } from '../data/weapons'
 import {
-  REPEAT_PENALTY_PER_RETRY, REPEAT_PENALTY_MAX, REPEAT_DAMAGE_PENALTY, SACRIFICE_MULT,
+  REPEAT_PENALTY_TABLE, SACRIFICE_MULT,
   HEAVY_TIME_BONUS, DMG_PER_MIN, FINISHER_MULT,
   FLOW_GAP_HOT_MINS, FLOW_GAP_WARM_MINS, FLOW_GAP_COLD_MINS,
   FLOW_MULT_HOT, FLOW_MULT_WARM, FLOW_MULT_COLD, FLOW_MULT_DEAD,
@@ -173,12 +173,13 @@ export function previewMove(state: CombatState, tile: WorkflowTile, move: MoveTy
 } {
   const duration       = move === 'Heavy' ? tile.time_heavy : tile.time_light
   const weapon         = WEAPONS[state.equippedWeaponId] as WeaponInstance | undefined
-  const repeatPenalty   = Math.min(REPEAT_PENALTY_MAX, tile.repeat_count * REPEAT_PENALTY_PER_RETRY)
+  const isRepeat       = tile.is_completed
+  const repeatPenalty  = isRepeat
+    ? REPEAT_PENALTY_TABLE[Math.min(tile.repeat_count, REPEAT_PENALTY_TABLE.length - 1)]
+    : 0
   const affinityMult     = calcAffinityMultiplier(tile, state.enemyData)
   const rawTheme         = calcThemeBonus(tile, state.locationTheme)  // 1.0 or 1.2
-  const isRepeat       = tile.is_completed
   const rawDamage      = calcTileDamage(tile, move, weapon, state.weaponLevel)
-  const repeatDamage   = isRepeat ? Math.round(rawDamage * (1 - REPEAT_DAMAGE_PENALTY)) : rawDamage
   const wouldFinishAll = state.workflow.tiles
     .filter(t => !t.is_advance)
     .every(t => t.id === tile.id || t.is_completed)
@@ -201,12 +202,11 @@ export function previewMove(state: CombatState, tile: WorkflowTile, move: MoveTy
   ].filter(Boolean).join(' · ')
 
   const damage         = Math.round(
-    repeatDamage * (1 - repeatPenalty) * (1 - state.incomingPenalty)
+    rawDamage * (1 - repeatPenalty) * (1 - state.incomingPenalty)
       * rewardMult * affinityMult * finisherMult
   )
   const multipliers: DamageMultiplier[] = [
     { key: 'heavyBonus',        value: HEAVY_TIME_BONUS,               active: move === 'Heavy' },
-    { key: 'repeatFlat',        value: 1 - REPEAT_DAMAGE_PENALTY,      active: isRepeat },
     { key: 'repeatScaling',     value: 1 - repeatPenalty,              active: repeatPenalty > 0 },
     { key: 'abandon',           value: 1 - state.incomingPenalty,      active: state.incomingPenalty > 0 },
     { key: 'bonusPool',         value: rewardMult,                     active: rewardMult > 1.0, detail: bonusDetail || undefined },
@@ -377,11 +377,12 @@ export function combatReducer(state: CombatState, action: CombatAction): CombatS
       }
 
       const weapon        = WEAPONS[state.equippedWeaponId] as WeaponInstance | undefined
-      const repeatPenalty   = Math.min(REPEAT_PENALTY_MAX, tile.repeat_count * REPEAT_PENALTY_PER_RETRY)
+      const isRepeat      = tile.is_completed   // true if tile was already done before this run
+      const repeatPenalty = isRepeat
+        ? REPEAT_PENALTY_TABLE[Math.min(tile.repeat_count, REPEAT_PENALTY_TABLE.length - 1)]
+        : 0
       const affinityMult    = calcAffinityMultiplier(tile, state.enemyData)
       const rawTheme        = calcThemeBonus(tile, state.locationTheme)  // 1.0 or 1.2
-
-      const isRepeat      = tile.is_completed   // true if tile was already done before this run
 
       const updatedTiles = state.workflow.tiles.map(t => {
         if (t.id !== tile.id) return t
@@ -398,9 +399,8 @@ export function combatReducer(state: CombatState, action: CombatAction): CombatS
                       + (state.campaignDoneMult - 1)
       const rewardMult = 1 + bonusPool
       const rawDamage     = calcTileDamage(tile, move, weapon, state.weaponLevel)
-      const repeatDamage  = isRepeat ? Math.round(rawDamage * (1 - REPEAT_DAMAGE_PENALTY)) : rawDamage
       const damage        = Math.round(
-        repeatDamage * (1 - repeatPenalty) * (1 - state.incomingPenalty)
+        rawDamage * (1 - repeatPenalty) * (1 - state.incomingPenalty)
           * rewardMult * affinityMult * finisherMult
       )
       const newEnemyHp    = Math.max(0, state.enemyHp - damage)
@@ -414,8 +414,8 @@ export function combatReducer(state: CombatState, action: CombatAction): CombatS
         `✓ ${tile.name}. ⚔ −${damage} HP${isRepeat ? ' (repeat)' : ''}.`,
         '#c9a93a'
       )
-      if (repeatPenalty > 0) {
-        s = log(s, `Repeat penalty: −${Math.round(repeatPenalty * 100)}% dmg (+ flat −${Math.round(REPEAT_DAMAGE_PENALTY * 100)}%)`, '#888')
+      if (isRepeat) {
+        s = log(s, `Repeat penalty: −${Math.round(repeatPenalty * 100)}%`, '#888')
       }
       if (affinityMult !== 1.0) {
         const tier = affinityMult > 1 ? (affinityMult >= 2 ? 'LOVE' : 'LIKE') : (affinityMult <= 0.5 ? 'HATE' : 'DISLIKE')
@@ -523,4 +523,4 @@ export function combatReducer(state: CombatState, action: CombatAction): CombatS
 }
 
 // Re-export constants for UI
-export { ABANDON_PENALTY, REPEAT_PENALTY_PER_RETRY, REPEAT_PENALTY_MAX, REPEAT_DAMAGE_PENALTY } from '../data/constants'
+export { ABANDON_PENALTY, REPEAT_PENALTY_TABLE } from '../data/constants'

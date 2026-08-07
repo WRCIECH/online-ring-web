@@ -1,6 +1,6 @@
 import { useEffect, useLayoutEffect, useRef, useMemo, useState, useCallback } from 'react'
 import type { WorkflowGraph, WorkflowTile, SublocationType, MobAffinities } from '../../types/game'
-import { getReachableTiles, REPEAT_DAMAGE_PENALTY } from '../../engine/combat'
+import { getReachableTiles, REPEAT_PENALTY_TABLE } from '../../engine/combat'
 import { getTileBadges, computeEffectiveTags } from '../../data/tileBadges'
 import { spiralLayout } from '../../engine/spiralLayout'
 import { drawEdge, drawTile, TILE, type TileState } from '../../engine/workflowRenderer'
@@ -383,7 +383,7 @@ export default function WorkflowCanvas({ workflow, selectedTileId, onSelectTile,
               {hovered.tile.is_completed && (
                 <>
                   <span className={s.ttDone}>✓ Completed — repeat allowed</span>
-                  <span className={s.ttRepeat}>−{Math.round(REPEAT_DAMAGE_PENALTY * 100)}% dmg penalty</span>
+                  <span className={s.ttRepeat}>−{Math.round(REPEAT_PENALTY_TABLE[Math.min(hovered.tile.repeat_count, REPEAT_PENALTY_TABLE.length - 1)] * 100)}% dmg next repeat</span>
                   <span className={s.ttTimes}>
                     Light {fmtTime(hovered.tile.time_light)} · Heavy {fmtTime(hovered.tile.time_heavy)}
                   </span>
