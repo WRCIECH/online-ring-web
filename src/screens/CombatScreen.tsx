@@ -178,9 +178,9 @@ export default function CombatScreen() {
 
   function rollRewardTier(): RewardTier {
     const r = Math.random()
-    if (r < 0.64)       return 'C'
-    if (r < 0.94)       return Math.random() < 0.5 ? 'B1' : 'B2'
-    if (r < 0.99)       return Math.random() < 0.5 ? 'A1' : 'A2'
+    if (r < 0.645)      return 'C'
+    if (r < 0.945)      return Math.random() < 0.5 ? 'B1' : 'B2'
+    if (r < 0.995)      return Math.random() < 0.5 ? 'A1' : 'A2'
     return 'S'
   }
 
