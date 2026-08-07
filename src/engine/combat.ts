@@ -6,7 +6,7 @@ import { LOCATION_THEMES } from '../data/locationThemes'
 import { WEAPONS, calcWeaponScaledDamage } from '../data/weapons'
 import {
   REPEAT_PENALTY_TABLE, SACRIFICE_MULT,
-  HEAVY_TIME_BONUS, DMG_PER_MIN, FINISHER_MULT,
+  HEAVY_TIME_BONUS, DMG_PER_MIN,
   FLOW_GAP_HOT_MINS, FLOW_GAP_WARM_MINS, FLOW_GAP_COLD_MINS,
   FLOW_MULT_HOT, FLOW_MULT_WARM, FLOW_MULT_COLD, FLOW_MULT_DEAD,
   ESTUS_HEAL_HP,
@@ -180,10 +180,6 @@ export function previewMove(state: CombatState, tile: WorkflowTile, move: MoveTy
   const affinityMult     = calcAffinityMultiplier(tile, state.enemyData)
   const rawTheme         = calcThemeBonus(tile, state.locationTheme)  // 1.0 or 1.2
   const rawDamage      = calcTileDamage(tile, move, weapon, state.weaponLevel)
-  const wouldFinishAll = state.workflow.tiles
-    .filter(t => !t.is_advance)
-    .every(t => t.id === tile.id || t.is_completed)
-  const finisherMult   = wouldFinishAll ? FINISHER_MULT : 1.0
   // Streak, flow, theme, and campaignDone pool their bonuses additively to prevent
   // exponential stacking — each adds a % on top of a shared base instead of compounding.
   const streakBonus   = Math.min(0.1, 0.01 * state.consistencyStreak)
@@ -203,7 +199,7 @@ export function previewMove(state: CombatState, tile: WorkflowTile, move: MoveTy
 
   const damage         = Math.round(
     rawDamage * (1 - repeatPenalty) * (1 - state.incomingPenalty)
-      * rewardMult * affinityMult * finisherMult
+      * rewardMult * affinityMult
   )
   const multipliers: DamageMultiplier[] = [
     { key: 'heavyBonus',        value: HEAVY_TIME_BONUS,               active: move === 'Heavy' },
@@ -211,7 +207,6 @@ export function previewMove(state: CombatState, tile: WorkflowTile, move: MoveTy
     { key: 'abandon',           value: 1 - state.incomingPenalty,      active: state.incomingPenalty > 0 },
     { key: 'bonusPool',         value: rewardMult,                     active: rewardMult > 1.0, detail: bonusDetail || undefined },
     { key: 'affinity',          value: affinityMult,                   active: affinityMult !== 1.0 },
-    { key: 'finisher',          value: FINISHER_MULT,                  active: wouldFinishAll },
   ]
   return { duration, damage, multipliers }
 }
@@ -389,9 +384,6 @@ export function combatReducer(state: CombatState, action: CombatAction): CombatS
         return { ...t, is_completed: true, repeat_count: t.repeat_count + 1 }
       })
       const newWorkflow = { ...state.workflow, tiles: updatedTiles }
-      const allTilesDone = newWorkflow.tiles.filter(t => !t.is_advance).every(t => t.is_completed)
-      // Finisher mult only on a first-time completion of the last normal tile (never on repeats)
-      const finisherMult  = (allTilesDone && !isRepeat) ? FINISHER_MULT : 1.0
 
       const bonusPool = Math.min(0.1, 0.01 * state.consistencyStreak)
                       + (state.flowMult - 1)
@@ -401,7 +393,7 @@ export function combatReducer(state: CombatState, action: CombatAction): CombatS
       const rawDamage     = calcTileDamage(tile, move, weapon, state.weaponLevel)
       const damage        = Math.round(
         rawDamage * (1 - repeatPenalty) * (1 - state.incomingPenalty)
-          * rewardMult * affinityMult * finisherMult
+          * rewardMult * affinityMult
       )
       const newEnemyHp    = Math.max(0, state.enemyHp - damage)
 
@@ -424,9 +416,7 @@ export function combatReducer(state: CombatState, action: CombatAction): CombatS
       if (rawTheme !== 1.0) {
         s = log(s, `Location theme match +20%`, '#88ccff')
       }
-      if (allTilesDone) {
-        s = log(s, `⚡ Final tile — ${FINISHER_MULT}× damage!`, '#e6bf33')
-      }
+
 
       if (action.sacrificeTimeFrac !== undefined && action.sacrificeTimeFrac > 0) {
         const selfDmg     = Math.round(damage * action.sacrificeTimeFrac * SACRIFICE_MULT)

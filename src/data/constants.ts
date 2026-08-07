@@ -49,7 +49,6 @@ export const DMG_PER_MIN = 3
 export const STAGGER_PAUSE_MS = 1500
 
 /** Damage multiplier when the final workflow tile completes (was 3.0). */
-export const FINISHER_MULT = 2.0
 
 // ── Combat — status buildup ───────────────────────────────────────────────────
 

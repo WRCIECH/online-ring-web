@@ -4,7 +4,7 @@ import { STAGE_TIME } from '../../data/generators/workflowGenerator'
 import { WEAPON_CLASSES, ALL_WEAPON_CLASSES } from '../../data/generators/weaponClasses'
 import WeaponIcon from '../WeaponIcon'
 import {
-  HEAVY_TIME_BONUS, FINISHER_MULT,
+  HEAVY_TIME_BONUS,
   FLOW_MULT_HOT, FLOW_MULT_WARM, FLOW_GAP_HOT_MINS, FLOW_GAP_WARM_MINS,
   ABANDON_PENALTY, REPEAT_PENALTY_TABLE,
 } from '../../data/constants'
@@ -35,7 +35,6 @@ const BONUS_MULTS = [
   { key: 'mult_theme',        value: '+20%' },
   { key: 'mult_campaignDone', value: '+5% / cycle' },
   { key: 'mult_bonusPool',    value: 'additive' },
-  { key: 'mult_finisher',     value: `×${FINISHER_MULT}` },
   { key: 'mult_affinity',     value: '×2 / ×1.5 / ×0.7 / ×0.5' },
 ] as const
 

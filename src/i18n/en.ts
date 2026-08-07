@@ -335,7 +335,6 @@ const en: TranslationBundle = {
     mult_repeatScaling: 'Repeat penalty',
     mult_abandon:       'Abandon penalty',
     mult_affinity:      'Affinity',
-    mult_finisher:      'Finishing blow',
     mult_bonusPool:     'Bonus pool',
     // Labels for HUD buff badges (still shown individually even though math pools them)
     mult_flow:          'Flow state',
@@ -346,7 +345,6 @@ const en: TranslationBundle = {
     mult_repeatScaling_desc: 'Penalty for repeating a completed tile — grows with each repeat: −20% · −35% · −50% · −60% · −70% · −75% · −80% · −85% · −90% (cap).',
     mult_abandon_desc:       'Penalty carried over from abandoning your previous tile before the timer ran out.',
     mult_affinity_desc:      'Bonus or penalty based on how well your content type matches what the enemy loves or hates.',
-    mult_finisher_desc:      'This is the last tile in the current workflow — a finishing blow deals double damage.',
     mult_bonusPool_desc:     'Combined bonus from consistency streak, flow state, location theme, and campaign mastery — these rewards add together rather than multiply.',
     mult_flow_desc:          'Bonus from fighting consecutive battles without a long break — rewards staying in the creative flow.',
     mult_streak_desc:        'Bonus grows with each consecutive tile completed without skipping or abandoning.',
