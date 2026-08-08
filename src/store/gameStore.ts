@@ -302,6 +302,9 @@ export interface GameStore extends GameState {
   detachCampaign:               (weaponId: string) => void
   setCampaignSkipAllowance:     (weaponInstanceId: string, value: number) => void
 
+  // Campaign node tile allocation (pre-activation budget distribution)
+  setNodeTileAllocation: (weaponId: string, nodeId: string, research: number, produce: number) => void
+
   // Campaign modification actions (spend stat modification slots on inactive campaigns)
   modifyNodeContentType: (weaponId: string, nodeId: string, newType: ContentProductType, stat: StatKey) => boolean
   resetNodeContentType:  (weaponId: string, nodeId: string) => void
@@ -692,6 +695,25 @@ export const useGameStore = create<GameStore>((set, get) => ({
         weapon_campaigns: {
           ...s.weapon_campaigns,
           [weaponId]: { ...c, skip_allowance: clamped, completed: campaignDone },
+        },
+      }
+    })
+    get().save()
+  },
+
+  setNodeTileAllocation: (weaponId, nodeId, research, produce) => {
+    set(s => {
+      const c = s.weapon_campaigns[weaponId]
+      if (!c || c.activated) return s
+      return {
+        weapon_campaigns: {
+          ...s.weapon_campaigns,
+          [weaponId]: {
+            ...c,
+            nodes: c.nodes.map(n =>
+              n.id === nodeId ? { ...n, node_research: research, node_produce: produce } : n
+            ),
+          },
         },
       }
     })

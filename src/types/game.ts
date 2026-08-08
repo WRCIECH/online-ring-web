@@ -191,6 +191,8 @@ export interface CampaignNode {
   content_type_modified?: boolean          // true when player has changed content_type
   original_content_type?: ContentProductType  // first value before any player modification
   content_type_modified_stat?: StatKey    // stat spent on the most recent modification
+  node_research?: number        // allocated research tiles (≥0); undefined = weapon class default
+  node_produce?: number         // allocated produce tiles (≥1); undefined = weapon class default
 }
 
 export interface CampaignEdge {

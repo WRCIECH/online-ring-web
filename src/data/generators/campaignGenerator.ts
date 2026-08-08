@@ -1,7 +1,7 @@
 import type { CampaignNode, CampaignEdge, WeaponCampaign, ContentTransformation, WeaponInstance } from '../../types/game'
 import { WEAPON_CLASSES } from './weaponClasses'
 import type { ContentTransformationsConfig } from './weaponClasses'
-import { ALL_CONTENT_PRODUCTS } from './workflowGenerator'
+import { ALL_CONTENT_PRODUCTS, calcWorkflowTileCounts } from './workflowGenerator'
 
 function genId(): string {
   return 'cn_' + Math.random().toString(36).slice(2, 9)
@@ -86,7 +86,8 @@ export function generateWeaponCampaign(weapon: WeaponInstance): WeaponCampaign {
     const cls  = WEAPON_CLASSES[weapon.weapon_class]
     const pool = cls.supported_products.length > 0 ? cls.supported_products : ALL_CONTENT_PRODUCTS
     const content_type = pool[Math.floor(Math.random() * pool.length)]
-    return { id: genId(), name: '', completed: false, published: false, content_type }
+    const { research, produce } = calcWorkflowTileCounts(weapon.weapon_class, weapon.rarity)
+    return { id: genId(), name: '', completed: false, published: false, content_type, node_research: research, node_produce: produce }
   }
 
   const root = makeNode()

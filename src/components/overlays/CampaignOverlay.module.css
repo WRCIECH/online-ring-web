@@ -508,9 +508,9 @@
 
 .svgNodeCard {
   display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 6px 10px;
+  flex-direction: column;
+  gap: 2px;
+  padding: 4px 8px;
   height: 100%;
   box-sizing: border-box;
   border-radius: 6px;
@@ -521,6 +521,73 @@
 }
 
 .svgNodeCard:hover { background: rgba(255, 255, 255, 0.03); }
+
+.nodeTopRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+  min-width: 0;
+  min-height: 0;
+}
+
+.tileRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+.tileControl {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 0.62rem;
+  color: var(--color-text-dim);
+}
+
+.tileBtn {
+  width: 16px;
+  height: 16px;
+  padding: 0;
+  border-radius: 2px;
+  background: transparent;
+  border: 1px solid var(--color-sep);
+  color: var(--color-text-dim);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+  font-size: 0.7rem;
+  transition: border-color 0.1s, color 0.1s;
+}
+
+.tileBtn:hover:not(:disabled) { border-color: var(--color-border); color: var(--color-text); }
+.tileBtn:disabled { opacity: 0.28; cursor: not-allowed; }
+
+.tileCount {
+  font-size: 0.70rem;
+  font-weight: 600;
+  color: var(--color-text);
+  min-width: 14px;
+  text-align: center;
+}
+
+.tileLabelR { color: #7ab8e0; }
+.tileLabelP { color: #e0a060; }
+
+.poolOk {
+  font-size: 0.68rem;
+  color: #55cc77;
+  opacity: 0.8;
+}
+
+.poolPending {
+  font-size: 0.68rem;
+  color: #ccaa44;
+  opacity: 0.85;
+}
 
 /* ── Node row ───────────────────────────────────────────────────────────── */
 

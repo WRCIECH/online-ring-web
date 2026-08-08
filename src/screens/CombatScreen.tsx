@@ -114,7 +114,7 @@ export default function CombatScreen() {
       const initialContentType = initialNode?.content_type
         ?? initialWeapon?.rolled_draws?.format?.[0]?.[0] ?? undefined
       const workflow = (store.active_content_id ? store.workflow_progress[store.active_content_id] : undefined)
-        ?? generateWorkflow(initialWeaponClass, initialWeaponRarity, spawnAsBoss, initialContentType)
+        ?? generateWorkflow(initialWeaponClass, initialWeaponRarity, spawnAsBoss, initialContentType, initialNode?.node_research, initialNode?.node_produce)
 
       const campaignDoneMult = 1.0 + 0.05 * (activeWeaponCampaign?.done_count ?? 0)
 
@@ -335,6 +335,8 @@ export default function CombatScreen() {
         pickedWeapon?.rarity       ?? 'common',
         loc?.sublocation_type === 'boss',
         pickedContentType,
+        pickedNode?.node_research,
+        pickedNode?.node_produce,
       )
     setSelectedContentId(contentId)
     store.setActiveContentId(contentId)
@@ -388,6 +390,8 @@ export default function CombatScreen() {
         pickedWeapon?.rarity       ?? 'common',
         loc?.sublocation_type === 'boss',
         advContentType,
+        advNode?.node_research,
+        advNode?.node_produce,
       )
     const savedStreak = store.content_streak[contentId] ?? 0
     setSelectedContentId(contentId)

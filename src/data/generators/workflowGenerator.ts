@@ -93,10 +93,16 @@ export function generateWorkflow(
   _rarity: WeaponRarity,
   isBoss = false,
   contentType?: ContentProductType,
+  researchOverride?: number,
+  produceOverride?: number,
 ): WorkflowGraph {
   const cls         = WEAPON_CLASSES[weaponClass]
-  const researchCount = Math.max(1, Math.round(cls.poise_weight * cls.research_weight))
-  const produceCount  = Math.max(1, cls.poise_weight - researchCount)
+  const researchCount = researchOverride !== undefined
+    ? researchOverride
+    : Math.max(1, Math.round(cls.poise_weight * cls.research_weight))
+  const produceCount  = produceOverride !== undefined
+    ? Math.max(1, produceOverride)
+    : Math.max(1, cls.poise_weight - Math.max(1, Math.round(cls.poise_weight * cls.research_weight)))
 
   const pool = cls.supported_products.length > 0 ? cls.supported_products : ALL_CONTENT_PRODUCTS
   const effectiveType: ContentProductType =

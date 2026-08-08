@@ -133,11 +133,12 @@ function subtreeWidth(nodeId: string, childrenMap: Record<string, string[]>): nu
 function computePositions(
   rootIds: string[],
   childrenMap: Record<string, string[]>,
+  nodeH: number = NODE_H,
 ): Map<string, { x: number; y: number }> {
   const pos = new Map<string, { x: number; y: number }>()
 
   function place(nodeId: string, cx: number, depth: number) {
-    pos.set(nodeId, { x: cx - NODE_W / 2, y: depth * (NODE_H + V_GAP) })
+    pos.set(nodeId, { x: cx - NODE_W / 2, y: depth * (nodeH + V_GAP) })
     const children = childrenMap[nodeId] ?? []
     if (!children.length) return
     const total =
@@ -328,12 +329,23 @@ export default function CampaignOverlay({ onClose }: Props) {
                         const lightFmt  = lightMin > 0
                           ? (lightSec > 0 ? `${lightMin}m ${lightSec}s` : `${lightMin}m`)
                           : `${lightSec}s`
+                        const c    = store.weapon_campaigns[selectedWeapon.instance_id]
+                        const nCnt = c ? c.nodes.length : 0
                         return (
                           <>
                             <span className={s.statChip}>+{((LEVEL_MULT[selectedWeapon.rarity] ?? 0.03) * 100).toFixed(0)}% / lv</span>
                             <span className={s.statChip}>×{classDef.base_damage_mult} base</span>
-                            <span className={s.statChipResearch} data-tooltip="Research tiles per content node">R×{research}</span>
-                            <span className={s.statChipProduce}  data-tooltip="Produce tiles per content node">P×{produce}</span>
+                            {nCnt > 0 ? (
+                              <>
+                                <span className={s.statChipResearch} data-tooltip={`Total research tiles across all ${nCnt} nodes (${research} default per node)`}>R total: {research * nCnt}</span>
+                                <span className={s.statChipProduce}  data-tooltip={`Total produce tiles across all ${nCnt} nodes (${produce} default per node)`}>P total: {produce * nCnt}</span>
+                              </>
+                            ) : (
+                              <>
+                                <span className={s.statChipResearch} data-tooltip="Research tiles per content node">R×{research}</span>
+                                <span className={s.statChipProduce}  data-tooltip="Produce tiles per content node">P×{produce}</span>
+                              </>
+                            )}
                             <span className={s.statChip}>{lightFmt} / tile</span>
                           </>
                         )
@@ -417,12 +429,23 @@ export default function CampaignOverlay({ onClose }: Props) {
                     lc.campaign_name && (!nameVal || lc.campaign_name.toLowerCase().includes(nameVal.toLowerCase()))
                   )
 
+                  // Per-node tile allocation budget
+                  const { research: defaultR, produce: defaultP } = calcWorkflowTileCounts(selectedWeapon.weapon_class, selectedWeapon.rarity)
+                  const totalR  = defaultR * nodes.length
+                  const totalP  = defaultP * nodes.length
+                  const allocR  = nodes.reduce((s, n) => s + (n.node_research ?? defaultR), 0)
+                  const allocP  = nodes.reduce((s, n) => s + (n.node_produce  ?? defaultP), 0)
+                  const poolR   = totalR - allocR
+                  const poolP   = totalP - allocP
+                  const poolBalanced = poolR === 0 && poolP === 0
+
                   // Compute SVG layout
-                  const positions = computePositions(roots.map(r => r.id), childrenMap)
+                  const nodeH = isActivated ? NODE_H : 72
+                  const positions = computePositions(roots.map(r => r.id), childrenMap, nodeH)
                   let maxX = 0, maxY = 0
                   for (const [, p] of positions) {
                     maxX = Math.max(maxX, p.x + NODE_W)
-                    maxY = Math.max(maxY, p.y + NODE_H)
+                    maxY = Math.max(maxY, p.y + nodeH)
                   }
                   const svgW = maxX + PAD
                   const svgH = maxY + PAD
@@ -547,6 +570,15 @@ export default function CampaignOverlay({ onClose }: Props) {
                           </div>
                         )}
 
+                        {/* Pool balance status (only when not activated) */}
+                        {!isActivated && !campaign.completed && (
+                          <span className={poolBalanced ? s.poolOk : s.poolPending}>
+                            {poolBalanced
+                              ? 'Tiles allocated ✓'
+                              : `R pool: ${poolR > 0 ? '+' : ''}${poolR} · P pool: ${poolP > 0 ? '+' : ''}${poolP}`}
+                          </span>
+                        )}
+
                         {/* Activation section */}
                         {!campaign.completed && !isActivated && (
                           showActivateConfirm ? (
@@ -571,9 +603,9 @@ export default function CampaignOverlay({ onClose }: Props) {
                             </div>
                           ) : (
                             <button
-                              className={[s.btnActivate, !isFullyDefined ? s.btnActivateDisabled : ''].filter(Boolean).join(' ')}
-                              disabled={!isFullyDefined}
-                              title={!isFullyDefined ? 'Name the campaign and all nodes first' : undefined}
+                              className={[s.btnActivate, (!isFullyDefined || !poolBalanced) ? s.btnActivateDisabled : ''].filter(Boolean).join(' ')}
+                              disabled={!isFullyDefined || !poolBalanced}
+                              title={!isFullyDefined ? 'Name the campaign and all nodes first' : !poolBalanced ? 'Allocate all tiles before activating' : undefined}
                               onClick={() => setShowActivateConfirm(true)}
                             >
                               Activate Campaign
@@ -636,7 +668,7 @@ export default function CampaignOverlay({ onClose }: Props) {
                           const tp = positions.get(edge.to_id)
                           if (!fp || !tp) return null
                           const x1 = fp.x + NODE_W / 2
-                          const y1 = fp.y + NODE_H
+                          const y1 = fp.y + nodeH
                           const x2 = tp.x + NODE_W / 2
                           const y2 = tp.y
                           const my = (y1 + y2) / 2
@@ -715,7 +747,7 @@ export default function CampaignOverlay({ onClose }: Props) {
                           const canEdit = !node.completed
 
                           return (
-                            <foreignObject key={node.id} x={pos.x} y={pos.y} width={NODE_W} height={NODE_H} style={{ overflow: 'visible' }} pointerEvents="all">
+                            <foreignObject key={node.id} x={pos.x} y={pos.y} width={NODE_W} height={nodeH} style={{ overflow: 'visible' }} pointerEvents="all">
                               <div
                                 className={[
                                   s.svgNodeCard,
@@ -724,103 +756,126 @@ export default function CampaignOverlay({ onClose }: Props) {
                                   finished       ? s.nodeFinished  : '',
                                 ].filter(Boolean).join(' ')}
                               >
-                                <span className={s.nodeIcon}>
-                                  {node.published ? '★' : node.completed ? '✓' : inactive ? '○' : '◎'}
-                                </span>
-
-                                {isEditingThis ? (
-                                  <input
-                                    ref={nodeInputRef}
-                                    className={s.nodeInput}
-                                    value={editingNodeVal}
-                                    onChange={e => setEditingNodeVal(e.target.value)}
-                                    onBlur={() => handleNodeNameSave(weaponId, node.id)}
-                                    onKeyDown={e => {
-                                      if (e.key === 'Enter') handleNodeNameSave(weaponId, node.id)
-                                      if (e.key === 'Escape') { setEditingNodeId(null); setEditingNodeVal('') }
-                                    }}
-                                  />
-                                ) : (
-                                  <span
-                                    className={[s.nodeName, canEdit ? s.nodeNameEditable : ''].join(' ')}
-                                    onClick={() => {
-                                      if (canEdit) {
-                                        setEditingNodeId(node.id)
-                                        setEditingNodeVal(node.name)
-                                      }
-                                    }}
-                                    title={canEdit ? t.ui.click_to_rename : undefined}
-                                  >
-                                    {node.name
-                                      ? node.name
-                                      : canEdit
-                                        ? <em className={s.nodeUnnamed}>{(t.ui as Record<string,string>).click_to_name ?? 'Click to name…'}</em>
-                                        : <em className={s.nodeUnnamed}>{t.ui.untitled}</em>
-                                    }
+                                <div className={s.nodeTopRow}>
+                                  <span className={s.nodeIcon}>
+                                    {node.published ? '★' : node.completed ? '✓' : inactive ? '○' : '◎'}
                                   </span>
-                                )}
 
-                                {node.content_type && (() => {
-                                  const label = (t.content.product as Record<string, { badge_label?: string } | undefined>)[node.content_type]?.badge_label ?? node.content_type
-                                  const canModify = !isActivated && (
-                                    node.content_type_modified ||
-                                    MODIFICATION_STATS.some(st => (remainingMods[st] ?? 0) > 0 && (STAT_CONTENT_TYPES[st]?.filter(x => x !== '_blank').length ?? 0) > 0)
-                                  )
-                                  const isOpen = modifyNodeId === node.id
-                                  return (
+                                  {isEditingThis ? (
+                                    <input
+                                      ref={nodeInputRef}
+                                      className={s.nodeInput}
+                                      value={editingNodeVal}
+                                      onChange={e => setEditingNodeVal(e.target.value)}
+                                      onBlur={() => handleNodeNameSave(weaponId, node.id)}
+                                      onKeyDown={e => {
+                                        if (e.key === 'Enter') handleNodeNameSave(weaponId, node.id)
+                                        if (e.key === 'Escape') { setEditingNodeId(null); setEditingNodeVal('') }
+                                      }}
+                                    />
+                                  ) : (
                                     <span
-                                      className={[
-                                        s.nodeContentBadge,
-                                        node.content_type_modified ? s.nodeContentBadgeModified : '',
-                                        canModify ? s.nodeContentBadgeClickable : '',
-                                      ].filter(Boolean).join(' ')}
-                                      title={canModify ? 'Click to change content type' : undefined}
-                                      onClick={canModify ? e => {
-                                        e.stopPropagation()
-                                        const pane = treePaneRef.current
-                                        if (!pane) return
-                                        const pr = pane.getBoundingClientRect()
-                                        if (isOpen) { setModifyNodeId(null) } else {
-                                          setModifyNodeId(node.id)
-                                          setModifyEdge(null)
-                                          setPickerPos({ x: e.clientX - pr.left, y: e.clientY - pr.top + 10 })
+                                      className={[s.nodeName, canEdit ? s.nodeNameEditable : ''].join(' ')}
+                                      onClick={() => {
+                                        if (canEdit) {
+                                          setEditingNodeId(node.id)
+                                          setEditingNodeVal(node.name)
                                         }
-                                      } : undefined}
+                                      }}
+                                      title={canEdit ? t.ui.click_to_rename : undefined}
                                     >
-                                      {label}{canModify ? ' ✎' : ''}
+                                      {node.name
+                                        ? node.name
+                                        : canEdit
+                                          ? <em className={s.nodeUnnamed}>{(t.ui as Record<string,string>).click_to_name ?? 'Click to name…'}</em>
+                                          : <em className={s.nodeUnnamed}>{t.ui.untitled}</em>
+                                      }
                                     </span>
+                                  )}
+
+                                  {node.content_type && (() => {
+                                    const label = (t.content.product as Record<string, { badge_label?: string } | undefined>)[node.content_type]?.badge_label ?? node.content_type
+                                    const canModify = !isActivated && (
+                                      node.content_type_modified ||
+                                      MODIFICATION_STATS.some(st => (remainingMods[st] ?? 0) > 0 && (STAT_CONTENT_TYPES[st]?.filter(x => x !== '_blank').length ?? 0) > 0)
+                                    )
+                                    const isOpen = modifyNodeId === node.id
+                                    return (
+                                      <span
+                                        className={[
+                                          s.nodeContentBadge,
+                                          node.content_type_modified ? s.nodeContentBadgeModified : '',
+                                          canModify ? s.nodeContentBadgeClickable : '',
+                                        ].filter(Boolean).join(' ')}
+                                        title={canModify ? 'Click to change content type' : undefined}
+                                        onClick={canModify ? e => {
+                                          e.stopPropagation()
+                                          const pane = treePaneRef.current
+                                          if (!pane) return
+                                          const pr = pane.getBoundingClientRect()
+                                          if (isOpen) { setModifyNodeId(null) } else {
+                                            setModifyNodeId(node.id)
+                                            setModifyEdge(null)
+                                            setPickerPos({ x: e.clientX - pr.left, y: e.clientY - pr.top + 10 })
+                                          }
+                                        } : undefined}
+                                      >
+                                        {label}{canModify ? ' ✎' : ''}
+                                      </span>
+                                    )
+                                  })()}
+
+                                  {finished && (
+                                    <button
+                                      className={s.btnPublish}
+                                      onClick={() => store.publishCampaignNode(weaponId, node.id)}
+                                      title={(t.ui as Record<string, string>).btn_publish_node ?? 'Publish'}
+                                    >
+                                      {(t.ui as Record<string, string>).btn_publish_node ?? 'Publish'}
+                                    </button>
+                                  )}
+
+                                  {node.published && (
+                                    <>
+                                      <span className={s.publishedBadge}>
+                                        {(t.ui as Record<string, string>).node_published ?? 'Published'}
+                                      </span>
+                                      {(node.promote_count ?? 0) > 0 && (
+                                        <span className={s.promoteCount}>×{node.promote_count}</span>
+                                      )}
+                                      {(node.promote_count ?? 0) < 3 && (
+                                        <button
+                                          className={s.btnPromote}
+                                          onClick={() => store.promoteNode(weaponId, node.id)}
+                                          title="Promote"
+                                        >
+                                          ↑
+                                        </button>
+                                      )}
+                                    </>
+                                  )}
+                                </div>
+
+                                {!isActivated && !node.completed && (() => {
+                                  const nodeR = node.node_research ?? defaultR
+                                  const nodeP = node.node_produce  ?? defaultP
+                                  return (
+                                    <div className={s.tileRow}>
+                                      <span className={s.tileControl}>
+                                        <span className={s.tileLabelR}>R</span>
+                                        <button className={s.tileBtn} disabled={nodeR <= 0} onClick={() => store.setNodeTileAllocation(weaponId, node.id, nodeR - 1, nodeP)}>−</button>
+                                        <span className={s.tileCount}>{nodeR}</span>
+                                        <button className={s.tileBtn} disabled={poolR <= 0} onClick={() => store.setNodeTileAllocation(weaponId, node.id, nodeR + 1, nodeP)}>+</button>
+                                      </span>
+                                      <span className={s.tileControl}>
+                                        <span className={s.tileLabelP}>P</span>
+                                        <button className={s.tileBtn} disabled={nodeP <= 1} onClick={() => store.setNodeTileAllocation(weaponId, node.id, nodeR, nodeP - 1)}>−</button>
+                                        <span className={s.tileCount}>{nodeP}</span>
+                                        <button className={s.tileBtn} disabled={poolP <= 0} onClick={() => store.setNodeTileAllocation(weaponId, node.id, nodeR, nodeP + 1)}>+</button>
+                                      </span>
+                                    </div>
                                   )
                                 })()}
-
-                                {finished && (
-                                  <button
-                                    className={s.btnPublish}
-                                    onClick={() => store.publishCampaignNode(weaponId, node.id)}
-                                    title={(t.ui as Record<string, string>).btn_publish_node ?? 'Publish'}
-                                  >
-                                    {(t.ui as Record<string, string>).btn_publish_node ?? 'Publish'}
-                                  </button>
-                                )}
-
-                                {node.published && (
-                                  <>
-                                    <span className={s.publishedBadge}>
-                                      {(t.ui as Record<string, string>).node_published ?? 'Published'}
-                                    </span>
-                                    {(node.promote_count ?? 0) > 0 && (
-                                      <span className={s.promoteCount}>×{node.promote_count}</span>
-                                    )}
-                                    {(node.promote_count ?? 0) < 3 && (
-                                      <button
-                                        className={s.btnPromote}
-                                        onClick={() => store.promoteNode(weaponId, node.id)}
-                                        title="Promote"
-                                      >
-                                        ↑
-                                      </button>
-                                    )}
-                                  </>
-                                )}
                               </div>
                             </foreignObject>
                           )
