@@ -24,6 +24,8 @@ export interface WeaponClassDef {
   supported_products: ContentProductType[]
   time_mod: number
   content_transformations: ContentTransformationsConfig
+  // Override campaign graph size [min, max] nodes. Falls back to poise_weight formula when absent.
+  campaign_nodes?: [number, number]
 }
 
 
@@ -200,6 +202,7 @@ export const WEAPON_CLASSES: Record<WeaponClass, WeaponClassDef> = {
     id: 'twinblades', name: 'Twinblade', description: 'Multi-platform cross-posting.',
     poise_weight: 8, research_weight: 0.25, base_damage_mult: 0.9,
     time_mod: 1.0,
+    campaign_nodes: [7, 9],
     supported_products: [],
     content_transformations: {
       S:        ['Similar', 'Compression', 'AudienceShift', 'Localize'],

@@ -74,8 +74,9 @@ const GLOBAL_EDGE_POOL: ContentTransformation[] = [
 
 export function generateWeaponCampaign(weapon: WeaponInstance): WeaponCampaign {
   const pw       = weapon.poise_weight ?? 8
-  const minNodes = Math.max(5, Math.round(pw * 0.5))
-  const maxNodes = Math.max(7, Math.round(pw * 0.8))
+  const clsDef   = WEAPON_CLASSES[weapon.weapon_class]
+  const [minNodes, maxNodes] = clsDef.campaign_nodes
+    ?? [Math.max(5, Math.round(pw * 0.5)), Math.max(7, Math.round(pw * 0.8))]
   const nodeCount = minNodes + Math.floor(Math.random() * (maxNodes - minNodes + 1))
   const maxBranch = 3
 
