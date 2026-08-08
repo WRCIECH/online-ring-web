@@ -132,7 +132,7 @@ const pl: TranslationBundle = {
     chronicler:   { name: 'Kronikarz',       description: 'Zrównoważony i metodyczny. Obejmuje wszystkie formaty z jednakową pewnością siebie.' },
     sprinter:     { name: 'Sprinter',        description: 'Szybkie, duże wolumeny. Wiele małych kawałków zamiast jednego dużego.' },
     architect:    { name: 'Architekt',       description: 'Ciężki i celowy. Buduje struktury przeznaczone do przetrwania.' },
-    researcher:   { name: 'Badacz',          description: 'Oparty na dowodach i analityczny. Głębia przed szerokością.' },
+    repurposer:   { name: 'Repurposer',       description: 'Jeden pomysł, każdy format. Adaptuje treści między tekstem, wideo i audio bez utraty sensu.' },
     storyteller:  { name: 'Gawędziarz',      description: 'Narracja, emocjonalny łuk. Stawia historię ponad wszystko inne.' },
     orator:       { name: 'Orator',          description: 'Treści głosowe, mówione. Obecność i jasność ponad szlifem.' },
     curator:      { name: 'Kurator',         description: 'Odkrywa i organizuje. Łączy rozproszone idee w wartościową całość.' },

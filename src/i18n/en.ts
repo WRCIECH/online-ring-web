@@ -132,7 +132,7 @@ const en: TranslationBundle = {
     chronicler:   { name: 'Chronicler',   description: 'Balanced and methodical. Covers all formats with equal confidence.' },
     sprinter:     { name: 'Sprinter',     description: 'Fast, high-volume output. Many small pieces over one large one.' },
     architect:    { name: 'Architect',    description: 'Heavy and deliberate. Builds structures designed to last.' },
-    researcher:   { name: 'Researcher',   description: 'Evidence-based and analytical. Depth before breadth.' },
+    repurposer:   { name: 'Repurposer',   description: 'One idea, every format. Adapts content across text, video, and audio without losing the thread.' },
     storyteller:  { name: 'Storyteller',  description: 'Narrative, emotional arc. Puts story above everything else.' },
     orator:       { name: 'Orator',       description: 'Voice-first, spoken content. Presence and clarity above polish.' },
     curator:      { name: 'Curator',      description: 'Discovers and organises. Connects scattered ideas into something valuable.' },

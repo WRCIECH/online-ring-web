@@ -59,14 +59,27 @@ const SYMBOLS: Record<string, React.ReactNode> = {
     <path d="M20 68 A35 35 0 0 1 80 68" strokeDasharray="5 3" />
   </>,
 
-  /* ── Researcher: magnifying glass ────────────────────────────────────── */
-  researcher: <>
-    <circle cx="42" cy="42" r="25" />
-    <line x1="61" y1="61" x2="84" y2="84" strokeWidth="3" />
-    <line x1="30" y1="36" x2="54" y2="36" />
-    <line x1="30" y1="43" x2="54" y2="43" />
-    <line x1="30" y1="50" x2="47" y2="50" />
-    <path d="M28 28 A18 18 0 0 1 46 22" strokeWidth="0.9" opacity="0.55" />
+  /* ── Repurposer: three format icons converging to single output ───────── */
+  repurposer: <>
+    {/* Text icon */}
+    <rect x="8" y="15" width="16" height="14" rx="2" />
+    <line x1="11" y1="20" x2="21" y2="20" strokeWidth="0.9" />
+    <line x1="11" y1="25" x2="19" y2="25" strokeWidth="0.9" />
+    {/* Video icon */}
+    <rect x="8" y="43" width="16" height="13" rx="1" />
+    <polygon points="12,46 12,53 20,49.5" fill="currentColor" strokeWidth="0" />
+    {/* Audio icon */}
+    <path d="M8 72 Q12 67 16 72 Q20 77 24 72" />
+    <path d="M8 80 Q12 75 16 80 Q20 85 24 80" strokeWidth="0.8" opacity="0.5" />
+    {/* Converging lines to hub */}
+    <line x1="24" y1="22" x2="58" y2="50" />
+    <line x1="24" y1="49" x2="58" y2="50" />
+    <line x1="24" y1="76" x2="58" y2="50" />
+    {/* Central hub */}
+    <circle cx="58" cy="50" r="5" fill="currentColor" strokeWidth="0" />
+    {/* Output arrow */}
+    <line x1="63" y1="50" x2="86" y2="50" strokeWidth="2.5" />
+    <path d="M81 44 L88 50 L81 56" strokeWidth="1.5" />
   </>,
 
   /* ── Storyteller: scroll ──────────────────────────────────────────────── */

@@ -10,7 +10,7 @@ const CLASS_COLORS: Record<string, [string, string]> = {
   chronicler:  ['#7b99aa', '#a0bfcc'],
   sprinter:    ['#aaaacc', '#ccccee'],
   architect:   ['#888899', '#aaaacc'],
-  researcher:  ['#9a7d5a', '#c4a478'],
+  repurposer:  ['#5aaa99', '#7dccbb'],
   storyteller: ['#9966bb', '#bb88dd'],
   orator:      ['#cc8844', '#eea866'],
   curator:     ['#558855', '#77aa77'],
@@ -83,17 +83,17 @@ function renderArmor(classId: string, P: string, S: string) {
         <rect x="4" y="38" width="24" height="5" rx="2" fill={S} opacity="0.75"/>
       </>
 
-    case 'researcher':
-      // Studded leather: tapered shape with stud circles
+    case 'repurposer':
+      // Three-band adaptive harness — each band holds a format icon
       return <>
-        <polygon points="9,7 23,7 26,41 6,41" fill={P} stroke={S} strokeWidth="1.1"/>
-        {([10, 18, 27] as const).map((cy, ri) =>
-          ([10, 16, 22] as const).map((cx, ci) => (
-            <circle key={ri * 3 + ci} cx={cx} cy={cy} r={1.4} fill={S} opacity="0.8"/>
-          ))
-        )}
-        <rect x="12" y="4" width="8" height="4" rx="1" fill={S} opacity="0.6"/>
-        <line x1="6" y1="35" x2="26" y2="35" stroke={S} strokeWidth="0.7"/>
+        <rect x="7" y="8" width="18" height="34" rx="2" fill={P} stroke={S} strokeWidth="1.1"/>
+        <line x1="7" y1="19" x2="25" y2="19" stroke={S} strokeWidth="0.8"/>
+        <line x1="7" y1="30" x2="25" y2="30" stroke={S} strokeWidth="0.8"/>
+        <line x1="10" y1="13" x2="22" y2="13" stroke={S} strokeWidth="0.7"/>
+        <line x1="10" y1="16" x2="18" y2="16" stroke={S} strokeWidth="0.7"/>
+        <polygon points="10,22 10,27 17,24.5" fill={S} opacity="0.75" stroke="none"/>
+        <path d="M10 34 Q13 31 16 34 Q19 37 22 34" fill="none" stroke={S} strokeWidth="0.8"/>
+        <rect x="7" y="5" width="18" height="4" rx="1" fill={S} opacity="0.7"/>
       </>
 
     case 'storyteller':

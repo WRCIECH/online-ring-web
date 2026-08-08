@@ -6,7 +6,7 @@ Poniższy zestaw 9 podstawowych statystyk służy jako bezpośrednie przelicznik
 
 ## 1. TEXT (Tekst)
 *Moc surowego słowa pisanego, logiki i struktury.*
-* **Klasy główne:** `researcher`, `architect`, `curator`
+* **Klasy główne:** `repurposer`, `architect`, `curator`
 * **Skalowanie mechaniczne (Formaty bazowe):** `Plaintext`, `StructuredText`, `IllustratedText`, `CurationFeed`
 * **Modyfikatory etapów/stylu:** `Research`, `Plan`, `Intellectual`, `Segmentation`
 * **Zastosowanie w walce:** Wolne, ale nieuchronne zadawanie stałych obrażeń. Idealne do rozbijania wrogów o wysokim pancerzu merytorycznym.
@@ -39,7 +39,7 @@ Poniższy zestaw 9 podstawowych statystyk służy jako bezpośrednie przelicznik
 
 ## 6. DEPTH (Głębia / Merytoryka)
 *Współczynnik ciężaru właściwego treści. Przetwarzanie i synteza potężnych baz wiedzy.*
-* **Klasy główne:** `researcher`, `architect`, `teacher`
+* **Klasy główne:** `architect`, `teacher`
 * **Skalowanie mechaniczne (Modyfikatory pochodzenia):** `Expansion`, `ZoomIn`, `ZoomOut`
 * **Modyfikatory etapów/stylu:** `Intellectual`, `ProblemSolving`
 * **Zastosowanie w walce:** Ignoruje podstawowe tarcze i odporności przeciwników. Ataki z wysokim *Depth* nakładają na cel status "Zrozumienie", paraliżując jego akcje obronne.
@@ -74,7 +74,7 @@ Poniższy zestaw 9 podstawowych statystyk służy jako bezpośrednie przelicznik
 | **`chronicler`** | Zrównoważone (Wszystkie na średnim poziomie) | Dowolny format (brak słabych punktów) |
 | **`sprinter`** | `VELOCITY`, `GRAPHIC` | `SingleGraphic`, `Carousel` (Styl: `Fast`) |
 | **`architect`** | `DEPTH`, `TEXT` | `StructuredText` (Wielkie formy) |
-| **`researcher`** | `DEPTH`, `TEXT` | `Plaintext`, `IllustratedText` (Styl: `Intellectual`) |
+| **`repurposer`** | `TEXT`, `VIDEO`, `AUDIO`, `VELOCITY` | Dowolny format cross-platform (szybka adaptacja) |
 | **`storyteller`** | `VIDEO`, `AUDIO` | `CinematicVideo`, `ProducedAudio` (Styl: `Narration`) |
 | **`orator`** | `AUDIO`, `PARASOCIAL` | `RawAudio`, `ProducedAudio` |
 | **`curator`** | `TEXT`, `INSIGHT` | `CurationFeed` (Agregacja, bazy wiedzy) |

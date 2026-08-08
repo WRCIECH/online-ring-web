@@ -31,11 +31,11 @@ export const CLASS_DEFINITIONS: ClassDef[] = [
     startingStats: { VIG:5, END:2, TEXT:3, VIDEO:0, AUDIO:0, GRAPHIC:0, VELOCITY:0, DEPTH:4, PARASOCIAL:0, FRICTION:0, INSIGHT:0 },
   },
   {
-    id: 'researcher',
-    name: 'Researcher',
-    description: 'Evidence-based and analytical. Depth before breadth.',
-    weaponClass: 'spears',
-    startingStats: { VIG:1, END:2, TEXT:2, VIDEO:0, AUDIO:0, GRAPHIC:0, VELOCITY:0, DEPTH:4, PARASOCIAL:0, FRICTION:0, INSIGHT:0 },
+    id: 'repurposer',
+    name: 'Repurposer',
+    description: 'One idea, every format. Adapts content across text, video, and audio without losing the thread.',
+    weaponClass: 'twinblades',
+    startingStats: { VIG:1, END:2, TEXT:2, VIDEO:2, AUDIO:2, GRAPHIC:0, VELOCITY:2, DEPTH:0, PARASOCIAL:0, FRICTION:0, INSIGHT:0 },
   },
   {
     id: 'storyteller',
