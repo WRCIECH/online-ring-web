@@ -198,7 +198,7 @@ export const WEAPON_CLASSES: Record<WeaponClass, WeaponClassDef> = {
   },
   twinblades: {
     id: 'twinblades', name: 'Twinblade', description: 'Multi-platform cross-posting.',
-    poise_weight: 16, research_weight: 0.25, base_damage_mult: 0.9,
+    poise_weight: 8, research_weight: 0.25, base_damage_mult: 0.9,
     time_mod: 1.0,
     supported_products: [],
     content_transformations: {
