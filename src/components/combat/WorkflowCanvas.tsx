@@ -390,7 +390,7 @@ export default function WorkflowCanvas({ workflow, selectedTileId, onSelectTile,
                 </>
               )}
               {!hovered.tile.is_completed && !reachable.has(hovered.tile.id) && (
-                <span className={s.ttLocked}>Locked — complete previous tiles first</span>
+                <span className={s.ttLocked}>Locked — complete all other tiles first</span>
               )}
               {!hovered.tile.is_completed && reachable.has(hovered.tile.id) && (
                 <span className={s.ttTimes}>

@@ -115,15 +115,19 @@ export function generateWorkflow(
   })
   const produceTiles = Array.from({ length: produceCount }, () => makeTile('Produce', cls.time_mod))
 
-  const allTiles: WorkflowTile[] = [...researchTiles, ...produceTiles]
-  const edges: WorkflowEdge[] = allTiles.slice(0, -1).map((t, i) => ({
-    from: t.id, to: allTiles[i + 1].id,
-  }))
+  // All tiles except the final Produce are free to do in any order from the start.
+  // The final Produce tile is gated: it requires every other tile to be completed first.
+  const freeTiles  = [...researchTiles, ...produceTiles.slice(0, -1)]
+  const finalTile  = produceTiles[produceTiles.length - 1]
 
-  if (isBoss) allTiles[allTiles.length - 1].name += ' — break the curse'
+  if (isBoss) finalTile.name += ' — break the curse'
 
-  const lastId = allTiles[allTiles.length - 1].id
-  const advId  = tid()
+  const allTiles: WorkflowTile[] = [...freeTiles, finalTile]
+
+  // Each free tile → finalTile edge (so getReachableTiles unlocks it when all free tiles are done)
+  const edges: WorkflowEdge[] = freeTiles.map(t => ({ from: t.id, to: finalTile.id }))
+
+  const advId = tid()
   allTiles.push({
     id: advId,
     type: 'Produce',
@@ -132,12 +136,14 @@ export function generateWorkflow(
     is_completed: false, repeat_count: 0,
     is_advance: true,
   })
-  edges.push({ from: lastId, to: advId })
+  edges.push({ from: finalTile.id, to: advId })
 
+  // start_id points to the first free tile; if there are no free tiles (1R 1P edge case),
+  // the final tile itself is the only tile and has no predecessors, so it's immediately reachable.
   return {
     tiles:    allTiles,
     edges,
-    start_id: allTiles[0].id,
+    start_id: (freeTiles[0] ?? finalTile).id,
     end_id:   advId,
   }
 }
