@@ -16,7 +16,6 @@ export const CONTENT_TYPE_STATS: Record<ContentProductType, { label: string; sta
   SlideshowVideo:     { label: 'Slideshow Video',     stats: ['VIDEO', 'VELOCITY'] },
   Screencast:         { label: 'Screencast',          stats: ['VIDEO', 'DEPTH'] },
   CinematicVideo:     { label: 'Cinematic Video',     stats: ['VIDEO'] },
-  MotionGraphics:     { label: 'Motion Graphics',     stats: ['VIDEO', 'GRAPHIC'] },
   LiveStream:         { label: 'Livestream',          stats: ['PARASOCIAL', 'AUDIO'] },
   AssetPack:          { label: 'Asset Pack',          stats: ['GRAPHIC', 'DEPTH'] },
   CurationFeed:       { label: 'Curation Feed',       stats: ['TEXT', 'INSIGHT'] },

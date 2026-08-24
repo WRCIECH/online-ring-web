@@ -64,8 +64,8 @@ export function isNodeAvailable(nodes: CampaignNode[], edges: CampaignEdge[], no
 
 const GLOBAL_EDGE_POOL: ContentTransformation[] = [
   'Compression', 'Expansion', 'ZoomIn', 'ZoomOut', 'Similar', 'Opposite',
-  'Minimalism', 'Shock', 'Narration', 'Segmentation', 'Fast', 'Passion', 'Intellectual',
-  'ProblemSolving', 'Estetic', 'Interactive', 'Cliffhanger', 'Viral', 'Controversy',
+  'Shock', 'Narration', 'Segmentation', 'Passion',
+  'ProblemSolving', 'Estetic', 'Cliffhanger', 'Viral', 'Controversy',
   'Comfort', 'Drama', 'Humor', 'Parasocial', 'Wow', 'Hope', 'Fear', 'Desire',
   'Critique', 'Follows', 'AudienceShift', 'DomainTransfer', 'Synthesis', 'RemixFusion',
   'Split', 'Evidence', 'Simplify', 'Technicalize', 'Localize', 'Socratic',

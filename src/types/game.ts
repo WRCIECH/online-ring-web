@@ -9,8 +9,8 @@ export type MoveType = 'Light' | 'Heavy'
 // Combines the former AtomicOrigin (relation types) and StyleType (style types).
 export type ContentTransformation =
   | 'Compression' | 'Expansion' | 'ZoomIn' | 'ZoomOut' | 'Similar' | 'Opposite'
-  | 'Minimalism' | 'Shock' | 'Narration' | 'Segmentation' | 'Fast'
-  | 'Passion' | 'Intellectual' | 'ProblemSolving' | 'Estetic' | 'Interactive' | 'Cliffhanger'
+  | 'Shock' | 'Narration' | 'Segmentation'
+  | 'Passion' | 'ProblemSolving' | 'Estetic' | 'Cliffhanger'
   | 'Viral' | 'Controversy' | 'Comfort' | 'Drama' | 'Humor'
   | 'Parasocial' | 'Wow' | 'Hope' | 'Fear' | 'Desire'
   | 'Critique' | 'Follows' | 'AudienceShift' | 'DomainTransfer' | 'Synthesis'

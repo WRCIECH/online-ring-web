@@ -27,7 +27,7 @@ export const LOCATION_THEMES: Record<LocationTheme, LocationThemeDef> = {
     id: 'video',
     displayLabel: 'Video Den',
     color: '#b04040',
-    contentFocus: ['ARollVideo', 'SlideshowVideo', 'Screencast', 'CinematicVideo', 'MotionGraphics', 'LiveStream'],
+    contentFocus: ['ARollVideo', 'SlideshowVideo', 'Screencast', 'CinematicVideo', 'LiveStream'],
     stageFocus: [],
     adjectives: ['Viral', 'Dark', 'Ruined', 'Corrupted', 'Static', 'Flickering', 'Overexposed', 'Glitched', 'Burned', 'Cut'],
     nouns: ['Studio', 'Channel', 'Edit Bay', 'Stage', 'Frame', 'Reel', 'Screen', 'Set', 'Broadcast', 'Footage'],

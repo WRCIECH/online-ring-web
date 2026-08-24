@@ -34,7 +34,6 @@ export type ContentProductType =
   | 'SlideshowVideo'           // 10. Kompozycja statyczno-dynamiczna (lektor audio + montaż slajdów/B-Rollu/screenów)
   | 'Screencast'               // 11. Nagranie interfejsu (tutorial software, przechwycony ekran z komentarzem)
   | 'CinematicVideo'           // 12. Wideo wielowarstwowe (zaawansowany montaż, multicam, color grading)
-  | 'MotionGraphics'           // 13. Animacja / Ruchoma grafika (wideo generowane 100% cyfrowo, np. explainer)
 
   // --- GRUPA E: PRODUKTY HYBRYDOWE, NIELINIOWE I ZASOBY ---
   | 'LiveStream'               // 14. Strumień na żywo (wideo-audio real-time, brak postprodukcji, interakcja)
@@ -91,7 +90,6 @@ export class ContentRegistry {
     SlideshowVideo:     { id: 'SlideshowVideo',     displayName: 'Kompozycja statyczno-dynamiczna',      category: 'Video',  complexity: 3, description: 'Oś audio (lektor) zsynchronizowana z montażem grafik, slajdów lub darmowych klipów stockowych.' },
     Screencast:         { id: 'Screencast',         displayName: 'Nagranie interfejsu (Screencast)',     category: 'Video',  complexity: 2, description: 'Przechwycony obraz z ekranu komputera/telefonu z nałożonym komentarzem lub samouczkiem.' },
     CinematicVideo:     { id: 'CinematicVideo',     displayName: 'Wideo wielowarstwowe (Cinematic)',     category: 'Video',  complexity: 4, description: 'Skomplikowana struktura: zaawansowany montaż, korekcja barwna, wielokamerowość, reżyseria.' },
-    MotionGraphics:     { id: 'MotionGraphics',     displayName: 'Animacja cyfrowa (Motion)',            category: 'Video',  complexity: 4, description: 'Obraz wygenerowany w całości cyfrowo (2D/3D). Brak ujęć z realnego świata.' },
     LiveStream:         { id: 'LiveStream',         displayName: 'Strumień na żywo (Live)',              category: 'Hybrid', complexity: 3, description: 'Produkcja i dystrybucja w czasie rzeczywistym. Brak postprodukcji, pełna improwizacja.' },
     AssetPack:          { id: 'AssetPack',          displayName: 'Paczka aktywów (Asset Pack)',          category: 'Hybrid', complexity: 4, description: 'Cyfrowe narzędzia dla innych twórców: presety, sample, szablony systemów, kody źródłowe.' },
     CurationFeed:       { id: 'CurationFeed',       displayName: 'Kuracja treści (Agregacja)',           category: 'Hybrid', complexity: 2, description: 'Autorskie filtrowanie chaosu sieci: bazy linków, prasówki, rankingi cudzych dzieł.' },

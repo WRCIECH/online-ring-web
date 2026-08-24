@@ -80,7 +80,7 @@ export function makeTile(stage: AtomicStage, timeMod = 1.0): WorkflowTile {
 const ALL_CONTENT_PRODUCTS: ContentProductType[] = [
   'Plaintext', 'StructuredText', 'IllustratedText', 'SingleGraphic', 'Carousel', 'Infographic',
   'RawAudio', 'ProducedAudio', 'ARollVideo', 'SlideshowVideo', 'Screencast', 'CinematicVideo',
-  'MotionGraphics', 'LiveStream', 'AssetPack',
+  'LiveStream', 'AssetPack',
   'CurationFeed', 'CommunitySpace', 'InteractiveApp', '_blank',
 ]
 
