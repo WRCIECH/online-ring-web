@@ -332,10 +332,9 @@ export default function CampaignOverlay({ onClose }: Props) {
                                         )}
                                       </div>
                                       {constraintEntry && (
-                                        <div className={s.constraintBlock}>
-                                          <span className={s.constraintLabel}>{constraintEntry.label}</span>
-                                          <span className={s.constraintDesc}>{constraintEntry.description}</span>
-                                        </div>
+                                        <span className={s.constraintLabel} data-tooltip={constraintEntry.description}>
+                                          {constraintEntry.label}
+                                        </span>
                                       )}
                                     </div>
                                   </div>

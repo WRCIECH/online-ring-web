@@ -1368,8 +1368,8 @@
   align-items: flex-start;
   gap: 10px;
   padding: 8px 10px;
-  border-radius: var(--radius);
-  border: 1px solid var(--color-sep);
+  border-radius: 8px;
+  border: 1px solid rgba(255,255,255,0.16);
   background: rgba(255,255,255,0.03);
   font-size: 0.74rem;
 }
@@ -1444,23 +1444,25 @@
 
 .pieceConnector {
   display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: 8px;
-  margin: 2px 0;
-  padding: 0 8px;
+  gap: 0;
+  margin: 0;
+  padding: 0;
 }
 
 .connectorLine {
-  flex: 1;
-  height: 1px;
-  background: var(--color-sep);
+  width: 2px;
+  height: 14px;
+  background: rgba(255,255,255,0.12);
+  flex-shrink: 0;
 }
 
 .connectorLabel {
-  font-size: 0.67rem;
+  font-size: 0.65rem;
   font-weight: 700;
   letter-spacing: 0.05em;
-  padding: 3px 10px;
+  padding: 3px 12px;
   border-radius: 10px;
   background: rgba(180,120,255,0.10);
   color: #c896ff;
@@ -1468,13 +1470,8 @@
   white-space: nowrap;
 }
 
-.constraintBlock {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-
 .constraintLabel {
+  position: relative;
   font-size: 0.65rem;
   font-weight: 700;
   padding: 2px 7px;
@@ -1484,15 +1481,33 @@
   border: 1px solid rgba(180,120,255,0.25);
   align-self: flex-start;
   white-space: nowrap;
+  cursor: default;
 }
 
-.constraintDesc {
-  font-size: 0.65rem;
-  color: var(--color-text-dim);
-  opacity: 0.75;
-  line-height: 1.4;
-  padding: 0 2px;
+.constraintLabel[data-tooltip]::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  background: rgba(14, 12, 32, 0.97);
+  border: 1px solid rgba(100, 80, 200, 0.35);
+  border-radius: 6px;
+  padding: 7px 11px;
+  font-size: 0.72rem;
+  font-weight: 400;
+  color: rgba(210, 200, 255, 0.9);
+  white-space: normal;
+  max-width: 240px;
+  width: max-content;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.12s;
+  z-index: 60;
+  line-height: 1.55;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.5);
 }
+
+.constraintLabel[data-tooltip]:hover::after { opacity: 1; }
 
 /* Heavy tab */
 .heavyCard {
