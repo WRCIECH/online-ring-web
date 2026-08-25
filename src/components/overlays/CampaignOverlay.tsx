@@ -535,6 +535,9 @@ export default function CampaignOverlay({ onClose }: Props) {
                         </div>
                       )}
 
+                      {/* Legacy tree — only shown for old saves without three-mode data */}
+                      {!campaign.micro && <>
+
                       {/* Campaign name (combobox) */}
                       <div className={s.campaignNameRow}>
                         {nameOpen ? (
@@ -1096,6 +1099,7 @@ export default function CampaignOverlay({ onClose }: Props) {
                           </div>
                         </>
                       )}
+                      </>}
                     </>
                   )
                 })()}
