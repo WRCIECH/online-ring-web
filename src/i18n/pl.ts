@@ -91,7 +91,7 @@ const pl: TranslationBundle = {
         action:   { label: 'Wezwanie do działania',   description: 'Nakłoń odbiorcę do konkretnego następnego kroku.' },
       },
       audience: {
-        audience_x:          { label: 'Nowa grupa docelowa',    description: 'Dotrzij do grupy, do której zwykle nie piszesz.' },
+        audience_x:          { label: 'Inna grupa docelowa',    description: 'Dotrzij do grupy, do której zwykle nie piszesz.' },
         lower_self:          { label: 'Niższe ja',              description: 'Odwołaj się do podstawowych pragnień, komfortu lub lęku.' },
         average_self:        { label: 'Przeciętne ja',          description: 'Mów o codziennych sprawach i powszechnych wartościach.' },
         higher_self:         { label: 'Wyższe ja',              description: 'Odwołaj się do aspiracji, rozwoju i wartości osobistych.' },
