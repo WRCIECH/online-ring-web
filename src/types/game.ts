@@ -292,6 +292,30 @@ export interface HeavyModeState {
   published?: boolean  // explicitly published → grants superhit
 }
 
+// ── Audience profiles ─────────────────────────────────────────────────────
+export type AudienceSectionKey =
+  | 'sociological_trends'
+  | 'long_term_trends'
+  | 'short_term_trends'
+  | 'needs_explanations'
+  | 'identities_values'
+  | 'attitudes_beliefs'
+  | 'symbols_slogans'
+  | 'heroes_enemies'
+  | 'myths_reflexes'
+  | 'narratives_frames'
+
+export interface AudienceItem {
+  id: string
+  text: string
+}
+
+export interface AudienceProfile {
+  id: string
+  name: string
+  sections: Record<AudienceSectionKey, AudienceItem[]>
+}
+
 // ── Game state ────────────────────────────────────────────────────────────
 export interface GameState {
   stats: Stats
@@ -354,4 +378,6 @@ export interface GameState {
   completed_regions: string[]   // region IDs whose final boss was defeated
   current_region_id: string     // region currently selected on the world map
   game_won?: boolean            // true when region_6 final boss is defeated
+  // Audience research profiles
+  audiences: AudienceProfile[]
 }

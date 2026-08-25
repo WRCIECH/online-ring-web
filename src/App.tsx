@@ -8,6 +8,7 @@ import LocationSelectScreen from './screens/LocationSelectScreen'
 import RunMapScreen from './screens/RunMapScreen'
 import CombatScreen from './screens/CombatScreen'
 import RunCompleteScreen from './screens/RunCompleteScreen'
+import AudienceScreen from './screens/AudienceScreen'
 
 export default function App() {
   useEffect(() => {
@@ -25,6 +26,7 @@ export default function App() {
         <Route path="/map"          element={<RunMapScreen />} />
         <Route path="/combat"       element={<CombatScreen />} />
         <Route path="/run-complete" element={<RunCompleteScreen />} />
+        <Route path="/audience"     element={<AudienceScreen />} />
         <Route path="*"             element={<Navigate to="/" replace />} />
       </Routes>
     </BrowserRouter>

@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { createPortal } from 'react-dom'
+import { useNavigate } from 'react-router-dom'
 import CharacterOverlay from '../overlays/CharacterOverlay'
 import CampaignOverlay from '../overlays/CampaignOverlay'
 import AnalyticsOverlay from '../overlays/AnalyticsOverlay'
@@ -15,6 +16,7 @@ interface Props {
 
 export default function ActionBar({ canLevel = true }: Props) {
   const t = useT()
+  const navigate = useNavigate()
   const [showStats,     setShowStats]     = useState(false)
   const [showContent,   setShowContent]   = useState(false)
   const [showAnalytics, setShowAnalytics] = useState(false)
@@ -70,6 +72,16 @@ export default function ActionBar({ canLevel = true }: Props) {
             <path d="M9 17V5l10-2v12"/>
             <circle cx="6" cy="17" r="3"/>
             <circle cx="16" cy="15" r="3"/>
+          </svg>
+        </button>
+        {/* Audience profiles */}
+        <button className={s.btn} data-tooltip="Audience" onClick={() => navigate('/audience')}>
+          <svg viewBox="0 0 20 20" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+            <circle cx="7" cy="7" r="2.5"/>
+            <circle cx="13" cy="7" r="2.5"/>
+            <path d="M2 17c0-2.5 2-4 5-4"/>
+            <path d="M18 17c0-2.5-2-4-5-4"/>
+            <path d="M7 13c0-2.5 1.3-4 3-4s3 1.5 3 4"/>
           </svg>
         </button>
       </div>

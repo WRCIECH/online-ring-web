@@ -1,5 +1,5 @@
 import { create } from 'zustand'
-import type { GameState, LocationData, Stats, WeaponInstance, SublocationType, CampaignNode, Locale, WorkflowGraph, LocationTheme, RewardTier, ContentProductType, ContentTransformation, StatKey } from '../types/game'
+import type { GameState, LocationData, Stats, WeaponInstance, SublocationType, CampaignNode, Locale, WorkflowGraph, LocationTheme, RewardTier, ContentProductType, ContentTransformation, StatKey, AudienceSectionKey } from '../types/game'
 import { DEFAULT_MUSIC_TRACKS } from '../data/combatMusic'
 import { ENEMIES } from '../data/enemies'
 import { saveGame, loadGame } from '../engine/save'
@@ -243,6 +243,7 @@ function initialState(): GameState {
     weapon_pending_superhits: {},
     run_music_seed: 0,
     music_tracks: DEFAULT_MUSIC_TRACKS,
+    audiences: [],
   }
 }
 
@@ -345,6 +346,14 @@ export interface GameStore extends GameState {
 
   // Music playlist
   setMusicTracks: (tracks: string[]) => void
+
+  // Audience profiles
+  createAudience:     (id: string, name: string) => void
+  deleteAudience:     (id: string) => void
+  renameAudience:     (id: string, name: string) => void
+  addAudienceItem:    (audienceId: string, section: AudienceSectionKey, text: string) => void
+  updateAudienceItem: (audienceId: string, section: AudienceSectionKey, itemId: string, text: string) => void
+  deleteAudienceItem: (audienceId: string, section: AudienceSectionKey, itemId: string) => void
 
   // Persistence
   save:  () => void
@@ -1113,6 +1122,60 @@ export const useGameStore = create<GameStore>((set, get) => ({
 
   setLocale: (locale) => { set({ locale }); get().save() },
   setMusicTracks: (tracks) => { set({ music_tracks: tracks }); get().save() },
+
+  createAudience: (id, name) => {
+    const sections = Object.fromEntries([
+      'sociological_trends','long_term_trends','short_term_trends','needs_explanations',
+      'identities_values','attitudes_beliefs','symbols_slogans','heroes_enemies',
+      'myths_reflexes','narratives_frames',
+    ].map(k => [k, []])) as Record<AudienceSectionKey, { id: string; text: string }[]>
+    set(s => ({ audiences: [...(s.audiences ?? []), { id, name, sections }] }))
+    get().save()
+  },
+
+  deleteAudience: (id) => {
+    set(s => ({ audiences: (s.audiences ?? []).filter(a => a.id !== id) }))
+    get().save()
+  },
+
+  renameAudience: (id, name) => {
+    set(s => ({ audiences: (s.audiences ?? []).map(a => a.id === id ? { ...a, name } : a) }))
+    get().save()
+  },
+
+  addAudienceItem: (audienceId, section, text) => {
+    const item = { id: crypto.randomUUID(), text }
+    set(s => ({
+      audiences: (s.audiences ?? []).map(a => a.id !== audienceId ? a : {
+        ...a, sections: { ...a.sections, [section]: [...a.sections[section], item] },
+      }),
+    }))
+    get().save()
+  },
+
+  updateAudienceItem: (audienceId, section, itemId, text) => {
+    set(s => ({
+      audiences: (s.audiences ?? []).map(a => a.id !== audienceId ? a : {
+        ...a, sections: {
+          ...a.sections,
+          [section]: a.sections[section].map(i => i.id === itemId ? { ...i, text } : i),
+        },
+      }),
+    }))
+    get().save()
+  },
+
+  deleteAudienceItem: (audienceId, section, itemId) => {
+    set(s => ({
+      audiences: (s.audiences ?? []).map(a => a.id !== audienceId ? a : {
+        ...a, sections: {
+          ...a.sections,
+          [section]: a.sections[section].filter(i => i.id !== itemId),
+        },
+      }),
+    }))
+    get().save()
+  },
 
   save: () => saveGame(get()),
 
