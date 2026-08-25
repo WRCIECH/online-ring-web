@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useGameStore } from '../../store/gameStore'
 import { LEVEL_MULT, weaponUpgradeCost, calcWeaponScaledDamage, calcWeaponSellPrice } from '../../data/weapons'
-import { STAGE_TIME, calcWorkflowTileCounts } from '../../data/generators/workflowGenerator'
+import { STAGE_TIME } from '../../data/generators/workflowGenerator'
 import { WEAPON_CLASSES } from '../../data/generators/weaponClasses'
 import type { WeaponCampaign, WeaponInstance, StatKey, ContentProductType, MicroProduct, MediumPiece } from '../../types/game'
 import WeaponIcon from '../WeaponIcon'
@@ -156,30 +156,16 @@ export default function CampaignOverlay({ onClose }: Props) {
                       <span className={s.weaponLevel}>+{level}</span>
                       <span className={s.statChip}>×{(dmgCurrent / 100).toFixed(2)} dmg</span>
                       {classDef && (() => {
-                        const { research, produce } = calcWorkflowTileCounts(selectedWeapon.weapon_class, selectedWeapon.rarity)
                         const lightSecs = Math.round(STAGE_TIME.Research.light * classDef.time_mod)
                         const lightMin  = Math.floor(lightSecs / 60)
                         const lightSec  = lightSecs % 60
                         const lightFmt  = lightMin > 0
                           ? (lightSec > 0 ? `${lightMin}m ${lightSec}s` : `${lightMin}m`)
                           : `${lightSec}s`
-                        const c    = store.weapon_campaigns[selectedWeapon.instance_id]
-                        const nCnt = c ? c.nodes.length : 0
                         return (
                           <>
                             <span className={s.statChip}>+{((LEVEL_MULT[selectedWeapon.rarity] ?? 0.03) * 100).toFixed(0)}% / lv</span>
                             <span className={s.statChip}>×{classDef.base_damage_mult} base</span>
-                            {nCnt > 0 ? (
-                              <>
-                                <span className={s.statChipResearch} data-tooltip={`Total research tiles across all ${nCnt} nodes (${research} default per node)`}>R total: {research * nCnt}</span>
-                                <span className={s.statChipProduce}  data-tooltip={`Total produce tiles across all ${nCnt} nodes (${produce} default per node)`}>P total: {produce * nCnt}</span>
-                              </>
-                            ) : (
-                              <>
-                                <span className={s.statChipResearch} data-tooltip="Research tiles per content node">R×{research}</span>
-                                <span className={s.statChipProduce}  data-tooltip="Produce tiles per content node">P×{produce}</span>
-                              </>
-                            )}
                             <span className={s.statChip}>{lightFmt} / tile</span>
                           </>
                         )
@@ -238,90 +224,155 @@ export default function CampaignOverlay({ onClose }: Props) {
 
                 {!campaign ? (
                   <div className={s.empty}>Generating…</div>
-                ) : campaign.micro ? (
-                  <div className={s.modeTabs}>
-                    <div className={s.tabBar}>
-                      <button className={[s.modeTab, activeTab==='micro'?s.modeTabActive:''].join(' ')} onClick={()=>setActiveTab('micro')}>Micro</button>
-                      <button className={[s.modeTab, activeTab==='medium'?s.modeTabActive:''].join(' ')} onClick={()=>setActiveTab('medium')}>Medium</button>
-                      <button className={[s.modeTab, activeTab==='heavy'?s.modeTabActive:''].join(' ')} onClick={()=>setActiveTab('heavy')}>Heavy</button>
-                    </div>
-                    {activeTab === 'micro' && (
-                      <div className={s.modePanel}>
-                        <div className={s.microGrid}>
-                          {campaign.micro.products.map((p: MicroProduct, i: number) => (
-                            <div key={p.id} className={[s.microCard, i===campaign.micro!.current_index?s.microCardCurrent:'', p.done_count>0?s.microCardDone:''].filter(Boolean).join(' ')}>
-                              <div className={s.microCardType}>{(t.content.product as Record<string,{badge_label:string}>)[p.content_type]?.badge_label ?? p.content_type}</div>
-                              {p.style && <div className={s.microCardStyle}>{LABEL_DISPLAY[p.style] ?? p.style}</div>}
-                              <div className={s.microCardCount}>×{p.done_count}</div>
-                              {i === campaign.micro!.current_index && <div className={s.microCardNext}>→ Next</div>}
-                            </div>
-                          ))}
-                        </div>
-                        {campaign.micro.completed && <div className={s.modeComplete}>✓ Circle complete</div>}
+                ) : campaign.micro ? (() => {
+                  const isActivated = campaign.activated === true
+                  const canActivate = !!(campaign.campaign_name?.trim()) && !!(campaign.heavy?.name?.trim())
+                  const prodLabel = (type: string) =>
+                    (t.content.product as Record<string,{badge_label:string}>)[type]?.badge_label ?? type
+                  const l1Label = campaign.medium ? prodLabel(campaign.medium.pieces[0]?.level1_type ?? '') : ''
+                  const l2Label = campaign.medium ? prodLabel(campaign.medium.pieces[0]?.level2_type ?? '') : ''
+                  return (
+                    <>
+                      {/* Campaign name + activate */}
+                      <div className={s.campaignNameRow}>
+                        {isActivated ? (
+                          <span className={s.campaignNameDisplay}>{campaign.campaign_name}</span>
+                        ) : (
+                          <input
+                            className={s.campaignNameInput}
+                            value={campaign.campaign_name ?? ''}
+                            placeholder="Campaign name…"
+                            onChange={e => store.renameCampaign(wid, e.target.value)}
+                          />
+                        )}
+                        {isActivated ? (
+                          <span className={s.activeBadge}>Active</span>
+                        ) : (
+                          <button
+                            className={s.activateBtn}
+                            disabled={!canActivate}
+                            onClick={() => store.activateCampaign(wid)}
+                          >
+                            Activate
+                          </button>
+                        )}
                       </div>
-                    )}
-                    {activeTab === 'medium' && campaign.medium && (
-                      <div className={s.modePanel}>
-                        <div className={s.mediumList}>
-                          {campaign.medium.pieces.map((p: MediumPiece, i: number) => {
-                            const prevPiece = i > 0 ? campaign.medium!.pieces[i-1] : null
-                            const l1Unlocked = i === 0 || (prevPiece?.level1_done ?? false)
-                            const l2Unlocked = p.level1_done
-                            return (
-                              <div key={p.id} className={[s.mediumPiece, !l1Unlocked?s.mediumPieceLocked:''].filter(Boolean).join(' ')}>
-                                <div className={s.mediumPieceHeader}>
-                                  <span className={s.mediumPieceNum}>{i+1}</span>
-                                  <span className={s.mediumPieceName}>{p.name}</span>
-                                  {p.link_type && i < campaign.medium!.pieces.length - 1 && (
-                                    <span className={s.linkChip}>{p.link_type}</span>
+
+                      {/* Tab bar */}
+                      <div className={s.tabBar}>
+                        <button className={[s.modeTab, activeTab==='micro'?s.modeTabActive:''].join(' ')} onClick={()=>setActiveTab('micro')}>Micro</button>
+                        <button className={[s.modeTab, activeTab==='medium'?s.modeTabActive:''].join(' ')} onClick={()=>setActiveTab('medium')}>Medium</button>
+                        <button className={[s.modeTab, activeTab==='heavy'?s.modeTabActive:''].join(' ')} onClick={()=>setActiveTab('heavy')}>Heavy</button>
+                      </div>
+
+                      {/* ── Micro tab ── */}
+                      {activeTab === 'micro' && (
+                        <div className={s.modePanel}>
+                          <div className={s.microGrid}>
+                            {campaign.micro.products.map((p: MicroProduct, i: number) => (
+                              <div key={p.id} className={[s.microCard, i===campaign.micro!.current_index?s.microCardCurrent:'', p.done_count>0?s.microCardDone:''].filter(Boolean).join(' ')}>
+                                <div className={s.microCardType}>{prodLabel(p.content_type)}</div>
+                                {p.style && <div className={s.microCardStyle}>{LABEL_DISPLAY[p.style] ?? p.style}</div>}
+                                <div className={s.microCardCount}>×{p.done_count}</div>
+                                {i === campaign.micro!.current_index && <div className={s.microCardNext}>→ Next</div>}
+                              </div>
+                            ))}
+                          </div>
+                          {campaign.micro.completed && <div className={s.modeComplete}>✓ Circle complete</div>}
+                        </div>
+                      )}
+
+                      {/* ── Medium tab ── */}
+                      {activeTab === 'medium' && campaign.medium && (
+                        <div className={s.modePanel}>
+                          <div className={s.mediumFormat}>
+                            <span className={s.mediumFormatLabel}>Format:</span>
+                            <span className={s.levelBadge}>L1 {l1Label}</span>
+                            <span className={s.mediumFormatArrow}>→</span>
+                            <span className={s.levelBadge}>L2 {l2Label}</span>
+                          </div>
+                          <div className={s.mediumList}>
+                            {campaign.medium.pieces.map((p: MediumPiece, i: number) => {
+                              const prevPiece = i > 0 ? campaign.medium!.pieces[i-1] : null
+                              const l1Unlocked = i === 0 || (prevPiece?.level1_done ?? false)
+                              const currentLevel = p.level2_done ? 'done' : p.level1_done ? 'L2' : 'L1'
+                              return (
+                                <div key={p.id} className={[s.mediumPiece, !l1Unlocked?s.mediumPieceLocked:''].filter(Boolean).join(' ')}>
+                                  <div className={s.mediumPieceHeader}>
+                                    <span className={s.mediumPieceNum}>{i+1}</span>
+                                    {isActivated ? (
+                                      <span className={s.mediumPieceName}>{p.name}</span>
+                                    ) : (
+                                      <input
+                                        className={s.pieceNameInput}
+                                        value={p.name}
+                                        onChange={e => store.renameMediumPiece(wid, p.id, e.target.value)}
+                                      />
+                                    )}
+                                    {p.link_type && i < campaign.medium!.pieces.length - 1 && (
+                                      <span className={s.linkChip}>{p.link_type}</span>
+                                    )}
+                                  </div>
+                                  <div className={s.mediumPieceLevels}>
+                                    {currentLevel === 'done' && (
+                                      <span className={[s.levelBadge, s.levelDone].join(' ')}>✓ Done</span>
+                                    )}
+                                    {currentLevel === 'L1' && (
+                                      <span className={[s.levelBadge, !l1Unlocked?s.levelLocked:''].filter(Boolean).join(' ')}>
+                                        {l1Unlocked ? 'L1 →' : '🔒 L1'}
+                                      </span>
+                                    )}
+                                    {currentLevel === 'L2' && (
+                                      <span className={s.levelBadge}>L2 →</span>
+                                    )}
+                                  </div>
+                                  {p.constraint && (
+                                    <div className={s.constraintChip}>{p.constraint.category}: {String(p.constraint.value).replace(/_/g, ' ')}</div>
                                   )}
                                 </div>
-                                <div className={s.mediumPieceLevels}>
-                                  <span className={[s.levelBadge, p.level1_done?s.levelDone:'', !l1Unlocked?s.levelLocked:''].filter(Boolean).join(' ')}>
-                                    L1: {(t.content.product as Record<string,{badge_label:string}>)[p.level1_type]?.badge_label ?? p.level1_type}
-                                    {p.level1_done ? ' ✓' : ''}
-                                  </span>
-                                  <span className={[s.levelBadge, p.level2_done?s.levelDone:'', !l2Unlocked?s.levelLocked:''].filter(Boolean).join(' ')}>
-                                    L2: {(t.content.product as Record<string,{badge_label:string}>)[p.level2_type]?.badge_label ?? p.level2_type}
-                                    {p.level2_done ? ' ✓' : !l2Unlocked ? ' 🔒' : ''}
-                                  </span>
-                                </div>
-                                {p.constraint && (
-                                  <div className={s.constraintChip}>{p.constraint.category}: {String(p.constraint.value).replace(/_/g, ' ')}</div>
-                                )}
-                              </div>
-                            )
-                          })}
+                              )
+                            })}
+                          </div>
+                          {campaign.medium.completed && <div className={s.modeComplete}>✓ Medium complete</div>}
                         </div>
-                        {campaign.medium.completed && <div className={s.modeComplete}>✓ Medium complete</div>}
-                      </div>
-                    )}
-                    {activeTab === 'heavy' && campaign.heavy && (
-                      <div className={s.modePanel}>
-                        <div className={s.heavyCard}>
-                          <div className={s.heavyProductType}>
-                            {(t.content.product as Record<string,{badge_label:string}>)[campaign.heavy.product_type]?.badge_label ?? campaign.heavy.product_type}
+                      )}
+
+                      {/* ── Heavy tab ── */}
+                      {activeTab === 'heavy' && campaign.heavy && (
+                        <div className={s.modePanel}>
+                          <div className={s.heavyCard}>
+                            <div className={s.heavyProductType}>{prodLabel(campaign.heavy.product_type)}</div>
+                            {isActivated ? (
+                              campaign.heavy.name && <div className={s.heavyName}>{campaign.heavy.name}</div>
+                            ) : (
+                              <input
+                                className={s.heavyNameInput}
+                                value={campaign.heavy.name ?? ''}
+                                placeholder="Name this product…"
+                                onChange={e => store.renameHeavyProduct(wid, e.target.value)}
+                              />
+                            )}
+                            <div className={s.heavyProgress}>
+                              <span className={s.heavyProgressLabel}>Research</span>
+                              <span className={s.heavyProgressTrack}>
+                                <span className={s.heavyProgressFill} style={{width:`${Math.min(100,campaign.heavy.research_count>0?(campaign.heavy.research_done/campaign.heavy.research_count)*100:0)}%`}} />
+                              </span>
+                              <span>{campaign.heavy.research_done}/{campaign.heavy.research_count}</span>
+                            </div>
+                            <div className={s.heavyProgress}>
+                              <span className={s.heavyProgressLabel}>Produce</span>
+                              <span className={s.heavyProgressTrack}>
+                                <span className={s.heavyProgressFill} style={{width:`${Math.min(100,campaign.heavy.produce_count>0?(campaign.heavy.produce_done/campaign.heavy.produce_count)*100:0)}%`}} />
+                              </span>
+                              <span>{campaign.heavy.produce_done}/{campaign.heavy.produce_count}</span>
+                            </div>
                           </div>
-                          <div className={s.heavyProgress}>
-                            <span className={s.heavyProgressLabel}>Research</span>
-                            <span className={s.heavyProgressTrack}>
-                              <span className={s.heavyProgressFill} style={{width:`${Math.min(100,campaign.heavy.research_count>0?(campaign.heavy.research_done/campaign.heavy.research_count)*100:0)}%`}} />
-                            </span>
-                            <span>{campaign.heavy.research_done}/{campaign.heavy.research_count}</span>
-                          </div>
-                          <div className={s.heavyProgress}>
-                            <span className={s.heavyProgressLabel}>Produce</span>
-                            <span className={s.heavyProgressTrack}>
-                              <span className={s.heavyProgressFill} style={{width:`${Math.min(100,campaign.heavy.produce_count>0?(campaign.heavy.produce_done/campaign.heavy.produce_count)*100:0)}%`}} />
-                            </span>
-                            <span>{campaign.heavy.produce_done}/{campaign.heavy.produce_count}</span>
-                          </div>
+                          {campaign.heavy.completed && <div className={s.modeComplete}>✓ Heavy complete</div>}
                         </div>
-                        {campaign.heavy.completed && <div className={s.modeComplete}>✓ Heavy complete</div>}
-                      </div>
-                    )}
-                  </div>
-                ) : null}
+                      )}
+                    </>
+                  )
+                })() : null}
               </>
             )}
           </div>

@@ -315,6 +315,8 @@ export interface GameStore extends GameState {
   finalizeCampaign: (weaponId: string, freshCampaignName?: string) => void
 
   // Three-mode campaign actions
+  renameMediumPiece:   (weaponId: string, pieceId: string, name: string) => void
+  renameHeavyProduct:  (weaponId: string, name: string) => void
   completeMicroProduct:(weaponId: string, productId: string) => void
   completeMediumLevel: (weaponId: string, pieceId: string, level: 1 | 2) => void
   completeHeavyTile:   (weaponId: string, tileType: 'research' | 'produce') => void
@@ -875,6 +877,25 @@ export const useGameStore = create<GameStore>((set, get) => ({
           [weaponId]: ((s.weapon_pending_superhits ?? {})[weaponId] ?? 0) + carried,
         },
       }
+    })
+    get().save()
+  },
+
+  renameMediumPiece: (weaponId, pieceId, name) => {
+    set(s => {
+      const campaign = s.weapon_campaigns[weaponId]
+      if (!campaign?.medium) return s
+      const pieces = campaign.medium.pieces.map(p => p.id === pieceId ? { ...p, name } : p)
+      return { weapon_campaigns: { ...s.weapon_campaigns, [weaponId]: { ...campaign, medium: { ...campaign.medium, pieces } } } }
+    })
+    get().save()
+  },
+
+  renameHeavyProduct: (weaponId, name) => {
+    set(s => {
+      const campaign = s.weapon_campaigns[weaponId]
+      if (!campaign?.heavy) return s
+      return { weapon_campaigns: { ...s.weapon_campaigns, [weaponId]: { ...campaign, heavy: { ...campaign.heavy, name } } } }
     })
     get().save()
   },

@@ -1499,3 +1499,124 @@
   background: var(--color-accent);
   transition: width 0.25s ease;
 }
+
+/* ── Campaign name + activation row ───────────────────────────────────────── */
+.campaignNameRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px 4px;
+}
+
+.campaignNameInput {
+  flex: 1;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid var(--color-sep);
+  border-radius: var(--radius);
+  color: var(--color-text);
+  font-size: 0.84rem;
+  font-weight: 600;
+  padding: 5px 10px;
+  outline: none;
+  transition: border-color 0.1s;
+}
+.campaignNameInput:focus { border-color: var(--color-border); }
+.campaignNameInput::placeholder { color: var(--color-text-dim); font-weight: 400; }
+
+.campaignNameDisplay {
+  flex: 1;
+  font-size: 0.84rem;
+  font-weight: 600;
+  color: var(--color-text);
+  padding: 5px 2px;
+}
+
+.activateBtn {
+  padding: 5px 14px;
+  border-radius: var(--radius);
+  border: 1px solid var(--color-accent);
+  background: rgba(var(--color-accent-rgb, 180,140,80), 0.14);
+  color: var(--color-accent);
+  font-size: 0.76rem;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.1s, opacity 0.1s;
+}
+.activateBtn:hover:not(:disabled) { background: rgba(var(--color-accent-rgb, 180,140,80), 0.28); }
+.activateBtn:disabled { opacity: 0.35; cursor: not-allowed; }
+
+.activeBadge {
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #5ecf5e;
+  padding: 3px 8px;
+  border: 1px solid rgba(94,207,94,0.35);
+  border-radius: 10px;
+  background: rgba(94,207,94,0.08);
+}
+
+/* ── Medium format header ─────────────────────────────────────────────────── */
+.mediumFormat {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 0 10px;
+  font-size: 0.74rem;
+}
+
+.mediumFormatLabel {
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--color-text-dim);
+}
+
+.mediumFormatArrow {
+  color: var(--color-text-dim);
+  font-size: 0.72rem;
+}
+
+/* ── Piece name input ─────────────────────────────────────────────────────── */
+.pieceNameInput {
+  flex: 1;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid var(--color-sep);
+  border-radius: var(--radius);
+  color: var(--color-text);
+  font-size: 0.74rem;
+  font-weight: 600;
+  padding: 3px 7px;
+  outline: none;
+  min-width: 0;
+  transition: border-color 0.1s;
+}
+.pieceNameInput:focus { border-color: var(--color-border); }
+
+/* ── Heavy name ───────────────────────────────────────────────────────────── */
+.heavyNameInput {
+  width: 100%;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid var(--color-sep);
+  border-radius: var(--radius);
+  color: var(--color-text);
+  font-size: 0.82rem;
+  font-weight: 600;
+  padding: 6px 10px;
+  outline: none;
+  box-sizing: border-box;
+  transition: border-color 0.1s;
+}
+.heavyNameInput:focus { border-color: var(--color-border); }
+.heavyNameInput::placeholder { color: var(--color-text-dim); font-weight: 400; }
+
+.heavyName {
+  font-size: 0.86rem;
+  font-weight: 600;
+  color: var(--color-text);
+  text-align: center;
+  padding: 4px 0 2px;
+}

@@ -282,6 +282,7 @@ export interface MediumModeState {
 
 // ── Heavy mode ────────────────────────────────────────────────────────────
 export interface HeavyModeState {
+  name?: string
   product_type: HeavyContentType
   research_count: number
   produce_count: number
