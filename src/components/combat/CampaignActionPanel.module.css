@@ -171,6 +171,12 @@
   color: #cc6644;
 }
 
+.timerActions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
 .timerDoneBtn {
   padding: 6px 18px;
   border-radius: 6px;
@@ -185,6 +191,28 @@
 .timerDoneBtn:hover {
   background: rgba(255,255,255,0.14);
   border-color: rgba(255,255,255,0.40);
+}
+
+.sacrificeBtn {
+  padding: 6px 14px;
+  border-radius: 6px;
+  border: 1px solid rgba(200,60,60,0.50);
+  background: rgba(200,60,60,0.10);
+  color: #cc4444;
+  font-size: 0.72rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.12s, border-color 0.12s;
+}
+
+.sacrificeBtn:hover:not(:disabled) {
+  background: rgba(200,60,60,0.20);
+  border-color: rgba(200,60,60,0.75);
+}
+
+.sacrificeBtn:disabled {
+  opacity: 0.30;
+  cursor: not-allowed;
 }
 
 /* ── Confirmation view ───────────────────────────────────────────────────── */

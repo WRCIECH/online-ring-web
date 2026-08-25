@@ -707,6 +707,7 @@ export default function CombatScreen() {
           weapon={weapon}
           weaponLevel={store.weapon_level[state.equippedWeaponId] ?? 0}
           superhitCharges={totalSuperhitCharges}
+          playerHp={state.playerHp}
           canAct={isPlayerTurn}
           onMicro={(damage, productIndex) => {
             const micro = activeCampaign.micro
@@ -729,6 +730,9 @@ export default function CombatScreen() {
           onSuperhit={(damage) => {
             dispatch({ type: 'CAMPAIGN_HIT', damage, label: '💥 SUPERHIT!', color: '#eecc44' })
             store.consumeSuperhitCharge(state.equippedWeaponId)
+          }}
+          onSacrifice={(selfDmg) => {
+            dispatch({ type: 'CAMPAIGN_SELF_DAMAGE', amount: selfDmg })
           }}
         />
       )}

@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { calcTileDamage } from '../../engine/combat'
+import { SACRIFICE_MULT } from '../../data/constants'
 import type { WeaponCampaign, WeaponInstance, WorkflowTile, MediumPiece } from '../../types/game'
 import { WEAPON_CLASSES } from '../../data/generators/weaponClasses'
 import { STAGE_TIME } from '../../data/generators/workflowGenerator'
@@ -25,19 +26,22 @@ type TimerCtx = {
   contentName: string
 }
 type ConfirmCtx = { type: 'micro' | 'superhit'; damage: number; productIndex: number }
-type MediumFinishCtx = { pieceName: string; pieceId: string; level: 1 | 2; damage: number }
+type MediumFinishCtx   = { pieceName: string; pieceId: string; level: 1 | 2; damage: number }
+type MediumStartCtx    = { pieceName: string; damage: number; secs: number }
 
 interface Props {
   campaign: WeaponCampaign
   weapon: WeaponInstance | undefined
   weaponLevel: number
   superhitCharges: number
+  playerHp: number
   canAct: boolean
   onMicro:          (damage: number, productIndex: number) => void
   onMedium:         (damage: number) => void
   onMediumComplete: (pieceId: string, level: 1 | 2) => void
   onHeavy:          (type: 'research' | 'produce', damage: number) => void
   onSuperhit:       (damage: number) => void
+  onSacrifice:      (selfDmg: number) => void
 }
 
 function fmtSecs(sec: number): string {
@@ -60,12 +64,13 @@ function getCurrentMediumPiece(campaign: WeaponCampaign): { piece: MediumPiece; 
 }
 
 export default function CampaignActionPanel({
-  campaign, weapon, weaponLevel, superhitCharges, canAct,
-  onMicro, onMedium, onMediumComplete, onHeavy, onSuperhit,
+  campaign, weapon, weaponLevel, superhitCharges, playerHp, canAct,
+  onMicro, onMedium, onMediumComplete, onHeavy, onSuperhit, onSacrifice,
 }: Props) {
   const [heavyPicking, setHeavyPicking] = useState(false)
-  const [timer, setTimer]           = useState<TimerCtx | null>(null)
-  const [confirm, setConfirm]       = useState<ConfirmCtx | null>(null)
+  const [timer, setTimer]               = useState<TimerCtx | null>(null)
+  const [confirm, setConfirm]           = useState<ConfirmCtx | null>(null)
+  const [mediumStart, setMediumStart]   = useState<MediumStartCtx | null>(null)
   const [mediumFinish, setMediumFinish] = useState<MediumFinishCtx | null>(null)
   const [remaining, setRemaining]   = useState(0)
   const doneRef = useRef(false)
@@ -109,11 +114,11 @@ export default function CampaignActionPanel({
     return () => clearInterval(id)
   }, [timer]) // eslint-disable-line react-hooks/exhaustive-deps
 
-  function handleTimerDone(ctx: TimerCtx) {
+  function handleTimerDone(ctx: TimerCtx, selfDmg = 0) {
     setTimer(null)
     if (ctx.type === 'medium') {
-      // Deal damage immediately; then ask if they finished the piece
       onMedium(ctx.damage)
+      if (selfDmg > 0) onSacrifice(selfDmg)
       if (currentMedium) {
         setMediumFinish({
           pieceName: currentMedium.piece.name || `Part ${currentMedium.index + 1}`,
@@ -124,8 +129,10 @@ export default function CampaignActionPanel({
       }
     } else if (ctx.type === 'heavy-research') {
       onHeavy('research', ctx.damage)
+      if (selfDmg > 0) onSacrifice(selfDmg)
     } else {
       onHeavy('produce', ctx.damage)
+      if (selfDmg > 0) onSacrifice(selfDmg)
     }
   }
 
@@ -147,6 +154,9 @@ export default function CampaignActionPanel({
     const pct = Math.max(0, remaining / timer.totalSecs) * 100
     const isHeavy = timer.type !== 'medium'
     const modeLabel = timer.type === 'heavy-research' ? 'Research' : timer.type === 'heavy-produce' ? 'Produce' : 'Writing'
+    const timeFrac = timer.totalSecs > 0 ? remaining / timer.totalSecs : 0
+    const selfDmg  = Math.round(timer.damage * timeFrac * SACRIFICE_MULT)
+    const canSacrifice = selfDmg < playerHp  // must survive the sacrifice
     return (
       <div className={s.timerView}>
         <div className={s.timerContentName}>{timer.contentName}</div>
@@ -167,12 +177,41 @@ export default function CampaignActionPanel({
           <span className={s.timerCount}>{fmtSecs(remaining)}</span>
         </div>
         <div className={s.timerDmg}>⚔ {timer.damage}</div>
-        <button
-          className={s.timerDoneBtn}
-          onClick={() => { doneRef.current = true; setTimer(null); handleTimerDone({ ...timer, totalSecs: 0 }) }}
-        >
-          Done early
-        </button>
+        <div className={s.timerActions}>
+          <button
+            className={s.timerDoneBtn}
+            onClick={() => { doneRef.current = true; handleTimerDone({ ...timer, totalSecs: 0 }) }}
+          >
+            Done
+          </button>
+          <button
+            className={s.sacrificeBtn}
+            disabled={!canSacrifice}
+            title={`Finish instantly — enemy takes full damage, you take ${selfDmg} HP (${Math.round(timeFrac * 100)}% remaining × ${SACRIFICE_MULT}×)`}
+            onClick={() => { doneRef.current = true; handleTimerDone({ ...timer, totalSecs: 0 }, selfDmg) }}
+          >
+            Sacrifice{selfDmg > 0 ? ` (−${selfDmg} HP)` : ''}
+          </button>
+        </div>
+      </div>
+    )
+  }
+
+  // ── Medium start confirmation ──────────────────────────────────────────────
+  if (mediumStart) {
+    return (
+      <div className={s.confirmView}>
+        <div className={s.confirmContentName}>{mediumStart.pieceName}</div>
+        <div className={s.confirmLabel}>Start {fmtSecs(mediumStart.secs)} timer?</div>
+        <div className={s.confirmBtns}>
+          <button
+            className={s.confirmYes}
+            onClick={() => { startTimer('medium', mediumStart.damage, mediumStart.secs, mediumStart.pieceName); setMediumStart(null) }}
+          >
+            Start
+          </button>
+          <button className={s.confirmNo} onClick={() => setMediumStart(null)}>Cancel</button>
+        </div>
       </div>
     )
   }
@@ -240,7 +279,7 @@ export default function CampaignActionPanel({
       <button
         className={[s.tile, s.tileMedium, !hasMedium || !canAct ? s.tileDim : ''].filter(Boolean).join(' ')}
         disabled={!hasMedium || !canAct}
-        onClick={() => startTimer('medium', lightDmg, lightSecs, mediumPieceName ?? 'Medium content')}
+        onClick={() => setMediumStart({ pieceName: mediumPieceName ?? 'Medium content', damage: lightDmg, secs: lightSecs })}
       >
         <span className={s.tileLabel}>Medium</span>
         <span className={s.tileDmg}>⚔ {lightDmg}</span>

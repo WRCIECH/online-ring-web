@@ -70,6 +70,7 @@ export type CombatAction =
   | { type: 'SUPERHIT'; tile: WorkflowTile }
   | { type: 'MICRO_DONE'; weaponId: string; damage: number }
   | { type: 'CAMPAIGN_HIT'; damage: number; label: string; color?: string }
+  | { type: 'CAMPAIGN_SELF_DAMAGE'; amount: number }
 
 // ── Constants ─────────────────────────────────────────────────────────────
 
@@ -546,6 +547,14 @@ export function combatReducer(state: CombatState, action: CombatAction): CombatS
         )
         return { ...s, phase: 'VICTORY' }
       }
+      return s
+    }
+
+    case 'CAMPAIGN_SELF_DAMAGE': {
+      if (action.amount <= 0) return state
+      const newHp = Math.max(0, state.playerHp - action.amount)
+      let s = log({ ...state, playerHp: newHp }, `⚔ Sacrifice — ${action.amount} self-damage`, '#cc3333')
+      if (newHp <= 0) return { ...s, phase: 'DEFEAT' }
       return s
     }
 
