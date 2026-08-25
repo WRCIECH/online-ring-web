@@ -22,24 +22,7 @@ export default function PreFightPicker({ loc, onConfirm, onCancel }: Props) {
   function getAvailableContent(weaponId: string): ContentItem[] {
     const c = store.weapon_campaigns[weaponId]
     if (!c) return []
-    // Old-format: node tree
-    if (c.nodes.length > 0) {
-      return c.nodes
-        .filter((n: CampaignNode) => !n.completed && n.name.trim() !== '' && isNodeAvailable(c.nodes, c.edges, n))
-        .map((n: CampaignNode) => {
-          const parentEdge = c.edges.find(e => e.to_id === n.id)
-          const parentNode = parentEdge ? c.nodes.find(p => p.id === parentEdge.from_id) : null
-          return {
-            id: n.id,
-            name: n.name,
-            parentName: parentNode?.name,
-            hasWorkflow: !!store.workflow_progress[n.id],
-            isCurrent: n.id === store.active_content_id,
-            streak: store.content_streak[n.id] ?? 0,
-          }
-        })
-    }
-    // New-format: medium pieces
+    // New-format (micro/medium/heavy): use medium pieces
     if (c.medium) {
       const result: ContentItem[] = []
       c.medium.pieces.forEach((p, i) => {
@@ -54,7 +37,21 @@ export default function PreFightPicker({ loc, onConfirm, onCancel }: Props) {
       })
       return result
     }
-    return []
+    // Old-format: named node tree
+    return c.nodes
+      .filter((n: CampaignNode) => !n.completed && n.name.trim() !== '' && isNodeAvailable(c.nodes, c.edges, n))
+      .map((n: CampaignNode) => {
+        const parentEdge = c.edges.find(e => e.to_id === n.id)
+        const parentNode = parentEdge ? c.nodes.find(p => p.id === parentEdge.from_id) : null
+        return {
+          id: n.id,
+          name: n.name,
+          parentName: parentNode?.name,
+          hasWorkflow: !!store.workflow_progress[n.id],
+          isCurrent: n.id === store.active_content_id,
+          streak: store.content_streak[n.id] ?? 0,
+        }
+      })
   }
 
   // Weapons that have an activated campaign with at least one available content item
