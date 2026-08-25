@@ -83,6 +83,37 @@ const en: TranslationBundle = {
       Research: { badge_label: 'Research Stage', label: 'Research — gather evidence and reference', detail: 'Actively gather evidence, examples, and reference material.',          example: 'Reading three competing articles before starting your own piece.' },
       Produce:  { badge_label: 'Produce Stage',  label: 'Produce — write the first draft',           detail: 'Write your raw first draft — commit without stopping.',                 example: 'Setting a timer and writing continuously until the draft is done, no backspace.' },
     },
+    constraint: {
+      propaganda: {
+        enhance:  { label: 'Enhance',          description: 'Make the core message stronger and more persuasive.' },
+        weaken:   { label: 'Weaken',           description: 'Undermine counter-arguments or competing narratives.' },
+        focus:    { label: 'Focus',            description: 'Narrow down to one sharp, unambiguous point.' },
+        action:   { label: 'Call to Action',   description: 'Push the audience toward a specific next step.' },
+      },
+      audience: {
+        audience_x:          { label: 'New Audience',      description: 'Reach a group you don\'t usually speak to.' },
+        lower_self:          { label: 'Lower Self',        description: 'Appeal to immediate desires, comfort, or fear.' },
+        average_self:        { label: 'Everyday Self',     description: 'Speak to mainstream concerns and shared values.' },
+        higher_self:         { label: 'Higher Self',       description: 'Address aspirations, growth, and personal values.' },
+        base_trend_event:    { label: 'Trend / Event',     description: 'Tie the content to a current trend or event.' },
+        need_identity_belief:{ label: 'Identity / Belief', description: 'Speak to a core belief or identity your audience holds.' },
+      },
+      style: {
+        narration:       { label: 'Narration',       description: 'Tell a story with a character, arc, and emotional stakes.' },
+        segmentation:    { label: 'Segmentation',    description: 'Break into numbered parts or clearly separated sections.' },
+        socratic:        { label: 'Socratic',        description: 'Guide the reader through questions rather than statements.' },
+        enemy_hero:      { label: 'Enemy / Hero',    description: 'Frame the piece around an antagonist and a protagonist.' },
+        slogan_symbol:   { label: 'Slogan / Symbol', description: 'Reduce to one memorable phrase or striking image.' },
+        analogy:         { label: 'Analogy',         description: 'Explain the idea through a comparison or metaphor.' },
+        verbose:         { label: 'Verbose',         description: 'Expand with detail, examples, and nuance.' },
+        succinct:        { label: 'Succinct',        description: 'Strip to essentials — every word must earn its place.' },
+        technicalize:    { label: 'Technicalize',    description: 'Add precision, depth, and domain-specific language.' },
+        simplify:        { label: 'Simplify',        description: 'Remove jargon and write for a general audience.' },
+        evidence:        { label: 'Evidence',        description: 'Anchor every claim in data, research, or examples.' },
+        data_driven:     { label: 'Data-Driven',     description: 'Lead with numbers and let statistics carry the argument.' },
+        first_principles:{ label: 'First Principles',description: 'Rebuild the argument from the most fundamental truths.' },
+      },
+    },
   },
 
   weapons: {

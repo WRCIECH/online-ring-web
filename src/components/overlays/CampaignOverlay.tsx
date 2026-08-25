@@ -297,10 +297,14 @@ export default function CampaignOverlay({ onClose }: Props) {
                               const l1Unlocked = i === 0 || (prevPiece?.level1_done ?? false)
                               const currentLevel = p.level2_done ? 'done' : p.level1_done ? 'L2' : 'L1'
                               const pieces = campaign.medium!.pieces
+                              const constraintEntry = p.constraint
+                                ? (t.content.constraint[p.constraint.category] as Record<string, { label: string; description: string }>)[p.constraint.value as string]
+                                : null
                               return (
                                 <div key={p.id}>
                                   <div className={[s.mediumPiece, !l1Unlocked?s.mediumPieceLocked:''].filter(Boolean).join(' ')}>
-                                    <div className={s.mediumPieceHeader}>
+                                    {/* Left: number + name */}
+                                    <div className={s.mediumPieceLeft}>
                                       <span className={s.mediumPieceNum}>{i+1}</span>
                                       {isActivated ? (
                                         <span className={s.mediumPieceName}>{p.name}</span>
@@ -312,22 +316,28 @@ export default function CampaignOverlay({ onClose }: Props) {
                                         />
                                       )}
                                     </div>
-                                    <div className={s.mediumPieceLevels}>
-                                      {currentLevel === 'done' && (
-                                        <span className={[s.levelBadge, s.levelDone].join(' ')}>✓ Done</span>
-                                      )}
-                                      {currentLevel === 'L1' && (
-                                        <span className={[s.levelBadge, !l1Unlocked?s.levelLocked:''].filter(Boolean).join(' ')}>
-                                          {l1Unlocked ? 'L1' : '🔒 L1'}
-                                        </span>
-                                      )}
-                                      {currentLevel === 'L2' && (
-                                        <span className={s.levelBadge}>L2</span>
+                                    {/* Right: level badge + constraint */}
+                                    <div className={s.mediumPieceRight}>
+                                      <div className={s.mediumPieceLevels}>
+                                        {currentLevel === 'done' && (
+                                          <span className={[s.levelBadge, s.levelDone].join(' ')}>✓ Done</span>
+                                        )}
+                                        {currentLevel === 'L1' && (
+                                          <span className={[s.levelBadge, !l1Unlocked?s.levelLocked:''].filter(Boolean).join(' ')}>
+                                            {l1Unlocked ? 'L1' : '🔒 L1'}
+                                          </span>
+                                        )}
+                                        {currentLevel === 'L2' && (
+                                          <span className={s.levelBadge}>L2</span>
+                                        )}
+                                      </div>
+                                      {constraintEntry && (
+                                        <div className={s.constraintBlock}>
+                                          <span className={s.constraintLabel}>{constraintEntry.label}</span>
+                                          <span className={s.constraintDesc}>{constraintEntry.description}</span>
+                                        </div>
                                       )}
                                     </div>
-                                    {p.constraint && (
-                                      <div className={s.constraintChip}>{p.constraint.category}: {String(p.constraint.value).replace(/_/g, ' ')}</div>
-                                    )}
                                   </div>
                                   {i < pieces.length - 1 && (
                                     <div className={s.pieceConnector}>

@@ -1,4 +1,4 @@
-import type { ContentTransformation, AtomicStage, Locale, EmotionType } from '../types/game'
+import type { ContentTransformation, AtomicStage, Locale, EmotionType, PropagandaShift, MediumAudienceShift, StyleShift } from '../types/game'
 import type { ContentProductType } from '../data/contentProducts'
 
 export type { Locale }
@@ -16,6 +16,11 @@ export interface TranslationBundle {
     transformation: Record<ContentTransformation, ContentEntry>
     emotion:        Record<EmotionType, ContentEntry>
     stage:          Record<AtomicStage, ContentEntry>
+    constraint: {
+      propaganda: Record<PropagandaShift,       { label: string; description: string }>
+      audience:   Record<MediumAudienceShift,   { label: string; description: string }>
+      style:      Record<StyleShift,             { label: string; description: string }>
+    }
   }
   weapons:        Record<string, { name: string; description: string }>
   enemies:        Record<string, { name: string; description: string }>

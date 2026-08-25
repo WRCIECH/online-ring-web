@@ -1364,8 +1364,9 @@
 
 .mediumPiece {
   display: flex;
-  flex-direction: column;
-  gap: 4px;
+  flex-direction: row;
+  align-items: flex-start;
+  gap: 10px;
   padding: 8px 10px;
   border-radius: var(--radius);
   border: 1px solid var(--color-sep);
@@ -1377,23 +1378,39 @@
   opacity: 0.45;
 }
 
-.mediumPieceHeader {
+.mediumPieceLeft {
   display: flex;
   align-items: center;
   gap: 6px;
+  max-width: 220px;
+  flex-shrink: 0;
+  min-width: 0;
+}
+
+.mediumPieceRight {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 5px;
+  min-width: 0;
 }
 
 .mediumPieceNum {
   font-size: 0.65rem;
   font-weight: 700;
   color: var(--color-text-dim);
+  flex-shrink: 0;
   min-width: 16px;
 }
 
 .mediumPieceName {
   font-weight: 600;
   color: var(--color-text);
-  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
 }
 
 .mediumPieceLevels {
@@ -1451,14 +1468,30 @@
   white-space: nowrap;
 }
 
-.constraintChip {
-  font-size: 0.63rem;
-  padding: 2px 6px;
+.constraintBlock {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.constraintLabel {
+  font-size: 0.65rem;
+  font-weight: 700;
+  padding: 2px 7px;
   border-radius: 8px;
   background: rgba(180,120,255,0.12);
   color: #c896ff;
   border: 1px solid rgba(180,120,255,0.25);
   align-self: flex-start;
+  white-space: nowrap;
+}
+
+.constraintDesc {
+  font-size: 0.65rem;
+  color: var(--color-text-dim);
+  opacity: 0.75;
+  line-height: 1.4;
+  padding: 0 2px;
 }
 
 /* Heavy tab */
@@ -1597,7 +1630,7 @@
 
 /* ── Piece name input ─────────────────────────────────────────────────────── */
 .pieceNameInput {
-  flex: 1;
+  width: 100%;
   background: rgba(255,255,255,0.05);
   border: 1px solid var(--color-sep);
   border-radius: var(--radius);
@@ -1607,6 +1640,7 @@
   padding: 3px 7px;
   outline: none;
   min-width: 0;
+  box-sizing: border-box;
   transition: border-color 0.1s;
 }
 .pieceNameInput:focus { border-color: var(--color-border); }

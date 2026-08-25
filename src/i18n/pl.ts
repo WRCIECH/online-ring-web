@@ -83,6 +83,37 @@ const pl: TranslationBundle = {
       Research: { badge_label: 'Etap badań',      label: 'Badania — zbieraj dowody i materiały',    detail: 'Aktywnie zbieraj dowody, przykłady i materiały referencyjne.',                    example: 'Przeczytanie trzech konkurencyjnych artykułów przed napisaniem własnego.' },
       Produce:  { badge_label: 'Etap produkcji',  label: 'Produkcja — napisz pierwszy szkic',        detail: 'Napisz surowy pierwszy szkic — angażuj się bez zatrzymywania.',                   example: "Ustawienie timera i ciągłe pisanie do czasu ukończenia szkicu, bez backspace'a." },
     },
+    constraint: {
+      propaganda: {
+        enhance:  { label: 'Wzmocnienie',             description: 'Wzmocnij główny przekaz, uczyń go bardziej przekonującym.' },
+        weaken:   { label: 'Osłabienie',              description: 'Podważ kontrargumenty i konkurencyjne narracje.' },
+        focus:    { label: 'Skupienie',               description: 'Zawęź do jednego, klarownego, ostrego punktu.' },
+        action:   { label: 'Wezwanie do działania',   description: 'Nakłoń odbiorcę do konkretnego następnego kroku.' },
+      },
+      audience: {
+        audience_x:          { label: 'Nowa grupa docelowa',    description: 'Dotrzij do grupy, do której zwykle nie piszesz.' },
+        lower_self:          { label: 'Niższe ja',              description: 'Odwołaj się do podstawowych pragnień, komfortu lub lęku.' },
+        average_self:        { label: 'Przeciętne ja',          description: 'Mów o codziennych sprawach i powszechnych wartościach.' },
+        higher_self:         { label: 'Wyższe ja',              description: 'Odwołaj się do aspiracji, rozwoju i wartości osobistych.' },
+        base_trend_event:    { label: 'Trend / Wydarzenie',     description: 'Powiąż treść z aktualnym trendem lub wydarzeniem.' },
+        need_identity_belief:{ label: 'Tożsamość / Przekonanie',description: 'Odwołaj się do kluczowej tożsamości lub przekonania odbiorcy.' },
+      },
+      style: {
+        narration:       { label: 'Narracja',            description: 'Opowiedz historię z bohaterem, łukiem fabularnym i emocjami.' },
+        segmentation:    { label: 'Segmentacja',         description: 'Podziel na ponumerowane części lub wyraźnie oddzielone sekcje.' },
+        socratic:        { label: 'Metoda sokratyczna',  description: 'Prowadź czytelnika przez pytania, nie twierdzenia.' },
+        enemy_hero:      { label: 'Wróg / Bohater',      description: 'Zbuduj napięcie przez antagonistę i protagonistę.' },
+        slogan_symbol:   { label: 'Slogan / Symbol',     description: 'Sprowadź do jednego zapamiętałego hasła lub uderzającego obrazu.' },
+        analogy:         { label: 'Analogia',            description: 'Wyjaśnij ideę przez porównanie lub metaforę.' },
+        verbose:         { label: 'Rozbudowanie',        description: 'Rozbuduj o szczegóły, przykłady i niuanse.' },
+        succinct:        { label: 'Zwięzłość',           description: 'Skróć do esencji — każde słowo musi zarabiać swoje miejsce.' },
+        technicalize:    { label: 'Specjalizacja',       description: 'Dodaj precyzję, głębię i terminologię branżową.' },
+        simplify:        { label: 'Uproszczenie',        description: 'Usuń żargon, pisz dla szerokiej publiczności.' },
+        evidence:        { label: 'Dowody',              description: 'Podepnij każde twierdzenie danymi, badaniami lub przykładami.' },
+        data_driven:     { label: 'Oparte na danych',    description: 'Otwórz liczbami i pozwól statystykom prowadzić argument.' },
+        first_principles:{ label: 'Zasady pierwsze',    description: 'Odbuduj argument od najbardziej fundamentalnych założeń.' },
+      },
+    },
   },
 
   weapons: {
