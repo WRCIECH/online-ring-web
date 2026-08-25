@@ -292,7 +292,14 @@ export default function CampaignOverlay({ onClose }: Props) {
                                     style={{ left: x, top: y }}
                                   >
                                     <div className={s.microCardType}>{prodLabel(p.content_type)}</div>
-                                    {p.style && <div className={s.microCardStyle}>{LABEL_DISPLAY[p.style] ?? p.style}</div>}
+                                    {p.style && (
+                                      <div
+                                        className={s.microCardStyle}
+                                        data-tooltip={t.content.transformation[p.style]?.detail}
+                                      >
+                                        {LABEL_DISPLAY[p.style] ?? p.style}
+                                      </div>
+                                    )}
                                     <div className={s.microCardCount}>×{p.done_count}</div>
                                   </div>
                                 )

@@ -1375,12 +1375,40 @@
 }
 
 .microCardStyle {
+  position: relative;
   font-size: 0.60rem;
   color: var(--color-text-dim);
   background: rgba(255,255,255,0.06);
   border-radius: 3px;
   padding: 1px 3px;
+  cursor: default;
 }
+
+.microCardStyle[data-tooltip]::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  bottom: calc(100% + 6px);
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(14, 12, 32, 0.97);
+  border: 1px solid rgba(100, 80, 200, 0.35);
+  border-radius: 6px;
+  padding: 7px 11px;
+  font-size: 0.72rem;
+  font-weight: 400;
+  color: rgba(210, 200, 255, 0.9);
+  white-space: normal;
+  width: 200px;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.12s;
+  z-index: 60;
+  line-height: 1.55;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+  text-align: left;
+}
+
+.microCardStyle[data-tooltip]:hover::after { opacity: 1; }
 
 .microCardCount {
   font-size: 0.64rem;
