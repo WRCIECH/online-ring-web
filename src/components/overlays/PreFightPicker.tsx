@@ -82,7 +82,6 @@ export default function PreFightPicker({ loc, onConfirm, onCancel }: Props) {
   }, [pickerWeaponId]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const availableContent = getAvailableContent(pickerWeaponId)
-  const campaign = store.weapon_campaigns[pickerWeaponId]
 
 
   const locTypeLabel = loc.sublocation_type === 'boss'  ? (t.ui.badge_boss ?? 'Boss')
@@ -118,7 +117,7 @@ export default function PreFightPicker({ loc, onConfirm, onCancel }: Props) {
             ) : (
               eligibleWeapons.map(w => {
                 const wc = store.weapon_campaigns[w.instance_id]
-                const nodeCount = getAvailableNodes(w.instance_id).length
+                const nodeCount = getAvailableContent(w.instance_id).length
                 const isSelected = w.instance_id === pickerWeaponId
                 const wi = WEAPONS[w.instance_id] as WeaponInstance | undefined
                 const perks = wi?.perks ?? []

@@ -1,6 +1,6 @@
 import type {
   CombatPhase, MoveType, WorkflowGraph, WorkflowTile,
-  Enemy, WeaponInstance, Stats, MobAffinities, MobAffinityConditions, LocationTheme, WeaponCampaign,
+  Enemy, WeaponInstance, Stats, MobAffinities, MobAffinityConditions, LocationTheme,
 } from '../types/game'
 import { LOCATION_THEMES } from '../data/locationThemes'
 import { WEAPONS, calcWeaponScaledDamage } from '../data/weapons'
