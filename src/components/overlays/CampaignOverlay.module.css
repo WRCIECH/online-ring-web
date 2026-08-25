@@ -1348,22 +1348,23 @@
   gap: 3px;
   padding: 6px 7px;
   border-radius: var(--radius);
-  border: 1px solid var(--color-sep);
+  border: 1px solid rgba(255,255,255,0.28);
   background: rgba(15,13,34,0.95);
   font-size: 0.68rem;
   text-align: center;
   width: 72px;
-  transition: border-color 0.15s;
+  transition: border-color 0.15s, box-shadow 0.15s;
 }
 
 .microCardCurrent {
-  border-color: var(--color-accent);
+  border: 2px solid var(--color-accent);
   background: rgba(15,13,34,0.98);
-  box-shadow: 0 0 10px rgba(var(--color-accent-rgb, 180,140,80), 0.25);
+  box-shadow: 0 0 14px rgba(var(--color-accent-rgb, 180,140,80), 0.40);
 }
 
 .microCardDone {
-  opacity: 0.55;
+  opacity: 0.50;
+  border-color: rgba(255,255,255,0.12);
 }
 
 .microCardType {
@@ -1486,7 +1487,7 @@
 .connectorLine {
   width: 2px;
   height: 14px;
-  background: rgba(255,255,255,0.12);
+  background: rgba(180,120,255,0.35);
   flex-shrink: 0;
 }
 
@@ -1496,9 +1497,9 @@
   letter-spacing: 0.05em;
   padding: 3px 12px;
   border-radius: 10px;
-  background: rgba(180,120,255,0.10);
+  background: rgba(180,120,255,0.12);
   color: #c896ff;
-  border: 1px solid rgba(180,120,255,0.28);
+  border: 1px solid rgba(180,120,255,0.55);
   white-space: nowrap;
 }
 
