@@ -1247,3 +1247,255 @@
   color: var(--color-text-dim);
   opacity: 0.7;
 }
+
+/* ── Three-mode tabs ──────────────────────────────────────────────────────── */
+.modeTabs {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  padding: 12px 16px 0;
+}
+
+.tabBar {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 12px;
+}
+
+.modeTab {
+  flex: 1;
+  padding: 6px 0;
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  border: 1px solid var(--color-sep);
+  border-radius: var(--radius);
+  background: transparent;
+  color: var(--color-text-dim);
+  cursor: pointer;
+  transition: border-color 0.1s, color 0.1s, background 0.1s;
+}
+
+.modeTab:hover { border-color: var(--color-border); color: var(--color-text); }
+
+.modeTabActive {
+  border-color: var(--color-accent);
+  background: rgba(var(--color-accent-rgb, 180,140,80), 0.12);
+  color: var(--color-accent);
+}
+
+.modePanel {
+  padding-bottom: 12px;
+}
+
+.modeComplete {
+  margin-top: 10px;
+  text-align: center;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: #5ecf5e;
+  letter-spacing: 0.04em;
+}
+
+/* Micro tab */
+.microGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+  gap: 8px;
+}
+
+.microCard {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 8px 6px;
+  border-radius: var(--radius);
+  border: 1px solid var(--color-sep);
+  background: rgba(255,255,255,0.03);
+  font-size: 0.72rem;
+  text-align: center;
+  position: relative;
+  transition: border-color 0.15s;
+}
+
+.microCardCurrent {
+  border-color: var(--color-accent);
+  background: rgba(var(--color-accent-rgb, 180,140,80), 0.10);
+}
+
+.microCardDone {
+  opacity: 0.65;
+}
+
+.microCardType {
+  font-weight: 600;
+  color: var(--color-text);
+  font-size: 0.73rem;
+}
+
+.microCardStyle {
+  font-size: 0.65rem;
+  color: var(--color-text-dim);
+  background: rgba(255,255,255,0.06);
+  border-radius: 3px;
+  padding: 1px 4px;
+}
+
+.microCardCount {
+  font-size: 0.7rem;
+  color: var(--color-text-dim);
+}
+
+.microCardNext {
+  font-size: 0.62rem;
+  font-weight: 700;
+  color: var(--color-accent);
+  letter-spacing: 0.05em;
+}
+
+/* Medium tab */
+.mediumList {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.mediumPiece {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 8px 10px;
+  border-radius: var(--radius);
+  border: 1px solid var(--color-sep);
+  background: rgba(255,255,255,0.03);
+  font-size: 0.74rem;
+}
+
+.mediumPieceLocked {
+  opacity: 0.45;
+}
+
+.mediumPieceHeader {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.mediumPieceNum {
+  font-size: 0.65rem;
+  font-weight: 700;
+  color: var(--color-text-dim);
+  min-width: 16px;
+}
+
+.mediumPieceName {
+  font-weight: 600;
+  color: var(--color-text);
+  flex: 1;
+}
+
+.mediumPieceLevels {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.levelBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 2px 7px;
+  border-radius: 10px;
+  font-size: 0.66rem;
+  font-weight: 600;
+  background: rgba(255,255,255,0.06);
+  color: var(--color-text-dim);
+  border: 1px solid transparent;
+}
+
+.levelDone {
+  color: #5ecf5e;
+  border-color: rgba(94,207,94,0.35);
+  background: rgba(94,207,94,0.08);
+}
+
+.levelLocked {
+  opacity: 0.4;
+}
+
+.linkChip {
+  font-size: 0.63rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  padding: 2px 6px;
+  border-radius: 8px;
+  background: rgba(255,255,255,0.06);
+  color: var(--color-text-dim);
+  border: 1px solid var(--color-sep);
+}
+
+.constraintChip {
+  font-size: 0.63rem;
+  padding: 2px 6px;
+  border-radius: 8px;
+  background: rgba(180,120,255,0.12);
+  color: #c896ff;
+  border: 1px solid rgba(180,120,255,0.25);
+  align-self: flex-start;
+}
+
+/* Heavy tab */
+.heavyCard {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 14px 16px;
+  border-radius: var(--radius);
+  border: 1px solid var(--color-sep);
+  background: rgba(255,255,255,0.03);
+}
+
+.heavyProductType {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--color-text);
+  text-align: center;
+  letter-spacing: 0.03em;
+}
+
+.heavyProgress {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.76rem;
+}
+
+.heavyProgressLabel {
+  min-width: 64px;
+  font-weight: 600;
+  color: var(--color-text-dim);
+  font-size: 0.72rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.heavyProgressTrack {
+  flex: 1;
+  height: 6px;
+  border-radius: 3px;
+  background: rgba(255,255,255,0.08);
+  overflow: hidden;
+  position: relative;
+}
+
+.heavyProgressFill {
+  position: absolute;
+  left: 0;
+  top: 0;
+  height: 100%;
+  border-radius: 3px;
+  background: var(--color-accent);
+  transition: width 0.25s ease;
+}

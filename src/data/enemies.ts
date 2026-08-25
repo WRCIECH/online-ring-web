@@ -27,7 +27,7 @@ export const ENEMIES: Record<string, Enemy> = {
       love:    { emotions: ['Polarization', 'Drama'] },
       like:    { transformations: ['Shock'] },
       dislike: { emotions: ['Comfort', 'Hope'] },
-      hate:    { transformations: ['ProblemSolving'], emotions: ['Parasocial'] },
+      hate:    { emotions: ['Parasocial'] },
     },
   },
 
@@ -104,7 +104,7 @@ export const ENEMIES: Record<string, Enemy> = {
     drops: [{ id: 'weapon', first_kill_chance: 0.72, repeat_chance: 0.28 }],
     affinities: {
       love:    { products: ['ARollVideo', 'LiveStream'], transformations: ['Shock'] },
-      like:    { transformations: ['Compression'], emotions: ['Viral', 'Controversion'] },
+      like:    { transformations: ['Succinct'], emotions: ['Viral', 'Controversion'] },
       dislike: { products: ['Plaintext', '_blank'], transformations: ['ZoomOut'] },
       hate:    { products: ['InteractiveApp', '_blank'], stages: ['Research'] },
     },
@@ -146,9 +146,9 @@ export const ENEMIES: Record<string, Enemy> = {
     drops: [{ id: 'weapon', first_kill_chance: 0.55, repeat_chance: 0.18 }],
     affinities: {
       love:    { products: ['Plaintext'], stages: ['Produce'] },
-      like:    { products: ['RawAudio'], transformations: ['Expansion'] },
+      like:    { products: ['RawAudio'], transformations: ['Verbose'] },
       dislike: { products: ['Carousel', 'SingleGraphic'], emotions: ['Fomo'] },
-      hate:    { products: ['StructuredText', 'Infographic'], transformations: ['Compression', 'Segmentation'] },
+      hate:    { products: ['StructuredText', 'Infographic'], transformations: ['Succinct', 'Segmentation'] },
     },
   },
 
@@ -174,8 +174,8 @@ export const ENEMIES: Record<string, Enemy> = {
     drops: [{ id: 'weapon', first_kill_chance: 0.78, repeat_chance: 0.30 }],
     affinities: {
       love:    { transformations: ['Cliffhanger', 'Shock'], emotions: ['Drama', 'Polarization'] },
-      like:    { products: ['Carousel', 'SingleGraphic'], transformations: ['Compression'] },
-      dislike: { products: ['StructuredText'], transformations: ['ProblemSolving'] },
+      like:    { products: ['Carousel', 'SingleGraphic'], transformations: ['Succinct'] },
+      dislike: { products: ['StructuredText'] },
       hate:    { products: ['_blank', 'AssetPack'], emotions: ['Hope'] },
     },
   },

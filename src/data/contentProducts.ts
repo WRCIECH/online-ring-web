@@ -42,6 +42,18 @@ export type ContentProductType =
   | 'CommunitySpace'           // 19. Przestrzeń społecznościowa (serwer Discord, zamknięte forum, Slack)
   | 'InteractiveApp'           // 20. Aplikacja / Gra / Micro-tool (pełna nieliniowość, kalkulatory, widgety, gry)
 
+  // --- NOWE TYPY TRYBU MIKRO ---
+  | 'LinkShare'                // Repost / Recycle — udostępnienie lub przeróbka istniejącej treści
+
+  // --- NOWE TYPY TRYBU MEDIUM ---
+  | 'Interview'                // Wywiad — rozmowa z ekspertem lub influencerem
+  | 'Commentary'               // Komentarz — analiza i opinia o istniejącej treści
+
+  // --- NOWE TYPY TRYBU HEAVY ---
+  | 'Website'                  // Strona internetowa — pełna witryna lub landing page
+  | 'Course'                   // Kurs / Szkolenie — ustrukturyzowany materiał edukacyjny
+  | 'Book'                     // Książka / eBook — długa forma pisana
+
   /**
    * --- MARGINES SYSTEMU (AWANGARDA / COŚ INNEGO) ---
    * Gracz otrzymuje to jako zadanie stworzenia niesklasyfikowanego, awangardowego unikatu.
@@ -95,6 +107,12 @@ export class ContentRegistry {
     CurationFeed:       { id: 'CurationFeed',       displayName: 'Kuracja treści (Agregacja)',           category: 'Hybrid', complexity: 2, description: 'Autorskie filtrowanie chaosu sieci: bazy linków, prasówki, rankingi cudzych dzieł.' },
     CommunitySpace:     { id: 'CommunitySpace',     displayName: 'Przestrzeń społecznościowa',           category: 'Hybrid', complexity: 4, description: 'Tworzenie architektury relacji – serwery, fora i zamknięte ekosystemy dyskusyjne.' },
     InteractiveApp:     { id: 'InteractiveApp',     displayName: 'Aplikacja / Gry / Widgety',            category: 'Hybrid', complexity: 5, description: 'Pełna nieliniowość kodu. Narzędzia jednofunkcyjne, kalkulatory lub pełnoprawne gry.' },
-    _blank:             { id: '_blank',             displayName: 'Coś innego (Eksperyment)',             category: 'Exotic', complexity: 1, description: 'Awangardowa publikacja łamiąca standardowe ramy produkcji i percepcji internetu.' }
+    _blank:             { id: '_blank',             displayName: 'Coś innego (Eksperyment)',             category: 'Exotic', complexity: 1, description: 'Awangardowa publikacja łamiąca standardowe ramy produkcji i percepcji internetu.' },
+    LinkShare:          { id: 'LinkShare',          displayName: 'Repost / Recycle',                     category: 'Hybrid', complexity: 1, description: 'Udostępnienie lub przeróbka istniejącej treści z własnym komentarzem lub bez.' },
+    Interview:          { id: 'Interview',          displayName: 'Wywiad',                               category: 'Audio',  complexity: 3, description: 'Rozmowa z ekspertem, influencerem lub ciekawą osobą — nagrany i zmontowany wywiad.' },
+    Commentary:         { id: 'Commentary',         displayName: 'Komentarz',                            category: 'Text',   complexity: 2, description: 'Analiza i opinia o istniejącej treści, trendzie lub wydarzeniu.' },
+    Website:            { id: 'Website',            displayName: 'Strona internetowa',                   category: 'Hybrid', complexity: 4, description: 'Pełna witryna lub landing page — zaprojektowana, zbudowana i wdrożona.' },
+    Course:             { id: 'Course',             displayName: 'Kurs / Szkolenie',                     category: 'Hybrid', complexity: 5, description: 'Ustrukturyzowany materiał edukacyjny z modułami, ćwiczeniami i certyfikatem.' },
+    Book:               { id: 'Book',               displayName: 'Książka / eBook',                      category: 'Text',   complexity: 5, description: 'Długa forma pisana — od eBooka po pełnoprawną publikację.' },
   };
 }

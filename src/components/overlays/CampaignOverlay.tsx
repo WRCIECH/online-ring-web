@@ -6,7 +6,7 @@ import { LEVEL_MULT, weaponUpgradeCost, calcWeaponScaledDamage, calcWeaponSellPr
 import { STAGE_TIME, calcWorkflowTileCounts } from '../../data/generators/workflowGenerator'
 import { WEAPON_CLASSES } from '../../data/generators/weaponClasses'
 import { MODIFICATION_STATS, STAT_CONTENT_TYPES, STAT_TRANSFORMATIONS } from '../../data/statModifications'
-import type { CampaignNode, CampaignEdge, WeaponCampaign, WeaponInstance, StatKey, ContentProductType } from '../../types/game'
+import type { CampaignNode, CampaignEdge, WeaponCampaign, WeaponInstance, StatKey, ContentProductType, MicroProduct, MediumPiece } from '../../types/game'
 import WeaponIcon from '../WeaponIcon'
 import { useT, localizeWeaponName } from '../../i18n'
 import s from './CampaignOverlay.module.css'
@@ -19,8 +19,8 @@ interface Props {
 
 const LABEL_DISPLAY: Record<string, string> = {
   // ContentTransformation — relation types
-  Compression:   'Compression',
-  Expansion:     'Expansion',
+  Succinct:      'Succinct',
+  Verbose:       'Verbose',
   ZoomIn:        'Zoom In',
   ZoomOut:       'Zoom Out',
   Similar:       'Similar',
@@ -30,7 +30,6 @@ const LABEL_DISPLAY: Record<string, string> = {
   Narration:     'Narration',
   Segmentation:  'Segmentation',
   Passion:       'Passion',
-  ProblemSolving: 'Problem Solving',
   Estetic:       'Esthetic',
   Cliffhanger:   'Cliffhanger',
   Viral:         'Viral',
@@ -47,8 +46,8 @@ const LABEL_DISPLAY: Record<string, string> = {
 
 const LABEL_TOOLTIP: Record<string, string> = {
   // ContentTransformation — relation types
-  Compression:   'Compression — distils and summarises the parent into a denser form.',
-  Expansion:     'Expansion — takes one idea from the parent and develops it in depth.',
+  Succinct:      'Succinct — distils and summarises the parent into a denser form.',
+  Verbose:       'Verbose — takes one idea from the parent and develops it in depth.',
   ZoomIn:        'Zoom In — narrows focus to a specific detail or sub-topic of the parent.',
   ZoomOut:       'Zoom Out — widens scope to place the parent in a broader context.',
   Similar:       'Similar — parallel piece on a related topic using the same structure.',
@@ -58,7 +57,6 @@ const LABEL_TOOLTIP: Record<string, string> = {
   Narration:     'Narration — story-driven, narrative format.',
   Segmentation:  'Segmentation — broken into distinct parts, lists, or sections.',
   Passion:       'Passion — emotionally driven, enthusiastic tone.',
-  ProblemSolving: 'Problem Solving — structured around identifying and resolving a specific problem.',
   Estetic:       'Esthetic — prioritises visual or sensory appeal and craft.',
   Cliffhanger:   'Cliffhanger — ends with unresolved tension to keep the audience coming back.',
   Viral:         'Viral — content engineered to spread rapidly; brainrot, memes, trend-chasing.',
@@ -75,14 +73,11 @@ const LABEL_TOOLTIP: Record<string, string> = {
   Critique:       'Critique — critically analyzes an existing piece, exposing its weaknesses, flaws, or hidden assumptions.',
   Follows:        'Follows — natural continuation of the parent piece, extending its story, series, or ongoing discussion.',
   AudienceShift:  'Audience Shift — same core idea adapted to the needs and knowledge of a different target audience.',
-  DomainTransfer: 'Domain Transfer — existing idea transplanted into a completely different domain to reveal new applications.',
   Synthesis:      'Synthesis — multiple related pieces combined into one coherent work with greater informational value.',
   RemixFusion:    'Remix / Fusion — two or more independent ideas merged into a new, original creation.',
-  Split:          'Split — a larger piece broken into several standalone pieces, each focused on a different aspect.',
   Evidence:       'Evidence — existing claims strengthened with additional data, research, examples, or supporting sources.',
   Simplify:       'Simplify — same content rewritten with simpler language and more accessible examples.',
   Technicalize:   'Technicalize — same content transformed into a more precise, detailed, specialist version.',
-  Localize:       'Localize — content adapted for a specific country, region, or culture while preserving the core idea.',
   Socratic:       'Socratic — guides the audience through questions instead of answers, encouraging independent thinking.',
   Analogy:        'Analogy — core idea explained through clear analogies, metaphors, and comparisons.',
   FirstPrinciples:'First Principles — topic decomposed to its most fundamental assumptions and rebuilt from there.',
@@ -172,6 +167,7 @@ export default function CampaignOverlay({ onClose }: Props) {
   const [showActivateConfirm, setShowActivateConfirm] = useState(false)
   const [confirmFinalize, setConfirmFinalize] = useState(false)
   const [confirmDetachId, setConfirmDetachId] = useState<string | null>(null)
+  const [activeTab, setActiveTab] = useState<'micro' | 'medium' | 'heavy'>('medium')
   // Weapon actions
   const [confirmSellId,    setConfirmSellId]    = useState<string | null>(null)
   const [confirmUpgradeId, setConfirmUpgradeId] = useState<string | null>(null)
@@ -197,6 +193,14 @@ export default function CampaignOverlay({ onClose }: Props) {
     }
   }, [selectedWeaponId]) // eslint-disable-line react-hooks/exhaustive-deps
 
+  // Lazily init mode states for old saves
+  useEffect(() => {
+    if (selectedWeaponId) {
+      const c = store.weapon_campaigns[selectedWeaponId]
+      if (c && !c.micro) store.initWeaponModes(selectedWeaponId)
+    }
+  }, [selectedWeaponId, store.weapon_campaigns[selectedWeaponId ?? '']?.micro]) // eslint-disable-line react-hooks/exhaustive-deps
+
   // Reset transient UI when switching weapons
   useEffect(() => {
     setShowActivateConfirm(false)
@@ -208,6 +212,7 @@ export default function CampaignOverlay({ onClose }: Props) {
     setConfirmUpgradeId(null)
     setModifyNodeId(null)
     setModifyEdge(null)
+    setActiveTab('medium')
   }, [selectedWeaponId])
 
   const selectedWeapon = selectedWeaponId
@@ -444,6 +449,92 @@ export default function CampaignOverlay({ onClose }: Props) {
 
                   return (
                     <>
+                      {/* ── Three-mode tabs ── */}
+                      {campaign.micro && (
+                        <div className={s.modeTabs}>
+                          <div className={s.tabBar}>
+                            <button className={[s.modeTab, activeTab==='micro'?s.modeTabActive:''].join(' ')} onClick={()=>setActiveTab('micro')}>Micro</button>
+                            <button className={[s.modeTab, activeTab==='medium'?s.modeTabActive:''].join(' ')} onClick={()=>setActiveTab('medium')}>Medium</button>
+                            <button className={[s.modeTab, activeTab==='heavy'?s.modeTabActive:''].join(' ')} onClick={()=>setActiveTab('heavy')}>Heavy</button>
+                          </div>
+                          {activeTab === 'micro' && (
+                            <div className={s.modePanel}>
+                              <div className={s.microGrid}>
+                                {campaign.micro.products.map((p: MicroProduct, i: number) => (
+                                  <div key={p.id} className={[s.microCard, i===campaign.micro!.current_index?s.microCardCurrent:'', p.done_count>0?s.microCardDone:''].filter(Boolean).join(' ')}>
+                                    <div className={s.microCardType}>{(t.content.product as Record<string,{badge_label:string}>)[p.content_type]?.badge_label ?? p.content_type}</div>
+                                    {p.style && <div className={s.microCardStyle}>{LABEL_DISPLAY[p.style] ?? p.style}</div>}
+                                    <div className={s.microCardCount}>×{p.done_count}</div>
+                                    {i === campaign.micro!.current_index && <div className={s.microCardNext}>→ Next</div>}
+                                  </div>
+                                ))}
+                              </div>
+                              {campaign.micro.completed && <div className={s.modeComplete}>✓ Circle complete</div>}
+                            </div>
+                          )}
+                          {activeTab === 'medium' && campaign.medium && (
+                            <div className={s.modePanel}>
+                              <div className={s.mediumList}>
+                                {campaign.medium.pieces.map((p: MediumPiece, i: number) => {
+                                  const prevPiece = i > 0 ? campaign.medium!.pieces[i-1] : null
+                                  const l1Unlocked = i === 0 || (prevPiece?.level1_done ?? false)
+                                  const l2Unlocked = p.level1_done
+                                  return (
+                                    <div key={p.id} className={[s.mediumPiece, !l1Unlocked?s.mediumPieceLocked:''].filter(Boolean).join(' ')}>
+                                      <div className={s.mediumPieceHeader}>
+                                        <span className={s.mediumPieceNum}>{i+1}</span>
+                                        <span className={s.mediumPieceName}>{p.name}</span>
+                                        {p.link_type && i < campaign.medium!.pieces.length - 1 && (
+                                          <span className={s.linkChip}>{p.link_type}</span>
+                                        )}
+                                      </div>
+                                      <div className={s.mediumPieceLevels}>
+                                        <span className={[s.levelBadge, p.level1_done?s.levelDone:'', !l1Unlocked?s.levelLocked:''].filter(Boolean).join(' ')}>
+                                          L1: {(t.content.product as Record<string,{badge_label:string}>)[p.level1_type]?.badge_label ?? p.level1_type}
+                                          {p.level1_done ? ' ✓' : ''}
+                                        </span>
+                                        <span className={[s.levelBadge, p.level2_done?s.levelDone:'', !l2Unlocked?s.levelLocked:''].filter(Boolean).join(' ')}>
+                                          L2: {(t.content.product as Record<string,{badge_label:string}>)[p.level2_type]?.badge_label ?? p.level2_type}
+                                          {p.level2_done ? ' ✓' : !l2Unlocked ? ' 🔒' : ''}
+                                        </span>
+                                      </div>
+                                      {p.constraint && (
+                                        <div className={s.constraintChip}>{p.constraint.category}: {String(p.constraint.value).replace(/_/g, ' ')}</div>
+                                      )}
+                                    </div>
+                                  )
+                                })}
+                              </div>
+                              {campaign.medium.completed && <div className={s.modeComplete}>✓ Medium complete</div>}
+                            </div>
+                          )}
+                          {activeTab === 'heavy' && campaign.heavy && (
+                            <div className={s.modePanel}>
+                              <div className={s.heavyCard}>
+                                <div className={s.heavyProductType}>
+                                  {(t.content.product as Record<string,{badge_label:string}>)[campaign.heavy.product_type]?.badge_label ?? campaign.heavy.product_type}
+                                </div>
+                                <div className={s.heavyProgress}>
+                                  <span className={s.heavyProgressLabel}>Research</span>
+                                  <span className={s.heavyProgressTrack}>
+                                    <span className={s.heavyProgressFill} style={{width:`${Math.min(100,campaign.heavy.research_count>0?(campaign.heavy.research_done/campaign.heavy.research_count)*100:0)}%`}} />
+                                  </span>
+                                  <span>{campaign.heavy.research_done}/{campaign.heavy.research_count}</span>
+                                </div>
+                                <div className={s.heavyProgress}>
+                                  <span className={s.heavyProgressLabel}>Produce</span>
+                                  <span className={s.heavyProgressTrack}>
+                                    <span className={s.heavyProgressFill} style={{width:`${Math.min(100,campaign.heavy.produce_count>0?(campaign.heavy.produce_done/campaign.heavy.produce_count)*100:0)}%`}} />
+                                  </span>
+                                  <span>{campaign.heavy.produce_done}/{campaign.heavy.produce_count}</span>
+                                </div>
+                              </div>
+                              {campaign.heavy.completed && <div className={s.modeComplete}>✓ Heavy complete</div>}
+                            </div>
+                          )}
+                        </div>
+                      )}
+
                       {/* Campaign name (combobox) */}
                       <div className={s.campaignNameRow}>
                         {nameOpen ? (

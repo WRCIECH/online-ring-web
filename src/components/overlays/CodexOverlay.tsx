@@ -17,12 +17,12 @@ type Tab = 'formats' | 'transformations' | 'stages' | 'multipliers' | 'weapons'
 const CATEGORY_ORDER = ['Text', 'Visual', 'Audio', 'Video', 'Hybrid', 'Exotic'] as const
 
 const TRANSFORMATION_KEYS: ContentTransformation[] = [
-  'Compression', 'Expansion', 'ZoomIn', 'ZoomOut', 'Similar', 'Opposite',
+  'Succinct', 'Verbose', 'ZoomIn', 'ZoomOut', 'Similar', 'Opposite',
   'Shock', 'Narration', 'Segmentation', 'Passion',
-  'ProblemSolving', 'Estetic', 'Cliffhanger', 'Viral', 'Controversy',
+  'Estetic', 'Cliffhanger', 'Viral', 'Controversy',
   'Comfort', 'Drama', 'Humor', 'Parasocial', 'Wow', 'Hope', 'Fear', 'Desire',
-  'Critique', 'Follows', 'AudienceShift', 'DomainTransfer', 'Synthesis', 'RemixFusion',
-  'Split', 'Evidence', 'Simplify', 'Technicalize', 'Localize', 'Socratic',
+  'Critique', 'Follows', 'AudienceShift', 'Synthesis', 'RemixFusion',
+  'Evidence', 'Simplify', 'Technicalize', 'Socratic',
   'Analogy', 'FirstPrinciples', 'DataDriven',
 ]
 

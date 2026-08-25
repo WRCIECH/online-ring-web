@@ -22,4 +22,10 @@ export const CONTENT_TYPE_STATS: Record<ContentProductType, { label: string; sta
   CommunitySpace:     { label: 'Community Space',     stats: ['PARASOCIAL'] },
   InteractiveApp:     { label: 'Interactive App',     stats: ['INSIGHT', 'PARASOCIAL'] },
   _blank:             { label: 'Experiment',          stats: ['INSIGHT'] },
+  LinkShare:          { label: 'Link Share',          stats: ['VELOCITY', 'PARASOCIAL'] },
+  Interview:          { label: 'Interview',           stats: ['AUDIO', 'DEPTH'] },
+  Commentary:         { label: 'Commentary',          stats: ['TEXT', 'INSIGHT'] },
+  Website:            { label: 'Website',             stats: ['GRAPHIC', 'INSIGHT'] },
+  Course:             { label: 'Course',              stats: ['DEPTH', 'TEXT'] },
+  Book:               { label: 'Book',                stats: ['TEXT', 'DEPTH'] },
 }

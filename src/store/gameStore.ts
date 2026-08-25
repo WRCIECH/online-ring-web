@@ -7,7 +7,7 @@ import { registerWeapon, calcWeaponSellPrice } from '../data/weapons'
 import { INITIAL_GAME_TIME_SECONDS, ESTUS_START, ESTUS_HEAL_HP, statLevelCost, weaponUpgradeCost } from '../data/constants'
 import { rollWeapon } from '../data/generators/weaponGenerator'
 import { CLASS_DEFINITIONS } from '../data/classes'
-import { generateWeaponCampaign, isNodeAvailable } from '../data/generators/campaignGenerator'
+import { generateWeaponCampaign, isNodeAvailable, generateMicro, generateMedium, generateHeavy } from '../data/generators/campaignGenerator'
 import type { LocationDef } from '../data/locations'
 import { LOCATION_DEFINITIONS } from '../data/locations'
 import { REGION_DEFINITIONS } from '../data/regions'
@@ -313,6 +313,12 @@ export interface GameStore extends GameState {
 
   // Campaign finalization
   finalizeCampaign: (weaponId: string, freshCampaignName?: string) => void
+
+  // Three-mode campaign actions
+  initWeaponModes:     (weaponId: string) => void
+  completeMicroProduct:(weaponId: string, productId: string) => void
+  completeMediumLevel: (weaponId: string, pieceId: string, level: 1 | 2) => void
+  completeHeavyTile:   (weaponId: string, tileType: 'research' | 'produce') => void
 
   // External rewards
   addReward:    (tier: RewardTier) => void
@@ -870,6 +876,70 @@ export const useGameStore = create<GameStore>((set, get) => ({
           [weaponId]: ((s.weapon_pending_superhits ?? {})[weaponId] ?? 0) + carried,
         },
       }
+    })
+    get().save()
+  },
+
+  initWeaponModes: (weaponId) => {
+    set(s => {
+      const campaign = s.weapon_campaigns[weaponId]
+      if (!campaign) return s
+      const weapon = s.weapon_instances.find(w => w.instance_id === weaponId)
+      if (!weapon) return s
+      const updated = { ...campaign }
+      if (!updated.micro)  updated.micro  = generateMicro(weapon)
+      if (!updated.medium) updated.medium = generateMedium(weapon)
+      if (!updated.heavy)  updated.heavy  = generateHeavy(weapon)
+      return { weapon_campaigns: { ...s.weapon_campaigns, [weaponId]: updated } }
+    })
+    get().save()
+  },
+
+  completeMicroProduct: (weaponId, productId) => {
+    set(s => {
+      const campaign = s.weapon_campaigns[weaponId]
+      if (!campaign?.micro) return s
+      const micro = campaign.micro
+      const products = micro.products.map(p =>
+        p.id === productId ? { ...p, done_count: p.done_count + 1 } : p
+      )
+      const nextIndex = (micro.current_index + 1) % products.length
+      const allDoneOnce = products.every(p => p.done_count > 0)
+      const completed = micro.completed || allDoneOnce
+      const updated = { ...campaign, micro: { ...micro, products, current_index: nextIndex, completed } }
+      return { weapon_campaigns: { ...s.weapon_campaigns, [weaponId]: updated } }
+    })
+    get().save()
+  },
+
+  completeMediumLevel: (weaponId, pieceId, level) => {
+    set(s => {
+      const campaign = s.weapon_campaigns[weaponId]
+      if (!campaign?.medium) return s
+      const pieces = campaign.medium.pieces.map(p => {
+        if (p.id !== pieceId) return p
+        if (level === 1) return { ...p, level1_done: true }
+        return { ...p, level2_done: true }
+      })
+      const lastPiece = pieces[pieces.length - 1]
+      const completed = campaign.medium.completed || (lastPiece?.level2_done ?? false)
+      const updated = { ...campaign, medium: { ...campaign.medium, pieces, completed } }
+      return { weapon_campaigns: { ...s.weapon_campaigns, [weaponId]: updated } }
+    })
+    get().save()
+  },
+
+  completeHeavyTile: (weaponId, tileType) => {
+    set(s => {
+      const campaign = s.weapon_campaigns[weaponId]
+      if (!campaign?.heavy) return s
+      const heavy = campaign.heavy
+      const research_done = tileType === 'research' ? heavy.research_done + 1 : heavy.research_done
+      const produce_done  = tileType === 'produce'  ? heavy.produce_done  + 1 : heavy.produce_done
+      const completed = heavy.completed ||
+        (research_done >= heavy.research_count && produce_done >= heavy.produce_count)
+      const updated = { ...campaign, heavy: { ...heavy, research_done, produce_done, completed } }
+      return { weapon_campaigns: { ...s.weapon_campaigns, [weaponId]: updated } }
     })
     get().save()
   },

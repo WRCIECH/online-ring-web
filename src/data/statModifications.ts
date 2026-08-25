@@ -15,15 +15,15 @@ export const STAT_CONTENT_TYPES: Partial<Record<StatKey, ContentProductType[]>> 
 
 // Reverse mapping: which edge transformations each stat governs (for edge modification picker).
 export const STAT_TRANSFORMATIONS: Partial<Record<StatKey, ContentTransformation[]>> = {
-  TEXT:       ['Expansion', 'Segmentation', 'Synthesis', 'Split'],
+  TEXT:       ['Verbose', 'Segmentation', 'Synthesis'],
   VIDEO:      ['Estetic', 'Wow'],
   AUDIO:      [],
   GRAPHIC:    ['Segmentation', 'Wow', 'DataDriven'],
-  VELOCITY:   ['Compression', 'Similar', 'Cliffhanger', 'Viral', 'Humor', 'Desire', 'Follows', 'RemixFusion', 'Split', 'Simplify'],
-  DEPTH:      ['Expansion', 'ZoomIn', 'ZoomOut', 'ProblemSolving', 'Parasocial', 'Hope', 'Fear', 'DomainTransfer', 'Evidence', 'Technicalize', 'Socratic', 'Analogy', 'FirstPrinciples'],
-  PARASOCIAL: ['Narration', 'Passion', 'Comfort', 'Drama', 'Humor', 'Parasocial', 'Hope', 'AudienceShift', 'Simplify', 'Localize', 'Analogy'],
+  VELOCITY:   ['Succinct', 'Similar', 'Cliffhanger', 'Viral', 'Humor', 'Desire', 'Follows', 'RemixFusion', 'Simplify'],
+  DEPTH:      ['Verbose', 'ZoomIn', 'ZoomOut', 'Parasocial', 'Hope', 'Fear', 'Evidence', 'Technicalize', 'Socratic', 'Analogy', 'FirstPrinciples'],
+  PARASOCIAL: ['Narration', 'Passion', 'Comfort', 'Drama', 'Humor', 'Parasocial', 'Hope', 'AudienceShift', 'Simplify', 'Analogy'],
   FRICTION:   ['Shock', 'Opposite', 'Cliffhanger', 'Viral', 'Drama', 'Fear', 'Desire', 'Controversy', 'Critique', 'Technicalize'],
-  INSIGHT:    ['ZoomOut', 'Opposite', 'Controversy', 'AudienceShift', 'DomainTransfer', 'RemixFusion', 'Evidence', 'Socratic', 'Analogy', 'FirstPrinciples', 'DataDriven', 'Localize'],
+  INSIGHT:    ['ZoomOut', 'Opposite', 'Controversy', 'AudienceShift', 'RemixFusion', 'Evidence', 'Socratic', 'Analogy', 'FirstPrinciples', 'DataDriven'],
 }
 
 // Stats that govern modification actions (all except VIG and END).

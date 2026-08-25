@@ -8,14 +8,14 @@ export type MoveType = 'Light' | 'Heavy'
 // Unified content transformation type — annotates campaign edges and tiles.
 // Combines the former AtomicOrigin (relation types) and StyleType (style types).
 export type ContentTransformation =
-  | 'Compression' | 'Expansion' | 'ZoomIn' | 'ZoomOut' | 'Similar' | 'Opposite'
+  | 'Succinct' | 'Verbose' | 'ZoomIn' | 'ZoomOut' | 'Similar' | 'Opposite'
   | 'Shock' | 'Narration' | 'Segmentation'
-  | 'Passion' | 'ProblemSolving' | 'Estetic' | 'Cliffhanger'
+  | 'Passion' | 'Estetic' | 'Cliffhanger'
   | 'Viral' | 'Controversy' | 'Comfort' | 'Drama' | 'Humor'
   | 'Parasocial' | 'Wow' | 'Hope' | 'Fear' | 'Desire'
-  | 'Critique' | 'Follows' | 'AudienceShift' | 'DomainTransfer' | 'Synthesis'
-  | 'RemixFusion' | 'Split' | 'Evidence' | 'Simplify' | 'Technicalize'
-  | 'Localize' | 'Socratic' | 'Analogy' | 'FirstPrinciples' | 'DataDriven'
+  | 'Critique' | 'Follows' | 'AudienceShift' | 'Synthesis'
+  | 'RemixFusion' | 'Evidence' | 'Simplify' | 'Technicalize'
+  | 'Socratic' | 'Analogy' | 'FirstPrinciples' | 'DataDriven'
 
 export type EmotionType =
   | 'Viral' | 'Polarization' | 'Envy' | 'Controversion' | 'Comfort'
@@ -215,6 +215,79 @@ export interface WeaponCampaign {
   done_count?: number           // times finalized; drives +5%/completion damage mult
   ordinal?: number              // sequential number for this weapon (1 = first, 2 = after first finalization, …)
   skip_allowance?: number       // nodes that may be left unpublished; 0 = all required; max = END stat
+  micro?: MicroModeState
+  medium?: MediumModeState
+  heavy?: HeavyModeState
+}
+
+// ── Mode-specific content type pools ─────────────────────────────────────
+export type MicroContentType =
+  'Plaintext' | 'SingleGraphic' | 'Carousel' | 'ARollVideo' | 'RawAudio' | 'LinkShare'
+
+export type MediumContentType =
+  'Plaintext' | 'ProducedAudio' | 'ARollVideo' | 'Interview' | 'Commentary' | 'Infographic' | 'Carousel'
+
+export type HeavyContentType =
+  'Plaintext' | 'ARollVideo' | 'AssetPack' | 'CurationFeed' | 'InteractiveApp' |
+  'Website' | '_blank' | 'Course' | 'Book'
+
+export type ContentShift = 'Follows' | 'ZoomIn' | 'ZoomOut' | 'Similar' | 'Opposite'
+
+// ── Constraint system (labels only for now) ───────────────────────────────
+export type PropagandaShift = 'enhance' | 'weaken' | 'focus' | 'action'
+export type MediumAudienceShift =
+  'audience_x' | 'lower_self' | 'average_self' | 'higher_self' |
+  'base_trend_event' | 'need_identity_belief'
+export type StyleShift =
+  'narration' | 'segmentation' | 'socratic' | 'enemy_hero' | 'slogan_symbol' |
+  'analogy' | 'verbose' | 'succinct' | 'technicalize' | 'simplify' |
+  'evidence' | 'data_driven' | 'first_principles'
+export type ConstraintCategory = 'propaganda' | 'audience' | 'style'
+
+export interface NodeConstraint {
+  category: ConstraintCategory
+  value: PropagandaShift | MediumAudienceShift | StyleShift
+}
+
+// ── Micro mode ────────────────────────────────────────────────────────────
+export interface MicroProduct {
+  id: string
+  content_type: MicroContentType
+  style?: ContentTransformation   // present ~50% of the time
+  done_count: number
+}
+
+export interface MicroModeState {
+  products: MicroProduct[]
+  current_index: number           // index of the next product to publish
+  completed: boolean              // true once all products done at least once
+}
+
+// ── Medium mode ───────────────────────────────────────────────────────────
+export interface MediumPiece {
+  id: string
+  name: string
+  level1_type: MediumContentType
+  level2_type: MediumContentType
+  link_type: ContentShift
+  constraint?: NodeConstraint
+  level1_done: boolean
+  level2_done: boolean
+}
+
+export interface MediumModeState {
+  pieces: MediumPiece[]
+  completed: boolean              // true when last piece.level2_done
+}
+
+// ── Heavy mode ────────────────────────────────────────────────────────────
+export interface HeavyModeState {
+  product_type: HeavyContentType
+  research_count: number
+  produce_count: number
+  research_done: number
+  produce_done: number
+  completed: boolean
 }
 
 // ── Game state ────────────────────────────────────────────────────────────

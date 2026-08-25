@@ -1,0 +1,80 @@
+.microBar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 7px 14px;
+  background: rgba(255,255,255,0.04);
+  border-top: 1px solid var(--color-sep);
+}
+
+.microInfo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.microLabel {
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--color-text-dim);
+}
+
+.microType {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--color-accent);
+  padding: 2px 7px;
+  background: rgba(var(--color-accent-rgb, 180,140,80), 0.12);
+  border-radius: 10px;
+  border: 1px solid rgba(var(--color-accent-rgb, 180,140,80), 0.3);
+}
+
+.microStyle {
+  font-size: 0.68rem;
+  color: var(--color-text-dim);
+  padding: 2px 6px;
+  background: rgba(255,255,255,0.06);
+  border-radius: 8px;
+  border: 1px solid var(--color-sep);
+}
+
+.microProgress {
+  font-size: 0.68rem;
+  color: var(--color-text-dim);
+}
+
+.microDone {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #5ecf5e;
+}
+
+.publishBtn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 14px;
+  border-radius: var(--radius);
+  border: 1px solid var(--color-accent);
+  background: rgba(var(--color-accent-rgb, 180,140,80), 0.14);
+  color: var(--color-accent);
+  font-size: 0.76rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.1s, opacity 0.1s;
+  white-space: nowrap;
+}
+
+.publishBtn:hover {
+  background: rgba(var(--color-accent-rgb, 180,140,80), 0.26);
+}
+
+.publishDmg {
+  font-size: 0.68rem;
+  font-weight: 600;
+  color: #ff8888;
+}

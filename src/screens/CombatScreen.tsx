@@ -16,6 +16,7 @@ import CombatLog    from '../components/combat/CombatLog'
 import WorkflowCanvas from '../components/combat/WorkflowCanvas'
 import MoveRadialMenu, { type RadialMoveItem } from '../components/combat/MoveRadialMenu'
 import CombatBottomBar from '../components/combat/CombatBottomBar'
+import MicroBar from '../components/combat/MicroBar'
 import CombatMusic  from '../components/combat/CombatMusic'
 import PreFightPicker from '../components/overlays/PreFightPicker'
 import { DEFAULT_MUSIC_TRACKS } from '../data/combatMusic'
@@ -139,6 +140,7 @@ export default function CombatScreen() {
 
   // ── Live active weapon (can change mid-fight via SWITCH_WEAPON) ──────────
   const weapon  = WEAPONS[state.equippedWeaponId] as WeaponInstance | undefined
+  const activeMicro = store.weapon_campaigns[state.equippedWeaponId]?.micro ?? null
 
   // Per-content-node workflow cache: preserves progress when switching away and back
   type ContentSnapshot = { workflow: WorkflowGraph; streak: number }
@@ -654,6 +656,21 @@ export default function CombatScreen() {
       <div className={s.logWrap}>
         <CombatLog entries={state.log} />
       </div>
+
+      {activeMicro && isPlayerTurn && (
+        <MicroBar
+          micro={activeMicro}
+          weapon={weapon}
+          weaponLevel={store.weapon_level[state.equippedWeaponId] ?? 0}
+          onPublish={(damage) => {
+            const current = activeMicro.products[activeMicro.current_index]
+            if (current) {
+              dispatch({ type: 'MICRO_DONE', weaponId: state.equippedWeaponId, damage })
+              store.completeMicroProduct(state.equippedWeaponId, current.id)
+            }
+          }}
+        />
+      )}
 
       <CombatBottomBar
         equippedWeaponIds={weaponsWithContent.map(w => w.instance_id)}
