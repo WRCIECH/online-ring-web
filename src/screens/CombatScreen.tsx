@@ -215,6 +215,23 @@ export default function CombatScreen() {
   }, [state.phase, loc, lootItems, store.run_defeated_enemies])
 
   // ── Victory ───────────────────────────────────────────────────────────────
+  // Resolve active_content_id → medium piece (new-format campaigns) or null (old-format)
+  const findMediumPiece = useCallback((contentId: string | null) => {
+    if (!contentId) return null
+    for (const [wid, camp] of Object.entries(store.weapon_campaigns)) {
+      if (!camp.medium) continue
+      const piece = camp.medium.pieces.find(p => p.id === contentId)
+      if (piece) return { wid, piece, level: (!piece.level1_done ? 1 : 2) as 1 | 2 }
+    }
+    return null
+  }, [store.weapon_campaigns])
+
+  function finalizeContentId(contentId: string) {
+    const mp = findMediumPiece(contentId)
+    if (mp) store.completeMediumLevel(mp.wid, mp.piece.id, mp.level)
+    else    store.completeCampaignNode(state.equippedWeaponId, contentId, state.workflow)
+  }
+
   // finalizeContent=true  → mark campaign node complete, clear workflow
   // finalizeContent=false → save workflow progress for next fight
   const doVictoryEnd = useCallback((finalizeContent: boolean) => {
@@ -227,7 +244,7 @@ export default function CombatScreen() {
     if (estusBonus) store.addEstus(1)
     store.recordFightEnd()
     if (finalizeContent && store.active_content_id) {
-      store.completeCampaignNode(state.equippedWeaponId, store.active_content_id, state.workflow)
+      finalizeContentId(store.active_content_id)
       store.clearActiveWorkflow()
     } else {
       store.saveWorkflowProgress(state.workflow)
@@ -237,7 +254,7 @@ export default function CombatScreen() {
     store.advanceRun()
     if (isLast) { store.endRunVictory(); navigate('/run-complete') }
     else        { store.setPendingEncounter(null); navigate('/map') }
-  }, [loc, store, navigate, state, lootItems, rewardDrop, estusBonus])
+  }, [loc, store, navigate, state, lootItems, rewardDrop, estusBonus]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // ── Defeat ────────────────────────────────────────────────────────────────
   const handleDefeat = useCallback(() => {
@@ -252,18 +269,15 @@ export default function CombatScreen() {
     store.syncCombatResult(state.playerHp, state.playerEstus)
     const allDone = state.workflow.tiles.filter(t => !t.is_advance).every(t => t.is_completed)
     if (allDone && store.active_content_id) {
-      // All content tasks finished before fleeing — mark the node complete and clear the workflow
-      // so it doesn't reappear in the picker on the next run.
-      store.completeCampaignNode(state.equippedWeaponId, store.active_content_id, state.workflow)
+      finalizeContentId(store.active_content_id)
       store.clearActiveWorkflow()
     } else {
-      // Partial progress — preserve completed tiles, but break the streak.
       store.saveWorkflowProgress(state.workflow)
       if (store.active_content_id) store.clearContentStreak(store.active_content_id)
     }
     store.endRunFailure()
     navigate('/')
-  }, [store, navigate, state])
+  }, [store, navigate, state]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const [musicMuted, setMusicMuted] = useState(() => localStorage.getItem('music_muted') === '1')
 
@@ -374,7 +388,7 @@ export default function CombatScreen() {
     setShowWorkflowDonePrompt(false)
     const cur = stateRef.current
     if (selectedContentId) {
-      store.completeCampaignNode(cur.equippedWeaponId, selectedContentId, cur.workflow)
+      finalizeContentId(selectedContentId)
       store.clearActiveWorkflow()
     }
     if (pickedWeaponId !== cur.equippedWeaponId) {

@@ -227,6 +227,16 @@
 
 /* ── Implication badges ─────────────────────────────────────────────────── */
 
+.badgeLevel {
+  font-size: 0.65rem;
+  padding: 2px 7px;
+  border-radius: 3px;
+  white-space: nowrap;
+  background: rgba(100,80,200,0.12);
+  border: 1px solid rgba(100,80,200,0.35);
+  color: #a898ff;
+}
+
 .badgeResume,
 .badgeContinue,
 .badgeRemaster {

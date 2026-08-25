@@ -17,20 +17,57 @@ export default function PreFightPicker({ loc, onConfirm, onCancel }: Props) {
   const store = useGameStore()
   const t = useT()
 
-  // Weapons that have an activated campaign with at least one available, named, incomplete node
+  type ContentItem = { id: string; name: string; level?: 1 | 2; parentName?: string; hasWorkflow?: boolean; isCurrent?: boolean; streak?: number }
+
+  function getAvailableContent(weaponId: string): ContentItem[] {
+    const c = store.weapon_campaigns[weaponId]
+    if (!c) return []
+    // Old-format: node tree
+    if (c.nodes.length > 0) {
+      return c.nodes
+        .filter((n: CampaignNode) => !n.completed && n.name.trim() !== '' && isNodeAvailable(c.nodes, c.edges, n))
+        .map((n: CampaignNode) => {
+          const parentEdge = c.edges.find(e => e.to_id === n.id)
+          const parentNode = parentEdge ? c.nodes.find(p => p.id === parentEdge.from_id) : null
+          return {
+            id: n.id,
+            name: n.name,
+            parentName: parentNode?.name,
+            hasWorkflow: !!store.workflow_progress[n.id],
+            isCurrent: n.id === store.active_content_id,
+            streak: store.content_streak[n.id] ?? 0,
+          }
+        })
+    }
+    // New-format: medium pieces
+    if (c.medium) {
+      const result: ContentItem[] = []
+      c.medium.pieces.forEach((p, i) => {
+        if (p.level2_done) return
+        const prevDone = i === 0 || c.medium!.pieces[i - 1].level1_done
+        if (!prevDone) return
+        result.push({
+          id: p.id,
+          name: p.name || `Part ${i + 1}`,
+          level: (!p.level1_done ? 1 : 2) as 1 | 2,
+        })
+      })
+      return result
+    }
+    return []
+  }
+
+  // Weapons that have an activated campaign with at least one available content item
   const eligibleWeapons = store.weapon_instances.filter(w => {
     const c = store.weapon_campaigns[w.instance_id]
     if (!c || !c.activated) return false
-    return c.nodes.some(n => !n.completed && n.name.trim() !== '' && isNodeAvailable(c.nodes, c.edges, n))
+    return getAvailableContent(w.instance_id).length > 0
   })
 
   // Default weapon: prefer the one containing active_content_id, else first eligible
   const defaultWeaponId = (() => {
     if (store.active_content_id) {
-      const w = eligibleWeapons.find(w => {
-        const c = store.weapon_campaigns[w.instance_id]
-        return c?.nodes.some(n => n.id === store.active_content_id)
-      })
+      const w = eligibleWeapons.find(w => getAvailableContent(w.instance_id).some(c => c.id === store.active_content_id))
       if (w) return w.instance_id
     }
     return eligibleWeapons[0]?.instance_id ?? ''
@@ -39,21 +76,15 @@ export default function PreFightPicker({ loc, onConfirm, onCancel }: Props) {
   const [pickerWeaponId, setPickerWeaponId] = useState(defaultWeaponId)
   const [pickerContentId, setPickerContentId] = useState<string | null>(store.active_content_id)
 
-  function getAvailableNodes(weaponId: string): CampaignNode[] {
-    const c = store.weapon_campaigns[weaponId]
-    if (!c) return []
-    return c.nodes.filter(n => !n.completed && n.name.trim() !== '' && isNodeAvailable(c.nodes, c.edges, n))
-  }
-
-  // When weapon changes, keep content selection if node belongs to new weapon, else pick first available
+  // When weapon changes, keep content selection if it still belongs to the new weapon, else reset
   useEffect(() => {
-    const nodes = getAvailableNodes(pickerWeaponId)
-    if (!nodes.find(n => n.id === pickerContentId)) {
-      setPickerContentId(nodes[0]?.id ?? null)
+    const items = getAvailableContent(pickerWeaponId)
+    if (!items.find(c => c.id === pickerContentId)) {
+      setPickerContentId(items[0]?.id ?? null)
     }
   }, [pickerWeaponId]) // eslint-disable-line react-hooks/exhaustive-deps
 
-  const availableNodes = getAvailableNodes(pickerWeaponId)
+  const availableContent = getAvailableContent(pickerWeaponId)
   const campaign = store.weapon_campaigns[pickerWeaponId]
 
 
@@ -128,46 +159,41 @@ export default function PreFightPicker({ loc, onConfirm, onCancel }: Props) {
             <div className={s.sectionLabel}>{t.ui.prefight_content_label ?? 'Content piece'}</div>
             {!pickerWeaponId ? (
               <div className={s.emptyMsg}>{t.ui.prefight_select_weapon_first ?? 'Select a weapon first.'}</div>
-            ) : availableNodes.length === 0 ? (
+            ) : availableContent.length === 0 ? (
               <div className={s.emptyMsg}>{t.ui.prefight_no_nodes ?? 'No available content nodes for this weapon.'}</div>
             ) : (
-              availableNodes.map(node => {
-                const isSelected = node.id === pickerContentId
-                const isCurrent   = node.id === store.active_content_id
-                const nodeWorkflow = store.workflow_progress[node.id]
-                const hasWorkflow  = !!nodeWorkflow
-                const nodeStreak   = store.content_streak[node.id] ?? 0
-
-                // Determine parent name via campaign edges
-                const parentEdge = campaign?.edges.find(e => e.to_id === node.id)
-                const parentNode = parentEdge ? campaign?.nodes.find(n => n.id === parentEdge.from_id) : null
-
+              availableContent.map(item => {
+                const isSelected  = item.id === pickerContentId
+                const nodeWorkflow = item.hasWorkflow ? store.workflow_progress[item.id] : undefined
                 return (
                   <button
-                    key={node.id}
+                    key={item.id}
                     className={[s.nodeCard, isSelected ? s.nodeCardSelected : ''].filter(Boolean).join(' ')}
-                    onClick={() => setPickerContentId(node.id)}
+                    onClick={() => setPickerContentId(item.id)}
                   >
                     <div className={s.nodeCardMain}>
-                      <span className={s.nodeName}>{node.name}</span>
-                      {parentNode?.name && (
-                        <span className={s.nodeParent}>↑ {parentNode.name}</span>
+                      <span className={s.nodeName}>{item.name}</span>
+                      {item.parentName && (
+                        <span className={s.nodeParent}>↑ {item.parentName}</span>
                       )}
                     </div>
                     <div className={s.nodeBadges}>
-                      {hasWorkflow && (
+                      {item.level && (
+                        <span className={s.badgeLevel}>L{item.level}</span>
+                      )}
+                      {nodeWorkflow && (
                         <span className={s.badgeResume}>
                           ▶ {t.ui.prefight_badge_resume ?? 'Resume'} {nodeWorkflow.tiles.filter(t => t.is_completed).length}/{nodeWorkflow.tiles.length}
                         </span>
                       )}
-                      {isCurrent && !hasWorkflow && (
+                      {item.isCurrent && !item.hasWorkflow && (
                         <span className={s.badgeContinue}>
                           ▶ {t.ui.prefight_badge_continue ?? 'Continue'}
                         </span>
                       )}
-                      {nodeStreak > 0 && (
+                      {(item.streak ?? 0) > 0 && (
                         <span className={s.badgeStreak}>
-                          {t.ui.prefight_badge_streak ?? 'Streak'} +{Math.min(10, nodeStreak)}%
+                          {t.ui.prefight_badge_streak ?? 'Streak'} +{Math.min(10, item.streak!)}%
                         </span>
                       )}
                     </div>
