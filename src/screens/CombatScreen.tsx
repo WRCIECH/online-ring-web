@@ -443,22 +443,25 @@ export default function CombatScreen() {
   const activeContent = selectAvailableNodes(store as Parameters<typeof selectAvailableNodes>[0], state.equippedWeaponId)
   const selectedContent = activeContent.find(c => c.id === selectedContentId) ?? null
 
-  // Superhit: base charge per published node + one per promote
-  const superhitSourceNode = store.weapon_campaigns[state.equippedWeaponId]?.nodes
-    .find(n => {
-      if (!n.published) return false
-      const base     = n.superhit_used ? 0 : 1
-      const promotes = Math.max(0, (n.promote_count ?? 0) - (n.promotes_consumed ?? 0))
-      return base + promotes > 0
-    }) ?? null
-  const canSuperhit = superhitSourceNode !== null
-  const totalSuperhitCharges = (store.weapon_campaigns[state.equippedWeaponId]?.nodes ?? [])
-    .reduce((sum, n) => {
-      if (!n.published) return sum
-      const base     = n.superhit_used ? 0 : 1
-      const promotes = Math.max(0, (n.promote_count ?? 0) - (n.promotes_consumed ?? 0))
-      return sum + base + promotes
-    }, 0)
+  // Superhit: new-format reads from weapon_pending_superhits; old-format from published nodes
+  const superhitSourceNode = isNewCampaign ? null : (
+    store.weapon_campaigns[state.equippedWeaponId]?.nodes
+      .find(n => {
+        if (!n.published) return false
+        const base     = n.superhit_used ? 0 : 1
+        const promotes = Math.max(0, (n.promote_count ?? 0) - (n.promotes_consumed ?? 0))
+        return base + promotes > 0
+      }) ?? null
+  )
+  const totalSuperhitCharges = isNewCampaign
+    ? ((store.weapon_pending_superhits ?? {})[state.equippedWeaponId] ?? 0)
+    : (store.weapon_campaigns[state.equippedWeaponId]?.nodes ?? [])
+        .reduce((sum, n) => {
+          if (!n.published) return sum
+          const base     = n.superhit_used ? 0 : 1
+          const promotes = Math.max(0, (n.promote_count ?? 0) - (n.promotes_consumed ?? 0))
+          return sum + base + promotes
+        }, 0)
 
   // ── Selected tile (derived) ───────────────────────────────────────────────
   const selectedTile = state.selectedTileId
@@ -704,20 +707,19 @@ export default function CombatScreen() {
           weaponLevel={store.weapon_level[state.equippedWeaponId] ?? 0}
           superhitCharges={totalSuperhitCharges}
           canAct={isPlayerTurn}
-          onMicro={(damage) => {
+          onMicro={(damage, productIndex) => {
             const micro = activeCampaign.micro
-            const current = micro?.products[micro.current_index]
-            if (current) {
+            const product = micro?.products[productIndex]
+            if (product) {
               dispatch({ type: 'MICRO_DONE', weaponId: state.equippedWeaponId, damage })
-              store.completeMicroProduct(state.equippedWeaponId, current.id)
+              store.completeMicroProduct(state.equippedWeaponId, product.id)
             }
           }}
           onMedium={(damage) => {
-            dispatch({ type: 'CAMPAIGN_HIT', damage, label: '✍ Medium content', color: '#60c0e0' })
-            if (store.active_content_id) {
-              const mp = findMediumPiece(store.active_content_id)
-              if (mp) store.completeMediumLevel(mp.wid, mp.piece.id, mp.level)
-            }
+            dispatch({ type: 'CAMPAIGN_HIT', damage, label: '✍ Medium', color: '#60c0e0' })
+          }}
+          onMediumComplete={(pieceId, level) => {
+            store.completeMediumLevel(state.equippedWeaponId, pieceId, level)
           }}
           onHeavy={(type, damage) => {
             dispatch({ type: 'CAMPAIGN_HIT', damage, label: type === 'research' ? '🔍 Research' : '📝 Produce', color: '#e0a060' })
@@ -725,7 +727,7 @@ export default function CombatScreen() {
           }}
           onSuperhit={(damage) => {
             dispatch({ type: 'CAMPAIGN_HIT', damage, label: '💥 SUPERHIT!', color: '#eecc44' })
-            if (superhitSourceNode) store.useSuperhitOnNode(state.equippedWeaponId, superhitSourceNode.id)
+            store.consumeSuperhitCharge(state.equippedWeaponId)
           }}
         />
       )}

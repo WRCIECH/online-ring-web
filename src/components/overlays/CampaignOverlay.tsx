@@ -348,15 +348,23 @@ export default function CampaignOverlay({ onClose }: Props) {
                                     <div className={s.mediumPieceRight}>
                                       <div className={s.mediumPieceLevels}>
                                         {currentLevel === 'done' && (
-                                          <span className={[s.levelBadge, s.levelDone].join(' ')}>✓ Done</span>
+                                          <span className={[s.levelBadge, s.levelDone].join(' ')}>✓ Published</span>
                                         )}
                                         {currentLevel === 'L1' && (
                                           <span className={[s.levelBadge, !l1Unlocked?s.levelLocked:''].filter(Boolean).join(' ')}>
-                                            {l1Unlocked ? 'L1' : '🔒 L1'}
+                                            {l1Unlocked ? 'Draft' : '🔒 Draft'}
                                           </span>
                                         )}
                                         {currentLevel === 'L2' && (
-                                          <span className={s.levelBadge}>L2</span>
+                                          <>
+                                            <span className={[s.levelBadge, s.levelReady].join(' ')}>✍ Drafted</span>
+                                            <button
+                                              className={s.publishBtn}
+                                              onClick={() => store.publishMediumPiece(wid, p.id)}
+                                            >
+                                              Publish ✦
+                                            </button>
+                                          </>
                                         )}
                                       </div>
                                       {constraintEntry && (

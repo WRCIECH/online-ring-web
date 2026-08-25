@@ -1503,6 +1503,30 @@
   opacity: 0.4;
 }
 
+.levelReady {
+  color: #80b8e0;
+  border-color: rgba(80,180,220,0.40);
+  background: rgba(80,180,220,0.08);
+}
+
+.publishBtn {
+  padding: 3px 10px;
+  border-radius: 8px;
+  border: 1px solid rgba(200,170,50,0.55);
+  background: rgba(200,170,50,0.10);
+  color: #ccaa44;
+  font-size: 0.65rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.12s, border-color 0.12s;
+  white-space: nowrap;
+}
+
+.publishBtn:hover {
+  background: rgba(200,170,50,0.22);
+  border-color: rgba(200,170,50,0.80);
+}
+
 .pieceConnector {
   display: flex;
   flex-direction: column;

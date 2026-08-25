@@ -315,11 +315,13 @@ export interface GameStore extends GameState {
   finalizeCampaign: (weaponId: string, freshCampaignName?: string) => void
 
   // Three-mode campaign actions
-  renameMediumPiece:   (weaponId: string, pieceId: string, name: string) => void
-  renameHeavyProduct:  (weaponId: string, name: string) => void
-  completeMicroProduct:(weaponId: string, productId: string) => void
-  completeMediumLevel: (weaponId: string, pieceId: string, level: 1 | 2) => void
-  completeHeavyTile:   (weaponId: string, tileType: 'research' | 'produce') => void
+  renameMediumPiece:      (weaponId: string, pieceId: string, name: string) => void
+  renameHeavyProduct:     (weaponId: string, name: string) => void
+  completeMicroProduct:   (weaponId: string, productId: string) => void
+  completeMediumLevel:    (weaponId: string, pieceId: string, level: 1 | 2) => void
+  publishMediumPiece:     (weaponId: string, pieceId: string) => void
+  completeHeavyTile:      (weaponId: string, tileType: 'research' | 'produce') => void
+  consumeSuperhitCharge:  (weaponId: string) => void
 
   // External rewards
   addReward:    (tier: RewardTier) => void
@@ -945,6 +947,36 @@ export const useGameStore = create<GameStore>((set, get) => ({
         (research_done >= heavy.research_count && produce_done >= heavy.produce_count)
       const updated = { ...campaign, heavy: { ...heavy, research_done, produce_done, completed } }
       return { weapon_campaigns: { ...s.weapon_campaigns, [weaponId]: updated } }
+    })
+    get().save()
+  },
+
+  publishMediumPiece: (weaponId, pieceId) => {
+    set(s => {
+      const campaign = s.weapon_campaigns[weaponId]
+      if (!campaign?.medium) return s
+      const pieces = campaign.medium.pieces.map(p =>
+        p.id === pieceId ? { ...p, level2_done: true } : p
+      )
+      const lastPiece = pieces[pieces.length - 1]
+      const completed = campaign.medium.completed || (lastPiece?.level2_done ?? false)
+      const updated = { ...campaign, medium: { ...campaign.medium, pieces, completed } }
+      const prevCharges = (s.weapon_pending_superhits ?? {})[weaponId] ?? 0
+      return {
+        weapon_campaigns: { ...s.weapon_campaigns, [weaponId]: updated },
+        weapon_pending_superhits: { ...(s.weapon_pending_superhits ?? {}), [weaponId]: prevCharges + 1 },
+      }
+    })
+    get().save()
+  },
+
+  consumeSuperhitCharge: (weaponId) => {
+    set(s => {
+      const current = (s.weapon_pending_superhits ?? {})[weaponId] ?? 0
+      if (current <= 0) return s
+      return {
+        weapon_pending_superhits: { ...(s.weapon_pending_superhits ?? {}), [weaponId]: current - 1 },
+      }
     })
     get().save()
   },
