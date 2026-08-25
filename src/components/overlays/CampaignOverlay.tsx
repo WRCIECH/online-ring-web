@@ -404,20 +404,20 @@ export default function CampaignOverlay({ onClose }: Props) {
                                 onChange={e => store.renameHeavyProduct(wid, e.target.value)}
                               />
                             )}
-                            <div className={s.heavyProgress}>
-                              <span className={s.heavyProgressLabel}>Research</span>
-                              <span className={s.heavyProgressTrack}>
-                                <span className={s.heavyProgressFill} style={{width:`${Math.min(100,campaign.heavy.research_count>0?(campaign.heavy.research_done/campaign.heavy.research_count)*100:0)}%`}} />
-                              </span>
-                              <span>{campaign.heavy.research_done}/{campaign.heavy.research_count}</span>
-                            </div>
-                            <div className={s.heavyProgress}>
-                              <span className={s.heavyProgressLabel}>Produce</span>
-                              <span className={s.heavyProgressTrack}>
-                                <span className={s.heavyProgressFill} style={{width:`${Math.min(100,campaign.heavy.produce_count>0?(campaign.heavy.produce_done/campaign.heavy.produce_count)*100:0)}%`}} />
-                              </span>
-                              <span>{campaign.heavy.produce_done}/{campaign.heavy.produce_count}</span>
-                            </div>
+                            {(() => {
+                              const total = campaign.heavy.research_count + campaign.heavy.produce_count
+                              const done  = campaign.heavy.research_done  + campaign.heavy.produce_done
+                              const pct   = total > 0 ? (done / total) * 100 : 0
+                              return (
+                                <div className={s.heavyProgress}>
+                                  <span className={s.heavyProgressLabel}>Progress</span>
+                                  <span className={s.heavyProgressTrack}>
+                                    <span className={s.heavyProgressFill} style={{width:`${Math.min(100, pct)}%`}} />
+                                  </span>
+                                  <span>{done}/{total}</span>
+                                </div>
+                              )
+                            })()}
                           </div>
                           {campaign.heavy.completed && <div className={s.modeComplete}>✓ Heavy complete</div>}
                         </div>
