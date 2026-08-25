@@ -17,6 +17,7 @@ import WorkflowCanvas from '../components/combat/WorkflowCanvas'
 import MoveRadialMenu, { type RadialMoveItem } from '../components/combat/MoveRadialMenu'
 import CombatBottomBar from '../components/combat/CombatBottomBar'
 import MicroBar from '../components/combat/MicroBar'
+import CampaignActionPanel from '../components/combat/CampaignActionPanel'
 import CombatMusic  from '../components/combat/CombatMusic'
 import PreFightPicker from '../components/overlays/PreFightPicker'
 import { DEFAULT_MUSIC_TRACKS } from '../data/combatMusic'
@@ -140,7 +141,9 @@ export default function CombatScreen() {
 
   // ── Live active weapon (can change mid-fight via SWITCH_WEAPON) ──────────
   const weapon  = WEAPONS[state.equippedWeaponId] as WeaponInstance | undefined
-  const activeMicro = store.weapon_campaigns[state.equippedWeaponId]?.micro ?? null
+  const activeMicro    = store.weapon_campaigns[state.equippedWeaponId]?.micro ?? null
+  const activeCampaign = store.weapon_campaigns[state.equippedWeaponId]
+  const isNewCampaign  = !!(activeCampaign?.medium)
 
   // Per-content-node workflow cache: preserves progress when switching away and back
   type ContentSnapshot = { workflow: WorkflowGraph; streak: number }
@@ -641,37 +644,86 @@ export default function CombatScreen() {
 
       <div className={s.main}>
         <div className={s.canvasWrap}>
-          <WorkflowCanvas
-            workflow={state.workflow}
-            selectedTileId={state.selectedTileId}
-            onSelectTile={handleTileClick}
-            enemy={{
-              enemyId: loc.enemy_id,
-              name: enemyLabel,
-              description: enemyData.description,
-              hp: state.phase === 'VICTORY' || state.phase === 'DEFEAT' || state.phase === 'FLED' ? 0 : state.enemyHp,
-              maxHp: state.enemyMaxHp,
-              isBoss: state.isBoss,
-              sublocationtype: loc.sublocation_type,
-              affinities: enemyData.affinities,
-            }}
-          />
-          {isPlayerTurn && radialPos && radialItems.length > 0 && (
-            <MoveRadialMenu
-              x={radialPos.x}
-              y={radialPos.y}
-              items={radialItems}
-              onClose={() => setRadialPos(null)}
-            />
+          {isNewCampaign ? (
+            <div className={s.enemyCard}>
+              <div className={s.enemyCardName}>
+                {enemyLabel}
+                {state.isBoss && <span className={s.enemyCardBoss}>Boss</span>}
+              </div>
+              <div className={s.enemyCardHpRow}>
+                <div className={s.enemyCardHpTrack}>
+                  <div
+                    className={s.enemyCardHpFill}
+                    style={{ width: `${Math.max(0, state.enemyMaxHp > 0 ? (state.enemyHp / state.enemyMaxHp) * 100 : 0)}%` }}
+                  />
+                </div>
+                <span className={s.enemyCardHpText}>{state.enemyHp} / {state.enemyMaxHp}</span>
+              </div>
+            </div>
+          ) : (
+            <>
+              <WorkflowCanvas
+                workflow={state.workflow}
+                selectedTileId={state.selectedTileId}
+                onSelectTile={handleTileClick}
+                enemy={{
+                  enemyId: loc.enemy_id,
+                  name: enemyLabel,
+                  description: enemyData.description,
+                  hp: state.phase === 'VICTORY' || state.phase === 'DEFEAT' || state.phase === 'FLED' ? 0 : state.enemyHp,
+                  maxHp: state.enemyMaxHp,
+                  isBoss: state.isBoss,
+                  sublocationtype: loc.sublocation_type,
+                  affinities: enemyData.affinities,
+                }}
+              />
+              {isPlayerTurn && radialPos && radialItems.length > 0 && (
+                <MoveRadialMenu
+                  x={radialPos.x}
+                  y={radialPos.y}
+                  items={radialItems}
+                  onClose={() => setRadialPos(null)}
+                />
+              )}
+            </>
           )}
         </div>
       </div>
 
-      <div className={s.logWrap}>
-        <CombatLog entries={state.log} />
-      </div>
+      {isNewCampaign && activeCampaign && isPlayerTurn && (
+        <CampaignActionPanel
+          campaign={activeCampaign}
+          weapon={weapon}
+          weaponLevel={store.weapon_level[state.equippedWeaponId] ?? 0}
+          superhitCharges={totalSuperhitCharges}
+          canAct={isPlayerTurn}
+          onMicro={(damage) => {
+            const micro = activeCampaign.micro
+            const current = micro?.products[micro.current_index]
+            if (current) {
+              dispatch({ type: 'MICRO_DONE', weaponId: state.equippedWeaponId, damage })
+              store.completeMicroProduct(state.equippedWeaponId, current.id)
+            }
+          }}
+          onMedium={(damage) => {
+            dispatch({ type: 'CAMPAIGN_HIT', damage, label: '✍ Medium content', color: '#60c0e0' })
+            if (store.active_content_id) {
+              const mp = findMediumPiece(store.active_content_id)
+              if (mp) store.completeMediumLevel(mp.wid, mp.piece.id, mp.level)
+            }
+          }}
+          onHeavy={(type, damage) => {
+            dispatch({ type: 'CAMPAIGN_HIT', damage, label: type === 'research' ? '🔍 Research' : '📝 Produce', color: '#e0a060' })
+            store.completeHeavyTile(state.equippedWeaponId, type)
+          }}
+          onSuperhit={(damage) => {
+            dispatch({ type: 'CAMPAIGN_HIT', damage, label: '💥 SUPERHIT!', color: '#eecc44' })
+            if (superhitSourceNode) store.useSuperhitOnNode(state.equippedWeaponId, superhitSourceNode.id)
+          }}
+        />
+      )}
 
-      {activeMicro && isPlayerTurn && (
+      {!isNewCampaign && activeMicro && isPlayerTurn && (
         <MicroBar
           micro={activeMicro}
           weapon={weapon}
@@ -685,6 +737,10 @@ export default function CombatScreen() {
           }}
         />
       )}
+
+      <div className={s.logWrap}>
+        <CombatLog entries={state.log} />
+      </div>
 
       <CombatBottomBar
         equippedWeaponIds={weaponsWithContent.map(w => w.instance_id)}

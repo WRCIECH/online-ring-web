@@ -69,6 +69,7 @@ export type CombatAction =
   | { type: 'ADD_LOG'; text: string; color?: string }
   | { type: 'SUPERHIT'; tile: WorkflowTile }
   | { type: 'MICRO_DONE'; weaponId: string; damage: number }
+  | { type: 'CAMPAIGN_HIT'; damage: number; label: string; color?: string }
 
 // ── Constants ─────────────────────────────────────────────────────────────
 
@@ -518,6 +519,24 @@ export function combatReducer(state: CombatState, action: CombatAction): CombatS
         { ...state, enemyHp: newEnemyHp },
         `📤 Published! ⚔ −${action.damage} HP`,
         '#c9a93a'
+      )
+      if (newEnemyHp <= 0) {
+        s = log(
+          { ...s, enemyHp: 0, mobsDefeated: s.mobsDefeated + 1, runesEarned: state.enemyData.rune_reward },
+          `⚔ ${state.enemyData.name} slain! ✦ +${state.enemyData.rune_reward} runes.`,
+          '#55cc77'
+        )
+        return { ...s, phase: 'VICTORY' }
+      }
+      return s
+    }
+
+    case 'CAMPAIGN_HIT': {
+      const newEnemyHp = Math.max(0, state.enemyHp - action.damage)
+      let s = log(
+        { ...state, enemyHp: newEnemyHp },
+        `${action.label} ⚔ −${action.damage} HP`,
+        action.color ?? '#c9a93a'
       )
       if (newEnemyHp <= 0) {
         s = log(

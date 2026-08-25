@@ -1,0 +1,111 @@
+.panel {
+  display: flex;
+  gap: 10px;
+  align-items: stretch;
+  padding: 10px 0;
+  justify-content: center;
+}
+
+.tile {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  width: 100px;
+  min-height: 86px;
+  padding: 10px 8px;
+  border-radius: 10px;
+  border: 1px solid rgba(255,255,255,0.18);
+  background: rgba(255,255,255,0.04);
+  cursor: pointer;
+  transition: border-color 0.12s, background 0.12s, box-shadow 0.12s;
+}
+
+.tile:hover:not(:disabled) {
+  background: rgba(255,255,255,0.09);
+  box-shadow: 0 0 14px rgba(255,255,255,0.08);
+}
+
+.tileDim {
+  opacity: 0.32;
+  cursor: not-allowed;
+}
+
+.tileLabel {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.tileDmg {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: #cc6644;
+}
+
+.tileHint {
+  font-size: 0.60rem;
+  color: var(--color-text-dim);
+  opacity: 0.7;
+}
+
+/* Per-tile accent colours */
+.tileMicro  { border-color: rgba(180,120,255,0.30); }
+.tileMicro:hover:not(:disabled) { border-color: rgba(180,120,255,0.65); box-shadow: 0 0 14px rgba(180,120,255,0.18); }
+.tileMicro .tileLabel  { color: #c896ff; }
+
+.tileMedium { border-color: rgba(80,180,220,0.30); }
+.tileMedium:hover:not(:disabled) { border-color: rgba(80,180,220,0.65); box-shadow: 0 0 14px rgba(80,180,220,0.18); }
+.tileMedium .tileLabel { color: #60c0e0; }
+
+.tileHeavy  { border-color: rgba(220,140,60,0.30); }
+.tileHeavy:hover:not(:disabled)  { border-color: rgba(220,140,60,0.65); box-shadow: 0 0 14px rgba(220,140,60,0.18); }
+.tileHeavy .tileLabel  { color: #e0a060; }
+
+.tileSuperhit { border-color: rgba(200,170,50,0.30); }
+.tileSuperhit:hover:not(:disabled) { border-color: rgba(200,170,50,0.65); box-shadow: 0 0 14px rgba(200,170,50,0.22); }
+.tileSuperhit .tileLabel { color: #ccaa44; }
+
+/* Heavy sub-picker */
+.heavyWrap {
+  display: flex;
+  align-items: stretch;
+}
+
+.heavySub {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  align-items: stretch;
+  width: 100px;
+}
+
+.heavySubBtn {
+  flex: 1;
+  padding: 8px 6px;
+  border-radius: 7px;
+  border: 1px solid rgba(220,140,60,0.45);
+  background: rgba(220,140,60,0.10);
+  color: #e0a060;
+  font-size: 0.72rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.1s, border-color 0.1s;
+}
+
+.heavySubBtn:hover { background: rgba(220,140,60,0.22); border-color: rgba(220,140,60,0.70); }
+
+.heavyCancel {
+  padding: 3px;
+  border: none;
+  background: transparent;
+  color: var(--color-text-dim);
+  font-size: 0.72rem;
+  cursor: pointer;
+  opacity: 0.5;
+  transition: opacity 0.1s;
+}
+
+.heavyCancel:hover { opacity: 1; }
