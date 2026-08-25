@@ -320,7 +320,7 @@ export interface GameStore extends GameState {
   completeMicroProduct:   (weaponId: string, productId: string) => void
   completeMediumLevel:    (weaponId: string, pieceId: string, level: 1 | 2) => void
   publishMediumPiece:     (weaponId: string, pieceId: string) => void
-  completeHeavyTile:      (weaponId: string, tileType: 'research' | 'produce') => void
+  completeHeavyTile:      (weaponId: string) => void
   consumeSuperhitCharge:  (weaponId: string) => void
 
   // External rewards
@@ -936,13 +936,15 @@ export const useGameStore = create<GameStore>((set, get) => ({
     get().save()
   },
 
-  completeHeavyTile: (weaponId, tileType) => {
+  completeHeavyTile: (weaponId) => {
     set(s => {
       const campaign = s.weapon_campaigns[weaponId]
       if (!campaign?.heavy) return s
       const heavy = campaign.heavy
-      const research_done = tileType === 'research' ? heavy.research_done + 1 : heavy.research_done
-      const produce_done  = tileType === 'produce'  ? heavy.produce_done  + 1 : heavy.produce_done
+      // Fill research first, then produce
+      const researchLeft = heavy.research_count - heavy.research_done
+      const research_done = researchLeft > 0 ? heavy.research_done + 1 : heavy.research_done
+      const produce_done  = researchLeft > 0 ? heavy.produce_done  : heavy.produce_done + 1
       const completed = heavy.completed ||
         (research_done >= heavy.research_count && produce_done >= heavy.produce_count)
       const updated = { ...campaign, heavy: { ...heavy, research_done, produce_done, completed } }

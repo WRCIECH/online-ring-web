@@ -723,9 +723,9 @@ export default function CombatScreen() {
           onMediumComplete={(pieceId, level) => {
             store.completeMediumLevel(state.equippedWeaponId, pieceId, level)
           }}
-          onHeavy={(type, damage) => {
-            dispatch({ type: 'CAMPAIGN_HIT', damage, label: type === 'research' ? '🔍 Research' : '📝 Produce', color: '#e0a060' })
-            store.completeHeavyTile(state.equippedWeaponId, type)
+          onHeavy={(damage) => {
+            dispatch({ type: 'CAMPAIGN_HIT', damage, label: '📝 Heavy work', color: '#e0a060' })
+            store.completeHeavyTile(state.equippedWeaponId)
           }}
           onSuperhit={(damage) => {
             dispatch({ type: 'CAMPAIGN_HIT', damage, label: '💥 SUPERHIT!', color: '#eecc44' })

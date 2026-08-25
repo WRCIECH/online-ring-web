@@ -19,7 +19,7 @@ const LIGHT_TILE: WorkflowTile = {
 }
 
 type TimerCtx = {
-  type: 'medium' | 'heavy-research' | 'heavy-produce'
+  type: 'medium' | 'heavy'
   damage: number
   totalSecs: number
   startedAt: number
@@ -39,7 +39,7 @@ interface Props {
   onMicro:          (damage: number, productIndex: number) => void
   onMedium:         (damage: number) => void
   onMediumComplete: (pieceId: string, level: 1 | 2) => void
-  onHeavy:          (type: 'research' | 'produce', damage: number) => void
+  onHeavy:          (damage: number) => void
   onSuperhit:       (damage: number) => void
   onSacrifice:      (selfDmg: number) => void
 }
@@ -67,7 +67,6 @@ export default function CampaignActionPanel({
   campaign, weapon, weaponLevel, superhitCharges, playerHp, canAct,
   onMicro, onMedium, onMediumComplete, onHeavy, onSuperhit, onSacrifice,
 }: Props) {
-  const [heavyPicking, setHeavyPicking] = useState(false)
   const [timer, setTimer]               = useState<TimerCtx | null>(null)
   const [confirm, setConfirm]           = useState<ConfirmCtx | null>(null)
   const [mediumStart, setMediumStart]   = useState<MediumStartCtx | null>(null)
@@ -127,17 +126,13 @@ export default function CampaignActionPanel({
           damage:    ctx.damage,
         })
       }
-    } else if (ctx.type === 'heavy-research') {
-      onHeavy('research', ctx.damage)
-      if (selfDmg > 0) onSacrifice(selfDmg)
     } else {
-      onHeavy('produce', ctx.damage)
+      onHeavy(ctx.damage)
       if (selfDmg > 0) onSacrifice(selfDmg)
     }
   }
 
   function startTimer(type: TimerCtx['type'], damage: number, secs: number, contentName: string) {
-    setHeavyPicking(false)
     setTimer({ type, damage, totalSecs: secs, startedAt: Date.now(), contentName })
   }
 
@@ -152,8 +147,8 @@ export default function CampaignActionPanel({
   // ── Timer view ─────────────────────────────────────────────────────────────
   if (timer) {
     const pct = Math.max(0, remaining / timer.totalSecs) * 100
-    const isHeavy = timer.type !== 'medium'
-    const modeLabel = timer.type === 'heavy-research' ? 'Research' : timer.type === 'heavy-produce' ? 'Produce' : 'Writing'
+    const isHeavy = timer.type === 'heavy'
+    const modeLabel = isHeavy ? 'Heavy work' : 'Writing'
     const timeFrac = timer.totalSecs > 0 ? remaining / timer.totalSecs : 0
     const selfDmg  = Math.round(timer.damage * timeFrac * SACRIFICE_MULT)
     const canSacrifice = selfDmg < playerHp  // must survive the sacrifice
@@ -290,31 +285,17 @@ export default function CampaignActionPanel({
       </button>
 
       {/* Heavy */}
-      <div className={s.heavyWrap}>
-        {heavyPicking ? (
-          <div className={s.heavySub}>
-            <button className={s.heavySubBtn} onClick={() => startTimer('heavy-research', heavyDmg, heavySecs, heavyProductName)}>
-              Research<br/><span className={s.heavySubTime}>{fmtSecs(heavySecs)}</span>
-            </button>
-            <button className={s.heavySubBtn} onClick={() => startTimer('heavy-produce', heavyDmg, heavySecs, heavyProductName)}>
-              Produce<br/><span className={s.heavySubTime}>{fmtSecs(heavySecs)}</span>
-            </button>
-            <button className={s.heavyCancel} onClick={() => setHeavyPicking(false)}>✕</button>
-          </div>
-        ) : (
-          <button
-            className={[s.tile, s.tileHeavy, !hasHeavy || !canAct ? s.tileDim : ''].filter(Boolean).join(' ')}
-            disabled={!hasHeavy || !canAct}
-            onClick={() => setHeavyPicking(true)}
-          >
-            <span className={s.tileLabel}>Heavy</span>
-            <span className={s.tileDmg}>⚔ {heavyDmg}</span>
-            <span className={s.tileHint} title={heavyProductName}>
-              {heavyProductName.length > 12 ? heavyProductName.slice(0, 11) + '…' : heavyProductName}
-            </span>
-          </button>
-        )}
-      </div>
+      <button
+        className={[s.tile, s.tileHeavy, !hasHeavy || !canAct ? s.tileDim : ''].filter(Boolean).join(' ')}
+        disabled={!hasHeavy || !canAct}
+        onClick={() => startTimer('heavy', heavyDmg, heavySecs, heavyProductName)}
+      >
+        <span className={s.tileLabel}>Heavy</span>
+        <span className={s.tileDmg}>⚔ {heavyDmg}</span>
+        <span className={s.tileHint} title={heavyProductName}>
+          {heavyProductName.length > 12 ? heavyProductName.slice(0, 11) + '…' : heavyProductName}
+        </span>
+      </button>
 
       {/* Superhit */}
       <button
