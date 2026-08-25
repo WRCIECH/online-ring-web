@@ -1298,61 +1298,92 @@
   letter-spacing: 0.04em;
 }
 
-/* Micro tab */
-.microGrid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
-  gap: 8px;
+/* Micro tab — circle layout */
+.microCircle {
+  position: relative;
+  flex-shrink: 0;
+  margin: 8px auto;
 }
 
-.microCard {
+.microCircleSvg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.microCircleCenter {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 4px;
-  padding: 8px 6px;
+  gap: 2px;
+  pointer-events: none;
+}
+
+.microCircleCount {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--color-text);
+}
+
+.microCircleLabel {
+  font-size: 0.62rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-text-dim);
+  opacity: 0.6;
+}
+
+.microCard {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  padding: 6px 7px;
   border-radius: var(--radius);
   border: 1px solid var(--color-sep);
-  background: rgba(255,255,255,0.03);
-  font-size: 0.72rem;
+  background: rgba(15,13,34,0.95);
+  font-size: 0.68rem;
   text-align: center;
-  position: relative;
+  width: 72px;
   transition: border-color 0.15s;
 }
 
 .microCardCurrent {
   border-color: var(--color-accent);
-  background: rgba(var(--color-accent-rgb, 180,140,80), 0.10);
+  background: rgba(15,13,34,0.98);
+  box-shadow: 0 0 10px rgba(var(--color-accent-rgb, 180,140,80), 0.25);
 }
 
 .microCardDone {
-  opacity: 0.65;
+  opacity: 0.55;
 }
 
 .microCardType {
-  font-weight: 600;
+  font-weight: 700;
   color: var(--color-text);
-  font-size: 0.73rem;
+  font-size: 0.66rem;
+  line-height: 1.2;
 }
 
 .microCardStyle {
-  font-size: 0.65rem;
+  font-size: 0.60rem;
   color: var(--color-text-dim);
   background: rgba(255,255,255,0.06);
   border-radius: 3px;
-  padding: 1px 4px;
+  padding: 1px 3px;
 }
 
 .microCardCount {
-  font-size: 0.7rem;
+  font-size: 0.64rem;
   color: var(--color-text-dim);
-}
-
-.microCardNext {
-  font-size: 0.62rem;
-  font-weight: 700;
-  color: var(--color-accent);
-  letter-spacing: 0.05em;
 }
 
 /* Medium tab */

@@ -266,21 +266,42 @@ export default function CampaignOverlay({ onClose }: Props) {
                       </div>
 
                       {/* ── Micro tab ── */}
-                      {activeTab === 'micro' && (
-                        <div className={s.modePanel}>
-                          <div className={s.microGrid}>
-                            {campaign.micro.products.map((p: MicroProduct, i: number) => (
-                              <div key={p.id} className={[s.microCard, i===campaign.micro!.current_index?s.microCardCurrent:'', p.done_count>0?s.microCardDone:''].filter(Boolean).join(' ')}>
-                                <div className={s.microCardType}>{prodLabel(p.content_type)}</div>
-                                {p.style && <div className={s.microCardStyle}>{LABEL_DISPLAY[p.style] ?? p.style}</div>}
-                                <div className={s.microCardCount}>×{p.done_count}</div>
-                                {i === campaign.micro!.current_index && <div className={s.microCardNext}>→ Next</div>}
+                      {activeTab === 'micro' && (() => {
+                        const products = campaign.micro.products
+                        const n = products.length
+                        const RADIUS = 120
+                        const SIZE = 320
+                        return (
+                          <div className={s.modePanel}>
+                            <div className={s.microCircle} style={{ width: SIZE, height: SIZE }}>
+                              <svg className={s.microCircleSvg} viewBox={`0 0 ${SIZE} ${SIZE}`}>
+                                <circle cx={SIZE/2} cy={SIZE/2} r={RADIUS} fill="none" stroke="rgba(255,255,255,0.08)" strokeWidth="1.5" strokeDasharray="4 6" />
+                              </svg>
+                              <div className={s.microCircleCenter}>
+                                <span className={s.microCircleCount}>{products.filter((p: MicroProduct) => p.done_count > 0).length}/{n}</span>
+                                <span className={s.microCircleLabel}>published</span>
                               </div>
-                            ))}
+                              {products.map((p: MicroProduct, i: number) => {
+                                const angle = (2 * Math.PI / n) * i - Math.PI / 2
+                                const x = SIZE / 2 + Math.cos(angle) * RADIUS
+                                const y = SIZE / 2 + Math.sin(angle) * RADIUS
+                                return (
+                                  <div
+                                    key={p.id}
+                                    className={[s.microCard, i===campaign.micro!.current_index?s.microCardCurrent:'', p.done_count>0?s.microCardDone:''].filter(Boolean).join(' ')}
+                                    style={{ left: x, top: y }}
+                                  >
+                                    <div className={s.microCardType}>{prodLabel(p.content_type)}</div>
+                                    {p.style && <div className={s.microCardStyle}>{LABEL_DISPLAY[p.style] ?? p.style}</div>}
+                                    <div className={s.microCardCount}>×{p.done_count}</div>
+                                  </div>
+                                )
+                              })}
+                            </div>
+                            {campaign.micro.completed && <div className={s.modeComplete}>✓ Circle complete</div>}
                           </div>
-                          {campaign.micro.completed && <div className={s.modeComplete}>✓ Circle complete</div>}
-                        </div>
-                      )}
+                        )
+                      })()}
 
                       {/* ── Medium tab ── */}
                       {activeTab === 'medium' && campaign.medium && (
