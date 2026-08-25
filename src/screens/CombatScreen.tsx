@@ -462,6 +462,7 @@ export default function CombatScreen() {
           const promotes = Math.max(0, (n.promote_count ?? 0) - (n.promotes_consumed ?? 0))
           return sum + base + promotes
         }, 0)
+  const canSuperhit = isNewCampaign ? totalSuperhitCharges > 0 : superhitSourceNode !== null
 
   // ── Selected tile (derived) ───────────────────────────────────────────────
   const selectedTile = state.selectedTileId
