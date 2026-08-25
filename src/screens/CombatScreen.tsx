@@ -18,6 +18,7 @@ import MoveRadialMenu, { type RadialMoveItem } from '../components/combat/MoveRa
 import CombatBottomBar from '../components/combat/CombatBottomBar'
 import MicroBar from '../components/combat/MicroBar'
 import CampaignActionPanel from '../components/combat/CampaignActionPanel'
+import EnemyDisplay from '../components/combat/EnemyDisplay'
 import CombatMusic  from '../components/combat/CombatMusic'
 import PreFightPicker from '../components/overlays/PreFightPicker'
 import { DEFAULT_MUSIC_TRACKS } from '../data/combatMusic'
@@ -659,6 +660,12 @@ export default function CombatScreen() {
                 </div>
                 <span className={s.enemyCardHpText}>{state.enemyHp} / {state.enemyMaxHp}</span>
               </div>
+              <EnemyDisplay
+                enemyId={loc.enemy_id}
+                hp={state.phase === 'VICTORY' || state.phase === 'DEFEAT' || state.phase === 'FLED' ? 0 : state.enemyHp}
+                maxHp={state.enemyMaxHp}
+                sublocationtype={loc.sublocation_type}
+              />
             </div>
           ) : (
             <>
