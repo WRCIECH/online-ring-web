@@ -315,7 +315,6 @@ export interface GameStore extends GameState {
   finalizeCampaign: (weaponId: string, freshCampaignName?: string) => void
 
   // Three-mode campaign actions
-  initWeaponModes:     (weaponId: string) => void
   completeMicroProduct:(weaponId: string, productId: string) => void
   completeMediumLevel: (weaponId: string, pieceId: string, level: 1 | 2) => void
   completeHeavyTile:   (weaponId: string, tileType: 'research' | 'produce') => void
@@ -876,21 +875,6 @@ export const useGameStore = create<GameStore>((set, get) => ({
           [weaponId]: ((s.weapon_pending_superhits ?? {})[weaponId] ?? 0) + carried,
         },
       }
-    })
-    get().save()
-  },
-
-  initWeaponModes: (weaponId) => {
-    set(s => {
-      const campaign = s.weapon_campaigns[weaponId]
-      if (!campaign) return s
-      const weapon = s.weapon_instances.find(w => w.instance_id === weaponId)
-      if (!weapon) return s
-      const updated = { ...campaign }
-      if (!updated.micro)  updated.micro  = generateMicro(weapon)
-      if (!updated.medium) updated.medium = generateMedium(weapon)
-      if (!updated.heavy)  updated.heavy  = generateHeavy(weapon)
-      return { weapon_campaigns: { ...s.weapon_campaigns, [weaponId]: updated } }
     })
     get().save()
   },

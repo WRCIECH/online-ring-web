@@ -235,14 +235,6 @@ export function calcFlowMult(lastFightEndedAt: number | undefined): number {
 }
 
 // A campaign only counts as "active" (and contributes to the overload penalty)
-// once it is fully defined: has a campaign name AND all nodes have names.
-export function isCampaignFullyDefined(c: WeaponCampaign): boolean {
-  return (
-    !!c.campaign_name?.trim() &&
-    c.nodes.every(n => n.name.trim() !== '')
-  )
-}
-
 // ── Init ──────────────────────────────────────────────────────────────────
 
 export function initCombatState(

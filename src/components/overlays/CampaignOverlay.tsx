@@ -1,12 +1,9 @@
-import { useState, useRef, useEffect } from 'react'
-import { useGameStore, selectRemainingModifications } from '../../store/gameStore'
-import { isNodeAvailable } from '../../data/generators/campaignGenerator'
-import { isCampaignFullyDefined } from '../../engine/combat'
+import { useState, useEffect } from 'react'
+import { useGameStore } from '../../store/gameStore'
 import { LEVEL_MULT, weaponUpgradeCost, calcWeaponScaledDamage, calcWeaponSellPrice } from '../../data/weapons'
 import { STAGE_TIME, calcWorkflowTileCounts } from '../../data/generators/workflowGenerator'
 import { WEAPON_CLASSES } from '../../data/generators/weaponClasses'
-import { MODIFICATION_STATS, STAT_CONTENT_TYPES, STAT_TRANSFORMATIONS } from '../../data/statModifications'
-import type { CampaignNode, CampaignEdge, WeaponCampaign, WeaponInstance, StatKey, ContentProductType, MicroProduct, MediumPiece } from '../../types/game'
+import type { WeaponCampaign, WeaponInstance, StatKey, ContentProductType, MicroProduct, MediumPiece } from '../../types/game'
 import WeaponIcon from '../WeaponIcon'
 import { useT, localizeWeaponName } from '../../i18n'
 import s from './CampaignOverlay.module.css'
@@ -44,109 +41,6 @@ const LABEL_DISPLAY: Record<string, string> = {
   Desire:        'Desire',
 }
 
-const LABEL_TOOLTIP: Record<string, string> = {
-  // ContentTransformation — relation types
-  Succinct:      'Succinct — distils and summarises the parent into a denser form.',
-  Verbose:       'Verbose — takes one idea from the parent and develops it in depth.',
-  ZoomIn:        'Zoom In — narrows focus to a specific detail or sub-topic of the parent.',
-  ZoomOut:       'Zoom Out — widens scope to place the parent in a broader context.',
-  Similar:       'Similar — parallel piece on a related topic using the same structure.',
-  Opposite:      'Opposite — argues the counter-position or explores the antithesis of the parent.',
-  // ContentTransformation — style types
-  Shock:         'Shock — provocative, attention-grabbing framing designed to surprise.',
-  Narration:     'Narration — story-driven, narrative format.',
-  Segmentation:  'Segmentation — broken into distinct parts, lists, or sections.',
-  Passion:       'Passion — emotionally driven, enthusiastic tone.',
-  Estetic:       'Esthetic — prioritises visual or sensory appeal and craft.',
-  Cliffhanger:   'Cliffhanger — ends with unresolved tension to keep the audience coming back.',
-  Viral:         'Viral — content engineered to spread rapidly; brainrot, memes, trend-chasing.',
-  Controversy:   'Controversy — polarising takes, hot-button topics, provocation that splits audiences.',
-  Comfort:       'Comfort — soothing, reassuring content; relaxation and wholesome familiarity.',
-  Drama:         'Drama — conflict, call-outs, cancel culture, interpersonal tension.',
-  Humor:         'Humor — comedy, satire, roasts, and irony.',
-  Parasocial:    'Parasocial — intimacy and bond-building with the audience.',
-  Wow:           'Wow — jaw-dropping facts, stunning visuals, education-as-spectacle.',
-  Hope:          'Hope — inspirational, wholesome, motivational framing.',
-  Fear:          'Fear — anxiety, doomscrolling, worst-case scenarios.',
-  Desire:        'Desire — FOMO, urgency, scarcity, aspiration.',
-  // ContentTransformation — new types
-  Critique:       'Critique — critically analyzes an existing piece, exposing its weaknesses, flaws, or hidden assumptions.',
-  Follows:        'Follows — natural continuation of the parent piece, extending its story, series, or ongoing discussion.',
-  AudienceShift:  'Audience Shift — same core idea adapted to the needs and knowledge of a different target audience.',
-  Synthesis:      'Synthesis — multiple related pieces combined into one coherent work with greater informational value.',
-  RemixFusion:    'Remix / Fusion — two or more independent ideas merged into a new, original creation.',
-  Evidence:       'Evidence — existing claims strengthened with additional data, research, examples, or supporting sources.',
-  Simplify:       'Simplify — same content rewritten with simpler language and more accessible examples.',
-  Technicalize:   'Technicalize — same content transformed into a more precise, detailed, specialist version.',
-  Socratic:       'Socratic — guides the audience through questions instead of answers, encouraging independent thinking.',
-  Analogy:        'Analogy — core idea explained through clear analogies, metaphors, and comparisons.',
-  FirstPrinciples:'First Principles — topic decomposed to its most fundamental assumptions and rebuilt from there.',
-  DataDriven:     'Data Driven — content based primarily on numbers, data, charts, and objective evidence rather than opinion.',
-}
-
-const FOLLOWS_TOOLTIP = 'Follows — this piece continues naturally from its parent in sequence or as a direct consequence. No specific transformation was applied.'
-
-// ── SVG tree layout constants ────────────────────────────────────────────────
-
-const NODE_W = 200
-const NODE_H = 52
-const H_GAP  = 32
-const V_GAP  = 84
-const PAD    = 12
-
-// ── Layout helpers ───────────────────────────────────────────────────────────
-
-function buildChildrenMap(edges: CampaignEdge[]): Record<string, string[]> {
-  const map: Record<string, string[]> = {}
-  for (const e of edges) {
-    if (!map[e.from_id]) map[e.from_id] = []
-    map[e.from_id].push(e.to_id)
-  }
-  return map
-}
-
-function getRoots(nodes: CampaignNode[], edges: CampaignEdge[]): CampaignNode[] {
-  const childIds = new Set(edges.map(e => e.to_id))
-  return nodes.filter(n => !childIds.has(n.id))
-}
-
-function subtreeWidth(nodeId: string, childrenMap: Record<string, string[]>): number {
-  const children = childrenMap[nodeId] ?? []
-  if (!children.length) return NODE_W
-  const total = children.reduce((sum, c) => sum + subtreeWidth(c, childrenMap), 0)
-  return Math.max(NODE_W, total + H_GAP * (children.length - 1))
-}
-
-function computePositions(
-  rootIds: string[],
-  childrenMap: Record<string, string[]>,
-  nodeH: number = NODE_H,
-): Map<string, { x: number; y: number }> {
-  const pos = new Map<string, { x: number; y: number }>()
-
-  function place(nodeId: string, cx: number, depth: number) {
-    pos.set(nodeId, { x: cx - NODE_W / 2, y: depth * (nodeH + V_GAP) })
-    const children = childrenMap[nodeId] ?? []
-    if (!children.length) return
-    const total =
-      children.reduce((sum, c) => sum + subtreeWidth(c, childrenMap), 0) +
-      H_GAP * (children.length - 1)
-    let left = cx - total / 2
-    for (const cid of children) {
-      const sw = subtreeWidth(cid, childrenMap)
-      place(cid, left + sw / 2, depth + 1)
-      left += sw + H_GAP
-    }
-  }
-
-  let left = 0
-  for (const rid of rootIds) {
-    const sw = subtreeWidth(rid, childrenMap)
-    place(rid, left + sw / 2, 0)
-    left += sw + H_GAP
-  }
-  return pos
-}
 
 // ── Component ────────────────────────────────────────────────────────────────
 
@@ -157,32 +51,11 @@ export default function CampaignOverlay({ onClose }: Props) {
   const [selectedWeaponId, setSelectedWeaponId] = useState<string | null>(
     store.weapon_instances[0]?.instance_id ?? null
   )
-  const [editingNodeId, setEditingNodeId] = useState<string | null>(null)
-  const [editingNodeVal, setEditingNodeVal] = useState('')
-  const [edgeTooltip, setEdgeTooltip] = useState<{ text: string; x: number; y: number } | null>(null)
-  // Campaign name combobox
-  const [nameOpen, setNameOpen] = useState(false)
-  const [nameVal, setNameVal] = useState('')
-  // Activate confirmation
-  const [showActivateConfirm, setShowActivateConfirm] = useState(false)
-  const [confirmFinalize, setConfirmFinalize] = useState(false)
-  const [confirmDetachId, setConfirmDetachId] = useState<string | null>(null)
   const [activeTab, setActiveTab] = useState<'micro' | 'medium' | 'heavy'>('medium')
   // Weapon actions
   const [confirmSellId,    setConfirmSellId]    = useState<string | null>(null)
   const [confirmUpgradeId, setConfirmUpgradeId] = useState<string | null>(null)
   const [hoveredUpgrade,   setHoveredUpgrade]   = useState(false)
-  // Modification picker
-  const [modifyNodeId,  setModifyNodeId]  = useState<string | null>(null)
-  const [modifyEdge,    setModifyEdge]    = useState<{ from: string; to: string } | null>(null)
-  const [pickerPos,     setPickerPos]     = useState<{ x: number; y: number }>({ x: 0, y: 0 })
-
-  const nodeInputRef = useRef<HTMLInputElement>(null)
-  const nameInputRef = useRef<HTMLInputElement>(null)
-  const treePaneRef = useRef<HTMLDivElement>(null)
-
-  useEffect(() => { if (editingNodeId) nodeInputRef.current?.focus() }, [editingNodeId])
-  useEffect(() => { if (nameOpen) nameInputRef.current?.focus() }, [nameOpen])
 
   // Auto-generate campaign when selecting a weapon that has none
   useEffect(() => {
@@ -193,25 +66,10 @@ export default function CampaignOverlay({ onClose }: Props) {
     }
   }, [selectedWeaponId]) // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Lazily init mode states for old saves
-  useEffect(() => {
-    if (selectedWeaponId) {
-      const c = store.weapon_campaigns[selectedWeaponId]
-      if (c && !c.micro) store.initWeaponModes(selectedWeaponId)
-    }
-  }, [selectedWeaponId, store.weapon_campaigns[selectedWeaponId ?? '']?.micro]) // eslint-disable-line react-hooks/exhaustive-deps
-
   // Reset transient UI when switching weapons
   useEffect(() => {
-    setShowActivateConfirm(false)
-    setConfirmFinalize(false)
-    setConfirmDetachId(null)
-    setNameOpen(false)
-    setEditingNodeId(null)
     setConfirmSellId(null)
     setConfirmUpgradeId(null)
-    setModifyNodeId(null)
-    setModifyEdge(null)
     setActiveTab('medium')
   }, [selectedWeaponId])
 
@@ -256,21 +114,6 @@ export default function CampaignOverlay({ onClose }: Props) {
     }
   }
 
-  function handleNodeNameSave(weaponId: string, nodeId: string) {
-    const name = editingNodeVal.trim()
-    if (name) store.renameCampaignNode(weaponId, nodeId, name)
-    setEditingNodeId(null)
-    setEditingNodeVal('')
-  }
-
-  function saveNameAndClose(weaponId: string, forceName?: string) {
-    const name = (forceName ?? nameVal).trim()
-    if (name) store.renameCampaign(weaponId, name)
-    setNameOpen(false)
-  }
-
-  const remainingMods = selectRemainingModifications(store)
-
   const weapons = store.weapon_instances
 
   return (
@@ -300,14 +143,8 @@ export default function CampaignOverlay({ onClose }: Props) {
             )}
           </div>
 
-          {/* Right: campaign tree */}
-          <div ref={treePaneRef} className={s.treePane}>
-            {edgeTooltip && (
-              <div className={s.edgeTooltip} style={{ left: edgeTooltip.x + 14, top: edgeTooltip.y - 8 }}>
-                {edgeTooltip.text}
-              </div>
-            )}
-
+          {/* Right: campaign panel */}
+          <div className={s.treePane}>
             {!selectedWeapon ? (
               <div className={s.empty}>Select a weapon.</div>
             ) : (
@@ -401,708 +238,90 @@ export default function CampaignOverlay({ onClose }: Props) {
 
                 {!campaign ? (
                   <div className={s.empty}>Generating…</div>
-                ) : (() => {
-                  const { nodes, edges } = campaign
-                  const childrenMap = buildChildrenMap(edges)
-                  const roots = getRoots(nodes, edges)
-                  const publishedCount  = nodes.filter(n => n.published).length
-                  const namedCount     = nodes.filter(n => n.name.trim()).length
-                  const skipAllowance  = campaign.skip_allowance ?? 0
-                  const allSkipsUsed   = Object.values(store.weapon_campaigns).reduce((sum, c) => sum + (c.skip_allowance ?? 0), 0)
-                  const poolRemaining  = store.stats.END - allSkipsUsed
-                  const targetPublished = nodes.length - skipAllowance
-                  const needMore       = Math.max(0, targetPublished - publishedCount)
-                  const weaponId = selectedWeapon.instance_id
-
-                  const campaignOrdinal = campaign.ordinal ?? 1
-                  const defaultCampaignName = `Kampania #${campaignOrdinal} · ${localizeWeaponName(selectedWeapon, t)}`
-                  const nextCampaignName = `Kampania #${campaignOrdinal + 1} · ${localizeWeaponName(selectedWeapon, t)}`
-
-                  const isFullyDefined = isCampaignFullyDefined(campaign)
-                  const isActivated = campaign.activated === true
-
-                  // Library suggestions for combobox
-                  const libSuggestions = store.campaign_library.filter(lc =>
-                    lc.campaign_name && (!nameVal || lc.campaign_name.toLowerCase().includes(nameVal.toLowerCase()))
-                  )
-
-                  // Per-node tile allocation budget
-                  const { research: defaultR, produce: defaultP } = calcWorkflowTileCounts(selectedWeapon.weapon_class, selectedWeapon.rarity)
-                  const totalR  = defaultR * nodes.length
-                  const totalP  = defaultP * nodes.length
-                  const allocR  = nodes.reduce((s, n) => s + (n.node_research ?? defaultR), 0)
-                  const allocP  = nodes.reduce((s, n) => s + (n.node_produce  ?? defaultP), 0)
-                  const poolR   = totalR - allocR
-                  const poolP   = totalP - allocP
-                  const poolBalanced = poolR === 0 && poolP === 0
-
-                  // Compute SVG layout
-                  const nodeH = isActivated ? NODE_H : 72
-                  const positions = computePositions(roots.map(r => r.id), childrenMap, nodeH)
-                  let maxX = 0, maxY = 0
-                  for (const [, p] of positions) {
-                    maxX = Math.max(maxX, p.x + NODE_W)
-                    maxY = Math.max(maxY, p.y + nodeH)
-                  }
-                  const svgW = maxX + PAD
-                  const svgH = maxY + PAD
-
-                  return (
-                    <>
-                      {/* ── Three-mode tabs ── */}
-                      {campaign.micro && (
-                        <div className={s.modeTabs}>
-                          <div className={s.tabBar}>
-                            <button className={[s.modeTab, activeTab==='micro'?s.modeTabActive:''].join(' ')} onClick={()=>setActiveTab('micro')}>Micro</button>
-                            <button className={[s.modeTab, activeTab==='medium'?s.modeTabActive:''].join(' ')} onClick={()=>setActiveTab('medium')}>Medium</button>
-                            <button className={[s.modeTab, activeTab==='heavy'?s.modeTabActive:''].join(' ')} onClick={()=>setActiveTab('heavy')}>Heavy</button>
-                          </div>
-                          {activeTab === 'micro' && (
-                            <div className={s.modePanel}>
-                              <div className={s.microGrid}>
-                                {campaign.micro.products.map((p: MicroProduct, i: number) => (
-                                  <div key={p.id} className={[s.microCard, i===campaign.micro!.current_index?s.microCardCurrent:'', p.done_count>0?s.microCardDone:''].filter(Boolean).join(' ')}>
-                                    <div className={s.microCardType}>{(t.content.product as Record<string,{badge_label:string}>)[p.content_type]?.badge_label ?? p.content_type}</div>
-                                    {p.style && <div className={s.microCardStyle}>{LABEL_DISPLAY[p.style] ?? p.style}</div>}
-                                    <div className={s.microCardCount}>×{p.done_count}</div>
-                                    {i === campaign.micro!.current_index && <div className={s.microCardNext}>→ Next</div>}
-                                  </div>
-                                ))}
-                              </div>
-                              {campaign.micro.completed && <div className={s.modeComplete}>✓ Circle complete</div>}
+                ) : campaign.micro ? (
+                  <div className={s.modeTabs}>
+                    <div className={s.tabBar}>
+                      <button className={[s.modeTab, activeTab==='micro'?s.modeTabActive:''].join(' ')} onClick={()=>setActiveTab('micro')}>Micro</button>
+                      <button className={[s.modeTab, activeTab==='medium'?s.modeTabActive:''].join(' ')} onClick={()=>setActiveTab('medium')}>Medium</button>
+                      <button className={[s.modeTab, activeTab==='heavy'?s.modeTabActive:''].join(' ')} onClick={()=>setActiveTab('heavy')}>Heavy</button>
+                    </div>
+                    {activeTab === 'micro' && (
+                      <div className={s.modePanel}>
+                        <div className={s.microGrid}>
+                          {campaign.micro.products.map((p: MicroProduct, i: number) => (
+                            <div key={p.id} className={[s.microCard, i===campaign.micro!.current_index?s.microCardCurrent:'', p.done_count>0?s.microCardDone:''].filter(Boolean).join(' ')}>
+                              <div className={s.microCardType}>{(t.content.product as Record<string,{badge_label:string}>)[p.content_type]?.badge_label ?? p.content_type}</div>
+                              {p.style && <div className={s.microCardStyle}>{LABEL_DISPLAY[p.style] ?? p.style}</div>}
+                              <div className={s.microCardCount}>×{p.done_count}</div>
+                              {i === campaign.micro!.current_index && <div className={s.microCardNext}>→ Next</div>}
                             </div>
-                          )}
-                          {activeTab === 'medium' && campaign.medium && (
-                            <div className={s.modePanel}>
-                              <div className={s.mediumList}>
-                                {campaign.medium.pieces.map((p: MediumPiece, i: number) => {
-                                  const prevPiece = i > 0 ? campaign.medium!.pieces[i-1] : null
-                                  const l1Unlocked = i === 0 || (prevPiece?.level1_done ?? false)
-                                  const l2Unlocked = p.level1_done
-                                  return (
-                                    <div key={p.id} className={[s.mediumPiece, !l1Unlocked?s.mediumPieceLocked:''].filter(Boolean).join(' ')}>
-                                      <div className={s.mediumPieceHeader}>
-                                        <span className={s.mediumPieceNum}>{i+1}</span>
-                                        <span className={s.mediumPieceName}>{p.name}</span>
-                                        {p.link_type && i < campaign.medium!.pieces.length - 1 && (
-                                          <span className={s.linkChip}>{p.link_type}</span>
-                                        )}
-                                      </div>
-                                      <div className={s.mediumPieceLevels}>
-                                        <span className={[s.levelBadge, p.level1_done?s.levelDone:'', !l1Unlocked?s.levelLocked:''].filter(Boolean).join(' ')}>
-                                          L1: {(t.content.product as Record<string,{badge_label:string}>)[p.level1_type]?.badge_label ?? p.level1_type}
-                                          {p.level1_done ? ' ✓' : ''}
-                                        </span>
-                                        <span className={[s.levelBadge, p.level2_done?s.levelDone:'', !l2Unlocked?s.levelLocked:''].filter(Boolean).join(' ')}>
-                                          L2: {(t.content.product as Record<string,{badge_label:string}>)[p.level2_type]?.badge_label ?? p.level2_type}
-                                          {p.level2_done ? ' ✓' : !l2Unlocked ? ' 🔒' : ''}
-                                        </span>
-                                      </div>
-                                      {p.constraint && (
-                                        <div className={s.constraintChip}>{p.constraint.category}: {String(p.constraint.value).replace(/_/g, ' ')}</div>
-                                      )}
-                                    </div>
-                                  )
-                                })}
-                              </div>
-                              {campaign.medium.completed && <div className={s.modeComplete}>✓ Medium complete</div>}
-                            </div>
-                          )}
-                          {activeTab === 'heavy' && campaign.heavy && (
-                            <div className={s.modePanel}>
-                              <div className={s.heavyCard}>
-                                <div className={s.heavyProductType}>
-                                  {(t.content.product as Record<string,{badge_label:string}>)[campaign.heavy.product_type]?.badge_label ?? campaign.heavy.product_type}
-                                </div>
-                                <div className={s.heavyProgress}>
-                                  <span className={s.heavyProgressLabel}>Research</span>
-                                  <span className={s.heavyProgressTrack}>
-                                    <span className={s.heavyProgressFill} style={{width:`${Math.min(100,campaign.heavy.research_count>0?(campaign.heavy.research_done/campaign.heavy.research_count)*100:0)}%`}} />
-                                  </span>
-                                  <span>{campaign.heavy.research_done}/{campaign.heavy.research_count}</span>
-                                </div>
-                                <div className={s.heavyProgress}>
-                                  <span className={s.heavyProgressLabel}>Produce</span>
-                                  <span className={s.heavyProgressTrack}>
-                                    <span className={s.heavyProgressFill} style={{width:`${Math.min(100,campaign.heavy.produce_count>0?(campaign.heavy.produce_done/campaign.heavy.produce_count)*100:0)}%`}} />
-                                  </span>
-                                  <span>{campaign.heavy.produce_done}/{campaign.heavy.produce_count}</span>
-                                </div>
-                              </div>
-                              {campaign.heavy.completed && <div className={s.modeComplete}>✓ Heavy complete</div>}
-                            </div>
-                          )}
+                          ))}
                         </div>
-                      )}
-
-                      {/* Legacy tree — only shown for old saves without three-mode data */}
-                      {!campaign.micro && <>
-
-                      {/* Campaign name (combobox) */}
-                      <div className={s.campaignNameRow}>
-                        {nameOpen ? (
-                          <div className={s.comboboxWrap}>
-                            <input
-                              ref={nameInputRef}
-                              className={s.comboboxInput}
-                              value={nameVal}
-                              placeholder={defaultCampaignName}
-                              onChange={e => setNameVal(e.target.value)}
-                              onBlur={() => saveNameAndClose(weaponId)}
-                              onKeyDown={e => {
-                                if (e.key === 'Enter') saveNameAndClose(weaponId)
-                                if (e.key === 'Escape') setNameOpen(false)
-                              }}
-                            />
-                            {libSuggestions.length > 0 && (
-                              <div className={s.comboboxDropdown}>
-                                {libSuggestions.map(lc => (
-                                  <button
-                                    key={lc.id}
-                                    className={s.comboboxOption}
-                                    onMouseDown={e => {
-                                      e.preventDefault()
-                                      saveNameAndClose(weaponId, lc.campaign_name)
-                                    }}
-                                  >
-                                    <span className={s.comboboxOptionName}>{lc.campaign_name}</span>
-                                    <span className={s.comboboxOptionMeta}>{lc.nodes.length} nodes</span>
-                                  </button>
-                                ))}
-                              </div>
-                            )}
-                          </div>
-                        ) : (
-                          <span
-                            className={campaign.campaign_name ? s.campaignNameSet : s.campaignNameEmpty}
-                            onClick={() => { setNameVal(campaign.campaign_name ?? ''); setNameOpen(true) }}
-                          >
-                            {campaign.campaign_name || defaultCampaignName}
-                          </span>
-                        )}
+                        {campaign.micro.completed && <div className={s.modeComplete}>✓ Circle complete</div>}
                       </div>
-
-                      {/* Progress + activation */}
-                      <div className={s.campaignProgress}>
-                        <span className={s.progressLabel}>
-                          {publishedCount}/{nodes.length} {(t.ui as Record<string, string>).node_published ?? 'published'}
-                          {!campaign.completed && needMore > 0 && ` · ${needMore} ${(t.ui as Record<string, string>).campaign_more_to_finish ?? 'more to finish'}`}
-                        </span>
-                        {namedCount < nodes.length && (
-                          <span className={s.namingProgress}>
-                            <span className={s.namingLabel}>{(t.ui as Record<string, string>).campaign_named_of ?? 'named'}</span>
-                            <span className={s.namingBar}>
-                              <span className={s.namingBarFill} style={{ width: `${(namedCount / nodes.length) * 100}%` }} />
-                            </span>
-                            <span className={s.namingCount}>{namedCount}/{nodes.length}</span>
-                          </span>
-                        )}
-                        {campaign.completed && (
-                          <span className={s.campaignDoneBadge}>
-                            {(t.ui as Record<string, string>).campaign_done ?? 'Campaign Complete'}
-                            {(campaign.done_count ?? 0) > 0 && (
-                              <span className={s.doneCount}>
-                                {' '}×{campaign.done_count} · +{(campaign.done_count ?? 0) * 5}% {(t.ui as Record<string, string>).campaign_done_bonus ?? 'dmg bonus'}
-                              </span>
-                            )}
-                          </span>
-                        )}
-                        {campaign.completed && isActivated && (
-                          confirmFinalize ? (
-                            <div className={s.finalizeConfirm}>
-                              <button
-                                className={s.btnFinalizeConfirm}
-                                onClick={() => {
-                                  store.finalizeCampaign(weaponId, nextCampaignName)
-                                  setConfirmFinalize(false)
-                                }}
-                              >
-                                {(t.ui as Record<string, string>).btn_finalize_confirm ?? 'Confirm?'}
-                              </button>
-                              <button className={s.btnActivateCancel} onClick={() => setConfirmFinalize(false)}>
-                                {t.ui.btn_cancel ?? 'Cancel'}
-                              </button>
-                            </div>
-                          ) : (
-                            <button
-                              className={s.btnFinalize}
-                              onClick={() => setConfirmFinalize(true)}
-                            >
-                              {(t.ui as Record<string, string>).btn_finalize_campaign ?? 'Mark as Done'}
-                            </button>
-                          )
-                        )}
-
-                        {/* Skip allowance control — only editable when not activated */}
-                        {!isActivated && (
-                          <div className={s.skipAllowanceRow}>
-                            <span className={s.skipLabel}>
-                              {(t.ui as Record<string, string>).campaign_skip_allowance ?? 'Skip allowance'}
-                            </span>
-                            <button
-                              className={s.skipBtn}
-                              disabled={skipAllowance <= 0}
-                              onClick={() => store.setCampaignSkipAllowance(weaponId, skipAllowance - 1)}
-                            >−</button>
-                            <span className={s.skipValue}>{skipAllowance}</span>
-                            <button
-                              className={s.skipBtn}
-                              disabled={poolRemaining <= 0}
-                              onClick={() => store.setCampaignSkipAllowance(weaponId, skipAllowance + 1)}
-                            >+</button>
-                            <span className={s.skipHint}>
-                              {poolRemaining} / {store.stats.END} {(t.ui as Record<string, string>).campaign_skip_hint ?? 'pool remaining'}
-                            </span>
-                          </div>
-                        )}
-
-                        {/* Pool balance status (only when not activated) */}
-                        {!isActivated && !campaign.completed && (
-                          <span className={poolBalanced ? s.poolOk : s.poolPending}>
-                            {poolBalanced
-                              ? 'Tiles allocated ✓'
-                              : `R pool: ${poolR > 0 ? '+' : ''}${poolR} · P pool: ${poolP > 0 ? '+' : ''}${poolP}`}
-                          </span>
-                        )}
-
-                        {/* Activation section */}
-                        {!campaign.completed && !isActivated && (
-                          showActivateConfirm ? (
-                            <div className={s.activateConfirm}>
-                              <span className={s.activateConfirmText}>
-                                {(t.ui as Record<string, string>).campaign_activate_confirm ?? 'Activate this campaign? You won\'t be able to edit it while active.'}
-                              </span>
-                              <div className={s.activateActions}>
-                                <button
-                                  className={s.btnActivateConfirm}
-                                  onClick={() => { store.activateCampaign(weaponId); setShowActivateConfirm(false) }}
-                                >
-                                  Activate
-                                </button>
-                                <button
-                                  className={s.btnActivateCancel}
-                                  onClick={() => setShowActivateConfirm(false)}
-                                >
-                                  Cancel
-                                </button>
-                              </div>
-                            </div>
-                          ) : (
-                            <button
-                              className={[s.btnActivate, (!isFullyDefined || !poolBalanced) ? s.btnActivateDisabled : ''].filter(Boolean).join(' ')}
-                              disabled={!isFullyDefined || !poolBalanced}
-                              title={!isFullyDefined ? 'Name the campaign and all nodes first' : !poolBalanced ? 'Allocate all tiles before activating' : undefined}
-                              onClick={() => setShowActivateConfirm(true)}
-                            >
-                              Activate Campaign
-                            </button>
-                          )
-                        )}
-
-                        {isActivated && !campaign.completed && (
-                          confirmDetachId === weaponId ? (() => {
-                            const forfeitCharges = campaign.nodes.reduce((sum, n) => {
-                              if (!n.published) return sum
-                              const base = n.superhit_used ? 0 : 1
-                              const promotes = Math.max(0, (n.promote_count ?? 0) - (n.promotes_consumed ?? 0))
-                              return sum + base + promotes
-                            }, 0) + ((store.weapon_pending_superhits ?? {})[weaponId] ?? 0)
+                    )}
+                    {activeTab === 'medium' && campaign.medium && (
+                      <div className={s.modePanel}>
+                        <div className={s.mediumList}>
+                          {campaign.medium.pieces.map((p: MediumPiece, i: number) => {
+                            const prevPiece = i > 0 ? campaign.medium!.pieces[i-1] : null
+                            const l1Unlocked = i === 0 || (prevPiece?.level1_done ?? false)
+                            const l2Unlocked = p.level1_done
                             return (
-                            <div className={s.detachConfirm}>
-                              {forfeitCharges > 0 && (
-                                <div className={s.detachWarning}>
-                                  ⚠ {(t.ui as Record<string, string>).detach_superhit_warning?.replace('{n}', String(forfeitCharges)) ?? `Forfeits ${forfeitCharges} superhit charge${forfeitCharges !== 1 ? 's' : ''}`}
+                              <div key={p.id} className={[s.mediumPiece, !l1Unlocked?s.mediumPieceLocked:''].filter(Boolean).join(' ')}>
+                                <div className={s.mediumPieceHeader}>
+                                  <span className={s.mediumPieceNum}>{i+1}</span>
+                                  <span className={s.mediumPieceName}>{p.name}</span>
+                                  {p.link_type && i < campaign.medium!.pieces.length - 1 && (
+                                    <span className={s.linkChip}>{p.link_type}</span>
+                                  )}
                                 </div>
-                              )}
-                              <div className={s.detachConfirmButtons}>
-                                <button
-                                  className={s.btnDetachConfirm}
-                                  onClick={() => {
-                                    store.detachCampaign(weaponId)
-                                    setConfirmDetachId(null)
-                                    setShowActivateConfirm(false)
-                                    setConfirmFinalize(false)
-                                  }}
-                                >
-                                  {(t.ui as Record<string, string>).btn_detach_confirm ?? 'Abandon?'}
-                                </button>
-                                <button className={s.btnActivateCancel} onClick={() => setConfirmDetachId(null)}>
-                                  {t.ui.btn_cancel ?? 'Cancel'}
-                                </button>
-                              </div>
-                            </div>
-                            )
-                          })() : (
-                            <button
-                              className={s.btnDetach}
-                              onClick={() => setConfirmDetachId(weaponId)}
-                            >
-                              {(t.ui as Record<string, string>).btn_detach_campaign ?? 'Detach Campaign'}
-                            </button>
-                          )
-                        )}
-                      </div>
-
-                      <svg
-                        width={svgW}
-                        height={svgH}
-                        style={{ display: 'block', overflow: 'visible', minWidth: svgW, marginTop: 18 }}
-                      >
-                        {/* Edges first (behind nodes) */}
-                        {edges.map(edge => {
-                          const fp = positions.get(edge.from_id)
-                          const tp = positions.get(edge.to_id)
-                          if (!fp || !tp) return null
-                          const x1 = fp.x + NODE_W / 2
-                          const y1 = fp.y + nodeH
-                          const x2 = tp.x + NODE_W / 2
-                          const y2 = tp.y
-                          const my = (y1 + y2) / 2
-                          const lx = (x1 + x2) / 2
-                          const ly = (y1 + y2) / 2
-                          const d = `M ${x1} ${y1} C ${x1} ${my} ${x2} ${my} ${x2} ${y2}`
-                          const displayText = edge.label == null ? 'Follows' : (LABEL_DISPLAY[edge.label] ?? edge.label)
-                          const tooltip     = edge.label == null ? FOLLOWS_TOOLTIP : (LABEL_TOOLTIP[edge.label] ?? edge.label)
-                          const labelW = displayText.length * 6.2 + 14
-                          const edgeIsModified = !!edge.label_modified
-                          const edgeCanModify = !isActivated && (
-                            edgeIsModified ||
-                            MODIFICATION_STATS.some(st => (remainingMods[st] ?? 0) > 0 && (STAT_TRANSFORMATIONS[st]?.length ?? 0) > 0)
-                          )
-                          const edgeKey = `${edge.from_id}|${edge.to_id}`
-                          const edgeIsOpen = modifyEdge?.from === edge.from_id && modifyEdge?.to === edge.to_id
-                          return (
-                            <g key={edgeKey}>
-                              <path d={d} fill="none" stroke="rgba(100,80,200,0.28)" strokeWidth={1.5} />
-                              <g
-                                style={{ cursor: edgeCanModify ? 'pointer' : 'default' }}
-                                onMouseEnter={e => {
-                                  const pane = treePaneRef.current
-                                  if (!pane) return
-                                  const r = pane.getBoundingClientRect()
-                                  setEdgeTooltip({ text: tooltip, x: e.clientX - r.left, y: e.clientY - r.top })
-                                }}
-                                onMouseMove={e => {
-                                  const pane = treePaneRef.current
-                                  if (!pane) return
-                                  const r = pane.getBoundingClientRect()
-                                  setEdgeTooltip(prev => prev ? { ...prev, x: e.clientX - r.left, y: e.clientY - r.top } : prev)
-                                }}
-                                onMouseLeave={() => setEdgeTooltip(null)}
-                                onClick={edgeCanModify ? e => {
-                                  e.stopPropagation()
-                                  const pane = treePaneRef.current
-                                  if (!pane) return
-                                  const pr = pane.getBoundingClientRect()
-                                  if (edgeIsOpen) { setModifyEdge(null) } else {
-                                    setModifyEdge({ from: edge.from_id, to: edge.to_id })
-                                    setModifyNodeId(null)
-                                    setPickerPos({ x: e.clientX - pr.left, y: e.clientY - pr.top + 10 })
-                                  }
-                                } : undefined}
-                              >
-                                <rect
-                                  x={lx - labelW / 2} y={ly - 10}
-                                  width={labelW} height={20} rx={4}
-                                  fill={edgeIsModified ? 'rgba(200,140,40,0.15)' : 'rgba(100,80,200,0.11)'}
-                                  stroke={edgeIsModified ? 'rgba(200,140,40,0.45)' : 'rgba(100,80,200,0.24)'}
-                                  strokeWidth={1}
-                                />
-                                <text
-                                  x={lx} y={ly + 4}
-                                  textAnchor="middle"
-                                  fontSize={10}
-                                  fontFamily="system-ui,sans-serif"
-                                  fill={edgeIsModified ? 'rgba(240,185,90,0.92)' : 'rgba(180,160,255,0.88)'}
-                                >
-                                  {displayText}
-                                </text>
-                              </g>
-                            </g>
-                          )
-                        })}
-
-                        {/* Nodes as foreignObject */}
-                        {nodes.map(node => {
-                          const pos = positions.get(node.id)
-                          if (!pos) return null
-                          const available = isNodeAvailable(nodes, edges, node)
-                          const inactive = !available && !node.completed
-                          const finished = node.completed && !node.published
-                          const isEditingThis = editingNodeId === node.id
-                          const canEdit = !node.completed
-
-                          return (
-                            <foreignObject key={node.id} x={pos.x} y={pos.y} width={NODE_W} height={nodeH} style={{ overflow: 'visible' }} pointerEvents="all">
-                              <div
-                                className={[
-                                  s.svgNodeCard,
-                                  inactive       ? s.nodeLocked   : '',
-                                  node.published ? s.nodePublished : '',
-                                  finished       ? s.nodeFinished  : '',
-                                ].filter(Boolean).join(' ')}
-                              >
-                                <div className={s.nodeTopRow}>
-                                  <span className={s.nodeIcon}>
-                                    {node.published ? '★' : node.completed ? '✓' : inactive ? '○' : '◎'}
+                                <div className={s.mediumPieceLevels}>
+                                  <span className={[s.levelBadge, p.level1_done?s.levelDone:'', !l1Unlocked?s.levelLocked:''].filter(Boolean).join(' ')}>
+                                    L1: {(t.content.product as Record<string,{badge_label:string}>)[p.level1_type]?.badge_label ?? p.level1_type}
+                                    {p.level1_done ? ' ✓' : ''}
                                   </span>
-
-                                  {isEditingThis ? (
-                                    <input
-                                      ref={nodeInputRef}
-                                      className={s.nodeInput}
-                                      value={editingNodeVal}
-                                      onChange={e => setEditingNodeVal(e.target.value)}
-                                      onBlur={() => handleNodeNameSave(weaponId, node.id)}
-                                      onKeyDown={e => {
-                                        if (e.key === 'Enter') handleNodeNameSave(weaponId, node.id)
-                                        if (e.key === 'Escape') { setEditingNodeId(null); setEditingNodeVal('') }
-                                      }}
-                                    />
-                                  ) : (
-                                    <span
-                                      className={[s.nodeName, canEdit ? s.nodeNameEditable : ''].join(' ')}
-                                      onClick={() => {
-                                        if (canEdit) {
-                                          setEditingNodeId(node.id)
-                                          setEditingNodeVal(node.name)
-                                        }
-                                      }}
-                                      title={canEdit ? t.ui.click_to_rename : undefined}
-                                    >
-                                      {node.name
-                                        ? node.name
-                                        : canEdit
-                                          ? <em className={s.nodeUnnamed}>{(t.ui as Record<string,string>).click_to_name ?? 'Click to name…'}</em>
-                                          : <em className={s.nodeUnnamed}>{t.ui.untitled}</em>
-                                      }
-                                    </span>
-                                  )}
-
-                                  {node.content_type && (() => {
-                                    const label = (t.content.product as Record<string, { badge_label?: string } | undefined>)[node.content_type]?.badge_label ?? node.content_type
-                                    const canModify = !isActivated && (
-                                      node.content_type_modified ||
-                                      MODIFICATION_STATS.some(st => (remainingMods[st] ?? 0) > 0 && (STAT_CONTENT_TYPES[st]?.filter(x => x !== '_blank').length ?? 0) > 0)
-                                    )
-                                    const isOpen = modifyNodeId === node.id
-                                    return (
-                                      <span
-                                        className={[
-                                          s.nodeContentBadge,
-                                          node.content_type_modified ? s.nodeContentBadgeModified : '',
-                                          canModify ? s.nodeContentBadgeClickable : '',
-                                        ].filter(Boolean).join(' ')}
-                                        title={canModify ? 'Click to change content type' : undefined}
-                                        onClick={canModify ? e => {
-                                          e.stopPropagation()
-                                          const pane = treePaneRef.current
-                                          if (!pane) return
-                                          const pr = pane.getBoundingClientRect()
-                                          if (isOpen) { setModifyNodeId(null) } else {
-                                            setModifyNodeId(node.id)
-                                            setModifyEdge(null)
-                                            setPickerPos({ x: e.clientX - pr.left, y: e.clientY - pr.top + 10 })
-                                          }
-                                        } : undefined}
-                                      >
-                                        {label}{canModify ? ' ✎' : ''}
-                                      </span>
-                                    )
-                                  })()}
-
-                                  {finished && (
-                                    <button
-                                      className={s.btnPublish}
-                                      onClick={() => store.publishCampaignNode(weaponId, node.id)}
-                                      title={(t.ui as Record<string, string>).btn_publish_node ?? 'Publish'}
-                                    >
-                                      {(t.ui as Record<string, string>).btn_publish_node ?? 'Publish'}
-                                    </button>
-                                  )}
-
-                                  {node.published && (
-                                    <>
-                                      <span className={s.publishedBadge}>
-                                        {(t.ui as Record<string, string>).node_published ?? 'Published'}
-                                      </span>
-                                      {(node.promote_count ?? 0) > 0 && (
-                                        <span className={s.promoteCount}>×{node.promote_count}</span>
-                                      )}
-                                      {(node.promote_count ?? 0) < 3 && (
-                                        <button
-                                          className={s.btnPromote}
-                                          onClick={() => store.promoteNode(weaponId, node.id)}
-                                          title="Promote"
-                                        >
-                                          ↑
-                                        </button>
-                                      )}
-                                    </>
-                                  )}
+                                  <span className={[s.levelBadge, p.level2_done?s.levelDone:'', !l2Unlocked?s.levelLocked:''].filter(Boolean).join(' ')}>
+                                    L2: {(t.content.product as Record<string,{badge_label:string}>)[p.level2_type]?.badge_label ?? p.level2_type}
+                                    {p.level2_done ? ' ✓' : !l2Unlocked ? ' 🔒' : ''}
+                                  </span>
                                 </div>
-
-                                {!isActivated && !node.completed && (() => {
-                                  const nodeR = node.node_research ?? defaultR
-                                  const nodeP = node.node_produce  ?? defaultP
-                                  return (
-                                    <div className={s.tileRow}>
-                                      <span className={s.tileControl}>
-                                        <span className={s.tileLabelR}>R</span>
-                                        <button className={s.tileBtn} disabled={nodeR <= 0} onClick={() => store.setNodeTileAllocation(weaponId, node.id, nodeR - 1, nodeP)}>−</button>
-                                        <span className={s.tileCount}>{nodeR}</span>
-                                        <button className={s.tileBtn} disabled={poolR <= 0} onClick={() => store.setNodeTileAllocation(weaponId, node.id, nodeR + 1, nodeP)}>+</button>
-                                      </span>
-                                      <span className={s.tileControl}>
-                                        <span className={s.tileLabelP}>P</span>
-                                        <button className={s.tileBtn} disabled={nodeP <= 1} onClick={() => store.setNodeTileAllocation(weaponId, node.id, nodeR, nodeP - 1)}>−</button>
-                                        <span className={s.tileCount}>{nodeP}</span>
-                                        <button className={s.tileBtn} disabled={poolP <= 0} onClick={() => store.setNodeTileAllocation(weaponId, node.id, nodeR, nodeP + 1)}>+</button>
-                                      </span>
-                                    </div>
-                                  )
-                                })()}
+                                {p.constraint && (
+                                  <div className={s.constraintChip}>{p.constraint.category}: {String(p.constraint.value).replace(/_/g, ' ')}</div>
+                                )}
                               </div>
-                            </foreignObject>
-                          )
-                        })}
-                      </svg>
-
-                      {campaign.completed && (
-                        <div className={s.completedHint}>
-                          Campaign complete — assign a new campaign to this weapon to continue growing this content tree.
+                            )
+                          })}
                         </div>
-                      )}
-
-                      {/* ── Modification picker (node content type) ── */}
-                      {modifyNodeId && !isActivated && (
-                        <>
-                          <div className={s.modPickerBackdrop} onClick={() => setModifyNodeId(null)} />
-                          <div className={s.modPicker} style={{ left: pickerPos.x, top: pickerPos.y }}>
-                            <div className={s.modPickerTitle}>Change content type</div>
-                            {(() => {
-                              const targetNode = campaign.nodes.find(n => n.id === modifyNodeId)
-                              const groups = MODIFICATION_STATS.filter(stat =>
-                                (remainingMods[stat] ?? 0) > 0 &&
-                                (STAT_CONTENT_TYPES[stat]?.filter(x => x !== '_blank').length ?? 0) > 0
-                              )
-                              return (
-                                <>
-                                  {targetNode?.content_type_modified && (
-                                    <div className={s.modPickerGroup}>
-                                      <div className={s.modPickerStat}>Original</div>
-                                      <div className={s.modPickerOptions}>
-                                        <button
-                                          className={s.modPickerReset}
-                                          onClick={() => {
-                                            store.resetNodeContentType(weaponId, modifyNodeId!)
-                                            setModifyNodeId(null)
-                                          }}
-                                        >
-                                          ↩ {(t.content.product as Record<string, { badge_label?: string } | undefined>)[targetNode.original_content_type!]?.badge_label ?? targetNode.original_content_type}
-                                        </button>
-                                      </div>
-                                    </div>
-                                  )}
-                                  {groups.length === 0 && !targetNode?.content_type_modified && (
-                                    <div className={s.modPickerEmpty}>{t.ui.stat_mod_unavailable}</div>
-                                  )}
-                                  {groups.map(stat => (
-                                    <div key={stat} className={s.modPickerGroup}>
-                                      <div className={s.modPickerStat}>
-                                        {(t.ui as Record<string,string>)[`stat_${stat}`] ?? stat}
-                                        <span className={s.modPickerRemaining}> {remainingMods[stat]} left</span>
-                                      </div>
-                                      <div className={s.modPickerOptions}>
-                                        {STAT_CONTENT_TYPES[stat]!.filter(x => x !== '_blank').map(type => (
-                                          <button
-                                            key={type}
-                                            className={s.modPickerOption}
-                                            onClick={() => {
-                                              store.modifyNodeContentType(weaponId, modifyNodeId!, type as ContentProductType, stat as StatKey)
-                                              setModifyNodeId(null)
-                                            }}
-                                          >
-                                            {(t.content.product as Record<string, { badge_label?: string } | undefined>)[type]?.badge_label ?? type}
-                                          </button>
-                                        ))}
-                                      </div>
-                                    </div>
-                                  ))}
-                                </>
-                              )
-                            })()}
+                        {campaign.medium.completed && <div className={s.modeComplete}>✓ Medium complete</div>}
+                      </div>
+                    )}
+                    {activeTab === 'heavy' && campaign.heavy && (
+                      <div className={s.modePanel}>
+                        <div className={s.heavyCard}>
+                          <div className={s.heavyProductType}>
+                            {(t.content.product as Record<string,{badge_label:string}>)[campaign.heavy.product_type]?.badge_label ?? campaign.heavy.product_type}
                           </div>
-                        </>
-                      )}
-
-                      {/* ── Modification picker (edge transformation) ── */}
-                      {modifyEdge && !isActivated && (
-                        <>
-                          <div className={s.modPickerBackdrop} onClick={() => setModifyEdge(null)} />
-                          <div className={s.modPicker} style={{ left: pickerPos.x, top: pickerPos.y }}>
-                            <div className={s.modPickerTitle}>Change transformation</div>
-                            {(() => {
-                              const targetEdge = campaign.edges.find(e => e.from_id === modifyEdge!.from && e.to_id === modifyEdge!.to)
-                              const groups = MODIFICATION_STATS.filter(stat =>
-                                (remainingMods[stat] ?? 0) > 0 &&
-                                (STAT_TRANSFORMATIONS[stat]?.length ?? 0) > 0
-                              )
-                              const origLabel = targetEdge?.label_modified ? targetEdge.original_label : undefined
-                              const origDisplay = origLabel == null ? 'Follows' : (LABEL_DISPLAY[origLabel] ?? origLabel)
-                              return (
-                                <>
-                                  {targetEdge?.label_modified && (
-                                    <div className={s.modPickerGroup}>
-                                      <div className={s.modPickerStat}>Original</div>
-                                      <div className={s.modPickerOptions}>
-                                        <button
-                                          className={s.modPickerReset}
-                                          onClick={() => {
-                                            store.resetEdgeLabel(weaponId, modifyEdge!.from, modifyEdge!.to)
-                                            setModifyEdge(null)
-                                          }}
-                                        >
-                                          ↩ {origDisplay}
-                                        </button>
-                                      </div>
-                                    </div>
-                                  )}
-                                  {groups.length === 0 && !targetEdge?.label_modified && (
-                                    <div className={s.modPickerEmpty}>{t.ui.stat_mod_unavailable}</div>
-                                  )}
-                                  {groups.map(stat => (
-                                    <div key={stat} className={s.modPickerGroup}>
-                                      <div className={s.modPickerStat}>
-                                        {(t.ui as Record<string,string>)[`stat_${stat}`] ?? stat}
-                                        <span className={s.modPickerRemaining}> {remainingMods[stat]} left</span>
-                                      </div>
-                                      <div className={s.modPickerOptions}>
-                                        {STAT_TRANSFORMATIONS[stat]!.map(transformation => (
-                                          <button
-                                            key={transformation}
-                                            className={s.modPickerOption}
-                                            onClick={() => {
-                                              store.modifyEdgeLabel(weaponId, modifyEdge!.from, modifyEdge!.to, transformation, stat as StatKey)
-                                              setModifyEdge(null)
-                                            }}
-                                          >
-                                            {LABEL_DISPLAY[transformation] ?? transformation}
-                                          </button>
-                                        ))}
-                                      </div>
-                                    </div>
-                                  ))}
-                                </>
-                              )
-                            })()}
+                          <div className={s.heavyProgress}>
+                            <span className={s.heavyProgressLabel}>Research</span>
+                            <span className={s.heavyProgressTrack}>
+                              <span className={s.heavyProgressFill} style={{width:`${Math.min(100,campaign.heavy.research_count>0?(campaign.heavy.research_done/campaign.heavy.research_count)*100:0)}%`}} />
+                            </span>
+                            <span>{campaign.heavy.research_done}/{campaign.heavy.research_count}</span>
                           </div>
-                        </>
-                      )}
-                      </>}
-                    </>
-                  )
-                })()}
+                          <div className={s.heavyProgress}>
+                            <span className={s.heavyProgressLabel}>Produce</span>
+                            <span className={s.heavyProgressTrack}>
+                              <span className={s.heavyProgressFill} style={{width:`${Math.min(100,campaign.heavy.produce_count>0?(campaign.heavy.produce_done/campaign.heavy.produce_count)*100:0)}%`}} />
+                            </span>
+                            <span>{campaign.heavy.produce_done}/{campaign.heavy.produce_count}</span>
+                          </div>
+                        </div>
+                        {campaign.heavy.completed && <div className={s.modeComplete}>✓ Heavy complete</div>}
+                      </div>
+                    )}
+                  </div>
+                ) : null}
               </>
             )}
           </div>
