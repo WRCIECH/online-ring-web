@@ -419,7 +419,12 @@ export default function CampaignOverlay({ onClose }: Props) {
                               )
                             })()}
                           </div>
-                          {campaign.heavy.completed && <div className={s.modeComplete}>✓ Heavy complete</div>}
+                          {campaign.heavy.completed && !campaign.heavy.published && (
+                            <button className={s.publishBtn} onClick={() => store.publishHeavyContent(wid)}>
+                              Publish ✦
+                            </button>
+                          )}
+                          {campaign.heavy.published && <div className={s.modeComplete}>✓ Published</div>}
                         </div>
                       )}
                     </>

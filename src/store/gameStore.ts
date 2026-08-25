@@ -321,6 +321,7 @@ export interface GameStore extends GameState {
   completeMediumLevel:    (weaponId: string, pieceId: string, level: 1 | 2) => void
   publishMediumPiece:     (weaponId: string, pieceId: string) => void
   completeHeavyTile:      (weaponId: string) => void
+  publishHeavyContent:    (weaponId: string) => void
   consumeSuperhitCharge:  (weaponId: string) => void
 
   // External rewards
@@ -963,6 +964,20 @@ export const useGameStore = create<GameStore>((set, get) => ({
       const lastPiece = pieces[pieces.length - 1]
       const completed = campaign.medium.completed || (lastPiece?.level2_done ?? false)
       const updated = { ...campaign, medium: { ...campaign.medium, pieces, completed } }
+      const prevCharges = (s.weapon_pending_superhits ?? {})[weaponId] ?? 0
+      return {
+        weapon_campaigns: { ...s.weapon_campaigns, [weaponId]: updated },
+        weapon_pending_superhits: { ...(s.weapon_pending_superhits ?? {}), [weaponId]: prevCharges + 1 },
+      }
+    })
+    get().save()
+  },
+
+  publishHeavyContent: (weaponId) => {
+    set(s => {
+      const campaign = s.weapon_campaigns[weaponId]
+      if (!campaign?.heavy || !campaign.heavy.completed || campaign.heavy.published) return s
+      const updated = { ...campaign, heavy: { ...campaign.heavy, published: true } }
       const prevCharges = (s.weapon_pending_superhits ?? {})[weaponId] ?? 0
       return {
         weapon_campaigns: { ...s.weapon_campaigns, [weaponId]: updated },

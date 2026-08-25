@@ -288,7 +288,8 @@ export interface HeavyModeState {
   produce_count: number
   research_done: number
   produce_done: number
-  completed: boolean
+  completed: boolean   // all tiles done
+  published?: boolean  // explicitly published → grants superhit
 }
 
 // ── Game state ────────────────────────────────────────────────────────────
