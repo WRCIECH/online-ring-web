@@ -26,7 +26,7 @@ type TimerCtx = {
   contentName: string
 }
 type ConfirmCtx = { type: 'micro' | 'superhit'; damage: number; productIndex: number }
-type MediumFinishCtx   = { pieceName: string; pieceId: string; level: 1 | 2; damage: number }
+type MediumFinishCtx   = { pieceName: string; pieceId: string; damage: number }
 type MediumStartCtx    = { pieceName: string; damage: number; secs: number }
 
 interface Props {
@@ -38,7 +38,7 @@ interface Props {
   canAct: boolean
   onMicro:          (damage: number, productIndex: number) => void
   onMedium:         (damage: number) => void
-  onMediumComplete: (pieceId: string, level: 1 | 2) => void
+  onMediumComplete: (pieceId: string) => void
   onHeavy:          (damage: number) => void
   onSuperhit:       (damage: number) => void
   onSacrifice:      (selfDmg: number) => void
@@ -50,15 +50,16 @@ function fmtSecs(sec: number): string {
   return m > 0 ? `${m}:${String(s).padStart(2, '0')}` : String(s)
 }
 
-function getCurrentMediumPiece(campaign: WeaponCampaign): { piece: MediumPiece; index: number; level: 1 | 2 } | null {
+// Combat only handles level 1 (drafting). Level 2 (publishing) is done in the campaign overlay.
+function getCurrentMediumPiece(campaign: WeaponCampaign): { piece: MediumPiece; index: number } | null {
   if (!campaign.medium) return null
   const pieces = campaign.medium.pieces
   for (let i = 0; i < pieces.length; i++) {
     const p = pieces[i]
-    if (p.level2_done) continue
+    if (p.level1_done) continue  // already drafted — skip
     const prevDone = i === 0 || pieces[i - 1].level1_done
     if (!prevDone) continue
-    return { piece: p, index: i, level: p.level1_done ? 2 : 1 }
+    return { piece: p, index: i }
   }
   return null
 }
@@ -84,7 +85,7 @@ export default function CampaignActionPanel({
   const superhitDmg = Math.round(calcTileDamage(LIGHT_TILE, 'Light', weapon, weaponLevel) * 5)
 
   const hasMicro  = !!(campaign.micro  && !campaign.micro.completed)
-  const hasMedium = !!(campaign.medium && campaign.medium.pieces.some(p => !p.level2_done))
+  const hasMedium = getCurrentMediumPiece(campaign) !== null
   const hasHeavy  = !!(campaign.heavy  && !campaign.heavy.completed)
   const canShit   = superhitCharges > 0
 
@@ -122,7 +123,6 @@ export default function CampaignActionPanel({
         setMediumFinish({
           pieceName: currentMedium.piece.name || `Part ${currentMedium.index + 1}`,
           pieceId:   currentMedium.piece.id,
-          level:     currentMedium.level,
           damage:    ctx.damage,
         })
       }
@@ -213,15 +213,14 @@ export default function CampaignActionPanel({
 
   // ── Medium finish confirmation ──────────────────────────────────────────────
   if (mediumFinish) {
-    const levelLabel = mediumFinish.level === 1 ? 'Draft' : 'Final'
     return (
       <div className={s.confirmView}>
         <div className={s.confirmContentName}>{mediumFinish.pieceName}</div>
-        <div className={s.confirmLabel}>Did you finish it? ({levelLabel})</div>
+        <div className={s.confirmLabel}>Did you finish the draft?</div>
         <div className={s.confirmBtns}>
           <button
             className={s.confirmYes}
-            onClick={() => { onMediumComplete(mediumFinish.pieceId, mediumFinish.level); setMediumFinish(null) }}
+            onClick={() => { onMediumComplete(mediumFinish.pieceId); setMediumFinish(null) }}
           >
             Yes — done
           </button>

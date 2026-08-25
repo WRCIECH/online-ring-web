@@ -720,8 +720,8 @@ export default function CombatScreen() {
           onMedium={(damage) => {
             dispatch({ type: 'CAMPAIGN_HIT', damage, label: '✍ Medium', color: '#60c0e0' })
           }}
-          onMediumComplete={(pieceId, level) => {
-            store.completeMediumLevel(state.equippedWeaponId, pieceId, level)
+          onMediumComplete={(pieceId) => {
+            store.completeMediumLevel(state.equippedWeaponId, pieceId, 1)
           }}
           onHeavy={(damage) => {
             dispatch({ type: 'CAMPAIGN_HIT', damage, label: '📝 Heavy work', color: '#e0a060' })
