@@ -1128,7 +1128,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
       'sociological_trends','long_term_trends','short_term_trends','needs_explanations',
       'identities_values','attitudes_beliefs','symbols_slogans','heroes_enemies',
       'myths_reflexes','narratives_frames',
-    ].map(k => [k, []])) as Record<AudienceSectionKey, { id: string; text: string }[]>
+    ].map(k => [k, []])) as unknown as Record<AudienceSectionKey, { id: string; text: string }[]>
     set(s => ({ audiences: [...(s.audiences ?? []), { id, name, sections }] }))
     get().save()
   },
