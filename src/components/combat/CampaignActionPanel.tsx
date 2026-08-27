@@ -4,6 +4,7 @@ import { SACRIFICE_MULT } from '../../data/constants'
 import type { WeaponCampaign, WeaponInstance, WorkflowTile, MediumPiece } from '../../types/game'
 import { WEAPON_CLASSES } from '../../data/generators/weaponClasses'
 import { STAGE_TIME } from '../../data/generators/workflowGenerator'
+import { useT } from '../../i18n'
 import s from './CampaignActionPanel.module.css'
 
 // Synthetic tiles use actual STAGE_TIME values so damage scales correctly with DMG_PER_MIN
@@ -68,6 +69,7 @@ export default function CampaignActionPanel({
   campaign, weapon, weaponLevel, superhitCharges, playerHp, canAct,
   onMicro, onMedium, onMediumComplete, onHeavy, onSuperhit, onSacrifice,
 }: Props) {
+  const t = useT()
   const [timer, setTimer]               = useState<TimerCtx | null>(null)
   const [confirm, setConfirm]           = useState<ConfirmCtx | null>(null)
   const [mediumStart, setMediumStart]   = useState<MediumStartCtx | null>(null)
@@ -94,7 +96,23 @@ export default function CampaignActionPanel({
   const currentProduct    = micro?.products[currentMicroIndex]
 
   const currentMedium = getCurrentMediumPiece(campaign)
-  const heavyProductName = campaign.heavy?.product_type ?? 'Heavy content'
+
+  const heavy = campaign.heavy
+  const heavyTimerName = heavy ? (heavy.name?.trim() || heavy.product_type) : 'Heavy content'
+  const heavyTotalTiles = heavy ? heavy.research_count + heavy.produce_count : 0
+  const heavyDoneTiles  = heavy ? heavy.research_done  + heavy.produce_done  : 0
+
+  function prodBadge(type: string): string {
+    return (t.content.product as Record<string, { badge_label: string }>)[type]?.badge_label ?? type
+  }
+  function constraintLabel(piece: MediumPiece): string | null {
+    if (!piece.constraint) return null
+    const entry = (t.content.constraint[piece.constraint.category] as Record<string, { label: string }>)[piece.constraint.value as string]
+    return entry?.label ?? piece.constraint.value
+  }
+  function styleLabel(style: string): string {
+    return (t.content.transformation as Record<string, { label?: string }>)[style]?.label ?? style
+  }
 
   // ── Timer countdown ───────────────────────────────────────────────────────
   useEffect(() => {
@@ -265,7 +283,13 @@ export default function CampaignActionPanel({
         <span className={s.tileLabel}>Micro</span>
         <span className={s.tileDmg}>⚔ {heavyDmg}</span>
         {currentProduct && (
-          <span className={s.tileHint}>{currentMicroIndex + 1}/{micro!.products.length}</span>
+          <>
+            <span className={s.tileTag}>{prodBadge(currentProduct.content_type)}</span>
+            {currentProduct.style && (
+              <span className={s.tileConstraint}>{styleLabel(currentProduct.style)}</span>
+            )}
+            <span className={s.tileHint}>{currentMicroIndex + 1}/{micro!.products.length}</span>
+          </>
         )}
       </button>
 
@@ -281,19 +305,28 @@ export default function CampaignActionPanel({
           ? <span className={s.tileHint} title={mediumPieceName}>{mediumPieceName.length > 14 ? mediumPieceName.slice(0, 13) + '…' : mediumPieceName}</span>
           : <span className={s.tileHint}>{fmtSecs(lightSecs)}</span>
         }
+        {currentMedium?.piece && constraintLabel(currentMedium.piece) && (
+          <span className={s.tileConstraint}>{constraintLabel(currentMedium.piece)}</span>
+        )}
       </button>
 
       {/* Heavy */}
       <button
         className={[s.tile, s.tileHeavy, !hasHeavy || !canAct ? s.tileDim : ''].filter(Boolean).join(' ')}
         disabled={!hasHeavy || !canAct}
-        onClick={() => startTimer('heavy', heavyDmg, heavySecs, heavyProductName)}
+        onClick={() => startTimer('heavy', heavyDmg, heavySecs, heavyTimerName)}
       >
         <span className={s.tileLabel}>Heavy</span>
         <span className={s.tileDmg}>⚔ {heavyDmg}</span>
-        <span className={s.tileHint} title={heavyProductName}>
-          {heavyProductName.length > 12 ? heavyProductName.slice(0, 11) + '…' : heavyProductName}
-        </span>
+        {heavy && (
+          <>
+            <span className={s.tileTag}>{prodBadge(heavy.product_type)}</span>
+            {heavy.name?.trim() && (
+              <span className={s.tileHint} title={heavy.name}>{heavy.name.length > 14 ? heavy.name.slice(0, 13) + '…' : heavy.name}</span>
+            )}
+            <span className={s.tileConstraint}>{heavyDoneTiles}/{heavyTotalTiles} tiles</span>
+          </>
+        )}
       </button>
 
       {/* Superhit */}
