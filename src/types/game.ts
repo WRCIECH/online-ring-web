@@ -255,6 +255,9 @@ export interface MicroProduct {
   content_type: MicroContentType
   style?: ContentTransformation   // present ~50% of the time
   done_count: number
+  // Modification tracking (stat-based edit system)
+  type_modified?: boolean; original_content_type?: MicroContentType; type_modified_stat?: StatKey
+  style_modified?: boolean; original_style?: ContentTransformation;   style_modified_stat?: StatKey
 }
 
 export interface MicroModeState {
@@ -273,11 +276,17 @@ export interface MediumPiece {
   constraint?: NodeConstraint
   level1_done: boolean
   level2_done: boolean
+  // Modification tracking
+  constraint_modified?: boolean; original_constraint?: NodeConstraint; constraint_modified_stat?: StatKey
+  link_type_modified?: boolean;  original_link_type?: ContentShift;   link_type_modified_stat?: StatKey
 }
 
 export interface MediumModeState {
   pieces: MediumPiece[]
   completed: boolean              // true when last piece.level2_done
+  // Global format modification tracking (L1/L2 apply to all pieces at once)
+  level1_modified?: boolean; original_level1_type?: MediumContentType; level1_modified_stat?: StatKey
+  level2_modified?: boolean; original_level2_type?: MediumContentType; level2_modified_stat?: StatKey
 }
 
 // ── Heavy mode ────────────────────────────────────────────────────────────
@@ -290,6 +299,8 @@ export interface HeavyModeState {
   produce_done: number
   completed: boolean   // all tiles done
   published?: boolean  // explicitly published → grants superhit
+  // Modification tracking
+  product_type_modified?: boolean; original_product_type?: HeavyContentType; product_type_modified_stat?: StatKey
 }
 
 // ── Audience profiles ─────────────────────────────────────────────────────

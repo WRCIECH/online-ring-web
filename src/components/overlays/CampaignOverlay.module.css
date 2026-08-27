@@ -1773,6 +1773,26 @@
 
 /* ── Modification edit buttons ──────────────────────────────────────────── */
 
+.modResetBtn {
+  display: inline-flex;
+  align-items: center;
+  padding: 1px 5px;
+  border-radius: 3px;
+  border: 1px solid rgba(200,140,40,0.30);
+  background: transparent;
+  color: rgba(240,185,90,0.50);
+  font-size: 0.59rem;
+  cursor: pointer;
+  flex-shrink: 0;
+  line-height: 1.4;
+  transition: background 0.10s, color 0.10s, border-color 0.10s;
+}
+.modResetBtn:hover {
+  background: rgba(200,140,40,0.16);
+  color: rgba(240,185,90,0.95);
+  border-color: rgba(200,140,40,0.60);
+}
+
 .modEditBtn {
   display: inline-flex;
   align-items: center;

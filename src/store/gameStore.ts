@@ -312,13 +312,20 @@ export interface GameStore extends GameState {
   modifyEdgeLabel:       (weaponId: string, fromId: string, toId: string, newLabel: ContentTransformation | null, stat: StatKey) => boolean
   resetEdgeLabel:        (weaponId: string, fromId: string, toId: string) => void
 
-  // Micro/Medium/Heavy mode modification actions
+  // Micro/Medium/Heavy mode modification actions (spend stat budget; blocked when campaign active)
   modifyMicroProductType:     (weaponId: string, productId: string, newType: MicroContentType, stat: StatKey) => boolean
   modifyMicroProductStyle:    (weaponId: string, productId: string, newStyle: ContentTransformation | null, stat: StatKey) => boolean
-  modifyMediumPieceFormat:    (weaponId: string, pieceId: string, field: 'level1_type' | 'level2_type', newType: MediumContentType, stat: StatKey) => boolean
+  modifyMediumFormat:         (weaponId: string, field: 'level1_type' | 'level2_type', newType: MediumContentType, stat: StatKey) => boolean
   modifyMediumPieceConstraint:(weaponId: string, pieceId: string, newConstraint: NodeConstraint | null, stat: StatKey) => boolean
   modifyMediumLinkType:       (weaponId: string, pieceId: string, newLinkType: ContentShift, stat: StatKey) => boolean
   modifyHeavyProductType:     (weaponId: string, newType: HeavyContentType, stat: StatKey) => boolean
+  // Reset actions (restore original value, refund stat)
+  resetMicroProductType:     (weaponId: string, productId: string) => void
+  resetMicroProductStyle:    (weaponId: string, productId: string) => void
+  resetMediumFormat:         (weaponId: string, field: 'level1_type' | 'level2_type') => void
+  resetMediumPieceConstraint:(weaponId: string, pieceId: string) => void
+  resetMediumLinkType:       (weaponId: string, pieceId: string) => void
+  resetHeavyProductType:     (weaponId: string) => void
 
   // Campaign finalization
   finalizeCampaign: (weaponId: string, freshCampaignName?: string) => void
@@ -874,12 +881,40 @@ export const useGameStore = create<GameStore>((set, get) => ({
     set(prev => ({
       weapon_campaigns: {
         ...prev.weapon_campaigns,
-        [weaponId]: { ...c, micro: { ...c.micro!, products: c.micro!.products.map(p => p.id === productId ? { ...p, content_type: newType } : p) } },
+        [weaponId]: {
+          ...c, micro: { ...c.micro!, products: c.micro!.products.map(p => p.id !== productId ? p : {
+            ...p, content_type: newType, type_modified: true, type_modified_stat: stat,
+            original_content_type: p.type_modified ? p.original_content_type : p.content_type,
+          }) },
+        },
       },
       stat_modifications_used: { ...prev.stat_modifications_used, [stat]: (prev.stat_modifications_used[stat] ?? 0) + 1 },
     }))
     get().save()
     return true
+  },
+
+  resetMicroProductType: (weaponId, productId) => {
+    const s = get()
+    const c = s.weapon_campaigns[weaponId]
+    if (!c || c.activated === true || !c.micro) return
+    const p = c.micro.products.find(x => x.id === productId)
+    if (!p?.type_modified) return
+    const refundStat = p.type_modified_stat
+    set(prev => ({
+      weapon_campaigns: {
+        ...prev.weapon_campaigns,
+        [weaponId]: {
+          ...c, micro: { ...c.micro!, products: c.micro!.products.map(x => {
+            if (x.id !== productId) return x
+            const { type_modified: _a, original_content_type, type_modified_stat: _b, ...rest } = x
+            return { ...rest, content_type: original_content_type ?? x.content_type }
+          }) },
+        },
+      },
+      ...(refundStat ? { stat_modifications_used: { ...prev.stat_modifications_used, [refundStat]: Math.max(0, (prev.stat_modifications_used[refundStat] ?? 0) - 1) } } : {}),
+    }))
+    get().save()
   },
 
   modifyMicroProductStyle: (weaponId, productId, newStyle, stat) => {
@@ -897,8 +932,12 @@ export const useGameStore = create<GameStore>((set, get) => ({
             ...c.micro!,
             products: c.micro!.products.map(p => {
               if (p.id !== productId) return p
-              if (newStyle === null) { const { style: _, ...rest } = p; return rest }
-              return { ...p, style: newStyle }
+              const origStyle = p.style_modified ? p.original_style : p.style
+              if (newStyle === null) {
+                const { style: _, ...rest } = p
+                return { ...rest, style_modified: true, style_modified_stat: stat, original_style: origStyle }
+              }
+              return { ...p, style: newStyle, style_modified: true, style_modified_stat: stat, original_style: origStyle }
             }),
           },
         },
@@ -909,21 +948,85 @@ export const useGameStore = create<GameStore>((set, get) => ({
     return true
   },
 
-  modifyMediumPieceFormat: (weaponId, pieceId, field, newType, stat) => {
+  resetMicroProductStyle: (weaponId, productId) => {
+    const s = get()
+    const c = s.weapon_campaigns[weaponId]
+    if (!c || c.activated === true || !c.micro) return
+    const p = c.micro.products.find(x => x.id === productId)
+    if (!p?.style_modified) return
+    const refundStat = p.style_modified_stat
+    set(prev => ({
+      weapon_campaigns: {
+        ...prev.weapon_campaigns,
+        [weaponId]: {
+          ...c, micro: { ...c.micro!, products: c.micro!.products.map(x => {
+            if (x.id !== productId) return x
+            const { style: _s, style_modified: _a, original_style, style_modified_stat: _b, ...rest } = x
+            return original_style !== undefined ? { ...rest, style: original_style } : rest
+          }) },
+        },
+      },
+      ...(refundStat ? { stat_modifications_used: { ...prev.stat_modifications_used, [refundStat]: Math.max(0, (prev.stat_modifications_used[refundStat] ?? 0) - 1) } } : {}),
+    }))
+    get().save()
+  },
+
+  modifyMediumFormat: (weaponId, field, newType, stat) => {
     const s = get()
     const c = s.weapon_campaigns[weaponId]
     if (!c || c.activated === true || !c.medium) return false
     const remaining = (s.stats[stat] ?? 0) - (s.stat_modifications_used[stat] ?? 0)
     if (remaining <= 0) return false
+    const med = c.medium
+    const isL1 = field === 'level1_type'
+    const modKey  = isL1 ? 'level1_modified'      : 'level2_modified'
+    const origKey = isL1 ? 'original_level1_type'  : 'original_level2_type'
+    const statKey = isL1 ? 'level1_modified_stat'  : 'level2_modified_stat'
+    const alreadyMod = med[modKey as keyof typeof med] as boolean | undefined
+    const origVal = alreadyMod ? med[origKey as keyof typeof med] : med.pieces[0]?.[field]
     set(prev => ({
       weapon_campaigns: {
         ...prev.weapon_campaigns,
-        [weaponId]: { ...c, medium: { ...c.medium!, pieces: c.medium!.pieces.map(p => p.id === pieceId ? { ...p, [field]: newType } : p) } },
+        [weaponId]: {
+          ...c, medium: {
+            ...med,
+            pieces: med.pieces.map(p => ({ ...p, [field]: newType })),
+            [modKey]: true, [origKey]: origVal, [statKey]: stat,
+          },
+        },
       },
       stat_modifications_used: { ...prev.stat_modifications_used, [stat]: (prev.stat_modifications_used[stat] ?? 0) + 1 },
     }))
     get().save()
     return true
+  },
+
+  resetMediumFormat: (weaponId, field) => {
+    const s = get()
+    const c = s.weapon_campaigns[weaponId]
+    if (!c || c.activated === true || !c.medium) return
+    const med = c.medium
+    const isL1 = field === 'level1_type'
+    const modKey  = isL1 ? 'level1_modified'      : 'level2_modified'
+    const origKey = isL1 ? 'original_level1_type'  : 'original_level2_type'
+    const statKey = isL1 ? 'level1_modified_stat'  : 'level2_modified_stat'
+    if (!med[modKey as keyof typeof med]) return
+    const origType = med[origKey as keyof typeof med] as MediumContentType | undefined
+    const refundStat = med[statKey as keyof typeof med] as StatKey | undefined
+    set(prev => ({
+      weapon_campaigns: {
+        ...prev.weapon_campaigns,
+        [weaponId]: {
+          ...c, medium: {
+            ...med,
+            pieces: origType ? med.pieces.map(p => ({ ...p, [field]: origType })) : med.pieces,
+            [modKey]: false, [origKey]: undefined, [statKey]: undefined,
+          },
+        },
+      },
+      ...(refundStat ? { stat_modifications_used: { ...prev.stat_modifications_used, [refundStat]: Math.max(0, (prev.stat_modifications_used[refundStat] ?? 0) - 1) } } : {}),
+    }))
+    get().save()
   },
 
   modifyMediumPieceConstraint: (weaponId, pieceId, newConstraint, stat) => {
@@ -941,8 +1044,12 @@ export const useGameStore = create<GameStore>((set, get) => ({
             ...c.medium!,
             pieces: c.medium!.pieces.map(p => {
               if (p.id !== pieceId) return p
-              if (newConstraint === null) { const { constraint: _, ...rest } = p; return rest }
-              return { ...p, constraint: newConstraint }
+              const origCon = p.constraint_modified ? p.original_constraint : p.constraint
+              if (newConstraint === null) {
+                const { constraint: _, ...rest } = p
+                return { ...rest, constraint_modified: true, constraint_modified_stat: stat, original_constraint: origCon }
+              }
+              return { ...p, constraint: newConstraint, constraint_modified: true, constraint_modified_stat: stat, original_constraint: origCon }
             }),
           },
         },
@@ -951,6 +1058,29 @@ export const useGameStore = create<GameStore>((set, get) => ({
     }))
     get().save()
     return true
+  },
+
+  resetMediumPieceConstraint: (weaponId, pieceId) => {
+    const s = get()
+    const c = s.weapon_campaigns[weaponId]
+    if (!c || c.activated === true || !c.medium) return
+    const p = c.medium.pieces.find(x => x.id === pieceId)
+    if (!p?.constraint_modified) return
+    const refundStat = p.constraint_modified_stat
+    set(prev => ({
+      weapon_campaigns: {
+        ...prev.weapon_campaigns,
+        [weaponId]: {
+          ...c, medium: { ...c.medium!, pieces: c.medium!.pieces.map(x => {
+            if (x.id !== pieceId) return x
+            const { constraint: _c, constraint_modified: _a, original_constraint, constraint_modified_stat: _b, ...rest } = x
+            return original_constraint !== undefined ? { ...rest, constraint: original_constraint } : rest
+          }) },
+        },
+      },
+      ...(refundStat ? { stat_modifications_used: { ...prev.stat_modifications_used, [refundStat]: Math.max(0, (prev.stat_modifications_used[refundStat] ?? 0) - 1) } } : {}),
+    }))
+    get().save()
   },
 
   modifyMediumLinkType: (weaponId, pieceId, newLinkType, stat) => {
@@ -962,12 +1092,40 @@ export const useGameStore = create<GameStore>((set, get) => ({
     set(prev => ({
       weapon_campaigns: {
         ...prev.weapon_campaigns,
-        [weaponId]: { ...c, medium: { ...c.medium!, pieces: c.medium!.pieces.map(p => p.id === pieceId ? { ...p, link_type: newLinkType } : p) } },
+        [weaponId]: {
+          ...c, medium: { ...c.medium!, pieces: c.medium!.pieces.map(p => p.id !== pieceId ? p : {
+            ...p, link_type: newLinkType, link_type_modified: true, link_type_modified_stat: stat,
+            original_link_type: p.link_type_modified ? p.original_link_type : p.link_type,
+          }) },
+        },
       },
       stat_modifications_used: { ...prev.stat_modifications_used, [stat]: (prev.stat_modifications_used[stat] ?? 0) + 1 },
     }))
     get().save()
     return true
+  },
+
+  resetMediumLinkType: (weaponId, pieceId) => {
+    const s = get()
+    const c = s.weapon_campaigns[weaponId]
+    if (!c || c.activated === true || !c.medium) return
+    const p = c.medium.pieces.find(x => x.id === pieceId)
+    if (!p?.link_type_modified) return
+    const refundStat = p.link_type_modified_stat
+    set(prev => ({
+      weapon_campaigns: {
+        ...prev.weapon_campaigns,
+        [weaponId]: {
+          ...c, medium: { ...c.medium!, pieces: c.medium!.pieces.map(x => {
+            if (x.id !== pieceId) return x
+            const { link_type_modified: _a, original_link_type, link_type_modified_stat: _b, ...rest } = x
+            return { ...rest, link_type: original_link_type ?? x.link_type }
+          }) },
+        },
+      },
+      ...(refundStat ? { stat_modifications_used: { ...prev.stat_modifications_used, [refundStat]: Math.max(0, (prev.stat_modifications_used[refundStat] ?? 0) - 1) } } : {}),
+    }))
+    get().save()
   },
 
   modifyHeavyProductType: (weaponId, newType, stat) => {
@@ -979,12 +1137,39 @@ export const useGameStore = create<GameStore>((set, get) => ({
     set(prev => ({
       weapon_campaigns: {
         ...prev.weapon_campaigns,
-        [weaponId]: { ...c, heavy: { ...c.heavy!, product_type: newType } },
+        [weaponId]: {
+          ...c, heavy: {
+            ...c.heavy!, product_type: newType, product_type_modified: true, product_type_modified_stat: stat,
+            original_product_type: c.heavy!.product_type_modified ? c.heavy!.original_product_type : c.heavy!.product_type,
+          },
+        },
       },
       stat_modifications_used: { ...prev.stat_modifications_used, [stat]: (prev.stat_modifications_used[stat] ?? 0) + 1 },
     }))
     get().save()
     return true
+  },
+
+  resetHeavyProductType: (weaponId) => {
+    const s = get()
+    const c = s.weapon_campaigns[weaponId]
+    if (!c || c.activated === true || !c.heavy?.product_type_modified) return
+    const refundStat = c.heavy.product_type_modified_stat
+    const origType = c.heavy.original_product_type ?? c.heavy.product_type
+    set(prev => ({
+      weapon_campaigns: {
+        ...prev.weapon_campaigns,
+        [weaponId]: {
+          ...c, heavy: {
+            ...c.heavy!,
+            product_type: origType,
+            product_type_modified: false, original_product_type: undefined, product_type_modified_stat: undefined,
+          },
+        },
+      },
+      ...(refundStat ? { stat_modifications_used: { ...prev.stat_modifications_used, [refundStat]: Math.max(0, (prev.stat_modifications_used[refundStat] ?? 0) - 1) } } : {}),
+    }))
+    get().save()
   },
 
   finalizeCampaign: (weaponId, freshCampaignName) => {

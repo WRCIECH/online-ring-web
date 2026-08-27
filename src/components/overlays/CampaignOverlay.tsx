@@ -187,7 +187,7 @@ export default function CampaignOverlay({ onClose }: Props) {
         ok = store.modifyMicroProductStyle(wid, ctx.productId!, optionKey === '__none__' ? null : optionKey as ContentTransformation, stat)
         break
       case 'mediumFormat':
-        ok = store.modifyMediumPieceFormat(wid, ctx.pieceId!, ctx.formatField!, optionKey as MediumContentType, stat)
+        ok = store.modifyMediumFormat(wid, ctx.formatField!, optionKey as MediumContentType, stat)
         break
       case 'mediumConstraint':
         if (optionKey === '__none__') {
@@ -464,16 +464,10 @@ export default function CampaignOverlay({ onClose }: Props) {
                                     <div className={s.microCardCount}>×{p.done_count}</div>
                                     {!isActivated && (
                                       <div className={s.microCardEditRow}>
-                                        <button
-                                          className={s.modEditBtn}
-                                          title="Change type"
-                                          onClick={e => { e.stopPropagation(); openMod({ kind: 'microType', productId: p.id }) }}
-                                        >T✎</button>
-                                        <button
-                                          className={s.modEditBtn}
-                                          title="Change style"
-                                          onClick={e => { e.stopPropagation(); openMod({ kind: 'microStyle', productId: p.id }) }}
-                                        >S✎</button>
+                                        <button className={s.modEditBtn} title="Change type" onClick={e => { e.stopPropagation(); openMod({ kind: 'microType', productId: p.id }) }}>T✎</button>
+                                        {p.type_modified && <button className={s.modResetBtn} title="Reset type" onClick={e => { e.stopPropagation(); store.resetMicroProductType(wid, p.id) }}>↺</button>}
+                                        <button className={s.modEditBtn} title="Change style" onClick={e => { e.stopPropagation(); openMod({ kind: 'microStyle', productId: p.id }) }}>S✎</button>
+                                        {p.style_modified && <button className={s.modResetBtn} title="Reset style" onClick={e => { e.stopPropagation(); store.resetMicroProductStyle(wid, p.id) }}>↺</button>}
                                       </div>
                                     )}
                                   </div>
@@ -491,8 +485,16 @@ export default function CampaignOverlay({ onClose }: Props) {
                           <div className={s.mediumFormat}>
                             <span className={s.mediumFormatLabel}>Format:</span>
                             <span className={s.levelBadge}>L1 {l1Label}</span>
+                            {!isActivated && <>
+                              <button className={s.modEditBtn} title="Change L1 type" onClick={() => openMod({ kind: 'mediumFormat', formatField: 'level1_type' })}>✎</button>
+                              {campaign.medium!.level1_modified && <button className={s.modResetBtn} title="Reset L1 to original" onClick={() => store.resetMediumFormat(wid, 'level1_type')}>↺</button>}
+                            </>}
                             <span className={s.mediumFormatArrow}>→</span>
                             <span className={s.levelBadge}>L2 {l2Label}</span>
+                            {!isActivated && <>
+                              <button className={s.modEditBtn} title="Change L2 type" onClick={() => openMod({ kind: 'mediumFormat', formatField: 'level2_type' })}>✎</button>
+                              {campaign.medium!.level2_modified && <button className={s.modResetBtn} title="Reset L2 to original" onClick={() => store.resetMediumFormat(wid, 'level2_type')}>↺</button>}
+                            </>}
                           </div>
                           <div className={s.mediumList}>
                             {campaign.medium.pieces.map((p: MediumPiece, i: number) => {
@@ -549,19 +551,12 @@ export default function CampaignOverlay({ onClose }: Props) {
                                         <div className={s.modEditRow}>
                                           <button
                                             className={s.modEditBtn}
-                                            title="Edit L1 format"
-                                            onClick={() => openMod({ kind: 'mediumFormat', pieceId: p.id, formatField: 'level1_type' })}
-                                          >L1✎</button>
-                                          <button
-                                            className={s.modEditBtn}
-                                            title="Edit L2 format"
-                                            onClick={() => openMod({ kind: 'mediumFormat', pieceId: p.id, formatField: 'level2_type' })}
-                                          >L2✎</button>
-                                          <button
-                                            className={s.modEditBtn}
                                             title={p.constraint ? 'Change constraint' : 'Add constraint'}
                                             onClick={() => openMod({ kind: 'mediumConstraint', pieceId: p.id })}
                                           >{p.constraint ? '⊕✎' : '+ constraint'}</button>
+                                          {p.constraint_modified && (
+                                            <button className={s.modResetBtn} title="Reset constraint" onClick={() => store.resetMediumPieceConstraint(wid, p.id)}>↺</button>
+                                          )}
                                         </div>
                                       )}
                                     </div>
@@ -571,11 +566,10 @@ export default function CampaignOverlay({ onClose }: Props) {
                                       <div className={s.connectorLine} />
                                       <span className={s.connectorLabel}>{LINK_DISPLAY[p.link_type] ?? p.link_type}</span>
                                       {!isActivated && (
-                                        <button
-                                          className={s.modEditBtn}
-                                          title="Change link type"
-                                          onClick={() => openMod({ kind: 'mediumLink', pieceId: p.id })}
-                                        >✎</button>
+                                        <button className={s.modEditBtn} title="Change link type" onClick={() => openMod({ kind: 'mediumLink', pieceId: p.id })}>✎</button>
+                                      )}
+                                      {!isActivated && p.link_type_modified && (
+                                        <button className={s.modResetBtn} title="Reset link type" onClick={() => store.resetMediumLinkType(wid, p.id)}>↺</button>
                                       )}
                                       <div className={s.connectorLine} />
                                     </div>
@@ -595,12 +589,10 @@ export default function CampaignOverlay({ onClose }: Props) {
                             <div className={s.heavyProductType}>
                               {prodLabel(campaign.heavy.product_type)}
                               {!isActivated && (
-                                <button
-                                  className={s.modEditBtn}
-                                  title="Change product type"
-                                  style={{ marginLeft: 6 }}
-                                  onClick={() => openMod({ kind: 'heavyType' })}
-                                >✎</button>
+                                <button className={s.modEditBtn} title="Change product type" style={{ marginLeft: 6 }} onClick={() => openMod({ kind: 'heavyType' })}>✎</button>
+                              )}
+                              {!isActivated && campaign.heavy.product_type_modified && (
+                                <button className={s.modResetBtn} title="Reset to original" style={{ marginLeft: 4 }} onClick={() => store.resetHeavyProductType(wid)}>↺</button>
                               )}
                             </div>
                             {isActivated ? (
