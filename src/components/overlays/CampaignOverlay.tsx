@@ -3,7 +3,11 @@ import { useGameStore } from '../../store/gameStore'
 import { LEVEL_MULT, weaponUpgradeCost, calcWeaponScaledDamage, calcWeaponSellPrice } from '../../data/weapons'
 import { STAGE_TIME } from '../../data/generators/workflowGenerator'
 import { WEAPON_CLASSES } from '../../data/generators/weaponClasses'
-import type { WeaponCampaign, WeaponInstance, MicroProduct, MediumPiece } from '../../types/game'
+import {
+  MODIFICATION_STATS, STAT_TRANSFORMATIONS, STAT_CONSTRAINTS, STAT_LINK_TYPES,
+  statMicroTypes, statMediumTypes, statHeavyTypes,
+} from '../../data/statModifications'
+import type { WeaponCampaign, WeaponInstance, MicroProduct, MediumPiece, StatKey, ContentTransformation, MicroContentType, MediumContentType, HeavyContentType, ContentShift, NodeConstraint, ConstraintCategory, PropagandaShift, MediumAudienceShift, StyleShift } from '../../types/game'
 import WeaponIcon from '../WeaponIcon'
 import { useT, localizeWeaponName } from '../../i18n'
 import s from './CampaignOverlay.module.css'
@@ -12,35 +16,44 @@ interface Props {
   onClose: () => void
 }
 
-// ── Edge label display names and tooltips ───────────────────────────────────
+// ── Edge label display names ─────────────────────────────────────────────────
 
 const LABEL_DISPLAY: Record<string, string> = {
-  // ContentTransformation — relation types
-  Succinct:      'Succinct',
-  Verbose:       'Verbose',
-  ZoomIn:        'Zoom In',
-  ZoomOut:       'Zoom Out',
-  Similar:       'Similar',
-  Opposite:      'Opposite',
-  // ContentTransformation — style types
-  Shock:         'Shock',
-  Narration:     'Narration',
-  Segmentation:  'Segmentation',
-  Passion:       'Passion',
-  Estetic:       'Esthetic',
-  Cliffhanger:   'Cliffhanger',
-  Viral:         'Viral',
-  Controversy:   'Controversy',
-  Comfort:       'Comfort',
-  Drama:         'Drama',
-  Humor:         'Humor',
-  Parasocial:    'Parasocial',
-  Wow:           'Wow',
-  Hope:          'Hope',
-  Fear:          'Fear',
-  Desire:        'Desire',
+  Succinct: 'Succinct', Verbose: 'Verbose', ZoomIn: 'Zoom In', ZoomOut: 'Zoom Out',
+  Similar: 'Similar', Opposite: 'Opposite', Shock: 'Shock', Narration: 'Narration',
+  Segmentation: 'Segmentation', Passion: 'Passion', Estetic: 'Esthetic', Cliffhanger: 'Cliffhanger',
+  Viral: 'Viral', Controversy: 'Controversy', Comfort: 'Comfort', Drama: 'Drama',
+  Humor: 'Humor', Parasocial: 'Parasocial', Wow: 'Wow', Hope: 'Hope', Fear: 'Fear', Desire: 'Desire',
 }
 
+const LINK_DISPLAY: Record<ContentShift, string> = {
+  Follows: 'Follows', ZoomIn: 'Zoom In', ZoomOut: 'Zoom Out', Similar: 'Similar', Opposite: 'Opposite',
+}
+
+// ── Modification picker types ─────────────────────────────────────────────────
+
+type ModKind =
+  | 'microType' | 'microStyle'
+  | 'mediumFormat' | 'mediumConstraint' | 'mediumLink'
+  | 'heavyType'
+
+interface ModCtxData {
+  kind: ModKind
+  productId?: string
+  pieceId?: string
+  formatField?: 'level1_type' | 'level2_type'
+  step: 'stat' | 'option'
+  stat?: StatKey
+}
+
+const PROPAGANDA_VALUES: PropagandaShift[] = ['enhance', 'weaken', 'focus', 'action']
+const AUDIENCE_VALUES: MediumAudienceShift[] = ['audience_x', 'lower_self', 'average_self', 'higher_self', 'base_trend_event', 'need_identity_belief']
+const STYLE_VALUES: StyleShift[] = ['narration', 'segmentation', 'socratic', 'enemy_hero', 'slogan_symbol', 'analogy', 'verbose', 'succinct', 'technicalize', 'simplify', 'evidence', 'data_driven', 'first_principles']
+const CONSTRAINT_VALUES: Record<ConstraintCategory, string[]> = {
+  propaganda: PROPAGANDA_VALUES,
+  audience:   AUDIENCE_VALUES,
+  style:      STYLE_VALUES,
+}
 
 // ── Component ────────────────────────────────────────────────────────────────
 
@@ -52,12 +65,11 @@ export default function CampaignOverlay({ onClose }: Props) {
     store.weapon_instances[0]?.instance_id ?? null
   )
   const [activeTab, setActiveTab] = useState<'micro' | 'medium' | 'heavy'>('medium')
-  // Weapon actions
   const [confirmSellId,    setConfirmSellId]    = useState<string | null>(null)
   const [confirmUpgradeId, setConfirmUpgradeId] = useState<string | null>(null)
   const [hoveredUpgrade,   setHoveredUpgrade]   = useState(false)
+  const [modCtx,           setModCtx]           = useState<ModCtxData | null>(null)
 
-  // Auto-generate campaign when selecting a weapon that has none
   useEffect(() => {
     if (selectedWeaponId && !store.weapon_campaigns[selectedWeaponId]) {
       const w = store.weapon_instances.find(wi => wi.instance_id === selectedWeaponId)
@@ -66,11 +78,11 @@ export default function CampaignOverlay({ onClose }: Props) {
     }
   }, [selectedWeaponId]) // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Reset transient UI when switching weapons
   useEffect(() => {
     setConfirmSellId(null)
     setConfirmUpgradeId(null)
     setActiveTab('medium')
+    setModCtx(null)
   }, [selectedWeaponId])
 
   const selectedWeapon = selectedWeaponId
@@ -80,7 +92,6 @@ export default function CampaignOverlay({ onClose }: Props) {
     ? store.weapon_campaigns[selectedWeaponId]
     : undefined
 
-  // Weapon action helpers
   const wid = selectedWeapon?.instance_id ?? ''
   const level = store.weapon_level[wid] ?? 0
   const isMax = level >= 10
@@ -94,12 +105,8 @@ export default function CampaignOverlay({ onClose }: Props) {
 
   function handleUpgrade() {
     if (!selectedWeapon) return
-    if (isConfirmUpgrade) {
-      store.upgradeWeapon(wid)
-      setConfirmUpgradeId(null)
-    } else {
-      setConfirmUpgradeId(wid)
-    }
+    if (isConfirmUpgrade) { store.upgradeWeapon(wid); setConfirmUpgradeId(null) }
+    else setConfirmUpgradeId(wid)
   }
 
   function handleSell() {
@@ -109,9 +116,167 @@ export default function CampaignOverlay({ onClose }: Props) {
       store.sellWeapon(wid)
       setConfirmSellId(null)
       setSelectedWeaponId(remaining[0]?.instance_id ?? null)
-    } else {
-      setConfirmSellId(wid)
+    } else setConfirmSellId(wid)
+  }
+
+  // ── Mod picker helpers ─────────────────────────────────────────────────────
+
+  function getBudget(stat: StatKey) {
+    return (store.stats[stat] ?? 0) - (store.stat_modifications_used[stat] ?? 0)
+  }
+
+  function hasOptionsForStat(kind: ModKind, stat: StatKey): boolean {
+    switch (kind) {
+      case 'microType':        return statMicroTypes(stat).length > 0
+      case 'microStyle':       return (STAT_TRANSFORMATIONS[stat]?.length ?? 0) > 0
+      case 'mediumFormat':     return statMediumTypes(stat).length > 0
+      case 'mediumConstraint': return (STAT_CONSTRAINTS[stat]?.length ?? 0) > 0
+      case 'mediumLink':       return (STAT_LINK_TYPES[stat]?.length ?? 0) > 0
+      case 'heavyType':        return statHeavyTypes(stat).length > 0
     }
+  }
+
+  function getOptions(ctx: ModCtxData): { key: string; label: string }[] {
+    if (!ctx.stat) return []
+    const stat = ctx.stat
+    const prodLabel = (type: string) =>
+      (t.content.product as Record<string, { badge_label: string }>)[type]?.badge_label ?? type
+
+    switch (ctx.kind) {
+      case 'microType':
+        return statMicroTypes(stat).map(ty => ({ key: ty, label: prodLabel(ty) }))
+
+      case 'microStyle':
+        return [
+          { key: '__none__', label: 'None' },
+          ...(STAT_TRANSFORMATIONS[stat] ?? []).map(ty => ({ key: ty, label: LABEL_DISPLAY[ty] ?? ty })),
+        ]
+
+      case 'mediumFormat':
+        return statMediumTypes(stat).map(ty => ({ key: ty, label: prodLabel(ty) }))
+
+      case 'mediumConstraint': {
+        const cats = STAT_CONSTRAINTS[stat] ?? []
+        const opts: { key: string; label: string }[] = [{ key: '__none__', label: 'Clear' }]
+        for (const cat of cats) {
+          for (const val of CONSTRAINT_VALUES[cat]) {
+            const entry = (t.content.constraint[cat] as Record<string, { label: string }>)[val]
+            opts.push({ key: `${cat}:${val}`, label: entry?.label ?? val })
+          }
+        }
+        return opts
+      }
+
+      case 'mediumLink':
+        return (STAT_LINK_TYPES[stat] ?? []).map(ty => ({ key: ty, label: LINK_DISPLAY[ty] ?? ty }))
+
+      case 'heavyType':
+        return statHeavyTypes(stat).map(ty => ({ key: ty, label: prodLabel(ty) }))
+    }
+  }
+
+  function applyMod(ctx: ModCtxData, optionKey: string) {
+    if (!ctx.stat) return
+    const stat = ctx.stat
+    let ok = false
+    switch (ctx.kind) {
+      case 'microType':
+        ok = store.modifyMicroProductType(wid, ctx.productId!, optionKey as MicroContentType, stat)
+        break
+      case 'microStyle':
+        ok = store.modifyMicroProductStyle(wid, ctx.productId!, optionKey === '__none__' ? null : optionKey as ContentTransformation, stat)
+        break
+      case 'mediumFormat':
+        ok = store.modifyMediumPieceFormat(wid, ctx.pieceId!, ctx.formatField!, optionKey as MediumContentType, stat)
+        break
+      case 'mediumConstraint':
+        if (optionKey === '__none__') {
+          ok = store.modifyMediumPieceConstraint(wid, ctx.pieceId!, null, stat)
+        } else {
+          const [cat, val] = optionKey.split(':')
+          const constraint: NodeConstraint = { category: cat as ConstraintCategory, value: val as PropagandaShift }
+          ok = store.modifyMediumPieceConstraint(wid, ctx.pieceId!, constraint, stat)
+        }
+        break
+      case 'mediumLink':
+        ok = store.modifyMediumLinkType(wid, ctx.pieceId!, optionKey as ContentShift, stat)
+        break
+      case 'heavyType':
+        ok = store.modifyHeavyProductType(wid, optionKey as HeavyContentType, stat)
+        break
+    }
+    if (ok) setModCtx(null)
+  }
+
+  function openMod(partial: Omit<ModCtxData, 'step'>) {
+    setModCtx({ ...partial, step: 'stat' })
+  }
+
+  // ── Mod picker render ──────────────────────────────────────────────────────
+
+  function renderModPicker() {
+    if (!modCtx) return null
+    return (
+      <>
+        <div
+          style={{ position: 'fixed', inset: 0, zIndex: 19 }}
+          onClick={() => setModCtx(null)}
+        />
+        <div className={s.modPicker} style={{ position: 'fixed', top: '50%', left: '55%', transform: 'translateY(-50%)', zIndex: 20 }}>
+          {modCtx.step === 'stat' ? (
+            <>
+              <div className={s.modPickerTitle}>Pick stat to spend</div>
+              <div className={s.modPickerOptions}>
+                {MODIFICATION_STATS.map(stat => {
+                  const budget = getBudget(stat)
+                  const hasOpts = hasOptionsForStat(modCtx.kind, stat)
+                  return (
+                    <button
+                      key={stat}
+                      className={s.modPickerOption}
+                      disabled={budget <= 0 || !hasOpts}
+                      onClick={() => setModCtx({ ...modCtx, stat, step: 'option' })}
+                    >
+                      {stat} <span className={s.modPickerRemaining}>({budget})</span>
+                    </button>
+                  )
+                })}
+              </div>
+            </>
+          ) : (
+            <>
+              <div className={s.modPickerTitle}>
+                {modCtx.stat} <span className={s.modPickerRemaining}>({getBudget(modCtx.stat!)} left)</span>
+              </div>
+              {(() => {
+                const opts = getOptions(modCtx)
+                if (opts.length === 0) return <div className={s.modPickerEmpty}>No options available.</div>
+                return (
+                  <div className={s.modPickerOptions}>
+                    {opts.map(o => (
+                      <button
+                        key={o.key}
+                        className={o.key === '__none__' ? s.modPickerReset : s.modPickerOption}
+                        onClick={() => applyMod(modCtx, o.key)}
+                      >
+                        {o.label}
+                      </button>
+                    ))}
+                  </div>
+                )
+              })()}
+              <button
+                className={s.modPickerReset}
+                style={{ marginTop: 8 }}
+                onClick={() => setModCtx({ ...modCtx, step: 'stat', stat: undefined })}
+              >
+                ← Back
+              </button>
+            </>
+          )}
+        </div>
+      </>
+    )
   }
 
   const weapons = store.weapon_instances
@@ -172,7 +337,6 @@ export default function CampaignOverlay({ onClose }: Props) {
                       })()}
                     </div>
                     <div className={s.weaponInfoActions}>
-                      {/* Upgrade */}
                       <div
                         className={s.upgradeWrap}
                         onMouseEnter={() => setHoveredUpgrade(true)}
@@ -207,7 +371,6 @@ export default function CampaignOverlay({ onClose }: Props) {
                           </div>
                         )}
                       </div>
-                      {/* Sell */}
                       {store.weapon_instances.length > 1 && (
                         <button
                           className={isConfirmSell ? s.btnSellConfirm : s.btnSell}
@@ -228,12 +391,11 @@ export default function CampaignOverlay({ onClose }: Props) {
                   const isActivated = campaign.activated === true
                   const canActivate = !!(campaign.campaign_name?.trim()) && !!(campaign.heavy?.name?.trim())
                   const prodLabel = (type: string) =>
-                    (t.content.product as Record<string,{badge_label:string}>)[type]?.badge_label ?? type
+                    (t.content.product as Record<string, { badge_label: string }>)[type]?.badge_label ?? type
                   const l1Label = campaign.medium ? prodLabel(campaign.medium.pieces[0]?.level1_type ?? '') : ''
                   const l2Label = campaign.medium ? prodLabel(campaign.medium.pieces[0]?.level2_type ?? '') : ''
                   return (
                     <>
-                      {/* Campaign name + activate */}
                       <div className={s.campaignNameRow}>
                         {isActivated ? (
                           <span className={s.campaignNameDisplay}>{campaign.campaign_name}</span>
@@ -258,7 +420,6 @@ export default function CampaignOverlay({ onClose }: Props) {
                         )}
                       </div>
 
-                      {/* Tab bar */}
                       <div className={s.tabBar}>
                         <button className={[s.modeTab, activeTab==='micro'?s.modeTabActive:''].join(' ')} onClick={()=>setActiveTab('micro')}>Micro</button>
                         <button className={[s.modeTab, activeTab==='medium'?s.modeTabActive:''].join(' ')} onClick={()=>setActiveTab('medium')}>Medium</button>
@@ -301,6 +462,20 @@ export default function CampaignOverlay({ onClose }: Props) {
                                       </div>
                                     )}
                                     <div className={s.microCardCount}>×{p.done_count}</div>
+                                    {!isActivated && (
+                                      <div className={s.microCardEditRow}>
+                                        <button
+                                          className={s.modEditBtn}
+                                          title="Change type"
+                                          onClick={e => { e.stopPropagation(); openMod({ kind: 'microType', productId: p.id }) }}
+                                        >T✎</button>
+                                        <button
+                                          className={s.modEditBtn}
+                                          title="Change style"
+                                          onClick={e => { e.stopPropagation(); openMod({ kind: 'microStyle', productId: p.id }) }}
+                                        >S✎</button>
+                                      </div>
+                                    )}
                                   </div>
                                 )
                               })}
@@ -331,7 +506,6 @@ export default function CampaignOverlay({ onClose }: Props) {
                               return (
                                 <div key={p.id}>
                                   <div className={[s.mediumPiece, !l1Unlocked?s.mediumPieceLocked:''].filter(Boolean).join(' ')}>
-                                    {/* Left: number + name */}
                                     <div className={s.mediumPieceLeft}>
                                       <span className={s.mediumPieceNum}>{i+1}</span>
                                       {isActivated ? (
@@ -344,7 +518,6 @@ export default function CampaignOverlay({ onClose }: Props) {
                                         />
                                       )}
                                     </div>
-                                    {/* Right: level badge + constraint */}
                                     <div className={s.mediumPieceRight}>
                                       <div className={s.mediumPieceLevels}>
                                         {currentLevel === 'done' && (
@@ -372,12 +545,38 @@ export default function CampaignOverlay({ onClose }: Props) {
                                           {constraintEntry.label}
                                         </span>
                                       )}
+                                      {!isActivated && (
+                                        <div className={s.modEditRow}>
+                                          <button
+                                            className={s.modEditBtn}
+                                            title="Edit L1 format"
+                                            onClick={() => openMod({ kind: 'mediumFormat', pieceId: p.id, formatField: 'level1_type' })}
+                                          >L1✎</button>
+                                          <button
+                                            className={s.modEditBtn}
+                                            title="Edit L2 format"
+                                            onClick={() => openMod({ kind: 'mediumFormat', pieceId: p.id, formatField: 'level2_type' })}
+                                          >L2✎</button>
+                                          <button
+                                            className={s.modEditBtn}
+                                            title={p.constraint ? 'Change constraint' : 'Add constraint'}
+                                            onClick={() => openMod({ kind: 'mediumConstraint', pieceId: p.id })}
+                                          >{p.constraint ? '⊕✎' : '+ constraint'}</button>
+                                        </div>
+                                      )}
                                     </div>
                                   </div>
                                   {i < pieces.length - 1 && (
                                     <div className={s.pieceConnector}>
                                       <div className={s.connectorLine} />
-                                      <span className={s.connectorLabel}>{p.link_type}</span>
+                                      <span className={s.connectorLabel}>{LINK_DISPLAY[p.link_type] ?? p.link_type}</span>
+                                      {!isActivated && (
+                                        <button
+                                          className={s.modEditBtn}
+                                          title="Change link type"
+                                          onClick={() => openMod({ kind: 'mediumLink', pieceId: p.id })}
+                                        >✎</button>
+                                      )}
                                       <div className={s.connectorLine} />
                                     </div>
                                   )}
@@ -393,7 +592,17 @@ export default function CampaignOverlay({ onClose }: Props) {
                       {activeTab === 'heavy' && campaign.heavy && (
                         <div className={s.modePanel}>
                           <div className={s.heavyCard}>
-                            <div className={s.heavyProductType}>{prodLabel(campaign.heavy.product_type)}</div>
+                            <div className={s.heavyProductType}>
+                              {prodLabel(campaign.heavy.product_type)}
+                              {!isActivated && (
+                                <button
+                                  className={s.modEditBtn}
+                                  title="Change product type"
+                                  style={{ marginLeft: 6 }}
+                                  onClick={() => openMod({ kind: 'heavyType' })}
+                                >✎</button>
+                              )}
+                            </div>
                             {isActivated ? (
                               campaign.heavy.name && <div className={s.heavyName}>{campaign.heavy.name}</div>
                             ) : (
@@ -427,6 +636,8 @@ export default function CampaignOverlay({ onClose }: Props) {
                           {campaign.heavy.published && <div className={s.modeComplete}>✓ Published</div>}
                         </div>
                       )}
+
+                      {renderModPicker()}
                     </>
                   )
                 })() : null}

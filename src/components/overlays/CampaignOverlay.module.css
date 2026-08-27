@@ -1770,3 +1770,40 @@
   text-align: center;
   padding: 4px 0 2px;
 }
+
+/* ── Modification edit buttons ──────────────────────────────────────────── */
+
+.modEditBtn {
+  display: inline-flex;
+  align-items: center;
+  padding: 1px 5px;
+  border-radius: 3px;
+  border: 1px solid rgba(100,80,200,0.22);
+  background: transparent;
+  color: rgba(180,160,255,0.38);
+  font-size: 0.59rem;
+  cursor: pointer;
+  flex-shrink: 0;
+  line-height: 1.4;
+  transition: background 0.10s, color 0.10s, border-color 0.10s;
+}
+.modEditBtn:hover {
+  background: rgba(100,80,200,0.16);
+  color: rgba(200,180,255,0.90);
+  border-color: rgba(100,80,200,0.52);
+}
+
+.microCardEditRow {
+  display: flex;
+  gap: 3px;
+  justify-content: center;
+  margin-top: 3px;
+}
+
+.modEditRow {
+  display: flex;
+  gap: 3px;
+  align-items: center;
+  flex-wrap: wrap;
+  margin-top: 3px;
+}

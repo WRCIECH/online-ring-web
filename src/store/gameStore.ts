@@ -1,5 +1,5 @@
 import { create } from 'zustand'
-import type { GameState, LocationData, Stats, WeaponInstance, SublocationType, CampaignNode, Locale, WorkflowGraph, LocationTheme, RewardTier, ContentProductType, ContentTransformation, StatKey, AudienceSectionKey } from '../types/game'
+import type { GameState, LocationData, Stats, WeaponInstance, SublocationType, CampaignNode, Locale, WorkflowGraph, LocationTheme, RewardTier, ContentProductType, ContentTransformation, StatKey, AudienceSectionKey, MicroContentType, MediumContentType, HeavyContentType, ContentShift, NodeConstraint } from '../types/game'
 import { DEFAULT_MUSIC_TRACKS } from '../data/combatMusic'
 import { ENEMIES } from '../data/enemies'
 import { saveGame, loadGame } from '../engine/save'
@@ -311,6 +311,14 @@ export interface GameStore extends GameState {
   resetNodeContentType:  (weaponId: string, nodeId: string) => void
   modifyEdgeLabel:       (weaponId: string, fromId: string, toId: string, newLabel: ContentTransformation | null, stat: StatKey) => boolean
   resetEdgeLabel:        (weaponId: string, fromId: string, toId: string) => void
+
+  // Micro/Medium/Heavy mode modification actions
+  modifyMicroProductType:     (weaponId: string, productId: string, newType: MicroContentType, stat: StatKey) => boolean
+  modifyMicroProductStyle:    (weaponId: string, productId: string, newStyle: ContentTransformation | null, stat: StatKey) => boolean
+  modifyMediumPieceFormat:    (weaponId: string, pieceId: string, field: 'level1_type' | 'level2_type', newType: MediumContentType, stat: StatKey) => boolean
+  modifyMediumPieceConstraint:(weaponId: string, pieceId: string, newConstraint: NodeConstraint | null, stat: StatKey) => boolean
+  modifyMediumLinkType:       (weaponId: string, pieceId: string, newLinkType: ContentShift, stat: StatKey) => boolean
+  modifyHeavyProductType:     (weaponId: string, newType: HeavyContentType, stat: StatKey) => boolean
 
   // Campaign finalization
   finalizeCampaign: (weaponId: string, freshCampaignName?: string) => void
@@ -855,6 +863,128 @@ export const useGameStore = create<GameStore>((set, get) => ({
       } : {}),
     }))
     get().save()
+  },
+
+  modifyMicroProductType: (weaponId, productId, newType, stat) => {
+    const s = get()
+    const c = s.weapon_campaigns[weaponId]
+    if (!c || c.activated === true || !c.micro) return false
+    const remaining = (s.stats[stat] ?? 0) - (s.stat_modifications_used[stat] ?? 0)
+    if (remaining <= 0) return false
+    set(prev => ({
+      weapon_campaigns: {
+        ...prev.weapon_campaigns,
+        [weaponId]: { ...c, micro: { ...c.micro!, products: c.micro!.products.map(p => p.id === productId ? { ...p, content_type: newType } : p) } },
+      },
+      stat_modifications_used: { ...prev.stat_modifications_used, [stat]: (prev.stat_modifications_used[stat] ?? 0) + 1 },
+    }))
+    get().save()
+    return true
+  },
+
+  modifyMicroProductStyle: (weaponId, productId, newStyle, stat) => {
+    const s = get()
+    const c = s.weapon_campaigns[weaponId]
+    if (!c || c.activated === true || !c.micro) return false
+    const remaining = (s.stats[stat] ?? 0) - (s.stat_modifications_used[stat] ?? 0)
+    if (remaining <= 0) return false
+    set(prev => ({
+      weapon_campaigns: {
+        ...prev.weapon_campaigns,
+        [weaponId]: {
+          ...c,
+          micro: {
+            ...c.micro!,
+            products: c.micro!.products.map(p => {
+              if (p.id !== productId) return p
+              if (newStyle === null) { const { style: _, ...rest } = p; return rest }
+              return { ...p, style: newStyle }
+            }),
+          },
+        },
+      },
+      stat_modifications_used: { ...prev.stat_modifications_used, [stat]: (prev.stat_modifications_used[stat] ?? 0) + 1 },
+    }))
+    get().save()
+    return true
+  },
+
+  modifyMediumPieceFormat: (weaponId, pieceId, field, newType, stat) => {
+    const s = get()
+    const c = s.weapon_campaigns[weaponId]
+    if (!c || c.activated === true || !c.medium) return false
+    const remaining = (s.stats[stat] ?? 0) - (s.stat_modifications_used[stat] ?? 0)
+    if (remaining <= 0) return false
+    set(prev => ({
+      weapon_campaigns: {
+        ...prev.weapon_campaigns,
+        [weaponId]: { ...c, medium: { ...c.medium!, pieces: c.medium!.pieces.map(p => p.id === pieceId ? { ...p, [field]: newType } : p) } },
+      },
+      stat_modifications_used: { ...prev.stat_modifications_used, [stat]: (prev.stat_modifications_used[stat] ?? 0) + 1 },
+    }))
+    get().save()
+    return true
+  },
+
+  modifyMediumPieceConstraint: (weaponId, pieceId, newConstraint, stat) => {
+    const s = get()
+    const c = s.weapon_campaigns[weaponId]
+    if (!c || c.activated === true || !c.medium) return false
+    const remaining = (s.stats[stat] ?? 0) - (s.stat_modifications_used[stat] ?? 0)
+    if (remaining <= 0) return false
+    set(prev => ({
+      weapon_campaigns: {
+        ...prev.weapon_campaigns,
+        [weaponId]: {
+          ...c,
+          medium: {
+            ...c.medium!,
+            pieces: c.medium!.pieces.map(p => {
+              if (p.id !== pieceId) return p
+              if (newConstraint === null) { const { constraint: _, ...rest } = p; return rest }
+              return { ...p, constraint: newConstraint }
+            }),
+          },
+        },
+      },
+      stat_modifications_used: { ...prev.stat_modifications_used, [stat]: (prev.stat_modifications_used[stat] ?? 0) + 1 },
+    }))
+    get().save()
+    return true
+  },
+
+  modifyMediumLinkType: (weaponId, pieceId, newLinkType, stat) => {
+    const s = get()
+    const c = s.weapon_campaigns[weaponId]
+    if (!c || c.activated === true || !c.medium) return false
+    const remaining = (s.stats[stat] ?? 0) - (s.stat_modifications_used[stat] ?? 0)
+    if (remaining <= 0) return false
+    set(prev => ({
+      weapon_campaigns: {
+        ...prev.weapon_campaigns,
+        [weaponId]: { ...c, medium: { ...c.medium!, pieces: c.medium!.pieces.map(p => p.id === pieceId ? { ...p, link_type: newLinkType } : p) } },
+      },
+      stat_modifications_used: { ...prev.stat_modifications_used, [stat]: (prev.stat_modifications_used[stat] ?? 0) + 1 },
+    }))
+    get().save()
+    return true
+  },
+
+  modifyHeavyProductType: (weaponId, newType, stat) => {
+    const s = get()
+    const c = s.weapon_campaigns[weaponId]
+    if (!c || c.activated === true || !c.heavy) return false
+    const remaining = (s.stats[stat] ?? 0) - (s.stat_modifications_used[stat] ?? 0)
+    if (remaining <= 0) return false
+    set(prev => ({
+      weapon_campaigns: {
+        ...prev.weapon_campaigns,
+        [weaponId]: { ...c, heavy: { ...c.heavy!, product_type: newType } },
+      },
+      stat_modifications_used: { ...prev.stat_modifications_used, [stat]: (prev.stat_modifications_used[stat] ?? 0) + 1 },
+    }))
+    get().save()
+    return true
   },
 
   finalizeCampaign: (weaponId, freshCampaignName) => {
