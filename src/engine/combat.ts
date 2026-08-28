@@ -195,18 +195,16 @@ export function previewMove(state: CombatState, tile: WorkflowTile, move: MoveTy
   const affinityMult     = calcAffinityMultiplier(tile, state.enemyData)
   const rawTheme         = calcThemeBonus(tile, state.locationTheme)  // 1.0 or 1.2
   const rawDamage      = calcTileDamage(tile, move, weapon, state.weaponLevel)
-  // Streak, flow, theme, and campaignDone pool their bonuses additively to prevent
+  // Flow, theme, and campaignDone pool their bonuses additively to prevent
   // exponential stacking — each adds a % on top of a shared base instead of compounding.
-  const streakBonus   = Math.min(0.1, 0.01 * state.consistencyStreak)
   const flowBonus     = state.flowMult - 1
   const themeBonus    = rawTheme - 1
   const campaignBonus = state.campaignDoneMult - 1
-  const bonusPool     = streakBonus + flowBonus + themeBonus + campaignBonus
+  const bonusPool     = flowBonus + themeBonus + campaignBonus
   const rewardMult    = 1 + bonusPool
 
   function fmtBonusPct(v: number) { return `+${Math.round(v * 100)}%` }
   const bonusDetail = [
-    streakBonus   > 0 ? `${fmtBonusPct(streakBonus)} streak`   : null,
     flowBonus     > 0 ? `${fmtBonusPct(flowBonus)} flow`       : null,
     themeBonus    > 0 ? `${fmtBonusPct(themeBonus)} theme`     : null,
     campaignBonus > 0 ? `${fmtBonusPct(campaignBonus)} done`   : null,

@@ -364,15 +364,13 @@ const en: TranslationBundle = {
     mult_perk:          'Weapon perk',
     // Labels for HUD buff badges (still shown individually even though math pools them)
     mult_flow:          'Flow state',
-    mult_streak:        'Consistency streak',
     mult_theme:         'Location theme',
 
     mult_heavyBonus_desc:    'Heavy moves demand longer focus — the higher time threshold rewards you with a damage bonus.',
     mult_repeatScaling_desc: 'Penalty for repeating a completed tile — grows with each repeat: −20% · −35% · −50% · −60% · −70% · −75% · −80% · −85% · −90% (cap).',
     mult_affinity_desc:      'Bonus or penalty based on how well your content type matches what the enemy loves or hates.',
-    mult_bonusPool_desc:     'Combined bonus from consistency streak, flow state, location theme, and campaign mastery — these rewards add together rather than multiply.',
+    mult_bonusPool_desc:     'Combined bonus from flow state, location theme, and campaign mastery — these rewards add together rather than multiply.',
     mult_flow_desc:          'Bonus from fighting consecutive battles without a long break — rewards staying in the creative flow.',
-    mult_streak_desc:        'Bonus grows with each consecutive tile completed without skipping or abandoning.',
     mult_perk_desc:          'Conditional damage bonus from a weapon perk — fires when the tile\'s content or transformation matches the perk\'s target.',
 
     // Weapon structure preview (EquipOverlay)

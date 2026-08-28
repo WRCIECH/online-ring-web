@@ -599,7 +599,6 @@ export default function CombatScreen() {
 
       {(() => {
         const tui = t.ui as Record<string, string>
-        const streakMult = 1.0 + Math.min(0.10, 0.01 * state.consistencyStreak)
         const perkBadges = (weapon?.perks ?? []).map((p, i) => {
           const active = selectedTile != null && (
             (p.type === 'product'        && selectedTile.content_type        === p.target) ||
@@ -619,12 +618,6 @@ export default function CombatScreen() {
             label: `⚡ ${tui.mult_flow} ×${state.flowMult.toFixed(1)}${flowCountdown ? `  ${flowCountdown}` : ''}`,
             cls: state.flowMult >= 1.5 ? s.badgeHot : s.badgeWarm,
             tooltip: tui.mult_flow_desc,
-          },
-          state.consistencyStreak > 0 && {
-            key: 'streak',
-            label: `🔥 ${tui.mult_streak} ×${streakMult.toFixed(2)}`,
-            cls: s.badgeStreak,
-            tooltip: `${tui.mult_streak_desc} (${tui.mult_streak}: ${state.consistencyStreak})`,
           },
           state.campaignDoneMult > 1.0 && {
             key: 'campaignDone',
@@ -709,6 +702,7 @@ export default function CombatScreen() {
           superhitCharges={totalSuperhitCharges}
           playerHp={state.playerHp}
           canAct={isPlayerTurn}
+          flowMult={state.flowMult}
           onMicro={(damage, productIndex) => {
             const micro = activeCampaign.micro
             const product = micro?.products[productIndex]
@@ -717,11 +711,13 @@ export default function CombatScreen() {
               store.completeMicroProduct(state.equippedWeaponId, product.id)
             }
           }}
-          onMedium={(damage) => {
+          onMedium={(damage, pieceId) => {
             dispatch({ type: 'CAMPAIGN_HIT', damage, label: '✍ Medium', color: '#60c0e0' })
+            store.markMediumL1Worked(state.equippedWeaponId, pieceId)
           }}
-          onMediumComplete={(pieceId) => {
-            store.completeMediumLevel(state.equippedWeaponId, pieceId, 1)
+          onMediumComplete={(pieceId, level) => {
+            if (level === 1) store.completeMediumLevel(state.equippedWeaponId, pieceId, 1)
+            else             store.publishMediumPiece(state.equippedWeaponId, pieceId)
           }}
           onHeavy={(damage) => {
             dispatch({ type: 'CAMPAIGN_HIT', damage, label: '📝 Heavy work', color: '#e0a060' })

@@ -359,15 +359,13 @@ const pl: TranslationBundle = {
     mult_perk:          'Perk broni',
     // Etykiety na odznakach HUD (nadal pokazywane osobno mimo łączenia w matemtyce)
     mult_flow:          'Stan flow',
-    mult_streak:        'Seria konsekwencji',
     mult_theme:         'Klimat lokacji',
 
     mult_heavyBonus_desc:    'Ruch Heavy wymaga dłuższego skupienia — nagradza wyższy próg czasu bonusem do obrażeń.',
     mult_repeatScaling_desc: 'Kara za powtórzenie ukończonego kafelka — rośnie z każdą powtórką: −20% · −35% · −50% · −60% · −70% · −75% · −80% · −85% · −90% (limit).',
     mult_affinity_desc:      'Bonus lub kara wynikająca z powinowactwa typu treści do preferencji przeciwnika.',
-    mult_bonusPool_desc:     'Łączny bonus z serii konsekwencji, stanu flow, klimatu lokacji i mistrzostwa kampanii — te premie sumują się zamiast się mnożyć.',
+    mult_bonusPool_desc:     'Łączny bonus ze stanu flow, klimatu lokacji i mistrzostwa kampanii — te premie sumują się zamiast się mnożyć.',
     mult_flow_desc:          'Bonus za kolejne walki bez długiej przerwy — nagradza pozostanie w kreatywnym flow.',
-    mult_streak_desc:        'Bonus rośnie z każdym kolejnym ukończonym kafelkiem bez pomijania ani rezygnacji.',
     mult_perk_desc:          'Warunkowy bonus do obrażeń z perka broni — aktywuje się, gdy kafelek pasuje do produktu lub transformacji perka.',
 
     // Podgląd struktury broni (EquipOverlay)

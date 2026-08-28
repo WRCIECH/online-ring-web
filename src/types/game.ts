@@ -279,6 +279,7 @@ export interface MediumPiece {
   // Modification tracking
   constraint_modified?: boolean; original_constraint?: NodeConstraint; constraint_modified_stat?: StatKey
   link_type_modified?: boolean;  original_link_type?: ContentShift;   link_type_modified_stat?: StatKey
+  level1_worked?: boolean   // true once a medium timer has fired for this piece
 }
 
 export interface MediumModeState {

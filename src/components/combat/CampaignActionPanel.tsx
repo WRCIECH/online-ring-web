@@ -25,10 +25,12 @@ type TimerCtx = {
   totalSecs: number
   startedAt: number
   contentName: string
+  pieceLevel?: 1 | 2  // for medium: which level was worked
 }
-type ConfirmCtx = { type: 'micro' | 'superhit'; damage: number; productIndex: number }
-type MediumFinishCtx   = { pieceName: string; pieceId: string; damage: number }
-type MediumStartCtx    = { pieceName: string; damage: number; secs: number }
+type ConfirmCtx   = { type: 'micro' | 'superhit'; damage: number; productIndex: number }
+type MediumFinishCtx = { pieceName: string; pieceId: string; damage: number; level: 1 | 2 }
+type MediumStartCtx  = { pieceName: string; damage: number; secs: number; level: 1 | 2; pieceId: string }
+type HeavyStartCtx   = { name: string; damage: number; secs: number }
 
 interface Props {
   campaign: WeaponCampaign
@@ -37,9 +39,10 @@ interface Props {
   superhitCharges: number
   playerHp: number
   canAct: boolean
+  flowMult?: number
   onMicro:          (damage: number, productIndex: number) => void
-  onMedium:         (damage: number) => void
-  onMediumComplete: (pieceId: string) => void
+  onMedium:         (damage: number, pieceId: string) => void
+  onMediumComplete: (pieceId: string, level: 1 | 2) => void
   onHeavy:          (damage: number) => void
   onSuperhit:       (damage: number) => void
   onSacrifice:      (selfDmg: number) => void
@@ -51,30 +54,35 @@ function fmtSecs(sec: number): string {
   return m > 0 ? `${m}:${String(s).padStart(2, '0')}` : String(s)
 }
 
-// Combat only handles level 1 (drafting). Level 2 (publishing) is done in the campaign overlay.
-function getCurrentMediumPiece(campaign: WeaponCampaign): { piece: MediumPiece; index: number } | null {
+// Returns first medium piece that still needs work, with which level (L1 draft or L2 publish).
+// L2 of piece N is prioritised over L1 of piece N+1.
+function getCurrentMediumPiece(
+  campaign: WeaponCampaign
+): { piece: MediumPiece; index: number; level: 1 | 2 } | null {
   if (!campaign.medium) return null
   const pieces = campaign.medium.pieces
   for (let i = 0; i < pieces.length; i++) {
     const p = pieces[i]
-    if (p.level1_done) continue  // already drafted — skip
     const prevDone = i === 0 || pieces[i - 1].level1_done
     if (!prevDone) continue
-    return { piece: p, index: i }
+    if (p.level1_done && !p.level2_done) return { piece: p, index: i, level: 2 }
+    if (!p.level1_done)                  return { piece: p, index: i, level: 1 }
   }
   return null
 }
 
 export default function CampaignActionPanel({
-  campaign, weapon, weaponLevel, superhitCharges, playerHp, canAct,
+  campaign, weapon, weaponLevel, superhitCharges, playerHp, canAct, flowMult,
   onMicro, onMedium, onMediumComplete, onHeavy, onSuperhit, onSacrifice,
 }: Props) {
   const t = useT()
+  const fm = flowMult ?? 1
   const [timer, setTimer]               = useState<TimerCtx | null>(null)
   const [confirm, setConfirm]           = useState<ConfirmCtx | null>(null)
   const [mediumStart, setMediumStart]   = useState<MediumStartCtx | null>(null)
   const [mediumFinish, setMediumFinish] = useState<MediumFinishCtx | null>(null)
-  const [remaining, setRemaining]   = useState(0)
+  const [heavyStart, setHeavyStart]     = useState<HeavyStartCtx | null>(null)
+  const [remaining, setRemaining]       = useState(0)
   const doneRef = useRef(false)
 
   const cls = weapon ? WEAPON_CLASSES[weapon.weapon_class] : null
@@ -82,12 +90,13 @@ export default function CampaignActionPanel({
   const lightSecs = Math.round(STAGE_TIME.Research.light * timeMod)
   const heavySecs = Math.round(STAGE_TIME.Produce.heavy  * timeMod)
 
-  const heavyDmg    = Math.round(calcTileDamage(HEAVY_TILE, 'Heavy', weapon, weaponLevel))
-  const lightDmg    = Math.round(calcTileDamage(LIGHT_TILE, 'Light', weapon, weaponLevel))
-  const superhitDmg = Math.round(calcTileDamage(LIGHT_TILE, 'Light', weapon, weaponLevel) * 5)
+  const heavyDmg    = Math.round(calcTileDamage(HEAVY_TILE, 'Heavy', weapon, weaponLevel) * fm)
+  const lightDmg    = Math.round(calcTileDamage(LIGHT_TILE, 'Light', weapon, weaponLevel) * fm)
+  const superhitDmg = Math.round(lightDmg * 5)
 
   const hasMicro  = !!(campaign.micro  && !campaign.micro.completed)
-  const hasMedium = getCurrentMediumPiece(campaign) !== null
+  const currentMedium = getCurrentMediumPiece(campaign)
+  const hasMedium = currentMedium !== null
   const hasHeavy  = !!(campaign.heavy  && !campaign.heavy.completed)
   const canShit   = superhitCharges > 0
 
@@ -95,10 +104,8 @@ export default function CampaignActionPanel({
   const currentMicroIndex = micro?.current_index ?? 0
   const currentProduct    = micro?.products[currentMicroIndex]
 
-  const currentMedium = getCurrentMediumPiece(campaign)
-
   const heavy = campaign.heavy
-  const heavyTimerName = heavy ? (heavy.name?.trim() || heavy.product_type) : 'Heavy content'
+  const heavyTimerName  = heavy ? (heavy.name?.trim() || heavy.product_type) : 'Heavy content'
   const heavyTotalTiles = heavy ? heavy.research_count + heavy.produce_count : 0
   const heavyDoneTiles  = heavy ? heavy.research_done  + heavy.produce_done  : 0
 
@@ -135,13 +142,15 @@ export default function CampaignActionPanel({
   function handleTimerDone(ctx: TimerCtx, selfDmg = 0) {
     setTimer(null)
     if (ctx.type === 'medium') {
-      onMedium(ctx.damage)
-      if (selfDmg > 0) onSacrifice(selfDmg)
       if (currentMedium) {
+        onMedium(ctx.damage, currentMedium.piece.id)
+        if (selfDmg > 0) onSacrifice(selfDmg)
+        const level = ctx.pieceLevel ?? 1
         setMediumFinish({
           pieceName: currentMedium.piece.name || `Part ${currentMedium.index + 1}`,
           pieceId:   currentMedium.piece.id,
           damage:    ctx.damage,
+          level,
         })
       }
     } else {
@@ -150,8 +159,8 @@ export default function CampaignActionPanel({
     }
   }
 
-  function startTimer(type: TimerCtx['type'], damage: number, secs: number, contentName: string) {
-    setTimer({ type, damage, totalSecs: secs, startedAt: Date.now(), contentName })
+  function startTimer(type: TimerCtx['type'], damage: number, secs: number, contentName: string, pieceLevel?: 1 | 2) {
+    setTimer({ type, damage, totalSecs: secs, startedAt: Date.now(), contentName, pieceLevel })
   }
 
   function handleConfirmYes() {
@@ -166,10 +175,10 @@ export default function CampaignActionPanel({
   if (timer) {
     const pct = Math.max(0, remaining / timer.totalSecs) * 100
     const isHeavy = timer.type === 'heavy'
-    const modeLabel = isHeavy ? 'Heavy work' : 'Writing'
+    const modeLabel = isHeavy ? 'Heavy work' : timer.pieceLevel === 2 ? 'Publishing' : 'Writing'
     const timeFrac = timer.totalSecs > 0 ? remaining / timer.totalSecs : 0
     const selfDmg  = Math.round(timer.damage * timeFrac * SACRIFICE_MULT)
-    const canSacrifice = selfDmg < playerHp  // must survive the sacrifice
+    const canSacrifice = selfDmg < playerHp
     return (
       <div className={s.timerView}>
         <div className={s.timerContentName}>{timer.contentName}</div>
@@ -210,16 +219,39 @@ export default function CampaignActionPanel({
     )
   }
 
-  // ── Medium start confirmation ──────────────────────────────────────────────
-  if (mediumStart) {
+  // ── Heavy start confirmation ───────────────────────────────────────────────
+  if (heavyStart) {
     return (
       <div className={s.confirmView}>
-        <div className={s.confirmContentName}>{mediumStart.pieceName}</div>
-        <div className={s.confirmLabel}>Start {fmtSecs(mediumStart.secs)} timer?</div>
+        <div className={s.confirmContentName}>{heavyStart.name}</div>
+        <div className={s.confirmLabel}>Start {fmtSecs(heavyStart.secs)} timer?</div>
         <div className={s.confirmBtns}>
           <button
             className={s.confirmYes}
-            onClick={() => { startTimer('medium', mediumStart.damage, mediumStart.secs, mediumStart.pieceName); setMediumStart(null) }}
+            onClick={() => { startTimer('heavy', heavyStart.damage, heavyStart.secs, heavyStart.name); setHeavyStart(null) }}
+          >
+            Start
+          </button>
+          <button className={s.confirmNo} onClick={() => setHeavyStart(null)}>Cancel</button>
+        </div>
+      </div>
+    )
+  }
+
+  // ── Medium start confirmation ──────────────────────────────────────────────
+  if (mediumStart) {
+    const levelLabel = mediumStart.level === 2 ? 'Publish' : 'Draft'
+    return (
+      <div className={s.confirmView}>
+        <div className={s.confirmContentName}>{mediumStart.pieceName}</div>
+        <div className={s.confirmLabel}>{levelLabel} — start {fmtSecs(mediumStart.secs)} timer?</div>
+        <div className={s.confirmBtns}>
+          <button
+            className={s.confirmYes}
+            onClick={() => {
+              startTimer('medium', mediumStart.damage, mediumStart.secs, mediumStart.pieceName, mediumStart.level)
+              setMediumStart(null)
+            }}
           >
             Start
           </button>
@@ -229,18 +261,20 @@ export default function CampaignActionPanel({
     )
   }
 
-  // ── Medium finish confirmation ──────────────────────────────────────────────
+  // ── Medium finish confirmation ─────────────────────────────────────────────
   if (mediumFinish) {
+    const finishLabel = mediumFinish.level === 1 ? 'Did you finish the draft?' : 'Did you finish publishing?'
+    const yesLabel    = mediumFinish.level === 1 ? 'Yes — drafted' : 'Yes — published'
     return (
       <div className={s.confirmView}>
         <div className={s.confirmContentName}>{mediumFinish.pieceName}</div>
-        <div className={s.confirmLabel}>Did you finish the draft?</div>
+        <div className={s.confirmLabel}>{finishLabel}</div>
         <div className={s.confirmBtns}>
           <button
             className={s.confirmYes}
-            onClick={() => { onMediumComplete(mediumFinish.pieceId); setMediumFinish(null) }}
+            onClick={() => { onMediumComplete(mediumFinish.pieceId, mediumFinish.level); setMediumFinish(null) }}
           >
-            Yes — done
+            {yesLabel}
           </button>
           <button className={s.confirmNo} onClick={() => setMediumFinish(null)}>
             Not yet
@@ -271,6 +305,8 @@ export default function CampaignActionPanel({
   const mediumPieceName = currentMedium
     ? (currentMedium.piece.name || `Part ${currentMedium.index + 1}`)
     : null
+  const mediumLevel = currentMedium?.level ?? 1
+  const mediumTileLabel = mediumLevel === 2 ? 'Medium L2' : 'Medium'
 
   return (
     <div className={s.panel}>
@@ -297,9 +333,15 @@ export default function CampaignActionPanel({
       <button
         className={[s.tile, s.tileMedium, !hasMedium || !canAct ? s.tileDim : ''].filter(Boolean).join(' ')}
         disabled={!hasMedium || !canAct}
-        onClick={() => setMediumStart({ pieceName: mediumPieceName ?? 'Medium content', damage: lightDmg, secs: lightSecs })}
+        onClick={() => currentMedium && setMediumStart({
+          pieceName: mediumPieceName ?? 'Medium content',
+          damage: lightDmg,
+          secs: lightSecs,
+          level: currentMedium.level,
+          pieceId: currentMedium.piece.id,
+        })}
       >
-        <span className={s.tileLabel}>Medium</span>
+        <span className={s.tileLabel}>{mediumTileLabel}</span>
         <span className={s.tileDmg}>⚔ {lightDmg}</span>
         {mediumPieceName
           ? <span className={s.tileHint} title={mediumPieceName}>{mediumPieceName.length > 14 ? mediumPieceName.slice(0, 13) + '…' : mediumPieceName}</span>
@@ -314,7 +356,7 @@ export default function CampaignActionPanel({
       <button
         className={[s.tile, s.tileHeavy, !hasHeavy || !canAct ? s.tileDim : ''].filter(Boolean).join(' ')}
         disabled={!hasHeavy || !canAct}
-        onClick={() => startTimer('heavy', heavyDmg, heavySecs, heavyTimerName)}
+        onClick={() => setHeavyStart({ name: heavyTimerName, damage: heavyDmg, secs: heavySecs })}
       >
         <span className={s.tileLabel}>Heavy</span>
         <span className={s.tileDmg}>⚔ {heavyDmg}</span>

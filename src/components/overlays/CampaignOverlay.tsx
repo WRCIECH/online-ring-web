@@ -526,9 +526,20 @@ export default function CampaignOverlay({ onClose }: Props) {
                                           <span className={[s.levelBadge, s.levelDone].join(' ')}>✓ Published</span>
                                         )}
                                         {currentLevel === 'L1' && (
-                                          <span className={[s.levelBadge, !l1Unlocked?s.levelLocked:''].filter(Boolean).join(' ')}>
-                                            {l1Unlocked ? 'Draft' : '🔒 Draft'}
-                                          </span>
+                                          <>
+                                            <span className={[s.levelBadge, !l1Unlocked?s.levelLocked:''].filter(Boolean).join(' ')}>
+                                              {l1Unlocked ? 'Draft' : '🔒 Draft'}
+                                            </span>
+                                            {l1Unlocked && p.level1_worked && (
+                                              <button
+                                                className={s.publishBtn}
+                                                title="Mark as drafted — use if you completed the work but accidentally dismissed the confirmation"
+                                                onClick={() => store.completeMediumLevel(wid, p.id, 1)}
+                                              >
+                                                → Mark drafted
+                                              </button>
+                                            )}
+                                          </>
                                         )}
                                         {currentLevel === 'L2' && (
                                           <>

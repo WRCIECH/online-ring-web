@@ -335,6 +335,7 @@ export interface GameStore extends GameState {
   renameHeavyProduct:     (weaponId: string, name: string) => void
   completeMicroProduct:   (weaponId: string, productId: string) => void
   completeMediumLevel:    (weaponId: string, pieceId: string, level: 1 | 2) => void
+  markMediumL1Worked:    (weaponId: string, pieceId: string) => void
   publishMediumPiece:     (weaponId: string, pieceId: string) => void
   completeHeavyTile:      (weaponId: string) => void
   publishHeavyContent:    (weaponId: string) => void
@@ -1273,6 +1274,19 @@ export const useGameStore = create<GameStore>((set, get) => ({
       const completed = heavy.completed ||
         (research_done >= heavy.research_count && produce_done >= heavy.produce_count)
       const updated = { ...campaign, heavy: { ...heavy, research_done, produce_done, completed } }
+      return { weapon_campaigns: { ...s.weapon_campaigns, [weaponId]: updated } }
+    })
+    get().save()
+  },
+
+  markMediumL1Worked: (weaponId, pieceId) => {
+    set(s => {
+      const campaign = s.weapon_campaigns[weaponId]
+      if (!campaign?.medium) return s
+      const pieces = campaign.medium.pieces.map(p =>
+        p.id === pieceId ? { ...p, level1_worked: true } : p
+      )
+      const updated = { ...campaign, medium: { ...campaign.medium, pieces } }
       return { weapon_campaigns: { ...s.weapon_campaigns, [weaponId]: updated } }
     })
     get().save()
