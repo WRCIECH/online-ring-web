@@ -711,14 +711,12 @@ export default function CombatScreen() {
               store.completeMicroProduct(state.equippedWeaponId, product.id)
             }
           }}
-          onMedium={(damage, pieceId) => {
+          onMedium={(damage, pieceId, level) => {
             dispatch({ type: 'CAMPAIGN_HIT', damage, label: '✍ Medium', color: '#60c0e0' })
-            store.markMediumL1Worked(state.equippedWeaponId, pieceId)
+            if (level === 1) store.markMediumL1Worked(state.equippedWeaponId, pieceId)
+            else             store.markMediumL2Worked(state.equippedWeaponId, pieceId)
           }}
-          onMediumComplete={(pieceId, level) => {
-            if (level === 1) store.completeMediumLevel(state.equippedWeaponId, pieceId, 1)
-            else             store.publishMediumPiece(state.equippedWeaponId, pieceId)
-          }}
+          onMediumComplete={(_pieceId, _level) => { /* work already marked in onMedium */ }}
           onHeavy={(damage) => {
             dispatch({ type: 'CAMPAIGN_HIT', damage, label: '📝 Heavy work', color: '#e0a060' })
             store.completeHeavyTile(state.equippedWeaponId)

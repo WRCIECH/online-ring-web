@@ -528,28 +528,33 @@ export default function CampaignOverlay({ onClose }: Props) {
                                         {currentLevel === 'L1' && (
                                           <>
                                             <span className={[s.levelBadge, !l1Unlocked?s.levelLocked:''].filter(Boolean).join(' ')}>
-                                              {l1Unlocked ? 'Draft' : '🔒 Draft'}
+                                              {l1Unlocked ? (p.level1_worked ? '✍ Drafted' : 'Draft L1') : '🔒 Draft L1'}
                                             </span>
                                             {l1Unlocked && p.level1_worked && (
                                               <button
                                                 className={s.publishBtn}
-                                                title="Mark as drafted — use if you completed the work but accidentally dismissed the confirmation"
-                                                onClick={() => store.completeMediumLevel(wid, p.id, 1)}
+                                                title="Publish L1 — grants a Superhit charge and unlocks L2 work in combat"
+                                                onClick={() => store.publishMediumL1(wid, p.id)}
                                               >
-                                                → Mark drafted
+                                                Publish L1 ✦
                                               </button>
                                             )}
                                           </>
                                         )}
                                         {currentLevel === 'L2' && (
                                           <>
-                                            <span className={[s.levelBadge, s.levelReady].join(' ')}>✍ Drafted</span>
-                                            <button
-                                              className={s.publishBtn}
-                                              onClick={() => store.publishMediumPiece(wid, p.id)}
-                                            >
-                                              Publish ✦
-                                            </button>
+                                            <span className={[s.levelBadge, s.levelReady].join(' ')}>
+                                              {p.level2_worked ? '✍ L2 Drafted' : '▶ L2 in progress'}
+                                            </span>
+                                            {p.level2_worked && (
+                                              <button
+                                                className={s.publishBtn}
+                                                title="Publish L2 — grants a Superhit charge and completes this piece"
+                                                onClick={() => store.publishMediumPiece(wid, p.id)}
+                                              >
+                                                Publish L2 ✦
+                                              </button>
+                                            )}
                                           </>
                                         )}
                                       </div>

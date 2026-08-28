@@ -336,6 +336,8 @@ export interface GameStore extends GameState {
   completeMicroProduct:   (weaponId: string, productId: string) => void
   completeMediumLevel:    (weaponId: string, pieceId: string, level: 1 | 2) => void
   markMediumL1Worked:    (weaponId: string, pieceId: string) => void
+  markMediumL2Worked:    (weaponId: string, pieceId: string) => void
+  publishMediumL1:       (weaponId: string, pieceId: string) => void
   publishMediumPiece:     (weaponId: string, pieceId: string) => void
   completeHeavyTile:      (weaponId: string) => void
   publishHeavyContent:    (weaponId: string) => void
@@ -1288,6 +1290,36 @@ export const useGameStore = create<GameStore>((set, get) => ({
       )
       const updated = { ...campaign, medium: { ...campaign.medium, pieces } }
       return { weapon_campaigns: { ...s.weapon_campaigns, [weaponId]: updated } }
+    })
+    get().save()
+  },
+
+  markMediumL2Worked: (weaponId, pieceId) => {
+    set(s => {
+      const campaign = s.weapon_campaigns[weaponId]
+      if (!campaign?.medium) return s
+      const pieces = campaign.medium.pieces.map(p =>
+        p.id === pieceId ? { ...p, level2_worked: true } : p
+      )
+      const updated = { ...campaign, medium: { ...campaign.medium, pieces } }
+      return { weapon_campaigns: { ...s.weapon_campaigns, [weaponId]: updated } }
+    })
+    get().save()
+  },
+
+  publishMediumL1: (weaponId, pieceId) => {
+    set(s => {
+      const campaign = s.weapon_campaigns[weaponId]
+      if (!campaign?.medium) return s
+      const pieces = campaign.medium.pieces.map(p =>
+        p.id === pieceId ? { ...p, level1_done: true } : p
+      )
+      const updated = { ...campaign, medium: { ...campaign.medium, pieces } }
+      const prevCharges = (s.weapon_pending_superhits ?? {})[weaponId] ?? 0
+      return {
+        weapon_campaigns: { ...s.weapon_campaigns, [weaponId]: updated },
+        weapon_pending_superhits: { ...(s.weapon_pending_superhits ?? {}), [weaponId]: prevCharges + 1 },
+      }
     })
     get().save()
   },

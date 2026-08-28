@@ -19,17 +19,20 @@ const LIGHT_TILE: WorkflowTile = {
   is_completed: false, repeat_count: 0,
 }
 
+type MediumWork = { piece: MediumPiece; index: number; level: 1 | 2 }
+
 type TimerCtx = {
   type: 'medium' | 'heavy'
   damage: number
   totalSecs: number
   startedAt: number
   contentName: string
-  pieceLevel?: 1 | 2  // for medium: which level was worked
+  medPieceId?: string
+  medLevel?: 1 | 2
 }
-type ConfirmCtx   = { type: 'micro' | 'superhit'; damage: number; productIndex: number }
+type ConfirmCtx    = { type: 'micro' | 'superhit'; damage: number; productIndex: number }
 type MediumFinishCtx = { pieceName: string; pieceId: string; damage: number; level: 1 | 2 }
-type MediumStartCtx  = { pieceName: string; damage: number; secs: number; level: 1 | 2; pieceId: string }
+type MediumStartCtx  = { pieceName: string; pieceId: string; damage: number; secs: number; level: 1 | 2 }
 type HeavyStartCtx   = { name: string; damage: number; secs: number }
 
 interface Props {
@@ -41,7 +44,7 @@ interface Props {
   canAct: boolean
   flowMult?: number
   onMicro:          (damage: number, productIndex: number) => void
-  onMedium:         (damage: number, pieceId: string) => void
+  onMedium:         (damage: number, pieceId: string, level: 1 | 2) => void
   onMediumComplete: (pieceId: string, level: 1 | 2) => void
   onHeavy:          (damage: number) => void
   onSuperhit:       (damage: number) => void
@@ -54,21 +57,30 @@ function fmtSecs(sec: number): string {
   return m > 0 ? `${m}:${String(s).padStart(2, '0')}` : String(s)
 }
 
-// Returns first medium piece that still needs work, with which level (L1 draft or L2 publish).
-// L2 of piece N is prioritised over L1 of piece N+1.
-function getCurrentMediumPiece(
-  campaign: WeaponCampaign
-): { piece: MediumPiece; index: number; level: 1 | 2 } | null {
-  if (!campaign.medium) return null
+// Returns up to 2 available medium work items:
+// - one L2 option (first piece with L1 published but L2 not yet published)
+// - one L1 option (next piece ready for L1 draft, gated by previous piece's L1 published)
+// L2 of piece N and L1 of piece N+1 can both be available simultaneously.
+function getAvailableMediumWork(campaign: WeaponCampaign): MediumWork[] {
+  if (!campaign.medium) return []
   const pieces = campaign.medium.pieces
+  const result: MediumWork[] = []
+  let foundL2 = false, foundL1 = false
+
   for (let i = 0; i < pieces.length; i++) {
     const p = pieces[i]
-    const prevDone = i === 0 || pieces[i - 1].level1_done
-    if (!prevDone) continue
-    if (p.level1_done && !p.level2_done) return { piece: p, index: i, level: 2 }
-    if (!p.level1_done)                  return { piece: p, index: i, level: 1 }
+    const prevL1Done = i === 0 || pieces[i - 1].level1_done
+    if (!foundL2 && p.level1_done && !p.level2_done) {
+      result.push({ piece: p, index: i, level: 2 })
+      foundL2 = true
+    }
+    if (!foundL1 && !p.level1_done && prevL1Done) {
+      result.push({ piece: p, index: i, level: 1 })
+      foundL1 = true
+    }
+    if (foundL1 && foundL2) break
   }
-  return null
+  return result
 }
 
 export default function CampaignActionPanel({
@@ -94,11 +106,11 @@ export default function CampaignActionPanel({
   const lightDmg    = Math.round(calcTileDamage(LIGHT_TILE, 'Light', weapon, weaponLevel) * fm)
   const superhitDmg = Math.round(lightDmg * 5)
 
-  const hasMicro  = !!(campaign.micro  && !campaign.micro.completed)
-  const currentMedium = getCurrentMediumPiece(campaign)
-  const hasMedium = currentMedium !== null
-  const hasHeavy  = !!(campaign.heavy  && !campaign.heavy.completed)
-  const canShit   = superhitCharges > 0
+  const hasMicro       = !!(campaign.micro && !campaign.micro.completed)
+  const mediumOptions  = getAvailableMediumWork(campaign)
+  const hasMedium      = mediumOptions.length > 0
+  const hasHeavy       = !!(campaign.heavy && !campaign.heavy.completed)
+  const canShit        = superhitCharges > 0
 
   const micro = campaign.micro
   const currentMicroIndex = micro?.current_index ?? 0
@@ -141,17 +153,21 @@ export default function CampaignActionPanel({
 
   function handleTimerDone(ctx: TimerCtx, selfDmg = 0) {
     setTimer(null)
-    if (ctx.type === 'medium') {
-      if (currentMedium) {
-        onMedium(ctx.damage, currentMedium.piece.id)
-        if (selfDmg > 0) onSacrifice(selfDmg)
-        const level = ctx.pieceLevel ?? 1
+    if (ctx.type === 'medium' && ctx.medPieceId) {
+      onMedium(ctx.damage, ctx.medPieceId, ctx.medLevel ?? 1)
+      if (selfDmg > 0) onSacrifice(selfDmg)
+      // Find the piece by id from the current campaign state
+      const piece = campaign.medium?.pieces.find(p => p.id === ctx.medPieceId)
+      if (piece) {
+        const level = ctx.medLevel ?? 1
+        const levelLabel = level === 1 ? 'L1' : 'L2'
         setMediumFinish({
-          pieceName: currentMedium.piece.name || `Part ${currentMedium.index + 1}`,
-          pieceId:   currentMedium.piece.id,
-          damage:    ctx.damage,
+          pieceName: piece.name || `Part ${(campaign.medium?.pieces.indexOf(piece) ?? 0) + 1}`,
+          pieceId: ctx.medPieceId,
+          damage: ctx.damage,
           level,
         })
+        void levelLabel
       }
     } else {
       onHeavy(ctx.damage)
@@ -159,8 +175,8 @@ export default function CampaignActionPanel({
     }
   }
 
-  function startTimer(type: TimerCtx['type'], damage: number, secs: number, contentName: string, pieceLevel?: 1 | 2) {
-    setTimer({ type, damage, totalSecs: secs, startedAt: Date.now(), contentName, pieceLevel })
+  function startTimer(type: TimerCtx['type'], damage: number, secs: number, contentName: string, medPieceId?: string, medLevel?: 1 | 2) {
+    setTimer({ type, damage, totalSecs: secs, startedAt: Date.now(), contentName, medPieceId, medLevel })
   }
 
   function handleConfirmYes() {
@@ -175,7 +191,7 @@ export default function CampaignActionPanel({
   if (timer) {
     const pct = Math.max(0, remaining / timer.totalSecs) * 100
     const isHeavy = timer.type === 'heavy'
-    const modeLabel = isHeavy ? 'Heavy work' : timer.pieceLevel === 2 ? 'Publishing' : 'Writing'
+    const modeLabel = isHeavy ? 'Heavy work' : timer.medLevel === 2 ? 'L2 content' : 'Drafting'
     const timeFrac = timer.totalSecs > 0 ? remaining / timer.totalSecs : 0
     const selfDmg  = Math.round(timer.damage * timeFrac * SACRIFICE_MULT)
     const canSacrifice = selfDmg < playerHp
@@ -240,16 +256,16 @@ export default function CampaignActionPanel({
 
   // ── Medium start confirmation ──────────────────────────────────────────────
   if (mediumStart) {
-    const levelLabel = mediumStart.level === 2 ? 'Publish' : 'Draft'
+    const actionLabel = mediumStart.level === 2 ? 'L2 content' : 'Draft L1'
     return (
       <div className={s.confirmView}>
         <div className={s.confirmContentName}>{mediumStart.pieceName}</div>
-        <div className={s.confirmLabel}>{levelLabel} — start {fmtSecs(mediumStart.secs)} timer?</div>
+        <div className={s.confirmLabel}>{actionLabel} — start {fmtSecs(mediumStart.secs)} timer?</div>
         <div className={s.confirmBtns}>
           <button
             className={s.confirmYes}
             onClick={() => {
-              startTimer('medium', mediumStart.damage, mediumStart.secs, mediumStart.pieceName, mediumStart.level)
+              startTimer('medium', mediumStart.damage, mediumStart.secs, mediumStart.pieceName, mediumStart.pieceId, mediumStart.level)
               setMediumStart(null)
             }}
           >
@@ -263,8 +279,10 @@ export default function CampaignActionPanel({
 
   // ── Medium finish confirmation ─────────────────────────────────────────────
   if (mediumFinish) {
-    const finishLabel = mediumFinish.level === 1 ? 'Did you finish the draft?' : 'Did you finish publishing?'
-    const yesLabel    = mediumFinish.level === 1 ? 'Yes — drafted' : 'Yes — published'
+    const finishLabel = mediumFinish.level === 1
+      ? 'Did you finish the L1 draft?'
+      : 'Did you finish the L2 content?'
+    const yesLabel = mediumFinish.level === 1 ? 'Yes — drafted' : 'Yes — done'
     return (
       <div className={s.confirmView}>
         <div className={s.confirmContentName}>{mediumFinish.pieceName}</div>
@@ -301,13 +319,7 @@ export default function CampaignActionPanel({
     )
   }
 
-  // ── Main 4-tile panel ─────────────────────────────────────────────────────
-  const mediumPieceName = currentMedium
-    ? (currentMedium.piece.name || `Part ${currentMedium.index + 1}`)
-    : null
-  const mediumLevel = currentMedium?.level ?? 1
-  const mediumTileLabel = mediumLevel === 2 ? 'Medium L2' : 'Medium'
-
+  // ── Main tile panel ────────────────────────────────────────────────────────
   return (
     <div className={s.panel}>
       {/* Micro */}
@@ -329,28 +341,40 @@ export default function CampaignActionPanel({
         )}
       </button>
 
-      {/* Medium */}
-      <button
-        className={[s.tile, s.tileMedium, !hasMedium || !canAct ? s.tileDim : ''].filter(Boolean).join(' ')}
-        disabled={!hasMedium || !canAct}
-        onClick={() => currentMedium && setMediumStart({
-          pieceName: mediumPieceName ?? 'Medium content',
-          damage: lightDmg,
-          secs: lightSecs,
-          level: currentMedium.level,
-          pieceId: currentMedium.piece.id,
-        })}
-      >
-        <span className={s.tileLabel}>{mediumTileLabel}</span>
-        <span className={s.tileDmg}>⚔ {lightDmg}</span>
-        {mediumPieceName
-          ? <span className={s.tileHint} title={mediumPieceName}>{mediumPieceName.length > 14 ? mediumPieceName.slice(0, 13) + '…' : mediumPieceName}</span>
-          : <span className={s.tileHint}>{fmtSecs(lightSecs)}</span>
-        }
-        {currentMedium?.piece && constraintLabel(currentMedium.piece) && (
-          <span className={s.tileConstraint}>{constraintLabel(currentMedium.piece)}</span>
-        )}
-      </button>
+      {/* Medium tiles — one per available work item (up to 2: one L1, one L2) */}
+      {hasMedium
+        ? mediumOptions.map(opt => {
+            const pieceName = opt.piece.name || `Part ${opt.index + 1}`
+            const tileLabel = opt.level === 2 ? 'Med L2' : 'Medium'
+            return (
+              <button
+                key={`med-${opt.level}-${opt.piece.id}`}
+                className={[s.tile, s.tileMedium, !canAct ? s.tileDim : ''].filter(Boolean).join(' ')}
+                disabled={!canAct}
+                onClick={() => setMediumStart({
+                  pieceName,
+                  pieceId: opt.piece.id,
+                  damage: lightDmg,
+                  secs: lightSecs,
+                  level: opt.level,
+                })}
+              >
+                <span className={s.tileLabel}>{tileLabel}</span>
+                <span className={s.tileDmg}>⚔ {lightDmg}</span>
+                <span className={s.tileHint} title={pieceName}>{pieceName.length > 14 ? pieceName.slice(0, 13) + '…' : pieceName}</span>
+                {constraintLabel(opt.piece) && (
+                  <span className={s.tileConstraint}>{constraintLabel(opt.piece)}</span>
+                )}
+              </button>
+            )
+          })
+        : (
+          <button className={[s.tile, s.tileMedium, s.tileDim].join(' ')} disabled>
+            <span className={s.tileLabel}>Medium</span>
+            <span className={s.tileDmg}>⚔ {lightDmg}</span>
+          </button>
+        )
+      }
 
       {/* Heavy */}
       <button
