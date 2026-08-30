@@ -511,7 +511,7 @@ export default function CampaignOverlay({ onClose }: Props) {
                                     <div className={s.mediumPieceLeft}>
                                       <span className={s.mediumPieceNum}>{i+1}</span>
                                       {isActivated ? (
-                                        <span className={s.mediumPieceName} title={p.name} data-full={p.name}>{p.name}</span>
+                                        <span className={s.mediumPieceName}>{p.name}</span>
                                       ) : (
                                         <input
                                           className={s.pieceNameInput}
