@@ -361,7 +361,7 @@ export default function CampaignActionPanel({
               >
                 <span className={s.tileLabel}>{tileLabel}</span>
                 <span className={s.tileDmg}>⚔ {lightDmg}</span>
-                <span className={s.tileHint} title={pieceName}>{pieceName.length > 14 ? pieceName.slice(0, 13) + '…' : pieceName}</span>
+                <span className={s.tileNameHint} title={pieceName} data-full={pieceName}>{pieceName}</span>
                 {constraintLabel(opt.piece) && (
                   <span className={s.tileConstraint}>{constraintLabel(opt.piece)}</span>
                 )}
@@ -388,7 +388,7 @@ export default function CampaignActionPanel({
           <>
             <span className={s.tileTag}>{prodBadge(heavy.product_type)}</span>
             {heavy.name?.trim() && (
-              <span className={s.tileHint} title={heavy.name}>{heavy.name.length > 14 ? heavy.name.slice(0, 13) + '…' : heavy.name}</span>
+              <span className={s.tileNameHint} title={heavy.name} data-full={heavy.name}>{heavy.name}</span>
             )}
             <span className={s.tileConstraint}>{heavyDoneTiles}/{heavyTotalTiles} tiles</span>
           </>
