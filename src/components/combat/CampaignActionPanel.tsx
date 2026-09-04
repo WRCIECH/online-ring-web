@@ -19,6 +19,9 @@ const LIGHT_TILE: WorkflowTile = {
   is_completed: false, repeat_count: 0,
 }
 
+// Flat, deliberately unscaled — does not go through calcTileDamage or the flow multiplier.
+const RECYCLE_DMG = 100
+
 type MediumWork = { piece: MediumPiece; index: number; level: 1 | 2 }
 
 type TimerCtx = {
@@ -30,7 +33,7 @@ type TimerCtx = {
   medPieceId?: string
   medLevel?: 1 | 2
 }
-type ConfirmCtx    = { type: 'micro' | 'superhit'; damage: number; productIndex: number }
+type ConfirmCtx    = { type: 'micro' | 'superhit' | 'recycle'; damage: number; productIndex: number }
 type MediumFinishCtx = { pieceName: string; pieceId: string; damage: number; level: 1 | 2 }
 type MediumStartCtx  = { pieceName: string; pieceId: string; damage: number; secs: number; level: 1 | 2 }
 type HeavyStartCtx   = { name: string; damage: number; secs: number }
@@ -48,6 +51,7 @@ interface Props {
   onMediumComplete: (pieceId: string, level: 1 | 2) => void
   onHeavy:          (damage: number) => void
   onSuperhit:       (damage: number) => void
+  onRecycle:        (damage: number) => void
   onSacrifice:      (selfDmg: number) => void
 }
 
@@ -85,7 +89,7 @@ function getAvailableMediumWork(campaign: WeaponCampaign): MediumWork[] {
 
 export default function CampaignActionPanel({
   campaign, weapon, weaponLevel, superhitCharges, playerHp, canAct, flowMult,
-  onMicro, onMedium, onMediumComplete, onHeavy, onSuperhit, onSacrifice,
+  onMicro, onMedium, onMediumComplete, onHeavy, onSuperhit, onRecycle, onSacrifice,
 }: Props) {
   const t = useT()
   const fm = flowMult ?? 1
@@ -132,6 +136,25 @@ export default function CampaignActionPanel({
   function styleLabel(style: string): string {
     return (t.content.transformation as Record<string, { label?: string }>)[style]?.label ?? style
   }
+
+  // Display-only flavor text for the Recycle tile — the most-recently-completed
+  // piece, checked most- to least-substantial. Not a gate, nothing is consumed.
+  function getRecycleSource(): string | null {
+    if (heavy?.completed) return heavy.name?.trim() || prodBadge(heavy.product_type)
+    const pieces = campaign.medium?.pieces ?? []
+    for (let i = pieces.length - 1; i >= 0; i--) {
+      if (pieces[i].level2_done) return pieces[i].name || `Part ${i + 1}`
+    }
+    for (let i = pieces.length - 1; i >= 0; i--) {
+      if (pieces[i].level1_done) return pieces[i].name || `Part ${i + 1}`
+    }
+    if (micro && currentMicroIndex > 0) {
+      const lastDone = micro.products[currentMicroIndex - 1]
+      if (lastDone) return prodBadge(lastDone.content_type)
+    }
+    return null
+  }
+  const recycleSource = getRecycleSource()
 
   // ── Timer countdown ───────────────────────────────────────────────────────
   useEffect(() => {
@@ -183,8 +206,9 @@ export default function CampaignActionPanel({
     if (!confirm) return
     const c = confirm
     setConfirm(null)
-    if (c.type === 'micro') onMicro(c.damage, c.productIndex)
-    else                    onSuperhit(c.damage)
+    if (c.type === 'micro')        onMicro(c.damage, c.productIndex)
+    else if (c.type === 'recycle') onRecycle(c.damage)
+    else                            onSuperhit(c.damage)
   }
 
   // ── Timer view ─────────────────────────────────────────────────────────────
@@ -306,7 +330,9 @@ export default function CampaignActionPanel({
   if (confirm) {
     const label = confirm.type === 'micro'
       ? '📤 Did you actually publish it?'
-      : '💥 Did you land the superhit?'
+      : confirm.type === 'recycle'
+        ? '♻️ Did you republish it elsewhere?'
+        : '💥 Did you land the superhit?'
     return (
       <div className={s.confirmView}>
         <div className={s.confirmLabel}>{label}</div>
@@ -393,6 +419,17 @@ export default function CampaignActionPanel({
             <span className={s.tileConstraint}>{heavyDoneTiles}/{heavyTotalTiles} tiles</span>
           </>
         )}
+      </button>
+
+      {/* Recycle */}
+      <button
+        className={[s.tile, s.tileRecycle, !canAct ? s.tileDim : ''].filter(Boolean).join(' ')}
+        disabled={!canAct}
+        onClick={() => setConfirm({ type: 'recycle', damage: RECYCLE_DMG, productIndex: 0 })}
+      >
+        <span className={s.tileLabel}>Recycle</span>
+        <span className={s.tileDmg}>⚔ {RECYCLE_DMG}</span>
+        {recycleSource && <span className={s.tileNameHint}>{recycleSource}</span>}
       </button>
 
       {/* Superhit */}

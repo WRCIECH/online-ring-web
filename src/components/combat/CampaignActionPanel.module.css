@@ -97,6 +97,10 @@
 .tileHeavy:hover:not(:disabled)  { border-color: rgba(220,140,60,0.65); box-shadow: 0 0 14px rgba(220,140,60,0.18); }
 .tileHeavy .tileLabel  { color: #e0a060; }
 
+.tileRecycle { border-color: rgba(120,200,140,0.30); }
+.tileRecycle:hover:not(:disabled) { border-color: rgba(120,200,140,0.65); box-shadow: 0 0 14px rgba(120,200,140,0.18); }
+.tileRecycle .tileLabel { color: #78c88c; }
+
 .tileSuperhit { border-color: rgba(200,170,50,0.30); }
 .tileSuperhit:hover:not(:disabled) { border-color: rgba(200,170,50,0.65); box-shadow: 0 0 14px rgba(200,170,50,0.22); }
 .tileSuperhit .tileLabel { color: #ccaa44; }

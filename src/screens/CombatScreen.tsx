@@ -725,6 +725,9 @@ export default function CombatScreen() {
             dispatch({ type: 'CAMPAIGN_HIT', damage, label: '💥 SUPERHIT!', color: '#eecc44' })
             store.consumeSuperhitCharge(state.equippedWeaponId)
           }}
+          onRecycle={(damage) => {
+            dispatch({ type: 'CAMPAIGN_HIT', damage, label: '♻ Recycle', color: '#78c88c' })
+          }}
           onSacrifice={(selfDmg) => {
             dispatch({ type: 'CAMPAIGN_SELF_DAMAGE', amount: selfDmg })
           }}
