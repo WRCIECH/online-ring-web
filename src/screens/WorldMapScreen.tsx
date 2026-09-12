@@ -6,8 +6,11 @@ import { REGION_DEFINITIONS } from '../data/regions'
 import { LOCATION_DEFINITIONS } from '../data/locations'
 import HomeLogo from '../components/HomeLogo'
 import ActionBar from '../components/layout/ActionBar'
+import MusicOverlay from '../components/overlays/MusicOverlay'
 import { useT } from '../i18n'
 import s from './WorldMapScreen.module.css'
+
+const MUSIC_PROMPT_DISMISSED_KEY = 'music_prompt_dismissed'
 
 const MAP_W = 1100
 const MAP_H = 720
@@ -53,6 +56,16 @@ export default function WorldMapScreen() {
   const [selectedIdx, setSelectedIdx] = useState<number | null>(null)
   const mousePosRef = useRef({ x: 0, y: 0 })
   const tooltipRef  = useRef<HTMLDivElement>(null)
+
+  const [showMusicPrompt, setShowMusicPrompt] = useState(false)
+  const [musicPromptDismissed, setMusicPromptDismissed] = useState(
+    () => localStorage.getItem(MUSIC_PROMPT_DISMISSED_KEY) === '1'
+  )
+  const hasCustomMusic = (store.music_tracks?.length ?? 0) > 0
+  function dismissMusicPrompt() {
+    localStorage.setItem(MUSIC_PROMPT_DISMISSED_KEY, '1')
+    setMusicPromptDismissed(true)
+  }
 
   const completedRegions = useMemo(() => new Set(store.completed_regions), [store.completed_regions])
 
@@ -171,11 +184,13 @@ export default function WorldMapScreen() {
                   style={{ textTransform: 'uppercase', fontFamily: 'inherit' }}>
                   {cell.region.name}
                 </text>
-                <text x={lp.x} y={lp.y + 6} textAnchor="middle"
-                  fill={isLocked ? 'rgba(200,180,220,0.18)' : 'rgba(255,255,255,0.45)'}
-                  fontSize="9" letterSpacing="0.5">
-                  {isLocked ? '🔒 Locked' : `×${cell.region.difficultyMult.toFixed(1)}`}
-                </text>
+                {isLocked && (
+                  <text x={lp.x} y={lp.y + 6} textAnchor="middle"
+                    fill="rgba(200,180,220,0.18)"
+                    fontSize="9" letterSpacing="0.5">
+                    🔒 Locked
+                  </text>
+                )}
               </g>
             )
           })}
@@ -207,6 +222,18 @@ export default function WorldMapScreen() {
         </div>
       </div>
 
+      {!hasCustomMusic && !musicPromptDismissed && (
+        <div className={s.musicPrompt}>
+          <span className={s.musicPromptText} onClick={() => setShowMusicPrompt(true)}>
+            🎵 No music set up yet — add your own YouTube tracks
+          </span>
+          <button className={s.musicPromptClose} onClick={dismissMusicPrompt} title="Dismiss">✕</button>
+        </div>
+      )}
+      {showMusicPrompt && (
+        <MusicOverlay onClose={() => setShowMusicPrompt(false)} />
+      )}
+
       {/* ── Info panel ── */}
       {activeCell && (
         <div className={[s.infoPanel, selectedIdx !== null ? s.infoPanelSelected : ''].join(' ')}
@@ -217,10 +244,6 @@ export default function WorldMapScreen() {
           <div className={s.infoLore}>{activeCell.region.lore}</div>
 
           <div className={s.infoMeta}>
-            <span className={s.diffBadge}
-              style={{ color: activeCell.region.color, borderColor: activeCell.region.color + '44' }}>
-              ×{activeCell.region.difficultyMult.toFixed(1)} {t.ui.world_difficulty ?? 'difficulty'}
-            </span>
             {activeCell.state !== 'locked' && (
               <span className={s.locProgress}>
                 {completedLocCount} / {totalLocCount} {t.ui.loc_locations}

@@ -34,8 +34,8 @@ export default function PreFightPicker({ loc, onConfirm, onCancel }: Props) {
         .map(p => ({ id: p.id, name: p.name }))
     }
     if (c.research) {
-      if (c.research.completed) return []
-      return [{ id: '_research', name: `Research (${c.research.done_steps}/${c.research.total_steps})` }]
+      const toNext = c.research.cycle_steps - (c.research.done_steps % c.research.cycle_steps)
+      return [{ id: '_research', name: `Research (${toNext} to next ✦)` }]
     }
     // Old-format: named node tree
     return c.nodes

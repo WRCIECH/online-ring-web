@@ -1,11 +1,12 @@
 import { create } from 'zustand'
-import type { GameState, LocationData, Stats, WeaponInstance, SublocationType, CampaignNode, Locale, WorkflowGraph, LocationTheme, RewardTier, ContentProductType, ContentTransformation, StatKey, AudienceSectionKey, MediumContentType, HeavyContentType } from '../types/game'
+import type { GameState, LocationData, Stats, WeaponInstance, WeaponClass, SublocationType, CampaignNode, Locale, WorkflowGraph, LocationTheme, RewardTier, ContentProductType, ContentTransformation, StatKey, AudienceSectionKey, MediumContentType, HeavyContentType } from '../types/game'
 import { DEFAULT_MUSIC_TRACKS } from '../data/combatMusic'
 import { ENEMIES } from '../data/enemies'
 import { saveGame, loadGame } from '../engine/save'
 import { registerWeapon, calcWeaponSellPrice } from '../data/weapons'
 import { INITIAL_GAME_TIME_SECONDS, ESTUS_START, ESTUS_HEAL_HP, statLevelCost, weaponUpgradeCost, MAX_ACTIVE_CAMPAIGNS, RESEARCH_COMPLETE_SUPERHITS } from '../data/constants'
 import { rollWeapon } from '../data/generators/weaponGenerator'
+import { WEAPON_CLASSES, ALL_WEAPON_CLASSES, type CampaignActionType } from '../data/generators/weaponClasses'
 import { CLASS_DEFINITIONS } from '../data/classes'
 import { generateWeaponCampaign, isNodeAvailable } from '../data/generators/campaignGenerator'
 import type { LocationDef } from '../data/locations'
@@ -14,6 +15,23 @@ import { REGION_DEFINITIONS } from '../data/regions'
 
 function hydrateRegistries(state: GameState): void {
   state.weapon_instances.forEach(w => registerWeapon(w))
+}
+
+// Rolls the class's own weapon plus one more per action type (medium/heavy/research)
+// not already covered by it, so every new character starts with all three campaign
+// action types available instead of being locked into just one.
+function rollStartingWeapons(primaryClass: WeaponClass): WeaponInstance[] {
+  const weapons = [rollWeapon(primaryClass, 'common')]
+  const covered = new Set<CampaignActionType>([WEAPON_CLASSES[primaryClass].action_type])
+  const allTypes: CampaignActionType[] = ['medium', 'heavy', 'research']
+  for (const actionType of allTypes) {
+    if (covered.has(actionType)) continue
+    const classesOfType = ALL_WEAPON_CLASSES.filter(c => WEAPON_CLASSES[c].action_type === actionType)
+    const pick = classesOfType[Math.floor(Math.random() * classesOfType.length)]
+    weapons.push(rollWeapon(pick, 'common'))
+    covered.add(actionType)
+  }
+  return weapons
 }
 
 const DEFAULT_STATS: Stats = { VIG: 2, END: 2, TEXT: 0, VIDEO: 0, AUDIO: 0, GRAPHIC: 0, VELOCITY: 0, DEPTH: 0, PARASOCIAL: 0, FRICTION: 0, INSIGHT: 0 }
@@ -149,7 +167,6 @@ function generateLocationSequence(
   difficulty: number,
   theme: LocationTheme,
   runCount: number,
-  regionDiffMult: number = 1.0,
 ): LocationData[] {
   const [t1, t2, t3] = calcTierCounts(numSublocations)
   const tier1    = shuffle(ENCOUNTER_POOL.filter(e => e.tier === 1)).slice(0, t1)
@@ -170,7 +187,7 @@ function generateLocationSequence(
       return {
         enemy_id: enc.enemy_id,
         name: LOCATION_NAMES[i] ?? `Location ${i + 1}`,
-        mult: baseMult * diffMult * runMult * regionDiffMult,
+        mult: baseMult * diffMult * runMult,
         tier: enc.tier,
         sublocation_type: 'boss' as SublocationType,
         boss_name: bossEnemy?.boss_name ?? bossEnemy?.name ?? enc.enemy_id,
@@ -189,7 +206,7 @@ function generateLocationSequence(
       if (Math.random() < 0.6) type = 'mob'
       else event_type = 'trial'
     }
-    const finalMult = (type === 'elite' ? baseMult * 1.3 : baseMult) * diffMult * runMult * regionDiffMult
+    const finalMult = (type === 'elite' ? baseMult * 1.3 : baseMult) * diffMult * runMult
     return {
       enemy_id: enc.enemy_id,
       name: LOCATION_NAMES[i] ?? `Location ${i + 1}`,
@@ -336,9 +353,6 @@ export interface GameStore extends GameState {
   mergeRewards: (tier: RewardTier) => void
   renameReward: (tier: RewardTier, name: string) => void
 
-  // Flow bonus (consecutive fights)
-  recordFightEnd: () => void
-
   // Analytics
   addTaskTime: (seconds: number) => void
   recordNodeTime: (nodeId: string, stage: 'Research' | 'Produce', seconds: number) => void
@@ -376,8 +390,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
 
   startRun: (loc: LocationDef) => {
     const runCount = get().run_count
-    const regionDiffMult = REGION_DEFINITIONS.find(r => r.id === loc.region_id)?.difficultyMult ?? 1.0
-    const seq = generateLocationSequence(loc.numSublocations, loc.difficulty, loc.theme, runCount, regionDiffMult)
+    const seq = generateLocationSequence(loc.numSublocations, loc.difficulty, loc.theme, runCount)
     const currentEnd = get().game_time_end
     set({
       run_active: true,
@@ -394,7 +407,6 @@ export const useGameStore = create<GameStore>((set, get) => ({
       // workflow_progress and content_streak are campaign data that span multiple runs — do NOT clear
       active_content_id: null,
       pending_weapon_id: null,
-      last_fight_ended_at: undefined,
     })
     get().save()
   },
@@ -568,16 +580,16 @@ export const useGameStore = create<GameStore>((set, get) => ({
   initClass: (classId) => {
     const cls = CLASS_DEFINITIONS.find(c => c.id === classId)
     if (!cls) return
-    const w = rollWeapon(cls.weaponClass, 'common')
-    registerWeapon(w)
+    const weapons = rollStartingWeapons(cls.weaponClass)
+    weapons.forEach(registerWeapon)
     set({
       player_class: classId,
       stats: { ...cls.startingStats },
       total_levels_spent: 1,
       runes: 0, lost_runes: 0, lost_rune_location: '', lost_rune_node_index: -1,
-      owned_weapons: [w.instance_id],
-      weapon_instances: [w],
-      weapon_level: { [w.instance_id]: 0 },
+      owned_weapons: weapons.map(w => w.instance_id),
+      weapon_instances: weapons,
+      weapon_level: Object.fromEntries(weapons.map(w => [w.instance_id, 0])),
       current_hp: calcMaxHp(cls.startingStats.VIG),
       weapon_campaigns: {},
       workflow_progress: {},
@@ -1013,9 +1025,13 @@ export const useGameStore = create<GameStore>((set, get) => ({
     set(s => {
       const campaign = s.weapon_campaigns[weaponId]
       if (!campaign?.medium) return s
-      const chunks = campaign.medium.chunks.map(ch => ch.id === chunkId ? { ...ch, done: true } : ch)
-      const completed = campaign.medium.completed || chunks.every(ch => ch.done)
-      const updated = { ...campaign, medium: { ...campaign.medium, chunks, completed } }
+      const chunks = campaign.medium.chunks
+      const idx = chunks.findIndex(ch => ch.id === chunkId)
+      // Enforce strict order — a chunk can only be completed once every earlier one is done.
+      if (idx === -1 || chunks.slice(0, idx).some(ch => !ch.done)) return s
+      const updatedChunks = chunks.map(ch => ch.id === chunkId ? { ...ch, done: true } : ch)
+      const completed = campaign.medium.completed || updatedChunks.every(ch => ch.done)
+      const updated = { ...campaign, medium: { ...campaign.medium, chunks: updatedChunks, completed } }
       const prevCharges = (s.weapon_pending_superhits ?? {})[weaponId] ?? 0
       return {
         weapon_campaigns: { ...s.weapon_campaigns, [weaponId]: updated },
@@ -1029,9 +1045,13 @@ export const useGameStore = create<GameStore>((set, get) => ({
     set(s => {
       const campaign = s.weapon_campaigns[weaponId]
       if (!campaign?.heavy) return s
-      const parts = campaign.heavy.parts.map(p => p.id === partId ? { ...p, done: true } : p)
-      const completed = campaign.heavy.completed || parts.every(p => p.done)
-      const updated = { ...campaign, heavy: { ...campaign.heavy, parts, completed } }
+      const parts = campaign.heavy.parts
+      const idx = parts.findIndex(p => p.id === partId)
+      // Enforce strict order — a part can only be completed once every earlier one is done.
+      if (idx === -1 || parts.slice(0, idx).some(p => !p.done)) return s
+      const updatedParts = parts.map(p => p.id === partId ? { ...p, done: true } : p)
+      const completed = campaign.heavy.completed || updatedParts.every(p => p.done)
+      const updated = { ...campaign, heavy: { ...campaign.heavy, parts: updatedParts, completed } }
       const prevCharges = (s.weapon_pending_superhits ?? {})[weaponId] ?? 0
       return {
         weapon_campaigns: { ...s.weapon_campaigns, [weaponId]: updated },
@@ -1044,15 +1064,15 @@ export const useGameStore = create<GameStore>((set, get) => ({
   completeResearchStep: (weaponId) => {
     set(s => {
       const campaign = s.weapon_campaigns[weaponId]
-      if (!campaign?.research || campaign.research.completed) return s
+      if (!campaign?.research) return s
       const research = campaign.research
-      const done_steps = Math.min(research.total_steps, research.done_steps + 1)
-      const justCompleted = done_steps >= research.total_steps
-      const updated = { ...campaign, research: { ...research, done_steps, completed: justCompleted } }
+      const done_steps = research.done_steps + 1
+      const hitMilestone = done_steps % research.cycle_steps === 0
+      const updated = { ...campaign, research: { ...research, done_steps } }
       const prevCharges = (s.weapon_pending_superhits ?? {})[weaponId] ?? 0
       return {
         weapon_campaigns: { ...s.weapon_campaigns, [weaponId]: updated },
-        ...(justCompleted ? {
+        ...(hitMilestone ? {
           weapon_pending_superhits: { ...(s.weapon_pending_superhits ?? {}), [weaponId]: prevCharges + RESEARCH_COMPLETE_SUPERHITS },
         } : {}),
       }
@@ -1131,8 +1151,6 @@ export const useGameStore = create<GameStore>((set, get) => ({
     })
     get().save()
   },
-
-  recordFightEnd: () => { set({ last_fight_ended_at: Date.now() }); get().save() },
 
   addReward: (tier) => {
     set(s => ({ rewards: { ...s.rewards, [tier]: (s.rewards[tier] ?? 0) + 1 } }))

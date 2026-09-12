@@ -135,18 +135,6 @@
 
 .buff:hover::after { opacity: 1; }
 
-.badgeHot {
-  background: rgba(255, 200, 40, 0.12);
-  border: 1px solid rgba(255, 200, 40, 0.45);
-  color: #ffcc44;
-}
-
-.badgeWarm {
-  background: rgba(100, 200, 255, 0.10);
-  border: 1px solid rgba(100, 200, 255, 0.35);
-  color: #88ddff;
-}
-
 .badgeRemaster {
   background: rgba(140, 90, 255, 0.10);
   border: 1px solid rgba(140, 90, 255, 0.35);

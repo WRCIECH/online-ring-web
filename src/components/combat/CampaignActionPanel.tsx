@@ -17,9 +17,6 @@ const STEP_TILE: WorkflowTile = {
   is_completed: false, repeat_count: 0,
 }
 
-// Flat, deliberately unscaled — does not go through calcTileDamage or the flow multiplier.
-const RECYCLE_DMG = 100
-
 type ModeKind = 'medium' | 'heavy' | 'research'
 
 type TimerCtx = {
@@ -30,7 +27,6 @@ type TimerCtx = {
   contentName: string
   itemId?: string   // chunkId / partId; absent for research (no elements)
 }
-type ConfirmCtx  = { type: 'superhit' | 'recycle'; damage: number }
 type ModeStartCtx = { mode: ModeKind; name: string; damage: number; secs: number; itemId?: string }
 
 interface Props {
@@ -40,12 +36,10 @@ interface Props {
   superhitCharges: number
   playerHp: number
   canAct: boolean
-  flowMult?: number
   onMediumChunk:  (damage: number, chunkId: string) => void
   onHeavyPart:    (damage: number, partId: string) => void
   onResearchStep: (damage: number) => void
   onSuperhit:     (damage: number) => void
-  onRecycle:      (damage: number) => void
   onSacrifice:    (selfDmg: number) => void
 }
 
@@ -56,19 +50,18 @@ function fmtSecs(sec: number): string {
 }
 
 export default function CampaignActionPanel({
-  campaign, weapon, weaponLevel, superhitCharges, playerHp, canAct, flowMult,
-  onMediumChunk, onHeavyPart, onResearchStep, onSuperhit, onRecycle, onSacrifice,
+  campaign, weapon, weaponLevel, superhitCharges, playerHp, canAct,
+  onMediumChunk, onHeavyPart, onResearchStep, onSuperhit, onSacrifice,
 }: Props) {
   const t = useT()
-  const fm = flowMult ?? 1
   const [timer, setTimer]         = useState<TimerCtx | null>(null)
-  const [confirm, setConfirm]     = useState<ConfirmCtx | null>(null)
+  const [confirmDmg, setConfirmDmg] = useState<number | null>(null)
   const [modeStart, setModeStart] = useState<ModeStartCtx | null>(null)
   const [remaining, setRemaining] = useState(0)
   const doneRef = useRef(false)
 
-  const mediumDmg   = Math.round(calcTileDamage(MEDIUM_TILE, 'Light', weapon, weaponLevel) * fm)
-  const stepDmg     = Math.round(calcTileDamage(STEP_TILE, 'Heavy', weapon, weaponLevel) * fm)
+  const mediumDmg   = Math.round(calcTileDamage(MEDIUM_TILE, 'Light', weapon, weaponLevel))
+  const stepDmg     = Math.round(calcTileDamage(STEP_TILE, 'Heavy', weapon, weaponLevel))
   const superhitDmg = Math.round(mediumDmg * 5)
   const canShit     = superhitCharges > 0
 
@@ -83,24 +76,6 @@ export default function CampaignActionPanel({
   function prodBadge(type: string): string {
     return (t.content.product as Record<string, { badge_label: string }>)[type]?.badge_label ?? type
   }
-
-  // Display-only flavor text for the Recycle tile — the most-recently-completed
-  // item in whichever mode this weapon has. Not a gate, nothing is consumed.
-  function getRecycleSource(): string | null {
-    if (medium) {
-      for (let i = medium.chunks.length - 1; i >= 0; i--) {
-        if (medium.chunks[i].done) return medium.chunks[i].name
-      }
-    }
-    if (heavy) {
-      for (let i = heavy.parts.length - 1; i >= 0; i--) {
-        if (heavy.parts[i].done) return heavy.parts[i].name
-      }
-    }
-    if (research && research.done_steps > 0) return `Research (${research.done_steps} steps)`
-    return null
-  }
-  const recycleSource = getRecycleSource()
 
   // ── Timer countdown ───────────────────────────────────────────────────────
   useEffect(() => {
@@ -133,11 +108,9 @@ export default function CampaignActionPanel({
   }
 
   function handleConfirmYes() {
-    if (!confirm) return
-    const c = confirm
-    setConfirm(null)
-    if (c.type === 'recycle') onRecycle(c.damage)
-    else                      onSuperhit(c.damage)
+    if (confirmDmg == null) return
+    onSuperhit(confirmDmg)
+    setConfirmDmg(null)
   }
 
   // ── Timer view ─────────────────────────────────────────────────────────────
@@ -209,18 +182,15 @@ export default function CampaignActionPanel({
     )
   }
 
-  // ── Superhit / Recycle confirmation ─────────────────────────────────────────
-  if (confirm) {
-    const label = confirm.type === 'recycle'
-      ? '♻️ Did you republish it elsewhere?'
-      : '💥 Did you land the superhit?'
+  // ── Superhit confirmation ───────────────────────────────────────────────────
+  if (confirmDmg != null) {
     return (
       <div className={s.confirmView}>
-        <div className={s.confirmLabel}>{label}</div>
-        <div className={s.confirmDmg}>⚔ {confirm.damage}</div>
+        <div className={s.confirmLabel}>💥 Did you land the superhit?</div>
+        <div className={s.confirmDmg}>⚔ {confirmDmg}</div>
         <div className={s.confirmBtns}>
           <button className={s.confirmYes} onClick={handleConfirmYes}>Yes</button>
-          <button className={s.confirmNo}  onClick={() => setConfirm(null)}>No</button>
+          <button className={s.confirmNo}  onClick={() => setConfirmDmg(null)}>No</button>
         </div>
       </div>
     )
@@ -266,34 +236,23 @@ export default function CampaignActionPanel({
 
       {research && (
         <button
-          className={[s.tile, s.tileHeavy, research.completed || !canAct ? s.tileDim : ''].filter(Boolean).join(' ')}
-          disabled={research.completed || !canAct}
+          className={[s.tile, s.tileHeavy, !canAct ? s.tileDim : ''].filter(Boolean).join(' ')}
+          disabled={!canAct}
           onClick={() => setModeStart({
             mode: 'research', name: 'Research', damage: stepDmg, secs: CAMPAIGN_STEP_SECS,
           })}
         >
           <span className={s.tileLabel}>Research</span>
           <span className={s.tileDmg}>⚔ {stepDmg}</span>
-          <span className={s.tileHint}>{research.done_steps}/{research.total_steps} steps</span>
+          <span className={s.tileHint}>{research.done_steps % research.cycle_steps}/{research.cycle_steps} to next ✦</span>
         </button>
       )}
-
-      {/* Recycle */}
-      <button
-        className={[s.tile, s.tileRecycle, !canAct ? s.tileDim : ''].filter(Boolean).join(' ')}
-        disabled={!canAct}
-        onClick={() => setConfirm({ type: 'recycle', damage: RECYCLE_DMG })}
-      >
-        <span className={s.tileLabel}>Recycle</span>
-        <span className={s.tileDmg}>⚔ {RECYCLE_DMG}</span>
-        {recycleSource && <span className={s.tileNameHint}>{recycleSource}</span>}
-      </button>
 
       {/* Superhit */}
       <button
         className={[s.tile, s.tileSuperhit, !canShit || !canAct ? s.tileDim : ''].filter(Boolean).join(' ')}
         disabled={!canShit || !canAct}
-        onClick={() => setConfirm({ type: 'superhit', damage: superhitDmg })}
+        onClick={() => setConfirmDmg(superhitDmg)}
       >
         <span className={s.tileLabel}>Superhit</span>
         <span className={s.tileDmg}>⚔ {superhitDmg}</span>

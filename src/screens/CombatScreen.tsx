@@ -1,7 +1,7 @@
 import { useReducer, useEffect, useCallback, useState, useMemo, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { combatReducer, initCombatState, getReachableTiles, previewMove, formatMultiplierPct, calcTileDamage, calcFlowMult } from '../engine/combat'
-import { FLOW_GAP_HOT_MINS, FLOW_GAP_WARM_MINS, ESTUS_MOB_DROP_CHANCE } from '../data/constants'
+import { combatReducer, initCombatState, getReachableTiles, previewMove, formatMultiplierPct, calcTileDamage } from '../engine/combat'
+import { ESTUS_MOB_DROP_CHANCE } from '../data/constants'
 import { useGameStore, selectAvailableNodes } from '../store/gameStore'
 import { ENEMIES } from '../data/enemies'
 import { WEAPONS } from '../data/weapons'
@@ -89,9 +89,6 @@ export default function CombatScreen() {
 
   const activeWeaponCampaign = store.weapon_campaigns[initialWeaponId]
 
-  // ── Flow bonus — computed once at fight init from last fight end time ────
-  const initialFlowMult = calcFlowMult(store.last_fight_ended_at)
-
   // ── Init combat state (stable across renders) ────────────────────────────
   const [state, dispatch] = useReducer(
     combatReducer,
@@ -130,10 +127,8 @@ export default function CombatScreen() {
         store.stats,
         spawnAsBoss,
         loc.locationTheme,
-        initialFlowMult,
         campaignDoneMult,
         initialStreak,
-        store.last_fight_ended_at,
         loc.mult,
       )
     }
@@ -244,7 +239,6 @@ export default function CombatScreen() {
     if (rewardDrop) store.addReward(rewardDrop)
     store.addDefeatedEnemy(loc.enemy_id)
     if (estusBonus) store.addEstus(1)
-    store.recordFightEnd()
     if (finalizeContent && store.active_content_id) {
       finalizeContentId(store.active_content_id)
       store.clearActiveWorkflow()
@@ -422,22 +416,6 @@ export default function CombatScreen() {
     setShowAdvancePicker(false)
   }
 
-  // Flow countdown — seconds until the current flow tier expires
-  const [flowCountdown, setFlowCountdown] = useState('')
-  useEffect(() => {
-    if (!store.last_fight_ended_at || state.flowMult <= 1.0) { setFlowCountdown(''); return }
-    const targetMins = state.flowMult >= 1.5 ? FLOW_GAP_HOT_MINS : FLOW_GAP_WARM_MINS
-    function tick() {
-      const remainingMs = Math.max(0, targetMins * 60000 - (Date.now() - store.last_fight_ended_at!))
-      const m = Math.floor(remainingMs / 60000)
-      const s = Math.floor((remainingMs % 60000) / 1000)
-      setFlowCountdown(`${m}:${s.toString().padStart(2, '0')}`)
-    }
-    tick()
-    const id = setInterval(tick, 1000)
-    return () => clearInterval(id)
-  }, [store.last_fight_ended_at, state.flowMult])
-
   const activeContent = selectAvailableNodes(store as Parameters<typeof selectAvailableNodes>[0], state.equippedWeaponId)
   const selectedContent = activeContent.find(c => c.id === selectedContentId) ?? null
 
@@ -611,12 +589,6 @@ export default function CombatScreen() {
         })
 
         const badges = [
-          state.flowMult > 1.0 && {
-            key: 'flow',
-            label: `⚡ ${tui.mult_flow} ×${state.flowMult.toFixed(1)}${flowCountdown ? `  ${flowCountdown}` : ''}`,
-            cls: state.flowMult >= 1.5 ? s.badgeHot : s.badgeWarm,
-            tooltip: tui.mult_flow_desc,
-          },
           state.campaignDoneMult > 1.0 && {
             key: 'campaignDone',
             label: `✦ ${tui.mult_campaignDone} +${Math.round((state.campaignDoneMult - 1) * 100)}%`,
@@ -700,7 +672,6 @@ export default function CombatScreen() {
           superhitCharges={totalSuperhitCharges}
           playerHp={state.playerHp}
           canAct={isPlayerTurn}
-          flowMult={state.flowMult}
           onMediumChunk={(damage, chunkId) => {
             dispatch({ type: 'CAMPAIGN_HIT', damage, label: '✍ Medium', color: '#60c0e0' })
             store.completeMediumChunk(state.equippedWeaponId, chunkId)
@@ -716,9 +687,6 @@ export default function CombatScreen() {
           onSuperhit={(damage) => {
             dispatch({ type: 'CAMPAIGN_HIT', damage, label: '💥 SUPERHIT!', color: '#eecc44' })
             store.consumeSuperhitCharge(state.equippedWeaponId)
-          }}
-          onRecycle={(damage) => {
-            dispatch({ type: 'CAMPAIGN_HIT', damage, label: '♻ Recycle', color: '#78c88c' })
           }}
           onSacrifice={(selfDmg) => {
             dispatch({ type: 'CAMPAIGN_SELF_DAMAGE', amount: selfDmg })

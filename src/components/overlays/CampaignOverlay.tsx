@@ -347,36 +347,45 @@ export default function CampaignOverlay({ onClose }: Props) {
                       {campaign.medium && (
                         <div className={s.modePanel}>
                           <div className={s.mediumList}>
-                            {campaign.medium.chunks.map((c, i) => (
-                              <div key={c.id} className={[s.mediumPiece, c.done ? s.mediumPieceLocked : ''].filter(Boolean).join(' ')}>
-                                <div className={s.mediumPieceLeft}>
-                                  <span className={s.mediumPieceNum}>{i + 1}</span>
-                                  {isActivated ? (
-                                    <span className={s.mediumPieceName}>{c.name}</span>
-                                  ) : (
-                                    <input
-                                      className={s.pieceNameInput}
-                                      value={c.name}
-                                      onChange={e => store.renameMediumChunk(wid, c.id, e.target.value)}
-                                    />
-                                  )}
-                                </div>
-                                <div className={s.mediumPieceRight}>
-                                  <div className={s.mediumPieceLevels}>
-                                    <span className={s.levelBadge}>{prodLabel(c.content_type)}</span>
-                                    {c.done && <span className={[s.levelBadge, s.levelDone].join(' ')}>✓ Done</span>}
-                                  </div>
-                                  {!isActivated && (
-                                    <div className={s.modEditRow}>
-                                      <button className={s.modEditBtn} title="Change type" onClick={() => openMod({ kind: 'mediumChunkType', chunkId: c.id })}>✎</button>
-                                      {c.type_modified && (
-                                        <button className={s.modResetBtn} title="Reset type" onClick={() => store.resetMediumChunkType(wid, c.id)}>↺</button>
+                            {(() => {
+                              const chunks = campaign.medium!.chunks
+                              const firstUndone = chunks.findIndex(ch => !ch.done)
+                              return chunks.map((c, i) => {
+                                const isLocked  = !c.done && firstUndone !== -1 && i !== firstUndone
+                                const isCurrent = !c.done && i === firstUndone
+                                return (
+                                  <div key={c.id} className={[s.mediumPiece, isLocked ? s.mediumPieceLocked : ''].filter(Boolean).join(' ')}>
+                                    <div className={s.mediumPieceLeft}>
+                                      <span className={s.mediumPieceNum}>{isLocked ? '🔒' : i + 1}</span>
+                                      {isActivated ? (
+                                        <span className={s.mediumPieceName}>{c.name}</span>
+                                      ) : (
+                                        <input
+                                          className={s.pieceNameInput}
+                                          value={c.name}
+                                          onChange={e => store.renameMediumChunk(wid, c.id, e.target.value)}
+                                        />
                                       )}
                                     </div>
-                                  )}
-                                </div>
-                              </div>
-                            ))}
+                                    <div className={s.mediumPieceRight}>
+                                      <div className={s.mediumPieceLevels}>
+                                        <span className={s.levelBadge}>{prodLabel(c.content_type)}</span>
+                                        {c.done && <span className={[s.levelBadge, s.levelDone].join(' ')}>✓ Done</span>}
+                                        {isCurrent && <span className={[s.levelBadge, s.levelReady].join(' ')}>▶ Up next</span>}
+                                      </div>
+                                      {!isActivated && (
+                                        <div className={s.modEditRow}>
+                                          <button className={s.modEditBtn} title="Change type" onClick={() => openMod({ kind: 'mediumChunkType', chunkId: c.id })}>✎</button>
+                                          {c.type_modified && (
+                                            <button className={s.modResetBtn} title="Reset type" onClick={() => store.resetMediumChunkType(wid, c.id)}>↺</button>
+                                          )}
+                                        </div>
+                                      )}
+                                    </div>
+                                  </div>
+                                )
+                              })
+                            })()}
                           </div>
                           {campaign.medium.completed && <div className={s.modeComplete}>✓ Medium complete</div>}
                         </div>
@@ -411,49 +420,63 @@ export default function CampaignOverlay({ onClose }: Props) {
                             })()}
                           </div>
                           <div className={s.mediumList}>
-                            {campaign.heavy.parts.map((p, i) => (
-                              <div key={p.id} className={[s.mediumPiece, p.done ? s.mediumPieceLocked : ''].filter(Boolean).join(' ')}>
-                                <div className={s.mediumPieceLeft}>
-                                  <span className={s.mediumPieceNum}>{i + 1}</span>
-                                  {isActivated ? (
-                                    <span className={s.mediumPieceName}>{p.name}</span>
-                                  ) : (
-                                    <input
-                                      className={s.pieceNameInput}
-                                      value={p.name}
-                                      onChange={e => store.renameHeavyPart(wid, p.id, e.target.value)}
-                                    />
-                                  )}
-                                </div>
-                                <div className={s.mediumPieceRight}>
-                                  {p.done && <span className={[s.levelBadge, s.levelDone].join(' ')}>✓ Done</span>}
-                                </div>
-                              </div>
-                            ))}
+                            {(() => {
+                              const parts = campaign.heavy!.parts
+                              const firstUndone = parts.findIndex(p => !p.done)
+                              return parts.map((p, i) => {
+                                const isLocked  = !p.done && firstUndone !== -1 && i !== firstUndone
+                                const isCurrent = !p.done && i === firstUndone
+                                return (
+                                  <div key={p.id} className={[s.mediumPiece, isLocked ? s.mediumPieceLocked : ''].filter(Boolean).join(' ')}>
+                                    <div className={s.mediumPieceLeft}>
+                                      <span className={s.mediumPieceNum}>{isLocked ? '🔒' : i + 1}</span>
+                                      {isActivated ? (
+                                        <span className={s.mediumPieceName}>{p.name}</span>
+                                      ) : (
+                                        <input
+                                          className={s.pieceNameInput}
+                                          value={p.name}
+                                          onChange={e => store.renameHeavyPart(wid, p.id, e.target.value)}
+                                        />
+                                      )}
+                                    </div>
+                                    <div className={s.mediumPieceRight}>
+                                      {p.done && <span className={[s.levelBadge, s.levelDone].join(' ')}>✓ Done</span>}
+                                      {isCurrent && <span className={[s.levelBadge, s.levelReady].join(' ')}>▶ Up next</span>}
+                                    </div>
+                                  </div>
+                                )
+                              })
+                            })()}
                           </div>
                           {campaign.heavy.completed && <div className={s.modeComplete}>✓ Heavy complete</div>}
                         </div>
                       )}
 
                       {/* ── Research panel ── */}
-                      {campaign.research && (
-                        <div className={s.modePanel}>
-                          <div className={s.heavyCard}>
-                            <div className={s.heavyProductType}>Research</div>
-                            <div className={s.heavyProgress}>
-                              <span className={s.heavyProgressLabel}>Progress</span>
-                              <span className={s.heavyProgressTrack}>
-                                <span
-                                  className={s.heavyProgressFill}
-                                  style={{ width: `${Math.min(100, campaign.research.total_steps > 0 ? (campaign.research.done_steps / campaign.research.total_steps) * 100 : 0)}%` }}
-                                />
-                              </span>
-                              <span>{campaign.research.done_steps}/{campaign.research.total_steps}</span>
+                      {campaign.research && (() => {
+                        const { done_steps, cycle_steps } = campaign.research
+                        const cyclesDone = Math.floor(done_steps / cycle_steps)
+                        const cycleProgress = done_steps % cycle_steps
+                        return (
+                          <div className={s.modePanel}>
+                            <div className={s.heavyCard}>
+                              <div className={s.heavyProductType}>Research — no limit, work forever</div>
+                              <div className={s.heavyProgress}>
+                                <span className={s.heavyProgressLabel}>Next ✦ in</span>
+                                <span className={s.heavyProgressTrack}>
+                                  <span
+                                    className={s.heavyProgressFill}
+                                    style={{ width: `${Math.min(100, (cycleProgress / cycle_steps) * 100)}%` }}
+                                  />
+                                </span>
+                                <span>{cycleProgress}/{cycle_steps}</span>
+                              </div>
                             </div>
+                            <div className={s.modeComplete}>✦ {cyclesDone} superhit cycle{cyclesDone !== 1 ? 's' : ''} earned so far</div>
                           </div>
-                          {campaign.research.completed && <div className={s.modeComplete}>✓ Research complete</div>}
-                        </div>
-                      )}
+                        )
+                      })()}
 
                       {renderModPicker()}
                     </>

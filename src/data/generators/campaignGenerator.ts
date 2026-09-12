@@ -127,8 +127,8 @@ export function generateHeavyParts(weapon: WeaponInstance): HeavyModeState {
 export function generateResearch(weapon: WeaponInstance): ResearchModeState {
   const pw = weapon.poise_weight ?? 8
   const scale = 1.5 + Math.random() * 0.5   // 1.5–2.0×
-  const total_steps = Math.max(4, Math.round(pw * scale))
-  return { total_steps, done_steps: 0, completed: false }
+  const cycle_steps = Math.max(4, Math.round(pw * scale))
+  return { cycle_steps, done_steps: 0 }
 }
 
 export function generateWeaponCampaign(weapon: WeaponInstance): WeaponCampaign {

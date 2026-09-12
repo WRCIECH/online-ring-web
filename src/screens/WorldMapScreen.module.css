@@ -63,6 +63,37 @@
   letter-spacing: 0.04em;
 }
 
+/* ── Music setup prompt ─────────────────────────────────────────────────── */
+.musicPrompt {
+  position: absolute;
+  top: 60px;
+  right: 16px;
+  z-index: 9;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  border-radius: var(--radius);
+  background: rgba(140, 90, 255, 0.10);
+  border: 1px solid rgba(140, 90, 255, 0.35);
+}
+
+.musicPromptText {
+  font-size: 0.70rem;
+  color: #c9a9ff;
+  cursor: pointer;
+}
+
+.musicPromptClose {
+  background: none;
+  border: none;
+  color: var(--color-text-dim);
+  font-size: 0.70rem;
+  cursor: pointer;
+  padding: 0 2px;
+}
+.musicPromptClose:hover { color: var(--color-text); }
+
 /* ── Info panel ─────────────────────────────────────────────────────────── */
 .infoPanel {
   position: absolute;
@@ -105,15 +136,6 @@
   gap: 10px;
   margin-bottom: 12px;
   flex-wrap: wrap;
-}
-
-.diffBadge {
-  font-size: 0.60rem;
-  letter-spacing: 0.10em;
-  border: 1px solid;
-  border-radius: 3px;
-  padding: 2px 7px;
-  text-transform: uppercase;
 }
 
 .locProgress {

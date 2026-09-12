@@ -265,10 +265,12 @@ export interface HeavyModeState {
 }
 
 // ── Research mode ─────────────────────────────────────────────────────────
+// No cap — research can be worked forever. cycle_steps is a fixed per-weapon
+// interval (from poise_weight); every time done_steps crosses a multiple of
+// it, a reward cycle completes and grants superhits again.
 export interface ResearchModeState {
-  total_steps: number
+  cycle_steps: number
   done_steps: number
-  completed: boolean   // true once done_steps reaches total_steps
 }
 
 // ── Audience profiles ─────────────────────────────────────────────────────
@@ -339,7 +341,6 @@ export interface GameState {
   total_task_time_s: number
   // Real wall-clock seconds spent per content node, split by stage
   node_time_spent: Record<string, { Research: number; Produce: number }>
-  last_fight_ended_at?: number   // epoch ms; updated on fight VICTORY, used to compute flow mult
   // UI locale
   locale: Locale
   // External rewards

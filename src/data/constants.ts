@@ -40,15 +40,6 @@ export const ARTICLE_EQUIP_WEIGHT = 1.0
 /** Flat HP restored by using an estus flask. */
 export const ESTUS_HEAL_HP = 200
 
-export const FLOW_GAP_HOT_MINS   = 15
-export const FLOW_GAP_WARM_MINS  = 60
-export const FLOW_GAP_COLD_MINS  = 240
-
-export const FLOW_MULT_HOT  = 1.25  // < 15 min since last fight: +25% dmg
-export const FLOW_MULT_WARM = 1.10  // < 60 min: +10% dmg
-export const FLOW_MULT_COLD = 1.0   // < 240 min: no change
-export const FLOW_MULT_DEAD = 1.0   // ≥ 240 min: no change
-
 // ── Combat — Heavy attack damage ─────────────────────────────────────────────
 // Heavy damage scales with the tile's actual time_heavy (not a flat multiple of
 // time_light) — a stage taking 3x as long as its Light version deals ~3x the

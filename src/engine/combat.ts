@@ -7,8 +7,6 @@ import { WEAPONS, calcWeaponScaledDamage } from '../data/weapons'
 import {
   REPEAT_PENALTY_TABLE, SACRIFICE_MULT,
   HEAVY_TIME_BONUS, DMG_PER_MIN,
-  FLOW_GAP_HOT_MINS, FLOW_GAP_WARM_MINS, FLOW_GAP_COLD_MINS,
-  FLOW_MULT_HOT, FLOW_MULT_WARM, FLOW_MULT_COLD, FLOW_MULT_DEAD,
   ESTUS_HEAL_HP,
 } from '../data/constants'
 
@@ -45,9 +43,6 @@ export interface CombatState {
   timerExpired: boolean
   // Rune reward — set once, from the defeated enemy's rune_reward, on VICTORY
   runesEarned: number
-  // Flow bonus — snapped at START_TIMER so "starting work" governs, not accomplishing
-  flowMult: number
-  lastFightEndedAt?: number   // stored so START_TIMER can recompute flowMult
   // Location theme bonus
   locationTheme?: LocationTheme
   // Log
@@ -194,17 +189,15 @@ export function previewMove(state: CombatState, tile: WorkflowTile, move: MoveTy
   const affinityMult     = calcAffinityMultiplier(tile, state.enemyData)
   const rawTheme         = calcThemeBonus(tile, state.locationTheme)  // 1.0 or 1.2
   const rawDamage      = calcTileDamage(tile, move, weapon, state.weaponLevel)
-  // Flow, theme, and campaignDone pool their bonuses additively to prevent
-  // exponential stacking — each adds a % on top of a shared base instead of compounding.
-  const flowBonus     = state.flowMult - 1
+  // Theme and campaignDone pool their bonuses additively to prevent exponential
+  // stacking — each adds a % on top of a shared base instead of compounding.
   const themeBonus    = rawTheme - 1
   const campaignBonus = state.campaignDoneMult - 1
-  const bonusPool     = flowBonus + themeBonus + campaignBonus
+  const bonusPool     = themeBonus + campaignBonus
   const rewardMult    = 1 + bonusPool
 
   function fmtBonusPct(v: number) { return `+${Math.round(v * 100)}%` }
   const bonusDetail = [
-    flowBonus     > 0 ? `${fmtBonusPct(flowBonus)} flow`       : null,
     themeBonus    > 0 ? `${fmtBonusPct(themeBonus)} theme`     : null,
     campaignBonus > 0 ? `${fmtBonusPct(campaignBonus)} done`   : null,
   ].filter(Boolean).join(' · ')
@@ -223,16 +216,6 @@ export function previewMove(state: CombatState, tile: WorkflowTile, move: MoveTy
   return { duration, damage, multipliers }
 }
 
-// Returns the flow-state damage multiplier based on gap since last fight end.
-export function calcFlowMult(lastFightEndedAt: number | undefined): number {
-  if (!lastFightEndedAt) return 1.0
-  const gapMins = (Date.now() - lastFightEndedAt) / 60000
-  if (gapMins < FLOW_GAP_HOT_MINS)  return FLOW_MULT_HOT
-  if (gapMins < FLOW_GAP_WARM_MINS) return FLOW_MULT_WARM
-  if (gapMins < FLOW_GAP_COLD_MINS) return FLOW_MULT_COLD
-  return FLOW_MULT_DEAD
-}
-
 // A campaign only counts as "active" (and contributes to the overload penalty)
 // ── Init ──────────────────────────────────────────────────────────────────
 
@@ -248,10 +231,8 @@ export function initCombatState(
   playerStats: Stats,
   spawnAsBoss = false,
   locationTheme?: LocationTheme,
-  flowMult = 1.0,
   campaignDoneMult = 1.0,
   initialStreak = 0,
-  lastFightEndedAt?: number,
   locationMult = 1.0,
 ): CombatState {
   // Derive boss version when the encounter is a boss slot but the enemy entry
@@ -279,8 +260,6 @@ export function initCombatState(
     stepTimer: 0, stepTotal: 1,
     stepStarted: false, timerExpired: false,
     runesEarned: 0,
-    flowMult,
-    lastFightEndedAt,
     locationTheme,
     log: [], logId: 0,
   }
@@ -291,10 +270,6 @@ export function initCombatState(
   }
   if (isBoss) {
     state = log(state, '⚡ Boss encounter — this enemy has 2× HP.', '#cc4488')
-  }
-  if (flowMult > 1.0) {
-    const tier = flowMult >= FLOW_MULT_HOT ? 'HOT' : 'WARM'
-    state = log(state, `⚡ Flow ${tier}: +${Math.round((flowMult - 1) * 100)}% damage from consecutive fights.`, '#44ccff')
   }
   return state
 }
@@ -332,8 +307,7 @@ export function combatReducer(state: CombatState, action: CombatAction): CombatS
     }
 
     case 'START_TIMER':
-      // Recompute flow at the moment work starts, not at fight entry
-      return { ...state, stepStarted: true, flowMult: calcFlowMult(state.lastFightEndedAt) }
+      return { ...state, stepStarted: true }
 
     case 'TICK': {
       if (!state.stepStarted || state.timerExpired) return state
@@ -387,7 +361,6 @@ export function combatReducer(state: CombatState, action: CombatAction): CombatS
       const newWorkflow = { ...state.workflow, tiles: updatedTiles }
 
       const bonusPool = Math.min(0.1, 0.01 * state.consistencyStreak)
-                      + (state.flowMult - 1)
                       + (rawTheme - 1)
                       + (state.campaignDoneMult - 1)
       const rewardMult = 1 + bonusPool

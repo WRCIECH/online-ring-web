@@ -5,7 +5,6 @@ import { WEAPON_CLASSES, ALL_WEAPON_CLASSES } from '../../data/generators/weapon
 import WeaponIcon from '../WeaponIcon'
 import {
   HEAVY_TIME_BONUS,
-  FLOW_MULT_HOT, FLOW_MULT_WARM, FLOW_GAP_HOT_MINS, FLOW_GAP_WARM_MINS,
   REPEAT_PENALTY_TABLE,
 } from '../../data/constants'
 import { useT } from '../../i18n'
@@ -30,7 +29,6 @@ const STAGE_KEYS = ['Research', 'Produce'] as const
 
 const BONUS_MULTS = [
   { key: 'mult_heavyBonus',   value: `+${Math.round((HEAVY_TIME_BONUS - 1) * 100)}%` },
-  { key: 'mult_flow',         value: `+${Math.round((FLOW_MULT_HOT - 1) * 100)}% / +${Math.round((FLOW_MULT_WARM - 1) * 100)}%` },
   { key: 'mult_streak',       value: '+1% / tile (cap +10%)' },
   { key: 'mult_theme',        value: '+20%' },
   { key: 'mult_campaignDone', value: '+5% / cycle' },
@@ -150,11 +148,6 @@ export default function CodexOverlay({ onClose }: Props) {
                       <span className={s.multValue}>{value}</span>
                     </div>
                     <div className={s.entryDesc}>{ui[`${key}_desc`]}</div>
-                    {key === 'mult_flow' && (
-                      <div className={s.entryNote}>
-                        {`< ${FLOW_GAP_HOT_MINS} min → +${Math.round((FLOW_MULT_HOT - 1) * 100)}% · < ${FLOW_GAP_WARM_MINS} min → +${Math.round((FLOW_MULT_WARM - 1) * 100)}%`}
-                      </div>
-                    )}
                   </div>
                 ))}
               </div>
