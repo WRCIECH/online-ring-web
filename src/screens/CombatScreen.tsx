@@ -672,12 +672,16 @@ export default function CombatScreen() {
           superhitCharges={totalSuperhitCharges}
           playerHp={state.playerHp}
           canAct={isPlayerTurn}
-          onMediumChunk={(damage, chunkId) => {
+          onMediumChunk={(damage) => {
             dispatch({ type: 'CAMPAIGN_HIT', damage, label: '✍ Medium', color: '#60c0e0' })
+          }}
+          onMediumChunkComplete={(chunkId) => {
             store.completeMediumChunk(state.equippedWeaponId, chunkId)
           }}
-          onHeavyPart={(damage, partId) => {
+          onHeavyPart={(damage) => {
             dispatch({ type: 'CAMPAIGN_HIT', damage, label: '📝 Heavy work', color: '#e0a060' })
+          }}
+          onHeavyPartComplete={(partId) => {
             store.completeHeavyPart(state.equippedWeaponId, partId)
           }}
           onResearchStep={(damage) => {

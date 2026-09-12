@@ -28,6 +28,9 @@ type TimerCtx = {
   itemId?: string   // chunkId / partId; absent for research (no elements)
 }
 type ModeStartCtx = { mode: ModeKind; name: string; damage: number; secs: number; itemId?: string }
+// After a Medium/Heavy work session, the chunk/part isn't assumed finished —
+// the same item can be worked multiple times before it's actually done.
+type FinishCtx = { mode: 'medium' | 'heavy'; itemId: string; name: string }
 
 interface Props {
   campaign: WeaponCampaign
@@ -36,11 +39,13 @@ interface Props {
   superhitCharges: number
   playerHp: number
   canAct: boolean
-  onMediumChunk:  (damage: number, chunkId: string) => void
-  onHeavyPart:    (damage: number, partId: string) => void
-  onResearchStep: (damage: number) => void
-  onSuperhit:     (damage: number) => void
-  onSacrifice:    (selfDmg: number) => void
+  onMediumChunk:         (damage: number, chunkId: string) => void
+  onMediumChunkComplete: (chunkId: string) => void
+  onHeavyPart:           (damage: number, partId: string) => void
+  onHeavyPartComplete:   (partId: string) => void
+  onResearchStep:        (damage: number) => void
+  onSuperhit:            (damage: number) => void
+  onSacrifice:           (selfDmg: number) => void
 }
 
 function fmtSecs(sec: number): string {
@@ -51,12 +56,13 @@ function fmtSecs(sec: number): string {
 
 export default function CampaignActionPanel({
   campaign, weapon, weaponLevel, superhitCharges, playerHp, canAct,
-  onMediumChunk, onHeavyPart, onResearchStep, onSuperhit, onSacrifice,
+  onMediumChunk, onMediumChunkComplete, onHeavyPart, onHeavyPartComplete, onResearchStep, onSuperhit, onSacrifice,
 }: Props) {
   const t = useT()
   const [timer, setTimer]         = useState<TimerCtx | null>(null)
   const [confirmDmg, setConfirmDmg] = useState<number | null>(null)
   const [modeStart, setModeStart] = useState<ModeStartCtx | null>(null)
+  const [finish, setFinish]       = useState<FinishCtx | null>(null)
   const [remaining, setRemaining] = useState(0)
   const doneRef = useRef(false)
 
@@ -97,10 +103,23 @@ export default function CampaignActionPanel({
 
   function handleTimerDone(ctx: TimerCtx, selfDmg = 0) {
     setTimer(null)
-    if (ctx.mode === 'medium' && ctx.itemId) onMediumChunk(ctx.damage, ctx.itemId)
-    else if (ctx.mode === 'heavy' && ctx.itemId) onHeavyPart(ctx.damage, ctx.itemId)
-    else if (ctx.mode === 'research') onResearchStep(ctx.damage)
+    if (ctx.mode === 'medium' && ctx.itemId) {
+      onMediumChunk(ctx.damage, ctx.itemId)
+      setFinish({ mode: 'medium', itemId: ctx.itemId, name: ctx.contentName })
+    } else if (ctx.mode === 'heavy' && ctx.itemId) {
+      onHeavyPart(ctx.damage, ctx.itemId)
+      setFinish({ mode: 'heavy', itemId: ctx.itemId, name: ctx.contentName })
+    } else if (ctx.mode === 'research') {
+      onResearchStep(ctx.damage)
+    }
     if (selfDmg > 0) onSacrifice(selfDmg)
+  }
+
+  function handleFinishYes() {
+    if (!finish) return
+    if (finish.mode === 'medium') onMediumChunkComplete(finish.itemId)
+    else                          onHeavyPartComplete(finish.itemId)
+    setFinish(null)
   }
 
   function startTimer(mode: ModeKind, damage: number, secs: number, contentName: string, itemId?: string) {
@@ -155,6 +174,23 @@ export default function CampaignActionPanel({
           >
             Sacrifice{selfDmg > 0 ? ` (−${selfDmg} HP)` : ''}
           </button>
+        </div>
+      </div>
+    )
+  }
+
+  // ── Finish confirmation ──────────────────────────────────────────────────────
+  // Doing one work session never auto-completes a chunk/part — it may take
+  // several passes before it's actually finished.
+  if (finish) {
+    const noun = finish.mode === 'medium' ? 'chunk' : 'part'
+    return (
+      <div className={s.confirmView}>
+        <div className={s.confirmContentName}>{finish.name}</div>
+        <div className={s.confirmLabel}>Did you finish this {noun}?</div>
+        <div className={s.confirmBtns}>
+          <button className={s.confirmYes} onClick={handleFinishYes}>Yes — done</button>
+          <button className={s.confirmNo}  onClick={() => setFinish(null)}>Not yet</button>
         </div>
       </div>
     )
