@@ -16,7 +16,6 @@ import CombatLog    from '../components/combat/CombatLog'
 import WorkflowCanvas from '../components/combat/WorkflowCanvas'
 import MoveRadialMenu, { type RadialMoveItem } from '../components/combat/MoveRadialMenu'
 import CombatBottomBar from '../components/combat/CombatBottomBar'
-import MicroBar from '../components/combat/MicroBar'
 import CampaignActionPanel from '../components/combat/CampaignActionPanel'
 import EnemyDisplay from '../components/combat/EnemyDisplay'
 import CombatMusic  from '../components/combat/CombatMusic'
@@ -142,9 +141,8 @@ export default function CombatScreen() {
 
   // ── Live active weapon (can change mid-fight via SWITCH_WEAPON) ──────────
   const weapon  = WEAPONS[state.equippedWeaponId] as WeaponInstance | undefined
-  const activeMicro    = store.weapon_campaigns[state.equippedWeaponId]?.micro ?? null
   const activeCampaign = store.weapon_campaigns[state.equippedWeaponId]
-  const isNewCampaign  = !!(activeCampaign?.medium)
+  const isNewCampaign  = !!(activeCampaign?.medium || activeCampaign?.heavy || activeCampaign?.research)
 
   // Per-content-node workflow cache: preserves progress when switching away and back
   type ContentSnapshot = { workflow: WorkflowGraph; streak: number }
@@ -219,21 +217,21 @@ export default function CombatScreen() {
   }, [state.phase, loc, lootItems, store.run_defeated_enemies])
 
   // ── Victory ───────────────────────────────────────────────────────────────
-  // Resolve active_content_id → medium piece (new-format campaigns) or null (old-format)
-  const findMediumPiece = useCallback((contentId: string | null) => {
+  // Resolve active_content_id → medium chunk / heavy part (new-format campaigns) or null (old-format)
+  const findModeItem = useCallback((contentId: string | null) => {
     if (!contentId) return null
     for (const [wid, camp] of Object.entries(store.weapon_campaigns)) {
-      if (!camp.medium) continue
-      const piece = camp.medium.pieces.find(p => p.id === contentId)
-      if (piece) return { wid, piece, level: (!piece.level1_done ? 1 : 2) as 1 | 2 }
+      if (camp.medium?.chunks.some(c => c.id === contentId)) return { wid, kind: 'medium' as const }
+      if (camp.heavy?.parts.some(p => p.id === contentId))   return { wid, kind: 'heavy' as const }
     }
     return null
   }, [store.weapon_campaigns])
 
   function finalizeContentId(contentId: string) {
-    const mp = findMediumPiece(contentId)
-    if (mp) store.completeMediumLevel(mp.wid, mp.piece.id, mp.level)
-    else    store.completeCampaignNode(state.equippedWeaponId, contentId, state.workflow)
+    const item = findModeItem(contentId)
+    if (item?.kind === 'medium')      store.completeMediumChunk(item.wid, contentId)
+    else if (item?.kind === 'heavy')  store.completeHeavyPart(item.wid, contentId)
+    else                              store.completeCampaignNode(state.equippedWeaponId, contentId, state.workflow)
   }
 
   // finalizeContent=true  → mark campaign node complete, clear workflow
@@ -703,23 +701,17 @@ export default function CombatScreen() {
           playerHp={state.playerHp}
           canAct={isPlayerTurn}
           flowMult={state.flowMult}
-          onMicro={(damage, productIndex) => {
-            const micro = activeCampaign.micro
-            const product = micro?.products[productIndex]
-            if (product) {
-              dispatch({ type: 'MICRO_DONE', weaponId: state.equippedWeaponId, damage })
-              store.completeMicroProduct(state.equippedWeaponId, product.id)
-            }
-          }}
-          onMedium={(damage, pieceId, level) => {
+          onMediumChunk={(damage, chunkId) => {
             dispatch({ type: 'CAMPAIGN_HIT', damage, label: '✍ Medium', color: '#60c0e0' })
-            if (level === 1) store.markMediumL1Worked(state.equippedWeaponId, pieceId)
-            else             store.markMediumL2Worked(state.equippedWeaponId, pieceId)
+            store.completeMediumChunk(state.equippedWeaponId, chunkId)
           }}
-          onMediumComplete={(_pieceId, _level) => { /* work already marked in onMedium */ }}
-          onHeavy={(damage) => {
+          onHeavyPart={(damage, partId) => {
             dispatch({ type: 'CAMPAIGN_HIT', damage, label: '📝 Heavy work', color: '#e0a060' })
-            store.completeHeavyTile(state.equippedWeaponId)
+            store.completeHeavyPart(state.equippedWeaponId, partId)
+          }}
+          onResearchStep={(damage) => {
+            dispatch({ type: 'CAMPAIGN_HIT', damage, label: '🔎 Research', color: '#88ccdd' })
+            store.completeResearchStep(state.equippedWeaponId)
           }}
           onSuperhit={(damage) => {
             dispatch({ type: 'CAMPAIGN_HIT', damage, label: '💥 SUPERHIT!', color: '#eecc44' })
@@ -730,21 +722,6 @@ export default function CombatScreen() {
           }}
           onSacrifice={(selfDmg) => {
             dispatch({ type: 'CAMPAIGN_SELF_DAMAGE', amount: selfDmg })
-          }}
-        />
-      )}
-
-      {!isNewCampaign && activeMicro && isPlayerTurn && (
-        <MicroBar
-          micro={activeMicro}
-          weapon={weapon}
-          weaponLevel={store.weapon_level[state.equippedWeaponId] ?? 0}
-          onPublish={(damage) => {
-            const current = activeMicro.products[activeMicro.current_index]
-            if (current) {
-              dispatch({ type: 'MICRO_DONE', weaponId: state.equippedWeaponId, damage })
-              store.completeMicroProduct(state.equippedWeaponId, current.id)
-            }
           }}
         />
       )}

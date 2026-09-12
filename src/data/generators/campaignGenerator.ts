@@ -1,8 +1,7 @@
 import type {
   CampaignNode, CampaignEdge, WeaponCampaign, ContentTransformation, WeaponInstance,
-  MicroContentType, HeavyContentType, ContentShift,
-  MicroProduct, MicroModeState, MediumPiece, MediumModeState, HeavyModeState,
-  PropagandaShift, MediumAudienceShift, StyleShift, ConstraintCategory, NodeConstraint,
+  MediumContentType, HeavyContentType,
+  MediumChunk, MediumModeState, HeavyPart, HeavyModeState, ResearchModeState,
 } from '../../types/game'
 import { WEAPON_CLASSES } from './weaponClasses'
 import type { ContentTransformationsConfig } from './weaponClasses'
@@ -78,105 +77,58 @@ const GLOBAL_EDGE_POOL: ContentTransformation[] = [
 ]
 
 // ── Mode generators ────────────────────────────────────────────────────────
+// A weapon is permanently assigned exactly one action type (WeaponClassDef.action_type):
+// Medium (merged former Micro+Medium, simple linear list), Heavy (linear list of
+// generic parts, one type for the whole piece), or Research (a flat work-meter).
 
-const ALL_MICRO_TYPES: MicroContentType[] = [
-  'Plaintext', 'SingleGraphic', 'Carousel', 'ARollVideo', 'RawAudio', 'LinkShare',
+export const ALL_MEDIUM_TYPES: MediumContentType[] = [
+  'Text', 'Podcast', 'Video', 'LinkShare', 'Poll', 'Question', 'Reply', 'DM',
+  'Correct', 'Recycle', 'Interview', 'Graphic', 'Commentary', 'Infographic',
+  'Carousel', 'Livestream', 'Q&A', 'Meeting',
 ]
 
-const ALL_HEAVY_TYPES: HeavyContentType[] = [
-  'Plaintext', 'ARollVideo', 'AssetPack', 'CurationFeed', 'InteractiveApp',
-  'Website', '_blank', 'Course', 'Book',
-]
+export const ALL_HEAVY_TYPES: HeavyContentType[] = ['Text', 'Audio/Video', 'Software', 'Community']
 
-const PROPAGANDA_VALUES: PropagandaShift[] = ['enhance', 'weaken', 'focus', 'action']
-const AUDIENCE_VALUES: MediumAudienceShift[] = [
-  'audience_x', 'lower_self', 'average_self', 'higher_self', 'base_trend_event', 'need_identity_belief',
-]
-const STYLE_VALUES: StyleShift[] = [
-  'narration', 'segmentation', 'socratic', 'enemy_hero', 'slogan_symbol',
-  'analogy', 'verbose', 'succinct', 'technicalize', 'simplify', 'evidence', 'data_driven', 'first_principles',
-]
-
-function randomConstraint(): NodeConstraint {
-  const categoryIndex = Math.floor(Math.random() * 3)
-  const categories: ConstraintCategory[] = ['propaganda', 'audience', 'style']
-  const category = categories[categoryIndex]
-  if (category === 'propaganda') {
-    return { category, value: PROPAGANDA_VALUES[Math.floor(Math.random() * PROPAGANDA_VALUES.length)] }
-  } else if (category === 'audience') {
-    return { category, value: AUDIENCE_VALUES[Math.floor(Math.random() * AUDIENCE_VALUES.length)] }
-  } else {
-    return { category, value: STYLE_VALUES[Math.floor(Math.random() * STYLE_VALUES.length)] }
-  }
+// Shared 3–15 linear-item count formula for both Medium chunks and Heavy parts.
+function linearItemCount(poiseWeight: number): number {
+  return Math.max(3, Math.min(15, Math.round(poiseWeight * 0.9)))
 }
 
-export function generateMicro(weapon: WeaponInstance): MicroModeState {
+export function generateMediumChunks(weapon: WeaponInstance): MediumModeState {
   const pw = weapon.poise_weight ?? 8
-  const count = Math.max(6, Math.min(10, Math.round(pw * 0.6)))
-  const cls = WEAPON_CLASSES[weapon.weapon_class]
-  const pool: MicroContentType[] = cls.micro_product_pool && cls.micro_product_pool.length > 0
-    ? cls.micro_product_pool
-    : ALL_MICRO_TYPES
-  const transformConfig = cls.content_transformations
-  const stylePool = [...transformConfig.S, ...transformConfig.A]
+  const count = linearItemCount(pw)
 
-  const products: MicroProduct[] = Array.from({ length: count }, () => {
-    const content_type = pool[Math.floor(Math.random() * pool.length)]
-    const hasStyle = Math.random() < 0.5
-    const style = hasStyle && stylePool.length > 0
-      ? stylePool[Math.floor(Math.random() * stylePool.length)]
-      : undefined
-    return { id: genId(), content_type, style, done_count: 0 }
-  })
-  return { products, current_index: 0, completed: false }
-}
-
-const CONTENT_SHIFT_WEIGHTS: { shift: ContentShift; weight: number }[] = [
-  { shift: 'Follows', weight: 50 },
-  { shift: 'ZoomIn', weight: 15 },
-  { shift: 'ZoomOut', weight: 15 },
-  { shift: 'Similar', weight: 15 },
-  { shift: 'Opposite', weight: 5 },
-]
-
-function drawContentShift(): ContentShift {
-  return weightedSample(
-    CONTENT_SHIFT_WEIGHTS.map(x => x.shift),
-    CONTENT_SHIFT_WEIGHTS.map(x => x.weight),
-  )
-}
-
-export function generateMedium(weapon: WeaponInstance): MediumModeState {
-  const pw = weapon.poise_weight ?? 8
-  const count = Math.max(8, Math.min(15, Math.round(pw * 0.9)))
-  const cls = WEAPON_CLASSES[weapon.weapon_class]
-  const level1_type = cls.medium_level1_type
-  const level2_type = cls.medium_level2_type
-
-  const pieces: MediumPiece[] = Array.from({ length: count }, (_, i) => ({
+  const chunks: MediumChunk[] = Array.from({ length: count }, (_, i) => ({
     id: genId(),
     name: `Part ${i + 1}`,
-    level1_type,
-    level2_type,
-    link_type: drawContentShift(),
-    constraint: randomConstraint(),
-    level1_done: false,
-    level2_done: false,
+    content_type: i === 0 ? 'Text' : ALL_MEDIUM_TYPES[Math.floor(Math.random() * ALL_MEDIUM_TYPES.length)],
+    done: false,
   }))
-  return { pieces, completed: false }
+  return { chunks, completed: false }
 }
 
-export function generateHeavy(weapon: WeaponInstance): HeavyModeState {
+export function generateHeavyParts(weapon: WeaponInstance): HeavyModeState {
   const cls = WEAPON_CLASSES[weapon.weapon_class]
   const pool: HeavyContentType[] = cls.heavy_product_pool && cls.heavy_product_pool.length > 0
     ? cls.heavy_product_pool
     : ALL_HEAVY_TYPES
   const product_type = pool[Math.floor(Math.random() * pool.length)]
-  const { research, produce } = calcWorkflowTileCounts(weapon.weapon_class, weapon.rarity)
+  const pw = weapon.poise_weight ?? 8
+  const count = linearItemCount(pw)
+
+  const parts: HeavyPart[] = Array.from({ length: count }, (_, i) => ({
+    id: genId(),
+    name: `Part ${i + 1}`,
+    done: false,
+  }))
+  return { product_type, parts, completed: false }
+}
+
+export function generateResearch(weapon: WeaponInstance): ResearchModeState {
+  const pw = weapon.poise_weight ?? 8
   const scale = 1.5 + Math.random() * 0.5   // 1.5–2.0×
-  const research_count = Math.max(4, Math.round(research * scale))
-  const produce_count = Math.max(4, Math.round(produce * scale))
-  return { product_type, research_count, produce_count, research_done: 0, produce_done: 0, completed: false }
+  const total_steps = Math.max(4, Math.round(pw * scale))
+  return { total_steps, done_steps: 0, completed: false }
 }
 
 export function generateWeaponCampaign(weapon: WeaponInstance): WeaponCampaign {
@@ -213,14 +165,18 @@ export function generateWeaponCampaign(weapon: WeaponInstance): WeaponCampaign {
     edges.push({ from_id: parent.id, to_id: child.id, label: drawEdgeLabel(transformConfig) })
   }
 
+  const actionType = clsDef.action_type
+  const modeFields =
+    actionType === 'heavy'    ? { heavy: generateHeavyParts(weapon) } :
+    actionType === 'research' ? { research: generateResearch(weapon) } :
+    { medium: generateMediumChunks(weapon) }
+
   return {
     id: genId(),
     nodes,
     edges,
     created_at: Date.now(),
     completed: false,
-    micro: generateMicro(weapon),
-    medium: generateMedium(weapon),
-    heavy: generateHeavy(weapon),
+    ...modeFields,
   }
 }

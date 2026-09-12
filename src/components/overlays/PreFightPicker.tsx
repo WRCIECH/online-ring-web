@@ -22,20 +22,20 @@ export default function PreFightPicker({ loc, onConfirm, onCancel }: Props) {
   function getAvailableContent(weaponId: string): ContentItem[] {
     const c = store.weapon_campaigns[weaponId]
     if (!c) return []
-    // New-format (micro/medium/heavy): use medium pieces
+    // New-format: exactly one of medium/heavy/research
     if (c.medium) {
-      const result: ContentItem[] = []
-      c.medium.pieces.forEach((p, i) => {
-        if (p.level2_done) return
-        const prevDone = i === 0 || c.medium!.pieces[i - 1].level1_done
-        if (!prevDone) return
-        result.push({
-          id: p.id,
-          name: p.name || `Part ${i + 1}`,
-          level: (!p.level1_done ? 1 : 2) as 1 | 2,
-        })
-      })
-      return result
+      return c.medium.chunks
+        .filter(ch => !ch.done)
+        .map(ch => ({ id: ch.id, name: ch.name }))
+    }
+    if (c.heavy) {
+      return c.heavy.parts
+        .filter(p => !p.done)
+        .map(p => ({ id: p.id, name: p.name }))
+    }
+    if (c.research) {
+      if (c.research.completed) return []
+      return [{ id: '_research', name: `Research (${c.research.done_steps}/${c.research.total_steps})` }]
     }
     // Old-format: named node tree
     return c.nodes

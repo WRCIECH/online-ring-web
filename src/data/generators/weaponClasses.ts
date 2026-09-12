@@ -1,4 +1,4 @@
-import type { WeaponClass, ContentTransformation, MicroContentType, MediumContentType, HeavyContentType } from '../../types/game'
+import type { WeaponClass, ContentTransformation, HeavyContentType } from '../../types/game'
 
 import type { ContentProductType } from '../contentProducts'
 
@@ -9,6 +9,9 @@ export interface ContentTransformationsConfig {
   Excluded: ContentTransformation[]  // never drawn, not even in wildcard
   // wildcard (10% weight) = all ContentTransformations minus S ∪ A ∪ B ∪ Excluded
 }
+
+// Which of the three campaign action types this weapon class is permanently assigned.
+export type CampaignActionType = 'medium' | 'heavy' | 'research'
 
 export interface WeaponClassDef {
   id: WeaponClass
@@ -21,17 +24,16 @@ export interface WeaponClassDef {
   base_damage_mult: number
   // Candidate pool for format draws — sampled uniformly. An empty pool means
   // *no restriction* — falls back to a wildcard of every ContentProductType.
+  // Only consumed by the legacy per-node campaign tree (nodes/edges) generation.
   supported_products: ContentProductType[]
   time_mod: number
+  // Only consumed by the legacy per-node campaign tree edge-label generation.
   content_transformations: ContentTransformationsConfig
   // Override campaign graph size [min, max] nodes. Falls back to poise_weight formula when absent.
   campaign_nodes?: [number, number]
-  // Medium mode: L1 and L2 content type pair for all pieces in this weapon class.
-  medium_level1_type: MediumContentType
-  medium_level2_type: MediumContentType
-  // Micro mode: product pool for this class. Empty = uniform over all MicroContentTypes.
-  micro_product_pool?: MicroContentType[]
-  // Heavy mode: product pool for this class. Empty = uniform over all HeavyContentTypes.
+  // Which of Medium / Heavy / Research this class always generates.
+  action_type: CampaignActionType
+  // Heavy mode only: product-type pool for this class. Empty/absent = uniform over all HeavyContentTypes.
   heavy_product_pool?: HeavyContentType[]
 }
 
@@ -48,8 +50,7 @@ export const WEAPON_CLASSES: Record<WeaponClass, WeaponClassDef> = {
       B:        ['Controversy', 'Opposite', 'Fear'],
       Excluded: ['FirstPrinciples', 'Technicalize', 'Synthesis', 'Socratic', 'DataDriven', 'Verbose', 'Evidence'],
     },
-    medium_level1_type: 'Plaintext',
-    medium_level2_type: 'ARollVideo',
+    action_type: 'medium',
   },
   straight_swords: {
     id: 'straight_swords', name: 'Straight Sword', description: 'Standard articles and blog posts.',
@@ -62,8 +63,7 @@ export const WEAPON_CLASSES: Record<WeaponClass, WeaponClassDef> = {
       B:        ['Narration', 'Succinct', 'Simplify', 'Critique'],
       Excluded: ['Shock', 'Viral', 'Drama', 'Cliffhanger'],
     },
-    medium_level1_type: 'Plaintext',
-    medium_level2_type: 'ARollVideo',
+    action_type: 'medium',
   },
   greatswords: {
     id: 'greatswords', name: 'Greatsword', description: 'Long-form essays and deep dives.',
@@ -76,8 +76,7 @@ export const WEAPON_CLASSES: Record<WeaponClass, WeaponClassDef> = {
       B:        ['Narration', 'Critique', 'Socratic', 'Analogy'],
       Excluded: ['Viral', 'Shock', 'Cliffhanger', 'Humor', 'Drama', 'Succinct'],
     },
-    medium_level1_type: 'Plaintext',
-    medium_level2_type: 'ARollVideo',
+    action_type: 'research',
   },
   katanas: {
     id: 'katanas', name: 'Katana', description: 'Polished craft pieces — quality over quantity.',
@@ -90,8 +89,7 @@ export const WEAPON_CLASSES: Record<WeaponClass, WeaponClassDef> = {
       B:        ['AudienceShift', 'Wow', 'Verbose', 'Comfort'],
       Excluded: ['Shock', 'Controversy', 'Drama', 'Viral', 'Cliffhanger'],
     },
-    medium_level1_type: 'Plaintext',
-    medium_level2_type: 'ARollVideo',
+    action_type: 'heavy',
   },
   hammers: {
     id: 'hammers', name: 'Hammer', description: 'Hot takes and opinion pieces.',
@@ -104,8 +102,7 @@ export const WEAPON_CLASSES: Record<WeaponClass, WeaponClassDef> = {
       B:        ['ZoomOut', 'Drama', 'Humor', 'Viral'],
       Excluded: ['Simplify', 'Comfort', 'FirstPrinciples', 'DataDriven', 'Follows', 'Similar'],
     },
-    medium_level1_type: 'Plaintext',
-    medium_level2_type: 'ARollVideo',
+    action_type: 'medium',
   },
   spears: {
     id: 'spears', name: 'Spear', description: 'Research-driven content.',
@@ -118,8 +115,7 @@ export const WEAPON_CLASSES: Record<WeaponClass, WeaponClassDef> = {
       B:        ['Critique', 'Socratic', 'ZoomOut'],
       Excluded: ['Shock', 'Viral', 'Drama', 'Cliffhanger', 'Humor', 'Comfort', 'Passion'],
     },
-    medium_level1_type: 'Plaintext',
-    medium_level2_type: 'ARollVideo',
+    action_type: 'research',
   },
   axes: {
     id: 'axes', name: 'Axe', description: 'Editing and compression of existing content.',
@@ -132,8 +128,7 @@ export const WEAPON_CLASSES: Record<WeaponClass, WeaponClassDef> = {
       B:        ['Segmentation', 'Follows', 'Evidence', 'RemixFusion'],
       Excluded: ['Viral', 'Shock', 'Drama', 'Cliffhanger', 'FirstPrinciples'],
     },
-    medium_level1_type: 'Plaintext',
-    medium_level2_type: 'ARollVideo',
+    action_type: 'medium',
   },
   bows: {
     id: 'bows', name: 'Bow', description: 'Async content — newsletters, scheduled posts.',
@@ -146,8 +141,7 @@ export const WEAPON_CLASSES: Record<WeaponClass, WeaponClassDef> = {
       B:        ['Narration', 'ZoomOut', 'Simplify', 'DataDriven'],
       Excluded: ['Shock', 'Viral', 'Drama', 'Cliffhanger'],
     },
-    medium_level1_type: 'Plaintext',
-    medium_level2_type: 'ARollVideo',
+    action_type: 'medium',
   },
   fists: {
     id: 'fists', name: 'Fists', description: 'Raw BTS content and vlogs.',
@@ -160,8 +154,7 @@ export const WEAPON_CLASSES: Record<WeaponClass, WeaponClassDef> = {
       B:        ['ZoomIn', 'Humor', 'Wow', 'Drama'],
       Excluded: ['DataDriven', 'FirstPrinciples', 'Technicalize', 'Evidence', 'Synthesis', 'Segmentation', 'Critique'],
     },
-    medium_level1_type: 'ARollVideo',
-    medium_level2_type: 'ProducedAudio',
+    action_type: 'medium',
   },
   colossal_swords: {
     id: 'colossal_swords', name: 'Colossal Sword', description: 'Books, courses, and long-form products.',
@@ -174,8 +167,7 @@ export const WEAPON_CLASSES: Record<WeaponClass, WeaponClassDef> = {
       B:        ['Narration', 'Socratic', 'AudienceShift', 'Analogy'],
       Excluded: ['Viral', 'Shock', 'Cliffhanger', 'Humor', 'Drama', 'Succinct'],
     },
-    medium_level1_type: 'Plaintext',
-    medium_level2_type: 'ARollVideo',
+    action_type: 'heavy',
   },
   thrusting_swords: {
     id: 'thrusting_swords', name: 'Thrusting Sword', description: 'Comments and reply content.',
@@ -188,8 +180,7 @@ export const WEAPON_CLASSES: Record<WeaponClass, WeaponClassDef> = {
       B:        ['Controversy', 'Analogy', 'Cliffhanger', 'Evidence'],
       Excluded: ['FirstPrinciples', 'DataDriven', 'Synthesis', 'Verbose', 'Narration'],
     },
-    medium_level1_type: 'Plaintext',
-    medium_level2_type: 'ARollVideo',
+    action_type: 'medium',
   },
   heavy_thrusting: {
     id: 'heavy_thrusting', name: 'Heavy Thrusting Sword', description: 'In-depth analysis and commentary.',
@@ -202,8 +193,7 @@ export const WEAPON_CLASSES: Record<WeaponClass, WeaponClassDef> = {
       B:        ['Technicalize', 'Narration', 'Controversy', 'FirstPrinciples'],
       Excluded: ['Viral', 'Shock', 'Drama', 'Cliffhanger', 'Humor'],
     },
-    medium_level1_type: 'Plaintext',
-    medium_level2_type: 'ARollVideo',
+    action_type: 'research',
   },
   curved_swords: {
     id: 'curved_swords', name: 'Curved Sword', description: 'Storytelling and narrative content.',
@@ -216,8 +206,7 @@ export const WEAPON_CLASSES: Record<WeaponClass, WeaponClassDef> = {
       B:        ['ZoomIn', 'Comfort', 'Hope', 'Drama'],
       Excluded: ['DataDriven', 'FirstPrinciples', 'Segmentation', 'Technicalize', 'Shock', 'Controversy'],
     },
-    medium_level1_type: 'Plaintext',
-    medium_level2_type: 'ARollVideo',
+    action_type: 'medium',
   },
   curved_greatswords: {
     id: 'curved_greatswords', name: 'Curved Greatsword', description: 'Epic series and narrative sagas.',
@@ -230,8 +219,7 @@ export const WEAPON_CLASSES: Record<WeaponClass, WeaponClassDef> = {
       B:        ['AudienceShift', 'Drama', 'Analogy', 'ZoomIn'],
       Excluded: ['Shock', 'Viral', 'DataDriven', 'FirstPrinciples', 'Segmentation', 'Succinct'],
     },
-    medium_level1_type: 'Plaintext',
-    medium_level2_type: 'ARollVideo',
+    action_type: 'heavy',
   },
   twinblades: {
     id: 'twinblades', name: 'Twinblade', description: 'Multi-platform cross-posting.',
@@ -245,8 +233,7 @@ export const WEAPON_CLASSES: Record<WeaponClass, WeaponClassDef> = {
       B:        ['Simplify', 'Segmentation', 'Viral', 'Succinct'],
       Excluded: ['FirstPrinciples', 'DataDriven', 'Synthesis', 'Technicalize', 'Verbose', 'Socratic'],
     },
-    medium_level1_type: 'Carousel',
-    medium_level2_type: 'ARollVideo',
+    action_type: 'medium',
   },
   great_hammers: {
     id: 'great_hammers', name: 'Great Hammer', description: 'Manifestos and major opinion pieces.',
@@ -259,8 +246,7 @@ export const WEAPON_CLASSES: Record<WeaponClass, WeaponClassDef> = {
       B:        ['Evidence', 'DataDriven', 'Narration', 'Fear'],
       Excluded: ['Similar', 'Follows', 'Succinct', 'Cliffhanger', 'AudienceShift'],
     },
-    medium_level1_type: 'Plaintext',
-    medium_level2_type: 'ARollVideo',
+    action_type: 'heavy',
   },
   great_axes: {
     id: 'great_axes', name: 'Great Axe', description: 'Recaps, roundups, and year-in-review content.',
@@ -273,8 +259,7 @@ export const WEAPON_CLASSES: Record<WeaponClass, WeaponClassDef> = {
       B:        ['AudienceShift', 'Narration', 'ZoomOut'],
       Excluded: ['Shock', 'Viral', 'Cliffhanger', 'Opposite', 'Controversy', 'Drama', 'Passion'],
     },
-    medium_level1_type: 'Carousel',
-    medium_level2_type: 'Infographic',
+    action_type: 'heavy',
   },
   flails: {
     id: 'flails', name: 'Flail', description: 'Spontaneous and improv content.',
@@ -287,8 +272,7 @@ export const WEAPON_CLASSES: Record<WeaponClass, WeaponClassDef> = {
       B:        ['Wow', 'Viral', 'Drama', 'ZoomOut'],
       Excluded: ['FirstPrinciples', 'DataDriven', 'Evidence', 'Technicalize', 'Synthesis', 'Segmentation'],
     },
-    medium_level1_type: 'ARollVideo',
-    medium_level2_type: 'ProducedAudio',
+    action_type: 'medium',
   },
   colossal_weapons: {
     id: 'colossal_weapons', name: 'Colossal Weapon', description: 'Mega-projects — documentaries, full series.',
@@ -301,8 +285,7 @@ export const WEAPON_CLASSES: Record<WeaponClass, WeaponClassDef> = {
       B:        ['Technicalize', 'AudienceShift', 'Analogy', 'Socratic'],
       Excluded: ['Viral', 'Shock', 'Cliffhanger', 'Humor', 'Succinct', 'Similar'],
     },
-    medium_level1_type: 'Plaintext',
-    medium_level2_type: 'ARollVideo',
+    action_type: 'heavy',
   },
   great_spears: {
     id: 'great_spears', name: 'Great Spear', description: 'Investigative content.',
@@ -315,8 +298,7 @@ export const WEAPON_CLASSES: Record<WeaponClass, WeaponClassDef> = {
       B:        ['Synthesis', 'Controversy', 'ZoomOut'],
       Excluded: ['Viral', 'Shock', 'Humor', 'Drama', 'Cliffhanger', 'Comfort', 'Follows'],
     },
-    medium_level1_type: 'Plaintext',
-    medium_level2_type: 'ARollVideo',
+    action_type: 'research',
   },
   halberds: {
     id: 'halberds', name: 'Halberd', description: 'Hybrid research and opinion.',
@@ -329,8 +311,7 @@ export const WEAPON_CLASSES: Record<WeaponClass, WeaponClassDef> = {
       B:        ['AudienceShift', 'FirstPrinciples', 'Narration', 'Synthesis'],
       Excluded: ['Viral', 'Shock', 'Cliffhanger', 'Drama', 'Humor'],
     },
-    medium_level1_type: 'Infographic',
-    medium_level2_type: 'ARollVideo',
+    action_type: 'research',
   },
   reapers: {
     id: 'reapers', name: 'Reaper', description: 'Commentary, takedowns, and critiques.',
@@ -343,8 +324,7 @@ export const WEAPON_CLASSES: Record<WeaponClass, WeaponClassDef> = {
       B:        ['Cliffhanger', 'ZoomIn', 'Evidence', 'Succinct'],
       Excluded: ['Comfort', 'Hope', 'Follows', 'Synthesis', 'DataDriven', 'FirstPrinciples', 'AudienceShift'],
     },
-    medium_level1_type: 'Commentary',
-    medium_level2_type: 'ARollVideo',
+    action_type: 'medium',
   },
   whips: {
     id: 'whips', name: 'Whip', description: 'Series and content cycles.',
@@ -357,8 +337,7 @@ export const WEAPON_CLASSES: Record<WeaponClass, WeaponClassDef> = {
       B:        ['ZoomIn', 'Controversy', 'Opposite', 'RemixFusion'],
       Excluded: ['Shock', 'Viral', 'DataDriven', 'FirstPrinciples', 'Technicalize', 'Succinct'],
     },
-    medium_level1_type: 'ARollVideo',
-    medium_level2_type: 'ProducedAudio',
+    action_type: 'medium',
   },
   greatbows: {
     id: 'greatbows', name: 'Greatbow', description: 'Long-tail evergreen content.',
@@ -371,8 +350,7 @@ export const WEAPON_CLASSES: Record<WeaponClass, WeaponClassDef> = {
       B:        ['Follows', 'Narration', 'ZoomIn', 'FirstPrinciples'],
       Excluded: ['Shock', 'Viral', 'Cliffhanger', 'Drama', 'Fear', 'Controversy'],
     },
-    medium_level1_type: 'Plaintext',
-    medium_level2_type: 'ARollVideo',
+    action_type: 'research',
   },
   crossbows: {
     id: 'crossbows', name: 'Crossbow', description: 'Email blasts and push notifications.',
@@ -385,8 +363,7 @@ export const WEAPON_CLASSES: Record<WeaponClass, WeaponClassDef> = {
       B:        ['Opposite', 'Humor', 'Controversy'],
       Excluded: ['FirstPrinciples', 'DataDriven', 'Synthesis', 'Technicalize', 'Verbose', 'Narration', 'Socratic'],
     },
-    medium_level1_type: 'Plaintext',
-    medium_level2_type: 'Commentary',
+    action_type: 'medium',
   },
   ballistas: {
     id: 'ballistas', name: 'Ballista', description: 'Major product launches.',
@@ -399,8 +376,7 @@ export const WEAPON_CLASSES: Record<WeaponClass, WeaponClassDef> = {
       B:        ['AudienceShift', 'Technicalize', 'ZoomIn', 'Segmentation'],
       Excluded: ['Succinct', 'Similar', 'Follows', 'Shock', 'Viral', 'Drama', 'Opposite'],
     },
-    medium_level1_type: 'Infographic',
-    medium_level2_type: 'ARollVideo',
+    action_type: 'heavy',
   },
   torches: {
     id: 'torches', name: 'Torch', description: 'Lifestyle and lo-fi vlog content.',
@@ -413,8 +389,7 @@ export const WEAPON_CLASSES: Record<WeaponClass, WeaponClassDef> = {
       B:        ['Wow', 'Humor', 'Drama', 'AudienceShift'],
       Excluded: ['DataDriven', 'FirstPrinciples', 'Technicalize', 'Evidence', 'Critique', 'Controversy', 'Segmentation'],
     },
-    medium_level1_type: 'ARollVideo',
-    medium_level2_type: 'ProducedAudio',
+    action_type: 'medium',
   },
 }
 

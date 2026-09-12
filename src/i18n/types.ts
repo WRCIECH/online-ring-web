@@ -1,5 +1,4 @@
-import type { ContentTransformation, AtomicStage, Locale, EmotionType, PropagandaShift, MediumAudienceShift, StyleShift } from '../types/game'
-import type { ContentProductType } from '../data/contentProducts'
+import type { ContentTransformation, AtomicStage, Locale, EmotionType } from '../types/game'
 
 export type { Locale }
 
@@ -12,15 +11,13 @@ export interface ContentEntry {
 
 export interface TranslationBundle {
   content: {
-    product:        Record<ContentProductType, ContentEntry>
+    // Loosened from Record<ContentProductType, ContentEntry>: also carries entries for the
+    // newer Medium/Heavy content-type pools (MediumContentType/HeavyContentType in types/game.ts),
+    // which are separate unions from ContentProductType.
+    product:        Record<string, ContentEntry>
     transformation: Record<ContentTransformation, ContentEntry>
     emotion:        Record<EmotionType, ContentEntry>
     stage:          Record<AtomicStage, ContentEntry>
-    constraint: {
-      propaganda: Record<PropagandaShift,       { label: string; description: string }>
-      audience:   Record<MediumAudienceShift,   { label: string; description: string }>
-      style:      Record<StyleShift,             { label: string; description: string }>
-    }
   }
   weapons:        Record<string, { name: string; description: string }>
   enemies:        Record<string, { name: string; description: string }>

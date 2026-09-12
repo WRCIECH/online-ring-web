@@ -1,42 +1,37 @@
 import { useState, useEffect, useRef } from 'react'
 import { calcTileDamage } from '../../engine/combat'
-import { SACRIFICE_MULT } from '../../data/constants'
-import type { WeaponCampaign, WeaponInstance, WorkflowTile, MediumPiece } from '../../types/game'
-import { WEAPON_CLASSES } from '../../data/generators/weaponClasses'
-import { STAGE_TIME } from '../../data/generators/workflowGenerator'
+import { SACRIFICE_MULT, MEDIUM_CHUNK_SECS, CAMPAIGN_STEP_SECS } from '../../data/constants'
+import type { WeaponCampaign, WeaponInstance, WorkflowTile } from '../../types/game'
 import { useT } from '../../i18n'
 import s from './CampaignActionPanel.module.css'
 
-// Synthetic tiles use actual STAGE_TIME values so damage scales correctly with DMG_PER_MIN
-const HEAVY_TILE: WorkflowTile = {
-  id: '_campaign_heavy', type: 'Produce', name: '',
-  time_light: STAGE_TIME.Produce.light, time_heavy: STAGE_TIME.Produce.heavy,
+// Synthetic tiles for the three fixed, unscaled (not weapon-class time_mod-scaled) durations.
+const MEDIUM_TILE: WorkflowTile = {
+  id: '_campaign_medium', type: 'Research', name: '',
+  time_light: MEDIUM_CHUNK_SECS, time_heavy: MEDIUM_CHUNK_SECS,
   is_completed: false, repeat_count: 0,
 }
-const LIGHT_TILE: WorkflowTile = {
-  id: '_campaign_light', type: 'Research', name: '',
-  time_light: STAGE_TIME.Research.light, time_heavy: STAGE_TIME.Research.heavy,
+const STEP_TILE: WorkflowTile = {
+  id: '_campaign_step', type: 'Produce', name: '',
+  time_light: CAMPAIGN_STEP_SECS, time_heavy: CAMPAIGN_STEP_SECS,
   is_completed: false, repeat_count: 0,
 }
 
 // Flat, deliberately unscaled — does not go through calcTileDamage or the flow multiplier.
 const RECYCLE_DMG = 100
 
-type MediumWork = { piece: MediumPiece; index: number; level: 1 | 2 }
+type ModeKind = 'medium' | 'heavy' | 'research'
 
 type TimerCtx = {
-  type: 'medium' | 'heavy'
+  mode: ModeKind
   damage: number
   totalSecs: number
   startedAt: number
   contentName: string
-  medPieceId?: string
-  medLevel?: 1 | 2
+  itemId?: string   // chunkId / partId; absent for research (no elements)
 }
-type ConfirmCtx    = { type: 'micro' | 'superhit' | 'recycle'; damage: number; productIndex: number }
-type MediumFinishCtx = { pieceName: string; pieceId: string; damage: number; level: 1 | 2 }
-type MediumStartCtx  = { pieceName: string; pieceId: string; damage: number; secs: number; level: 1 | 2 }
-type HeavyStartCtx   = { name: string; damage: number; secs: number }
+type ConfirmCtx  = { type: 'superhit' | 'recycle'; damage: number }
+type ModeStartCtx = { mode: ModeKind; name: string; damage: number; secs: number; itemId?: string }
 
 interface Props {
   campaign: WeaponCampaign
@@ -46,13 +41,12 @@ interface Props {
   playerHp: number
   canAct: boolean
   flowMult?: number
-  onMicro:          (damage: number, productIndex: number) => void
-  onMedium:         (damage: number, pieceId: string, level: 1 | 2) => void
-  onMediumComplete: (pieceId: string, level: 1 | 2) => void
-  onHeavy:          (damage: number) => void
-  onSuperhit:       (damage: number) => void
-  onRecycle:        (damage: number) => void
-  onSacrifice:      (selfDmg: number) => void
+  onMediumChunk:  (damage: number, chunkId: string) => void
+  onHeavyPart:    (damage: number, partId: string) => void
+  onResearchStep: (damage: number) => void
+  onSuperhit:     (damage: number) => void
+  onRecycle:      (damage: number) => void
+  onSacrifice:    (selfDmg: number) => void
 }
 
 function fmtSecs(sec: number): string {
@@ -61,97 +55,49 @@ function fmtSecs(sec: number): string {
   return m > 0 ? `${m}:${String(s).padStart(2, '0')}` : String(s)
 }
 
-// Returns up to 2 available medium work items:
-// - one L2 option (first piece with L1 published but L2 not yet published)
-// - one L1 option (next piece ready for L1 draft, gated by previous piece's L1 published)
-// L2 of piece N and L1 of piece N+1 can both be available simultaneously.
-function getAvailableMediumWork(campaign: WeaponCampaign): MediumWork[] {
-  if (!campaign.medium) return []
-  const pieces = campaign.medium.pieces
-  const result: MediumWork[] = []
-  let foundL2 = false, foundL1 = false
-
-  for (let i = 0; i < pieces.length; i++) {
-    const p = pieces[i]
-    const prevL1Done = i === 0 || pieces[i - 1].level1_done
-    if (!foundL2 && p.level1_done && !p.level2_done) {
-      result.push({ piece: p, index: i, level: 2 })
-      foundL2 = true
-    }
-    if (!foundL1 && !p.level1_done && prevL1Done) {
-      result.push({ piece: p, index: i, level: 1 })
-      foundL1 = true
-    }
-    if (foundL1 && foundL2) break
-  }
-  return result
-}
-
 export default function CampaignActionPanel({
   campaign, weapon, weaponLevel, superhitCharges, playerHp, canAct, flowMult,
-  onMicro, onMedium, onMediumComplete, onHeavy, onSuperhit, onRecycle, onSacrifice,
+  onMediumChunk, onHeavyPart, onResearchStep, onSuperhit, onRecycle, onSacrifice,
 }: Props) {
   const t = useT()
   const fm = flowMult ?? 1
-  const [timer, setTimer]               = useState<TimerCtx | null>(null)
-  const [confirm, setConfirm]           = useState<ConfirmCtx | null>(null)
-  const [mediumStart, setMediumStart]   = useState<MediumStartCtx | null>(null)
-  const [mediumFinish, setMediumFinish] = useState<MediumFinishCtx | null>(null)
-  const [heavyStart, setHeavyStart]     = useState<HeavyStartCtx | null>(null)
-  const [remaining, setRemaining]       = useState(0)
+  const [timer, setTimer]         = useState<TimerCtx | null>(null)
+  const [confirm, setConfirm]     = useState<ConfirmCtx | null>(null)
+  const [modeStart, setModeStart] = useState<ModeStartCtx | null>(null)
+  const [remaining, setRemaining] = useState(0)
   const doneRef = useRef(false)
 
-  const cls = weapon ? WEAPON_CLASSES[weapon.weapon_class] : null
-  const timeMod = cls?.time_mod ?? 1
-  const lightSecs = Math.round(STAGE_TIME.Research.light * timeMod)
-  const heavySecs = Math.round(STAGE_TIME.Produce.heavy  * timeMod)
+  const mediumDmg   = Math.round(calcTileDamage(MEDIUM_TILE, 'Light', weapon, weaponLevel) * fm)
+  const stepDmg     = Math.round(calcTileDamage(STEP_TILE, 'Heavy', weapon, weaponLevel) * fm)
+  const superhitDmg = Math.round(mediumDmg * 5)
+  const canShit     = superhitCharges > 0
 
-  const heavyDmg    = Math.round(calcTileDamage(HEAVY_TILE, 'Heavy', weapon, weaponLevel) * fm)
-  const lightDmg    = Math.round(calcTileDamage(LIGHT_TILE, 'Light', weapon, weaponLevel) * fm)
-  const superhitDmg = Math.round(lightDmg * 5)
-
-  const hasMicro       = !!(campaign.micro && !campaign.micro.completed)
-  const mediumOptions  = getAvailableMediumWork(campaign)
-  const hasMedium      = mediumOptions.length > 0
-  const hasHeavy       = !!(campaign.heavy && !campaign.heavy.completed)
-  const canShit        = superhitCharges > 0
-
-  const micro = campaign.micro
-  const currentMicroIndex = micro?.current_index ?? 0
-  const currentProduct    = micro?.products[currentMicroIndex]
+  const medium = campaign.medium
+  const nextChunk = medium?.chunks.find(c => !c.done)
 
   const heavy = campaign.heavy
-  const heavyTimerName  = heavy ? (heavy.name?.trim() || heavy.product_type) : 'Heavy content'
-  const heavyTotalTiles = heavy ? heavy.research_count + heavy.produce_count : 0
-  const heavyDoneTiles  = heavy ? heavy.research_done  + heavy.produce_done  : 0
+  const nextPart = heavy?.parts.find(p => !p.done)
+
+  const research = campaign.research
 
   function prodBadge(type: string): string {
     return (t.content.product as Record<string, { badge_label: string }>)[type]?.badge_label ?? type
   }
-  function constraintLabel(piece: MediumPiece): string | null {
-    if (!piece.constraint) return null
-    const entry = (t.content.constraint[piece.constraint.category] as Record<string, { label: string }>)[piece.constraint.value as string]
-    return entry?.label ?? piece.constraint.value
-  }
-  function styleLabel(style: string): string {
-    return (t.content.transformation as Record<string, { label?: string }>)[style]?.label ?? style
-  }
 
   // Display-only flavor text for the Recycle tile — the most-recently-completed
-  // piece, checked most- to least-substantial. Not a gate, nothing is consumed.
+  // item in whichever mode this weapon has. Not a gate, nothing is consumed.
   function getRecycleSource(): string | null {
-    if (heavy?.completed) return heavy.name?.trim() || prodBadge(heavy.product_type)
-    const pieces = campaign.medium?.pieces ?? []
-    for (let i = pieces.length - 1; i >= 0; i--) {
-      if (pieces[i].level2_done) return pieces[i].name || `Part ${i + 1}`
+    if (medium) {
+      for (let i = medium.chunks.length - 1; i >= 0; i--) {
+        if (medium.chunks[i].done) return medium.chunks[i].name
+      }
     }
-    for (let i = pieces.length - 1; i >= 0; i--) {
-      if (pieces[i].level1_done) return pieces[i].name || `Part ${i + 1}`
+    if (heavy) {
+      for (let i = heavy.parts.length - 1; i >= 0; i--) {
+        if (heavy.parts[i].done) return heavy.parts[i].name
+      }
     }
-    if (micro && currentMicroIndex > 0) {
-      const lastDone = micro.products[currentMicroIndex - 1]
-      if (lastDone) return prodBadge(lastDone.content_type)
-    }
+    if (research && research.done_steps > 0) return `Research (${research.done_steps} steps)`
     return null
   }
   const recycleSource = getRecycleSource()
@@ -176,46 +122,28 @@ export default function CampaignActionPanel({
 
   function handleTimerDone(ctx: TimerCtx, selfDmg = 0) {
     setTimer(null)
-    if (ctx.type === 'medium' && ctx.medPieceId) {
-      onMedium(ctx.damage, ctx.medPieceId, ctx.medLevel ?? 1)
-      if (selfDmg > 0) onSacrifice(selfDmg)
-      // Find the piece by id from the current campaign state
-      const piece = campaign.medium?.pieces.find(p => p.id === ctx.medPieceId)
-      if (piece) {
-        const level = ctx.medLevel ?? 1
-        const levelLabel = level === 1 ? 'L1' : 'L2'
-        setMediumFinish({
-          pieceName: piece.name || `Part ${(campaign.medium?.pieces.indexOf(piece) ?? 0) + 1}`,
-          pieceId: ctx.medPieceId,
-          damage: ctx.damage,
-          level,
-        })
-        void levelLabel
-      }
-    } else {
-      onHeavy(ctx.damage)
-      if (selfDmg > 0) onSacrifice(selfDmg)
-    }
+    if (ctx.mode === 'medium' && ctx.itemId) onMediumChunk(ctx.damage, ctx.itemId)
+    else if (ctx.mode === 'heavy' && ctx.itemId) onHeavyPart(ctx.damage, ctx.itemId)
+    else if (ctx.mode === 'research') onResearchStep(ctx.damage)
+    if (selfDmg > 0) onSacrifice(selfDmg)
   }
 
-  function startTimer(type: TimerCtx['type'], damage: number, secs: number, contentName: string, medPieceId?: string, medLevel?: 1 | 2) {
-    setTimer({ type, damage, totalSecs: secs, startedAt: Date.now(), contentName, medPieceId, medLevel })
+  function startTimer(mode: ModeKind, damage: number, secs: number, contentName: string, itemId?: string) {
+    setTimer({ mode, damage, totalSecs: secs, startedAt: Date.now(), contentName, itemId })
   }
 
   function handleConfirmYes() {
     if (!confirm) return
     const c = confirm
     setConfirm(null)
-    if (c.type === 'micro')        onMicro(c.damage, c.productIndex)
-    else if (c.type === 'recycle') onRecycle(c.damage)
-    else                            onSuperhit(c.damage)
+    if (c.type === 'recycle') onRecycle(c.damage)
+    else                      onSuperhit(c.damage)
   }
 
   // ── Timer view ─────────────────────────────────────────────────────────────
   if (timer) {
     const pct = Math.max(0, remaining / timer.totalSecs) * 100
-    const isHeavy = timer.type === 'heavy'
-    const modeLabel = isHeavy ? 'Heavy work' : timer.medLevel === 2 ? 'L2 content' : 'Drafting'
+    const modeLabel = timer.mode === 'medium' ? 'Drafting' : timer.mode === 'heavy' ? 'Heavy work' : 'Researching'
     const timeFrac = timer.totalSecs > 0 ? remaining / timer.totalSecs : 0
     const selfDmg  = Math.round(timer.damage * timeFrac * SACRIFICE_MULT)
     const canSacrifice = selfDmg < playerHp
@@ -228,7 +156,7 @@ export default function CampaignActionPanel({
             <circle cx="32" cy="32" r="28" fill="none" stroke="rgba(255,255,255,0.08)" strokeWidth="4" />
             <circle
               cx="32" cy="32" r="28" fill="none"
-              stroke={isHeavy ? '#e0a060' : '#60c0e0'}
+              stroke={timer.mode === 'medium' ? '#60c0e0' : '#e0a060'}
               strokeWidth="4"
               strokeDasharray={`${2 * Math.PI * 28}`}
               strokeDashoffset={`${2 * Math.PI * 28 * (1 - pct / 100)}`}
@@ -259,80 +187,33 @@ export default function CampaignActionPanel({
     )
   }
 
-  // ── Heavy start confirmation ───────────────────────────────────────────────
-  if (heavyStart) {
+  // ── Mode start confirmation ─────────────────────────────────────────────────
+  if (modeStart) {
     return (
       <div className={s.confirmView}>
-        <div className={s.confirmContentName}>{heavyStart.name}</div>
-        <div className={s.confirmLabel}>Start {fmtSecs(heavyStart.secs)} timer?</div>
-        <div className={s.confirmBtns}>
-          <button
-            className={s.confirmYes}
-            onClick={() => { startTimer('heavy', heavyStart.damage, heavyStart.secs, heavyStart.name); setHeavyStart(null) }}
-          >
-            Start
-          </button>
-          <button className={s.confirmNo} onClick={() => setHeavyStart(null)}>Cancel</button>
-        </div>
-      </div>
-    )
-  }
-
-  // ── Medium start confirmation ──────────────────────────────────────────────
-  if (mediumStart) {
-    const actionLabel = mediumStart.level === 2 ? 'L2 content' : 'Draft L1'
-    return (
-      <div className={s.confirmView}>
-        <div className={s.confirmContentName}>{mediumStart.pieceName}</div>
-        <div className={s.confirmLabel}>{actionLabel} — start {fmtSecs(mediumStart.secs)} timer?</div>
+        <div className={s.confirmContentName}>{modeStart.name}</div>
+        <div className={s.confirmLabel}>Start {fmtSecs(modeStart.secs)} timer?</div>
         <div className={s.confirmBtns}>
           <button
             className={s.confirmYes}
             onClick={() => {
-              startTimer('medium', mediumStart.damage, mediumStart.secs, mediumStart.pieceName, mediumStart.pieceId, mediumStart.level)
-              setMediumStart(null)
+              startTimer(modeStart.mode, modeStart.damage, modeStart.secs, modeStart.name, modeStart.itemId)
+              setModeStart(null)
             }}
           >
             Start
           </button>
-          <button className={s.confirmNo} onClick={() => setMediumStart(null)}>Cancel</button>
+          <button className={s.confirmNo} onClick={() => setModeStart(null)}>Cancel</button>
         </div>
       </div>
     )
   }
 
-  // ── Medium finish confirmation ─────────────────────────────────────────────
-  if (mediumFinish) {
-    const finishLabel = mediumFinish.level === 1
-      ? 'Did you finish the L1 draft?'
-      : 'Did you finish the L2 content?'
-    const yesLabel = mediumFinish.level === 1 ? 'Yes — drafted' : 'Yes — done'
-    return (
-      <div className={s.confirmView}>
-        <div className={s.confirmContentName}>{mediumFinish.pieceName}</div>
-        <div className={s.confirmLabel}>{finishLabel}</div>
-        <div className={s.confirmBtns}>
-          <button
-            className={s.confirmYes}
-            onClick={() => { onMediumComplete(mediumFinish.pieceId, mediumFinish.level); setMediumFinish(null) }}
-          >
-            {yesLabel}
-          </button>
-          <button className={s.confirmNo} onClick={() => setMediumFinish(null)}>
-            Not yet
-          </button>
-        </div>
-      </div>
-    )
-  }
-
-  // ── Micro / Superhit confirmation ──────────────────────────────────────────
+  // ── Superhit / Recycle confirmation ─────────────────────────────────────────
   if (confirm) {
-    const label = confirm.type === 'micro'
-      ? '📤 Did you actually publish it?'
-      : confirm.type === 'recycle'
-        ? '♻️ Did you republish it elsewhere?'
-        : '💥 Did you land the superhit?'
+    const label = confirm.type === 'recycle'
+      ? '♻️ Did you republish it elsewhere?'
+      : '💥 Did you land the superhit?'
     return (
       <div className={s.confirmView}>
         <div className={s.confirmLabel}>{label}</div>
@@ -346,86 +227,62 @@ export default function CampaignActionPanel({
   }
 
   // ── Main tile panel ────────────────────────────────────────────────────────
+  // A weapon has exactly one of medium/heavy/research — render that one mode tile.
   return (
     <div className={s.panel}>
-      {/* Micro */}
-      <button
-        className={[s.tile, s.tileMicro, !hasMicro || !canAct ? s.tileDim : ''].filter(Boolean).join(' ')}
-        disabled={!hasMicro || !canAct}
-        onClick={() => setConfirm({ type: 'micro', damage: heavyDmg, productIndex: currentMicroIndex })}
-      >
-        <span className={s.tileLabel}>Micro</span>
-        <span className={s.tileDmg}>⚔ {heavyDmg}</span>
-        {currentProduct && (
-          <>
-            <span className={s.tileTag}>{prodBadge(currentProduct.content_type)}</span>
-            {currentProduct.style && (
-              <span className={s.tileConstraint}>{styleLabel(currentProduct.style)}</span>
-            )}
-            <span className={s.tileHint}>{currentMicroIndex + 1}/{micro!.products.length}</span>
-          </>
-        )}
-      </button>
+      {medium && (
+        <button
+          className={[s.tile, s.tileMedium, !nextChunk || !canAct ? s.tileDim : ''].filter(Boolean).join(' ')}
+          disabled={!nextChunk || !canAct}
+          onClick={() => nextChunk && setModeStart({
+            mode: 'medium', name: nextChunk.name, damage: mediumDmg, secs: MEDIUM_CHUNK_SECS, itemId: nextChunk.id,
+          })}
+        >
+          <span className={s.tileLabel}>Medium</span>
+          <span className={s.tileDmg}>⚔ {mediumDmg}</span>
+          {nextChunk && (
+            <>
+              <span className={s.tileTag}>{prodBadge(nextChunk.content_type)}</span>
+              <span className={s.tileNameHint}>{nextChunk.name}</span>
+            </>
+          )}
+        </button>
+      )}
 
-      {/* Medium tiles — one per available work item (up to 2: one L1, one L2) */}
-      {hasMedium
-        ? mediumOptions.map(opt => {
-            const pieceName = opt.piece.name || `Part ${opt.index + 1}`
-            const tileLabel = opt.level === 2 ? 'Med L2' : 'Medium'
-            return (
-              <button
-                key={`med-${opt.level}-${opt.piece.id}`}
-                className={[s.tile, s.tileMedium, !canAct ? s.tileDim : ''].filter(Boolean).join(' ')}
-                disabled={!canAct}
-                onClick={() => setMediumStart({
-                  pieceName,
-                  pieceId: opt.piece.id,
-                  damage: lightDmg,
-                  secs: lightSecs,
-                  level: opt.level,
-                })}
-              >
-                <span className={s.tileLabel}>{tileLabel}</span>
-                <span className={s.tileDmg}>⚔ {lightDmg}</span>
-                <span className={s.tileNameHint}>{pieceName}</span>
-                {constraintLabel(opt.piece) && (
-                  <span className={s.tileConstraint}>{constraintLabel(opt.piece)}</span>
-                )}
-              </button>
-            )
-          })
-        : (
-          <button className={[s.tile, s.tileMedium, s.tileDim].join(' ')} disabled>
-            <span className={s.tileLabel}>Medium</span>
-            <span className={s.tileDmg}>⚔ {lightDmg}</span>
-          </button>
-        )
-      }
+      {heavy && (
+        <button
+          className={[s.tile, s.tileHeavy, !nextPart || !canAct ? s.tileDim : ''].filter(Boolean).join(' ')}
+          disabled={!nextPart || !canAct}
+          onClick={() => nextPart && setModeStart({
+            mode: 'heavy', name: nextPart.name, damage: stepDmg, secs: CAMPAIGN_STEP_SECS, itemId: nextPart.id,
+          })}
+        >
+          <span className={s.tileLabel}>Heavy</span>
+          <span className={s.tileDmg}>⚔ {stepDmg}</span>
+          <span className={s.tileTag}>{prodBadge(heavy.product_type)}</span>
+          {nextPart && <span className={s.tileNameHint}>{nextPart.name}</span>}
+        </button>
+      )}
 
-      {/* Heavy */}
-      <button
-        className={[s.tile, s.tileHeavy, !hasHeavy || !canAct ? s.tileDim : ''].filter(Boolean).join(' ')}
-        disabled={!hasHeavy || !canAct}
-        onClick={() => setHeavyStart({ name: heavyTimerName, damage: heavyDmg, secs: heavySecs })}
-      >
-        <span className={s.tileLabel}>Heavy</span>
-        <span className={s.tileDmg}>⚔ {heavyDmg}</span>
-        {heavy && (
-          <>
-            <span className={s.tileTag}>{prodBadge(heavy.product_type)}</span>
-            {heavy.name?.trim() && (
-              <span className={s.tileNameHint}>{heavy.name}</span>
-            )}
-            <span className={s.tileConstraint}>{heavyDoneTiles}/{heavyTotalTiles} tiles</span>
-          </>
-        )}
-      </button>
+      {research && (
+        <button
+          className={[s.tile, s.tileHeavy, research.completed || !canAct ? s.tileDim : ''].filter(Boolean).join(' ')}
+          disabled={research.completed || !canAct}
+          onClick={() => setModeStart({
+            mode: 'research', name: 'Research', damage: stepDmg, secs: CAMPAIGN_STEP_SECS,
+          })}
+        >
+          <span className={s.tileLabel}>Research</span>
+          <span className={s.tileDmg}>⚔ {stepDmg}</span>
+          <span className={s.tileHint}>{research.done_steps}/{research.total_steps} steps</span>
+        </button>
+      )}
 
       {/* Recycle */}
       <button
         className={[s.tile, s.tileRecycle, !canAct ? s.tileDim : ''].filter(Boolean).join(' ')}
         disabled={!canAct}
-        onClick={() => setConfirm({ type: 'recycle', damage: RECYCLE_DMG, productIndex: 0 })}
+        onClick={() => setConfirm({ type: 'recycle', damage: RECYCLE_DMG })}
       >
         <span className={s.tileLabel}>Recycle</span>
         <span className={s.tileDmg}>⚔ {RECYCLE_DMG}</span>
@@ -436,7 +293,7 @@ export default function CampaignActionPanel({
       <button
         className={[s.tile, s.tileSuperhit, !canShit || !canAct ? s.tileDim : ''].filter(Boolean).join(' ')}
         disabled={!canShit || !canAct}
-        onClick={() => setConfirm({ type: 'superhit', damage: superhitDmg, productIndex: 0 })}
+        onClick={() => setConfirm({ type: 'superhit', damage: superhitDmg })}
       >
         <span className={s.tileLabel}>Superhit</span>
         <span className={s.tileDmg}>⚔ {superhitDmg}</span>

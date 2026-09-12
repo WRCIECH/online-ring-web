@@ -215,94 +215,60 @@ export interface WeaponCampaign {
   done_count?: number           // times finalized; drives +5%/completion damage mult
   ordinal?: number              // sequential number for this weapon (1 = first, 2 = after first finalization, …)
   skip_allowance?: number       // nodes that may be left unpublished; 0 = all required; max = END stat
-  micro?: MicroModeState
   medium?: MediumModeState
   heavy?: HeavyModeState
+  research?: ResearchModeState
 }
 
 // ── Mode-specific content type pools ─────────────────────────────────────
-export type MicroContentType =
-  'Plaintext' | 'SingleGraphic' | 'Carousel' | 'ARollVideo' | 'RawAudio' | 'LinkShare'
-
+// One weapon is permanently assigned exactly one action type (WeaponClassDef.action_type):
+// 'medium' (merged former Micro+Medium, simple linear list, no levels/transformation),
+// 'heavy' (linear list of generic parts, one type for the whole piece), or
+// 'research' (a flat work-meter, no elements at all).
 export type MediumContentType =
-  'Plaintext' | 'ProducedAudio' | 'ARollVideo' | 'Interview' | 'Commentary' | 'Infographic' | 'Carousel'
+  | 'Text' | 'Podcast' | 'Video' | 'LinkShare' | 'Poll' | 'Question' | 'Reply' | 'DM'
+  | 'Correct' | 'Recycle' | 'Interview' | 'Graphic' | 'Commentary' | 'Infographic'
+  | 'Carousel' | 'Livestream' | 'Q&A' | 'Meeting'
 
-export type HeavyContentType =
-  'Plaintext' | 'ARollVideo' | 'AssetPack' | 'CurationFeed' | 'InteractiveApp' |
-  'Website' | '_blank' | 'Course' | 'Book'
-
-export type ContentShift = 'Follows' | 'ZoomIn' | 'ZoomOut' | 'Similar' | 'Opposite'
-
-// ── Constraint system (labels only for now) ───────────────────────────────
-export type PropagandaShift = 'enhance' | 'weaken' | 'focus' | 'action'
-export type MediumAudienceShift =
-  'audience_x' | 'lower_self' | 'average_self' | 'higher_self' |
-  'base_trend_event' | 'need_identity_belief'
-export type StyleShift =
-  'narration' | 'segmentation' | 'socratic' | 'enemy_hero' | 'slogan_symbol' |
-  'analogy' | 'verbose' | 'succinct' | 'technicalize' | 'simplify' |
-  'evidence' | 'data_driven' | 'first_principles'
-export type ConstraintCategory = 'propaganda' | 'audience' | 'style'
-
-export interface NodeConstraint {
-  category: ConstraintCategory
-  value: PropagandaShift | MediumAudienceShift | StyleShift
-}
-
-// ── Micro mode ────────────────────────────────────────────────────────────
-export interface MicroProduct {
-  id: string
-  content_type: MicroContentType
-  style?: ContentTransformation   // present ~50% of the time
-  done_count: number
-  // Modification tracking (stat-based edit system)
-  type_modified?: boolean; original_content_type?: MicroContentType; type_modified_stat?: StatKey
-  style_modified?: boolean; original_style?: ContentTransformation;   style_modified_stat?: StatKey
-}
-
-export interface MicroModeState {
-  products: MicroProduct[]
-  current_index: number           // index of the next product to publish
-  completed: boolean              // true once all products done at least once
-}
+export type HeavyContentType = 'Text' | 'Audio/Video' | 'Software' | 'Community'
 
 // ── Medium mode ───────────────────────────────────────────────────────────
-export interface MediumPiece {
+export interface MediumChunk {
   id: string
   name: string
-  level1_type: MediumContentType
-  level2_type: MediumContentType
-  link_type: ContentShift
-  constraint?: NodeConstraint
-  level1_done: boolean
-  level2_done: boolean
-  // Modification tracking
-  constraint_modified?: boolean; original_constraint?: NodeConstraint; constraint_modified_stat?: StatKey
-  link_type_modified?: boolean;  original_link_type?: ContentShift;   link_type_modified_stat?: StatKey
-  level1_worked?: boolean   // true once an L1 timer has fired for this piece
-  level2_worked?: boolean   // true once an L2 timer has fired for this piece
+  named?: boolean   // true once the player has renamed it away from the "Part N" default — gates activation
+  content_type: MediumContentType
+  done: boolean
+  // Modification tracking (stat-based edit system) — per chunk
+  type_modified?: boolean; original_content_type?: MediumContentType; type_modified_stat?: StatKey
 }
 
 export interface MediumModeState {
-  pieces: MediumPiece[]
-  completed: boolean              // true when last piece.level2_done
-  // Global format modification tracking (L1/L2 apply to all pieces at once)
-  level1_modified?: boolean; original_level1_type?: MediumContentType; level1_modified_stat?: StatKey
-  level2_modified?: boolean; original_level2_type?: MediumContentType; level2_modified_stat?: StatKey
+  chunks: MediumChunk[]   // 3–15 items; chunks[0].content_type is always 'Text'
+  completed: boolean      // true once every chunk is done
 }
 
 // ── Heavy mode ────────────────────────────────────────────────────────────
+export interface HeavyPart {
+  id: string
+  name: string
+  named?: boolean
+  done: boolean
+}
+
 export interface HeavyModeState {
-  name?: string
-  product_type: HeavyContentType
-  research_count: number
-  produce_count: number
-  research_done: number
-  produce_done: number
-  completed: boolean   // all tiles done
-  published?: boolean  // explicitly published → grants superhit
+  product_type: HeavyContentType   // one type for the whole piece — same across all parts
+  parts: HeavyPart[]                // linear list like Medium's chunks, but untyped per-part
+  completed: boolean                // true once every part is done
   // Modification tracking
   product_type_modified?: boolean; original_product_type?: HeavyContentType; product_type_modified_stat?: StatKey
+}
+
+// ── Research mode ─────────────────────────────────────────────────────────
+export interface ResearchModeState {
+  total_steps: number
+  done_steps: number
+  completed: boolean   // true once done_steps reaches total_steps
 }
 
 // ── Audience profiles ─────────────────────────────────────────────────────

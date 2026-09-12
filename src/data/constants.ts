@@ -16,6 +16,20 @@ export const ESTUS_MOB_DROP_CHANCE = 0.05
 /** Minimum active pipeline items required to enter combat. */
 export const MIN_PIPELINE_TO_FIGHT = 2
 
+/** Maximum number of weapon campaigns that may be `activated` at once. */
+export const MAX_ACTIVE_CAMPAIGNS = 6
+
+// ── Campaign step durations (Medium/Heavy/Research) — fixed, not weapon-class-scaled ──
+
+/** Medium chunk timer, in seconds — set in stone (10 min). */
+export const MEDIUM_CHUNK_SECS = 600
+
+/** Heavy part / Research step timer, in seconds — set in stone (25 min). */
+export const CAMPAIGN_STEP_SECS = 1500
+
+/** Superhit charges granted for finishing the final Research step. */
+export const RESEARCH_COMPLETE_SUPERHITS = 3
+
 // ── Equip load ───────────────────────────────────────────────────────────────
 
 /** Equip load contributed by each active (non-published) content item. */
