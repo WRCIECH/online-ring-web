@@ -2,6 +2,7 @@ import { useEffect, useRef, useState, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useGameStore, selectRunRemainingSeconds } from '../store/gameStore'
 import { ENEMIES } from '../data/enemies'
+import { isNodeAvailable } from '../data/generators/campaignGenerator'
 import type { LocationData } from '../types/game'
 import RunHeader        from '../components/layout/RunHeader'
 import CampaignOverlay  from '../components/overlays/CampaignOverlay'
@@ -431,9 +432,38 @@ export default function RunMapScreen() {
     setPopupPos({ x: px, y: Math.min(e.clientY - 40, window.innerHeight - 320) })
   }
 
+  // New-format (medium/heavy/research) weapons are always done in strict
+  // order with exactly one workable item — nothing to pick before the fight.
+  // Only skip the picker if there's real new-format work AND no legacy
+  // (old-format) weapon with a genuine choice to make.
+  function hasOldFormatChoice(): boolean {
+    return store.weapon_instances.some(w => {
+      const c = store.weapon_campaigns[w.instance_id]
+      if (!c || !c.activated || c.medium || c.heavy || c.research) return false
+      return c.nodes.some(n => !n.completed && n.name.trim() !== '' && isNodeAvailable(c.nodes, c.edges, n))
+    })
+  }
+
+  function hasNewFormatWork(): boolean {
+    return store.weapon_instances.some(w => {
+      const c = store.weapon_campaigns[w.instance_id]
+      if (!c?.activated) return false
+      if (c.medium) return c.medium.chunks.some(ch => !ch.done)
+      if (c.heavy)  return c.heavy.parts.some(p => !p.done)
+      return !!c.research
+    })
+  }
+
   function handleEnterLocation() {
     if (popupIdx < 0) return
-    setPreFightLoc(seq[popupIdx])
+    const loc = seq[popupIdx]
+    if (!hasOldFormatChoice() && hasNewFormatWork()) {
+      store.setPendingEncounter(loc)
+      navigate('/combat')
+      setPopupIdx(-1)
+      return
+    }
+    setPreFightLoc(loc)
     setPopupIdx(-1)
   }
 

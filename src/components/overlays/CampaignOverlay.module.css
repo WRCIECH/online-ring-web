@@ -1520,9 +1520,14 @@
   white-space: nowrap;
 }
 
-.publishBtn:hover {
+.publishBtn:hover:not(:disabled) {
   background: rgba(200,170,50,0.22);
   border-color: rgba(200,170,50,0.80);
+}
+
+.publishBtn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
 }
 
 .pieceConnector {

@@ -381,6 +381,15 @@ export default function CampaignOverlay({ onClose }: Props) {
                                           )}
                                         </div>
                                       )}
+                                      {isActivated && isCurrent && (
+                                        <button
+                                          className={s.publishBtn}
+                                          title="Mark this chunk done — use if combat didn't register it correctly"
+                                          onClick={() => store.completeMediumChunk(wid, c.id)}
+                                        >
+                                          Mark done ✓
+                                        </button>
+                                      )}
                                     </div>
                                   </div>
                                 )
@@ -443,6 +452,15 @@ export default function CampaignOverlay({ onClose }: Props) {
                                     <div className={s.mediumPieceRight}>
                                       {p.done && <span className={[s.levelBadge, s.levelDone].join(' ')}>✓ Done</span>}
                                       {isCurrent && <span className={[s.levelBadge, s.levelReady].join(' ')}>▶ Up next</span>}
+                                      {isActivated && isCurrent && (
+                                        <button
+                                          className={s.publishBtn}
+                                          title="Mark this part done — use if combat didn't register it correctly"
+                                          onClick={() => store.completeHeavyPart(wid, p.id)}
+                                        >
+                                          Mark done ✓
+                                        </button>
+                                      )}
                                     </div>
                                   </div>
                                 )
@@ -465,7 +483,18 @@ export default function CampaignOverlay({ onClose }: Props) {
                                 <span>{done_steps}</span>
                               </div>
                             </div>
-                            <div className={s.modeComplete}>✦ {done_steps} superhit{done_steps !== 1 ? 's' : ''} earned so far</div>
+                            {isActivated && (
+                              <button
+                                className={s.publishBtn}
+                                disabled={done_steps <= 0}
+                                title={done_steps > 0
+                                  ? 'Declare this research effort finished — grants +3 Superhit charges and resets the step count'
+                                  : 'Do at least one research step first'}
+                                onClick={() => store.finishResearch(wid)}
+                              >
+                                Finish research ✦ +3
+                              </button>
+                            )}
                           </div>
                         )
                       })()}

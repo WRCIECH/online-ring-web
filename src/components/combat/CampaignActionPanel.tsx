@@ -1,8 +1,8 @@
 import { useState, useEffect, useRef } from 'react'
 import { calcTileDamage } from '../../engine/combat'
-import { SACRIFICE_MULT, MEDIUM_CHUNK_SECS, CAMPAIGN_STEP_SECS } from '../../data/constants'
+import { SACRIFICE_MULT, MEDIUM_CHUNK_SECS, CAMPAIGN_STEP_SECS, SUPERHIT_DMG } from '../../data/constants'
 import type { WeaponCampaign, WeaponInstance, WorkflowTile } from '../../types/game'
-import { useT } from '../../i18n'
+import { useT, localizeWeaponName } from '../../i18n'
 import s from './CampaignActionPanel.module.css'
 
 // Synthetic tiles for the three fixed, unscaled (not weapon-class time_mod-scaled) durations.
@@ -20,6 +20,7 @@ const STEP_TILE: WorkflowTile = {
 type ModeKind = 'medium' | 'heavy' | 'research'
 
 type TimerCtx = {
+  weaponId: string
   mode: ModeKind
   damage: number
   totalSecs: number
@@ -27,23 +28,30 @@ type TimerCtx = {
   contentName: string
   itemId?: string   // chunkId / partId; absent for research (no elements)
 }
-type ModeStartCtx = { mode: ModeKind; name: string; damage: number; secs: number; itemId?: string }
-// After a Medium/Heavy work session, the chunk/part isn't assumed finished —
-// the same item can be worked multiple times before it's actually done.
-type FinishCtx = { mode: 'medium' | 'heavy'; itemId: string; name: string }
+type ModeStartCtx = { weaponId: string; mode: ModeKind; name: string; damage: number; secs: number; itemId?: string }
+// After a work session, nothing is assumed finished — a Medium chunk / Heavy
+// part may take several passes, and Research has no discrete items at all, so
+// "finished" is always an explicit player decision, never inferred from one timer.
+type FinishCtx = { weaponId: string; mode: ModeKind; itemId?: string; name: string }
 
-interface Props {
-  campaign: WeaponCampaign
+export interface WeaponEntry {
+  weaponId: string
   weapon: WeaponInstance | undefined
   weaponLevel: number
+  campaign: WeaponCampaign
+}
+
+interface Props {
+  weapons: WeaponEntry[]
   superhitCharges: number
   playerHp: number
   canAct: boolean
-  onMediumChunk:         (damage: number, chunkId: string) => void
-  onMediumChunkComplete: (chunkId: string) => void
-  onHeavyPart:           (damage: number, partId: string) => void
-  onHeavyPartComplete:   (partId: string) => void
-  onResearchStep:        (damage: number) => void
+  onMediumChunk:         (weaponId: string, damage: number, chunkId: string) => void
+  onMediumChunkComplete: (weaponId: string, chunkId: string) => void
+  onHeavyPart:           (weaponId: string, damage: number, partId: string) => void
+  onHeavyPartComplete:   (weaponId: string, partId: string) => void
+  onResearchStep:        (weaponId: string, damage: number) => void
+  onResearchComplete:    (weaponId: string) => void
   onSuperhit:            (damage: number) => void
   onSacrifice:           (selfDmg: number) => void
 }
@@ -55,8 +63,8 @@ function fmtSecs(sec: number): string {
 }
 
 export default function CampaignActionPanel({
-  campaign, weapon, weaponLevel, superhitCharges, playerHp, canAct,
-  onMediumChunk, onMediumChunkComplete, onHeavyPart, onHeavyPartComplete, onResearchStep, onSuperhit, onSacrifice,
+  weapons, superhitCharges, playerHp, canAct,
+  onMediumChunk, onMediumChunkComplete, onHeavyPart, onHeavyPartComplete, onResearchStep, onResearchComplete, onSuperhit, onSacrifice,
 }: Props) {
   const t = useT()
   const [timer, setTimer]         = useState<TimerCtx | null>(null)
@@ -66,18 +74,7 @@ export default function CampaignActionPanel({
   const [remaining, setRemaining] = useState(0)
   const doneRef = useRef(false)
 
-  const mediumDmg   = Math.round(calcTileDamage(MEDIUM_TILE, 'Light', weapon, weaponLevel))
-  const stepDmg     = Math.round(calcTileDamage(STEP_TILE, 'Heavy', weapon, weaponLevel))
-  const superhitDmg = Math.round(mediumDmg * 5)
-  const canShit     = superhitCharges > 0
-
-  const medium = campaign.medium
-  const nextChunk = medium?.chunks.find(c => !c.done)
-
-  const heavy = campaign.heavy
-  const nextPart = heavy?.parts.find(p => !p.done)
-
-  const research = campaign.research
+  const canShit = superhitCharges > 0
 
   function prodBadge(type: string): string {
     return (t.content.product as Record<string, { badge_label: string }>)[type]?.badge_label ?? type
@@ -104,26 +101,28 @@ export default function CampaignActionPanel({
   function handleTimerDone(ctx: TimerCtx, selfDmg = 0) {
     setTimer(null)
     if (ctx.mode === 'medium' && ctx.itemId) {
-      onMediumChunk(ctx.damage, ctx.itemId)
-      setFinish({ mode: 'medium', itemId: ctx.itemId, name: ctx.contentName })
+      onMediumChunk(ctx.weaponId, ctx.damage, ctx.itemId)
+      setFinish({ weaponId: ctx.weaponId, mode: 'medium', itemId: ctx.itemId, name: ctx.contentName })
     } else if (ctx.mode === 'heavy' && ctx.itemId) {
-      onHeavyPart(ctx.damage, ctx.itemId)
-      setFinish({ mode: 'heavy', itemId: ctx.itemId, name: ctx.contentName })
+      onHeavyPart(ctx.weaponId, ctx.damage, ctx.itemId)
+      setFinish({ weaponId: ctx.weaponId, mode: 'heavy', itemId: ctx.itemId, name: ctx.contentName })
     } else if (ctx.mode === 'research') {
-      onResearchStep(ctx.damage)
+      onResearchStep(ctx.weaponId, ctx.damage)
+      setFinish({ weaponId: ctx.weaponId, mode: 'research', name: ctx.contentName })
     }
     if (selfDmg > 0) onSacrifice(selfDmg)
   }
 
   function handleFinishYes() {
     if (!finish) return
-    if (finish.mode === 'medium') onMediumChunkComplete(finish.itemId)
-    else                          onHeavyPartComplete(finish.itemId)
+    if (finish.mode === 'medium')        onMediumChunkComplete(finish.weaponId, finish.itemId!)
+    else if (finish.mode === 'heavy')    onHeavyPartComplete(finish.weaponId, finish.itemId!)
+    else                                 onResearchComplete(finish.weaponId)
     setFinish(null)
   }
 
-  function startTimer(mode: ModeKind, damage: number, secs: number, contentName: string, itemId?: string) {
-    setTimer({ mode, damage, totalSecs: secs, startedAt: Date.now(), contentName, itemId })
+  function startTimer(weaponId: string, mode: ModeKind, damage: number, secs: number, contentName: string, itemId?: string) {
+    setTimer({ weaponId, mode, damage, totalSecs: secs, startedAt: Date.now(), contentName, itemId })
   }
 
   function handleConfirmYes() {
@@ -180,14 +179,17 @@ export default function CampaignActionPanel({
   }
 
   // ── Finish confirmation ──────────────────────────────────────────────────────
-  // Doing one work session never auto-completes a chunk/part — it may take
-  // several passes before it's actually finished.
+  // Doing one work session never auto-completes anything — Medium/Heavy items
+  // may take several passes, and Research has no discrete end at all; "finished"
+  // is always an explicit choice.
   if (finish) {
-    const noun = finish.mode === 'medium' ? 'chunk' : 'part'
+    const finishLabel = finish.mode === 'medium' ? 'Did you finish this chunk?'
+      : finish.mode === 'heavy' ? 'Did you finish this part?'
+      : 'Did you finish the whole research?'
     return (
       <div className={s.confirmView}>
         <div className={s.confirmContentName}>{finish.name}</div>
-        <div className={s.confirmLabel}>Did you finish this {noun}?</div>
+        <div className={s.confirmLabel}>{finishLabel}</div>
         <div className={s.confirmBtns}>
           <button className={s.confirmYes} onClick={handleFinishYes}>Yes — done</button>
           <button className={s.confirmNo}  onClick={() => setFinish(null)}>Not yet</button>
@@ -206,7 +208,7 @@ export default function CampaignActionPanel({
           <button
             className={s.confirmYes}
             onClick={() => {
-              startTimer(modeStart.mode, modeStart.damage, modeStart.secs, modeStart.name, modeStart.itemId)
+              startTimer(modeStart.weaponId, modeStart.mode, modeStart.damage, modeStart.secs, modeStart.name, modeStart.itemId)
               setModeStart(null)
             }}
           >
@@ -232,66 +234,90 @@ export default function CampaignActionPanel({
     )
   }
 
-  // ── Main tile panel ────────────────────────────────────────────────────────
-  // A weapon has exactly one of medium/heavy/research — render that one mode tile.
+  // ── Main tile grid ────────────────────────────────────────────────────────
+  // One tile per activated weapon (up to MAX_ACTIVE_CAMPAIGNS) — each weapon
+  // has exactly one of medium/heavy/research — plus one shared, global Superhit tile.
   return (
     <div className={s.panel}>
-      {medium && (
-        <button
-          className={[s.tile, s.tileMedium, !nextChunk || !canAct ? s.tileDim : ''].filter(Boolean).join(' ')}
-          disabled={!nextChunk || !canAct}
-          onClick={() => nextChunk && setModeStart({
-            mode: 'medium', name: nextChunk.name, damage: mediumDmg, secs: MEDIUM_CHUNK_SECS, itemId: nextChunk.id,
-          })}
-        >
-          <span className={s.tileLabel}>Medium</span>
-          <span className={s.tileDmg}>⚔ {mediumDmg}</span>
-          {nextChunk && (
-            <>
-              <span className={s.tileTag}>{prodBadge(nextChunk.content_type)}</span>
-              <span className={s.tileNameHint}>{nextChunk.name}</span>
-            </>
-          )}
-        </button>
-      )}
+      {weapons.map(({ weaponId, weapon, weaponLevel, campaign }) => {
+        const mediumDmg = Math.round(calcTileDamage(MEDIUM_TILE, 'Light', weapon, weaponLevel))
+        const stepDmg   = Math.round(calcTileDamage(STEP_TILE, 'Heavy', weapon, weaponLevel))
+        const weaponName = weapon ? localizeWeaponName(weapon, t) : ''
 
-      {heavy && (
-        <button
-          className={[s.tile, s.tileHeavy, !nextPart || !canAct ? s.tileDim : ''].filter(Boolean).join(' ')}
-          disabled={!nextPart || !canAct}
-          onClick={() => nextPart && setModeStart({
-            mode: 'heavy', name: nextPart.name, damage: stepDmg, secs: CAMPAIGN_STEP_SECS, itemId: nextPart.id,
-          })}
-        >
-          <span className={s.tileLabel}>Heavy</span>
-          <span className={s.tileDmg}>⚔ {stepDmg}</span>
-          <span className={s.tileTag}>{prodBadge(heavy.product_type)}</span>
-          {nextPart && <span className={s.tileNameHint}>{nextPart.name}</span>}
-        </button>
-      )}
+        if (campaign.medium) {
+          const nextChunk = campaign.medium.chunks.find(c => !c.done)
+          return (
+            <button
+              key={weaponId}
+              className={[s.tile, s.tileMedium, !nextChunk || !canAct ? s.tileDim : ''].filter(Boolean).join(' ')}
+              disabled={!nextChunk || !canAct}
+              onClick={() => nextChunk && setModeStart({
+                weaponId, mode: 'medium', name: nextChunk.name, damage: mediumDmg, secs: MEDIUM_CHUNK_SECS, itemId: nextChunk.id,
+              })}
+            >
+              <span className={s.tileWeaponName}>{weaponName}</span>
+              <span className={s.tileLabel}>Medium</span>
+              <span className={s.tileDmg}>⚔ {mediumDmg}</span>
+              {nextChunk && (
+                <>
+                  <span className={s.tileTag}>{prodBadge(nextChunk.content_type)}</span>
+                  <span className={s.tileNameHint}>{nextChunk.name}</span>
+                </>
+              )}
+            </button>
+          )
+        }
 
-      {research && (
-        <button
-          className={[s.tile, s.tileHeavy, !canAct ? s.tileDim : ''].filter(Boolean).join(' ')}
-          disabled={!canAct}
-          onClick={() => setModeStart({
-            mode: 'research', name: 'Research', damage: stepDmg, secs: CAMPAIGN_STEP_SECS,
-          })}
-        >
-          <span className={s.tileLabel}>Research</span>
-          <span className={s.tileDmg}>⚔ {stepDmg}</span>
-          <span className={s.tileHint}>{research.done_steps} step{research.done_steps !== 1 ? 's' : ''} done</span>
-        </button>
-      )}
+        if (campaign.heavy) {
+          const nextPart = campaign.heavy.parts.find(p => !p.done)
+          return (
+            <button
+              key={weaponId}
+              className={[s.tile, s.tileHeavy, !nextPart || !canAct ? s.tileDim : ''].filter(Boolean).join(' ')}
+              disabled={!nextPart || !canAct}
+              onClick={() => nextPart && setModeStart({
+                weaponId, mode: 'heavy', name: nextPart.name, damage: stepDmg, secs: CAMPAIGN_STEP_SECS, itemId: nextPart.id,
+              })}
+            >
+              <span className={s.tileWeaponName}>{weaponName}</span>
+              <span className={s.tileLabel}>Heavy</span>
+              <span className={s.tileDmg}>⚔ {stepDmg}</span>
+              <span className={s.tileTag}>{prodBadge(campaign.heavy.product_type)}</span>
+              {nextPart && <span className={s.tileNameHint}>{nextPart.name}</span>}
+            </button>
+          )
+        }
 
-      {/* Superhit */}
+        if (campaign.research) {
+          const research = campaign.research
+          return (
+            <button
+              key={weaponId}
+              className={[s.tile, s.tileHeavy, !canAct ? s.tileDim : ''].filter(Boolean).join(' ')}
+              disabled={!canAct}
+              onClick={() => setModeStart({
+                weaponId, mode: 'research', name: 'Research', damage: stepDmg, secs: CAMPAIGN_STEP_SECS,
+              })}
+            >
+              <span className={s.tileWeaponName}>{weaponName}</span>
+              <span className={s.tileLabel}>Research</span>
+              <span className={s.tileDmg}>⚔ {stepDmg}</span>
+              <span className={s.tileHint}>{research.done_steps} step{research.done_steps !== 1 ? 's' : ''} done</span>
+            </button>
+          )
+        }
+
+        return null
+      })}
+
+      {/* Superhit — shared, global charge pool */}
       <button
         className={[s.tile, s.tileSuperhit, !canShit || !canAct ? s.tileDim : ''].filter(Boolean).join(' ')}
         disabled={!canShit || !canAct}
-        onClick={() => setConfirmDmg(superhitDmg)}
+        onClick={() => setConfirmDmg(SUPERHIT_DMG)}
       >
         <span className={s.tileLabel}>Superhit</span>
-        <span className={s.tileDmg}>⚔ {superhitDmg}</span>
+        <span className={s.tileDmg}>⚔ {SUPERHIT_DMG}</span>
         <span className={s.tileHint}>{superhitCharges} charge{superhitCharges !== 1 ? 's' : ''}</span>
       </button>
     </div>

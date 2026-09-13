@@ -4,7 +4,7 @@ import { DEFAULT_MUSIC_TRACKS } from '../data/combatMusic'
 import { ENEMIES } from '../data/enemies'
 import { saveGame, loadGame } from '../engine/save'
 import { registerWeapon, calcWeaponSellPrice } from '../data/weapons'
-import { INITIAL_GAME_TIME_SECONDS, ESTUS_START, ESTUS_HEAL_HP, statLevelCost, weaponUpgradeCost, MAX_ACTIVE_CAMPAIGNS } from '../data/constants'
+import { INITIAL_GAME_TIME_SECONDS, ESTUS_START, ESTUS_HEAL_HP, statLevelCost, weaponUpgradeCost, MAX_ACTIVE_CAMPAIGNS, RESEARCH_FINISH_SUPERHITS } from '../data/constants'
 import { rollWeapon } from '../data/generators/weaponGenerator'
 import { WEAPON_CLASSES, ALL_WEAPON_CLASSES, type CampaignActionType } from '../data/generators/weaponClasses'
 import { CLASS_DEFINITIONS } from '../data/classes'
@@ -257,7 +257,7 @@ function initialState(): GameState {
     rewards: { C: 0, B1: 0, B2: 0, A1: 0, A2: 0, S: 0 },
     reward_names: {},
     reward_used_count: {},
-    weapon_pending_superhits: {},
+    pending_superhits: 0,
     run_music_seed: 0,
     music_tracks: DEFAULT_MUSIC_TRACKS,
     audiences: [],
@@ -345,7 +345,8 @@ export interface GameStore extends GameState {
   completeMediumChunk:    (weaponId: string, chunkId: string) => void
   completeHeavyPart:      (weaponId: string, partId: string) => void
   completeResearchStep:   (weaponId: string) => void
-  consumeSuperhitCharge:  (weaponId: string) => void
+  finishResearch:         (weaponId: string) => void
+  consumeSuperhitCharge:  () => void
 
   // External rewards
   addReward:    (tier: RewardTier) => void
@@ -595,7 +596,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
       workflow_progress: {},
       content_streak: {},
       active_content_id: null,
-      weapon_pending_superhits: {},
+      pending_superhits: 0,
       stat_modifications_used: {},
       completed_regions: [],
       current_region_id: 'region_0',
@@ -713,7 +714,6 @@ export const useGameStore = create<GameStore>((set, get) => ({
       }
       return {
         weapon_campaigns: { ...s.weapon_campaigns, [weaponId]: zeroed },
-        weapon_pending_superhits: { ...(s.weapon_pending_superhits ?? {}), [weaponId]: 0 },
       }
     })
     get().save()
@@ -992,10 +992,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
           ...s.campaign_library.filter(c => c.id !== campaign.id),
           updated,
         ],
-        weapon_pending_superhits: {
-          ...(s.weapon_pending_superhits ?? {}),
-          [weaponId]: ((s.weapon_pending_superhits ?? {})[weaponId] ?? 0) + carried,
-        },
+        pending_superhits: (s.pending_superhits ?? 0) + carried,
       }
     })
     get().save()
@@ -1032,10 +1029,9 @@ export const useGameStore = create<GameStore>((set, get) => ({
       const updatedChunks = chunks.map(ch => ch.id === chunkId ? { ...ch, done: true } : ch)
       const completed = campaign.medium.completed || updatedChunks.every(ch => ch.done)
       const updated = { ...campaign, medium: { ...campaign.medium, chunks: updatedChunks, completed } }
-      const prevCharges = (s.weapon_pending_superhits ?? {})[weaponId] ?? 0
       return {
         weapon_campaigns: { ...s.weapon_campaigns, [weaponId]: updated },
-        weapon_pending_superhits: { ...(s.weapon_pending_superhits ?? {}), [weaponId]: prevCharges + 1 },
+        pending_superhits: (s.pending_superhits ?? 0) + 1,
       }
     })
     get().save()
@@ -1052,10 +1048,9 @@ export const useGameStore = create<GameStore>((set, get) => ({
       const updatedParts = parts.map(p => p.id === partId ? { ...p, done: true } : p)
       const completed = campaign.heavy.completed || updatedParts.every(p => p.done)
       const updated = { ...campaign, heavy: { ...campaign.heavy, parts: updatedParts, completed } }
-      const prevCharges = (s.weapon_pending_superhits ?? {})[weaponId] ?? 0
       return {
         weapon_campaigns: { ...s.weapon_campaigns, [weaponId]: updated },
-        weapon_pending_superhits: { ...(s.weapon_pending_superhits ?? {}), [weaponId]: prevCharges + 1 },
+        pending_superhits: (s.pending_superhits ?? 0) + 1,
       }
     })
     get().save()
@@ -1067,22 +1062,31 @@ export const useGameStore = create<GameStore>((set, get) => ({
       if (!campaign?.research) return s
       const done_steps = campaign.research.done_steps + 1
       const updated = { ...campaign, research: { ...campaign.research, done_steps } }
-      const prevCharges = (s.weapon_pending_superhits ?? {})[weaponId] ?? 0
+      return { weapon_campaigns: { ...s.weapon_campaigns, [weaponId]: updated } }
+    })
+    get().save()
+  },
+
+  // Declares the whole research effort finished — grants a flat bonus, once, and
+  // resets the counter so the next round of steps has to earn it again.
+  finishResearch: (weaponId) => {
+    set(s => {
+      const campaign = s.weapon_campaigns[weaponId]
+      if (!campaign?.research || campaign.research.done_steps <= 0) return s
+      const updated = { ...campaign, research: { ...campaign.research, done_steps: 0 } }
       return {
         weapon_campaigns: { ...s.weapon_campaigns, [weaponId]: updated },
-        weapon_pending_superhits: { ...(s.weapon_pending_superhits ?? {}), [weaponId]: prevCharges + 1 },
+        pending_superhits: (s.pending_superhits ?? 0) + RESEARCH_FINISH_SUPERHITS,
       }
     })
     get().save()
   },
 
-  consumeSuperhitCharge: (weaponId) => {
+  consumeSuperhitCharge: () => {
     set(s => {
-      const current = (s.weapon_pending_superhits ?? {})[weaponId] ?? 0
+      const current = s.pending_superhits ?? 0
       if (current <= 0) return s
-      return {
-        weapon_pending_superhits: { ...(s.weapon_pending_superhits ?? {}), [weaponId]: current - 1 },
-      }
+      return { pending_superhits: current - 1 }
     })
     get().save()
   },

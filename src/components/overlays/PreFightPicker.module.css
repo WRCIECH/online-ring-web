@@ -193,20 +193,6 @@
 
 .nodeCard:hover { background: rgba(255,255,255,0.05); }
 
-/* Non-interactive variant — used when there's only one workable item, so
-   there's nothing to actually choose between. */
-.nodeCardStatic {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 10px;
-  padding: 10px 12px;
-  border-radius: var(--radius);
-  background: rgba(255,255,255,0.02);
-  border: 1px solid var(--color-border);
-  width: 100%;
-}
-
 .nodeCardSelected {
   background: rgba(100,80,200,0.12) !important;
   border-color: rgba(100,80,200,0.45) !important;

@@ -27,6 +27,12 @@ export const MEDIUM_CHUNK_SECS = 600
 /** Heavy part / Research step timer, in seconds — set in stone (25 min). */
 export const CAMPAIGN_STEP_SECS = 1500
 
+/** Flat Superhit damage — global charge pool, not derived from any one weapon. */
+export const SUPERHIT_DMG = 300
+
+/** Superhit charges granted when the player declares a research effort finished. */
+export const RESEARCH_FINISH_SUPERHITS = 3
+
 // ── Equip load ───────────────────────────────────────────────────────────────
 
 /** Equip load contributed by each active (non-published) content item. */

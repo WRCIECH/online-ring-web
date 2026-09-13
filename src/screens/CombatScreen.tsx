@@ -419,8 +419,10 @@ export default function CombatScreen() {
   const activeContent = selectAvailableNodes(store as Parameters<typeof selectAvailableNodes>[0], state.equippedWeaponId)
   const selectedContent = activeContent.find(c => c.id === selectedContentId) ?? null
 
-  // Superhit: new-format reads from weapon_pending_superhits; old-format from published nodes
-  const superhitSourceNode = isNewCampaign ? null : (
+  // Legacy (old-format) superhit sourcing — per-node, scoped to the equipped weapon.
+  // Irrelevant (and harmlessly zero) when the equipped weapon is new-format, since
+  // the radial menu that reads these never renders in that case.
+  const superhitSourceNode = (
     store.weapon_campaigns[state.equippedWeaponId]?.nodes
       .find(n => {
         if (!n.published) return false
@@ -429,16 +431,31 @@ export default function CombatScreen() {
         return base + promotes > 0
       }) ?? null
   )
-  const totalSuperhitCharges = isNewCampaign
-    ? ((store.weapon_pending_superhits ?? {})[state.equippedWeaponId] ?? 0)
-    : (store.weapon_campaigns[state.equippedWeaponId]?.nodes ?? [])
-        .reduce((sum, n) => {
-          if (!n.published) return sum
-          const base     = n.superhit_used ? 0 : 1
-          const promotes = Math.max(0, (n.promote_count ?? 0) - (n.promotes_consumed ?? 0))
-          return sum + base + promotes
-        }, 0)
-  const canSuperhit = isNewCampaign ? totalSuperhitCharges > 0 : superhitSourceNode !== null
+  const totalSuperhitCharges = (store.weapon_campaigns[state.equippedWeaponId]?.nodes ?? [])
+    .reduce((sum, n) => {
+      if (!n.published) return sum
+      const base     = n.superhit_used ? 0 : 1
+      const promotes = Math.max(0, (n.promote_count ?? 0) - (n.promotes_consumed ?? 0))
+      return sum + base + promotes
+    }, 0)
+  const canSuperhit = superhitSourceNode !== null
+
+  // New-format Superhit charges are a single global pool shared across all weapons.
+  const globalSuperhitCharges = store.pending_superhits ?? 0
+
+  // Every activated weapon with a new-format (medium/heavy/research) campaign gets
+  // its own tile, shown simultaneously — up to MAX_ACTIVE_CAMPAIGNS at once.
+  const newFormatWeapons = store.weapon_instances
+    .filter(w => {
+      const c = store.weapon_campaigns[w.instance_id]
+      return !!(c?.activated && (c.medium || c.heavy || c.research))
+    })
+    .map(w => ({
+      weaponId: w.instance_id,
+      weapon: WEAPONS[w.instance_id] as WeaponInstance | undefined,
+      weaponLevel: store.weapon_level[w.instance_id] ?? 0,
+      campaign: store.weapon_campaigns[w.instance_id]!,
+    }))
 
   // ── Selected tile (derived) ───────────────────────────────────────────────
   const selectedTile = state.selectedTileId
@@ -664,33 +681,34 @@ export default function CombatScreen() {
         </div>
       </div>
 
-      {isNewCampaign && activeCampaign && isPlayerTurn && (
+      {newFormatWeapons.length > 0 && isPlayerTurn && (
         <CampaignActionPanel
-          campaign={activeCampaign}
-          weapon={weapon}
-          weaponLevel={store.weapon_level[state.equippedWeaponId] ?? 0}
-          superhitCharges={totalSuperhitCharges}
+          weapons={newFormatWeapons}
+          superhitCharges={globalSuperhitCharges}
           playerHp={state.playerHp}
           canAct={isPlayerTurn}
-          onMediumChunk={(damage) => {
+          onMediumChunk={(_weaponId, damage) => {
             dispatch({ type: 'CAMPAIGN_HIT', damage, label: '✍ Medium', color: '#60c0e0' })
           }}
-          onMediumChunkComplete={(chunkId) => {
-            store.completeMediumChunk(state.equippedWeaponId, chunkId)
+          onMediumChunkComplete={(weaponId, chunkId) => {
+            store.completeMediumChunk(weaponId, chunkId)
           }}
-          onHeavyPart={(damage) => {
+          onHeavyPart={(_weaponId, damage) => {
             dispatch({ type: 'CAMPAIGN_HIT', damage, label: '📝 Heavy work', color: '#e0a060' })
           }}
-          onHeavyPartComplete={(partId) => {
-            store.completeHeavyPart(state.equippedWeaponId, partId)
+          onHeavyPartComplete={(weaponId, partId) => {
+            store.completeHeavyPart(weaponId, partId)
           }}
-          onResearchStep={(damage) => {
+          onResearchStep={(weaponId, damage) => {
             dispatch({ type: 'CAMPAIGN_HIT', damage, label: '🔎 Research', color: '#88ccdd' })
-            store.completeResearchStep(state.equippedWeaponId)
+            store.completeResearchStep(weaponId)
+          }}
+          onResearchComplete={(weaponId) => {
+            store.finishResearch(weaponId)
           }}
           onSuperhit={(damage) => {
             dispatch({ type: 'CAMPAIGN_HIT', damage, label: '💥 SUPERHIT!', color: '#eecc44' })
-            store.consumeSuperhitCharge(state.equippedWeaponId)
+            store.consumeSuperhitCharge()
           }}
           onSacrifice={(selfDmg) => {
             dispatch({ type: 'CAMPAIGN_SELF_DAMAGE', amount: selfDmg })

@@ -345,8 +345,8 @@ export interface GameState {
   rewards: Record<RewardTier, number>
   reward_names: Partial<Record<RewardTier, string>>
   reward_used_count: Partial<Record<RewardTier, number>>
-  // Unconsumed Superhit/promote charges carried over when a campaign is finalized
-  weapon_pending_superhits: Record<string, number>
+  // Global Superhit charge pool — shared across all weapons, not per-weapon
+  pending_superhits: number
   // Music playlist
   run_music_seed?: number   // rolled at startRun; undefined in old saves → treated as 0
   music_tracks?:   string[] // YouTube video IDs; undefined in old saves → uses DEFAULT_MUSIC_TRACKS
