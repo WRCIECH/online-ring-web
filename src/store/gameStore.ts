@@ -1,5 +1,5 @@
 import { create } from 'zustand'
-import type { GameState, LocationData, Stats, WeaponInstance, WeaponClass, SublocationType, CampaignNode, Locale, WorkflowGraph, LocationTheme, RewardTier, ContentProductType, ContentTransformation, StatKey, ReviewMode, MediumContentType, HeavyContentType } from '../types/game'
+import type { GameState, LocationData, Stats, WeaponInstance, WeaponClass, SublocationType, CampaignNode, Locale, WorkflowGraph, LocationTheme, RewardTier, ContentProductType, ContentTransformation, StatKey, ReviewMode, MediumContentType, HeavyContentType, WeaponCampaign } from '../types/game'
 import { DEFAULT_MUSIC_TRACKS } from '../data/combatMusic'
 import { ENEMIES } from '../data/enemies'
 import { saveGame, loadGame } from '../engine/save'
@@ -377,6 +377,29 @@ export interface GameStore extends GameState {
   save:  () => void
   load:  () => boolean
   reset: () => void
+}
+
+// Archives a finished Medium/Heavy/Research campaign and generates a fresh,
+// un-activated one for the same weapon — the new-format counterpart to the
+// (legacy-only, currently unreachable) finalizeCampaign. Does NOT grant any
+// superhits itself — callers already do that for the completion event.
+function renewCompletedCampaign(
+  s: GameStore, weaponId: string, completedCampaign: WeaponCampaign,
+): Pick<GameState, 'weapon_campaigns' | 'campaign_library'> | null {
+  const weapon = s.weapon_instances.find(w => w.instance_id === weaponId)
+  if (!weapon) return null
+  const newDoneCount = (completedCampaign.done_count ?? 0) + 1
+  const archived = { ...completedCampaign, done_count: newDoneCount }
+  const freshCampaign = {
+    ...generateWeaponCampaign(weapon),
+    activated: false,
+    done_count: newDoneCount,   // carry the count forward so campaignDoneMult (+5%/cycle) keeps applying
+    ordinal: newDoneCount + 1,
+  }
+  return {
+    weapon_campaigns: { ...s.weapon_campaigns, [weaponId]: freshCampaign },
+    campaign_library: [...s.campaign_library.filter(c => c.id !== completedCampaign.id), archived],
+  }
 }
 
 const _savedOrFresh = loadGame() ?? initialState()
@@ -1026,12 +1049,14 @@ export const useGameStore = create<GameStore>((set, get) => ({
       // Enforce strict order — a chunk can only be completed once every earlier one is done.
       if (idx === -1 || chunks.slice(0, idx).some(ch => !ch.done)) return s
       const updatedChunks = chunks.map(ch => ch.id === chunkId ? { ...ch, done: true } : ch)
-      const completed = campaign.medium.completed || updatedChunks.every(ch => ch.done)
-      const updated = { ...campaign, medium: { ...campaign.medium, chunks: updatedChunks, completed } }
-      return {
-        weapon_campaigns: { ...s.weapon_campaigns, [weaponId]: updated },
-        pending_superhits: (s.pending_superhits ?? 0) + 1,
+      const justCompleted = !campaign.medium.completed && updatedChunks.every(ch => ch.done)
+      const updated = { ...campaign, medium: { ...campaign.medium, chunks: updatedChunks, completed: campaign.medium.completed || justCompleted } }
+      const superhitPatch = { pending_superhits: (s.pending_superhits ?? 0) + 1 }
+      if (justCompleted) {
+        const renewal = renewCompletedCampaign(s, weaponId, updated)
+        if (renewal) return { ...renewal, ...superhitPatch }
       }
+      return { weapon_campaigns: { ...s.weapon_campaigns, [weaponId]: updated }, ...superhitPatch }
     })
     get().save()
   },
@@ -1045,12 +1070,14 @@ export const useGameStore = create<GameStore>((set, get) => ({
       // Enforce strict order — a part can only be completed once every earlier one is done.
       if (idx === -1 || parts.slice(0, idx).some(p => !p.done)) return s
       const updatedParts = parts.map(p => p.id === partId ? { ...p, done: true } : p)
-      const completed = campaign.heavy.completed || updatedParts.every(p => p.done)
-      const updated = { ...campaign, heavy: { ...campaign.heavy, parts: updatedParts, completed } }
-      return {
-        weapon_campaigns: { ...s.weapon_campaigns, [weaponId]: updated },
-        pending_superhits: (s.pending_superhits ?? 0) + 1,
+      const justCompleted = !campaign.heavy.completed && updatedParts.every(p => p.done)
+      const updated = { ...campaign, heavy: { ...campaign.heavy, parts: updatedParts, completed: campaign.heavy.completed || justCompleted } }
+      const superhitPatch = { pending_superhits: (s.pending_superhits ?? 0) + 1 }
+      if (justCompleted) {
+        const renewal = renewCompletedCampaign(s, weaponId, updated)
+        if (renewal) return { ...renewal, ...superhitPatch }
       }
+      return { weapon_campaigns: { ...s.weapon_campaigns, [weaponId]: updated }, ...superhitPatch }
     })
     get().save()
   },
@@ -1073,10 +1100,10 @@ export const useGameStore = create<GameStore>((set, get) => ({
       const campaign = s.weapon_campaigns[weaponId]
       if (!campaign?.research || campaign.research.done_steps <= 0) return s
       const updated = { ...campaign, research: { ...campaign.research, done_steps: 0 } }
-      return {
-        weapon_campaigns: { ...s.weapon_campaigns, [weaponId]: updated },
-        pending_superhits: (s.pending_superhits ?? 0) + RESEARCH_FINISH_SUPERHITS,
-      }
+      const superhitPatch = { pending_superhits: (s.pending_superhits ?? 0) + RESEARCH_FINISH_SUPERHITS }
+      const renewal = renewCompletedCampaign(s, weaponId, updated)
+      if (renewal) return { ...renewal, ...superhitPatch }
+      return { weapon_campaigns: { ...s.weapon_campaigns, [weaponId]: updated }, ...superhitPatch }
     })
     get().save()
   },
