@@ -2,7 +2,7 @@ import { useReducer, useEffect, useCallback, useState, useMemo, useRef } from 'r
 import { useNavigate } from 'react-router-dom'
 import { combatReducer, initCombatState, getReachableTiles, previewMove, formatMultiplierPct, calcTileDamage } from '../engine/combat'
 import { calcWeaponBalance } from '../engine/weaponBalance'
-import { ESTUS_MOB_DROP_CHANCE, MEDIUM_CHUNK_SECS, CAMPAIGN_STEP_SECS } from '../data/constants'
+import { ESTUS_MOB_DROP_CHANCE } from '../data/constants'
 import { useGameStore, selectAvailableNodes } from '../store/gameStore'
 import { ENEMIES } from '../data/enemies'
 import { WEAPONS } from '../data/weapons'
@@ -19,6 +19,7 @@ import MoveRadialMenu, { type RadialMoveItem } from '../components/combat/MoveRa
 import CombatBottomBar from '../components/combat/CombatBottomBar'
 import CampaignActionPanel from '../components/combat/CampaignActionPanel'
 import EnemyDisplay from '../components/combat/EnemyDisplay'
+import { AffinityHoverTarget } from '../components/combat/EnemyCenterpiece'
 import CombatMusic  from '../components/combat/CombatMusic'
 import PreFightPicker from '../components/overlays/PreFightPicker'
 import { DEFAULT_MUSIC_TRACKS } from '../data/combatMusic'
@@ -635,25 +636,29 @@ export default function CombatScreen() {
         <div className={s.canvasWrap}>
           {isNewCampaign ? (
             <div className={s.enemyCard}>
-              <div className={s.enemyCardName}>
-                {enemyLabel}
-                {state.isBoss && <span className={s.enemyCardBoss}>Boss</span>}
-              </div>
-              <div className={s.enemyCardHpRow}>
-                <div className={s.enemyCardHpTrack}>
-                  <div
-                    className={s.enemyCardHpFill}
-                    style={{ width: `${Math.max(0, state.enemyMaxHp > 0 ? (state.enemyHp / state.enemyMaxHp) * 100 : 0)}%` }}
+              <AffinityHoverTarget description={enemyData.description} affinities={enemyData.affinities}>
+                <div className={s.enemyCardName}>
+                  {enemyLabel}
+                  {state.isBoss && <span className={s.enemyCardBoss}>Boss</span>}
+                </div>
+                <div className={s.enemyCardHpRow}>
+                  <div className={s.enemyCardHpTrack}>
+                    <div
+                      className={s.enemyCardHpFill}
+                      style={{ width: `${Math.max(0, state.enemyMaxHp > 0 ? (state.enemyHp / state.enemyMaxHp) * 100 : 0)}%` }}
+                    />
+                  </div>
+                  <span className={s.enemyCardHpText}>{state.enemyHp} / {state.enemyMaxHp}</span>
+                </div>
+                <div>
+                  <EnemyDisplay
+                    enemyId={loc.enemy_id}
+                    hp={state.phase === 'VICTORY' || state.phase === 'DEFEAT' || state.phase === 'FLED' ? 0 : state.enemyHp}
+                    maxHp={state.enemyMaxHp}
+                    sublocationtype={loc.sublocation_type}
                   />
                 </div>
-                <span className={s.enemyCardHpText}>{state.enemyHp} / {state.enemyMaxHp}</span>
-              </div>
-              <EnemyDisplay
-                enemyId={loc.enemy_id}
-                hp={state.phase === 'VICTORY' || state.phase === 'DEFEAT' || state.phase === 'FLED' ? 0 : state.enemyHp}
-                maxHp={state.enemyMaxHp}
-                sublocationtype={loc.sublocation_type}
-              />
+              </AffinityHoverTarget>
             </div>
           ) : (
             <>
@@ -691,24 +696,25 @@ export default function CombatScreen() {
           superhitCharges={globalSuperhitCharges}
           playerHp={state.playerHp}
           canAct={isPlayerTurn}
-          onMediumChunk={(weaponId, damage) => {
+          enemyAffinities={enemyData.affinities}
+          onMediumChunk={(weaponId, damage, _chunkId, workedSecs) => {
             dispatch({ type: 'CAMPAIGN_HIT', damage, label: '✍ Medium', color: '#60c0e0' })
-            store.logWeaponUsage(weaponId, MEDIUM_CHUNK_SECS / 60)
+            store.logWeaponUsage(weaponId, workedSecs / 60)
           }}
           onMediumChunkComplete={(weaponId, chunkId) => {
             store.completeMediumChunk(weaponId, chunkId)
           }}
-          onHeavyPart={(weaponId, damage) => {
+          onHeavyPart={(weaponId, damage, _partId, workedSecs) => {
             dispatch({ type: 'CAMPAIGN_HIT', damage, label: '📝 Heavy work', color: '#e0a060' })
-            store.logWeaponUsage(weaponId, CAMPAIGN_STEP_SECS / 60)
+            store.logWeaponUsage(weaponId, workedSecs / 60)
           }}
           onHeavyPartComplete={(weaponId, partId) => {
             store.completeHeavyPart(weaponId, partId)
           }}
-          onResearchStep={(weaponId, damage) => {
+          onResearchStep={(weaponId, damage, workedSecs) => {
             dispatch({ type: 'CAMPAIGN_HIT', damage, label: '🔎 Research', color: '#88ccdd' })
             store.completeResearchStep(weaponId)
-            store.logWeaponUsage(weaponId, CAMPAIGN_STEP_SECS / 60)
+            store.logWeaponUsage(weaponId, workedSecs / 60)
           }}
           onResearchComplete={(weaponId) => {
             store.finishResearch(weaponId)

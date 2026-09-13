@@ -1,8 +1,8 @@
 import { useState, useEffect, useRef } from 'react'
-import { calcTileDamage } from '../../engine/combat'
+import { calcTileDamage, calcActionAffinity, AFFINITY_TIER_LABEL, AFFINITY_TIER_COLOR } from '../../engine/combat'
 import type { WeaponBalanceInfo } from '../../engine/weaponBalance'
 import { SACRIFICE_MULT, MEDIUM_CHUNK_SECS, CAMPAIGN_STEP_SECS, SUPERHIT_DMG, WEAPON_BALANCE_WINDOW_DAYS } from '../../data/constants'
-import type { WeaponCampaign, WeaponInstance, WorkflowTile } from '../../types/game'
+import type { WeaponCampaign, WeaponInstance, WorkflowTile, MobAffinities } from '../../types/game'
 import { useT, localizeWeaponName } from '../../i18n'
 import s from './CampaignActionPanel.module.css'
 
@@ -62,16 +62,32 @@ function BalanceBadge({ balance }: { balance: WeaponBalanceInfo }) {
   return <span className={s.tileBalanceNeutral} title={title}>⚖ balanced</span>
 }
 
+// Mob weakness/strength readout — shows which LOVE/LIKE/DISLIKE/HATE tiers
+// this action matched against the current enemy (see calcActionAffinity).
+function AffinityBadge({ tiers }: { tiers: (keyof MobAffinities)[] }) {
+  if (tiers.length === 0) return null
+  return (
+    <span className={s.tileAffinity}>
+      {tiers.map(tier => (
+        <span key={tier} className={s.tileAffinityTag} style={{ color: AFFINITY_TIER_COLOR[tier] }}>
+          {AFFINITY_TIER_LABEL[tier]}
+        </span>
+      ))}
+    </span>
+  )
+}
+
 interface Props {
   weapons: WeaponEntry[]
   superhitCharges: number
   playerHp: number
   canAct: boolean
-  onMediumChunk:         (weaponId: string, damage: number, chunkId: string) => void
+  enemyAffinities?: MobAffinities
+  onMediumChunk:         (weaponId: string, damage: number, chunkId: string, workedSecs: number) => void
   onMediumChunkComplete: (weaponId: string, chunkId: string) => void
-  onHeavyPart:           (weaponId: string, damage: number, partId: string) => void
+  onHeavyPart:           (weaponId: string, damage: number, partId: string, workedSecs: number) => void
   onHeavyPartComplete:   (weaponId: string, partId: string) => void
-  onResearchStep:        (weaponId: string, damage: number) => void
+  onResearchStep:        (weaponId: string, damage: number, workedSecs: number) => void
   onResearchComplete:    (weaponId: string) => void
   onSuperhit:            (damage: number) => void
   onSacrifice:           (selfDmg: number) => void
@@ -84,7 +100,7 @@ function fmtSecs(sec: number): string {
 }
 
 export default function CampaignActionPanel({
-  weapons, superhitCharges, playerHp, canAct,
+  weapons, superhitCharges, playerHp, canAct, enemyAffinities,
   onMediumChunk, onMediumChunkComplete, onHeavyPart, onHeavyPartComplete, onResearchStep, onResearchComplete, onSuperhit, onSacrifice,
 }: Props) {
   const t = useT()
@@ -112,23 +128,27 @@ export default function CampaignActionPanel({
       if (left <= 0 && !doneRef.current) {
         doneRef.current = true
         clearInterval(id)
-        handleTimerDone(timer)
+        handleTimerDone(timer, timer.totalSecs)
       }
     }, 100)
     setRemaining(timer.totalSecs)
     return () => clearInterval(id)
   }, [timer]) // eslint-disable-line react-hooks/exhaustive-deps
 
-  function handleTimerDone(ctx: TimerCtx, selfDmg = 0) {
+  // workedSecs feeds the usage-balance stats (src/engine/weaponBalance.ts): a
+  // natural finish or an early "Done" both count as the full nominal duration
+  // (we trust the player put in the work), while Sacrifice — which already pays
+  // an HP penalty for cutting the timer short — only counts the time actually elapsed.
+  function handleTimerDone(ctx: TimerCtx, workedSecs: number, selfDmg = 0) {
     setTimer(null)
     if (ctx.mode === 'medium' && ctx.itemId) {
-      onMediumChunk(ctx.weaponId, ctx.damage, ctx.itemId)
+      onMediumChunk(ctx.weaponId, ctx.damage, ctx.itemId, workedSecs)
       setFinish({ weaponId: ctx.weaponId, mode: 'medium', itemId: ctx.itemId, name: ctx.contentName })
     } else if (ctx.mode === 'heavy' && ctx.itemId) {
-      onHeavyPart(ctx.weaponId, ctx.damage, ctx.itemId)
+      onHeavyPart(ctx.weaponId, ctx.damage, ctx.itemId, workedSecs)
       setFinish({ weaponId: ctx.weaponId, mode: 'heavy', itemId: ctx.itemId, name: ctx.contentName })
     } else if (ctx.mode === 'research') {
-      onResearchStep(ctx.weaponId, ctx.damage)
+      onResearchStep(ctx.weaponId, ctx.damage, workedSecs)
       setFinish({ weaponId: ctx.weaponId, mode: 'research', name: ctx.contentName })
     }
     if (selfDmg > 0) onSacrifice(selfDmg)
@@ -182,7 +202,7 @@ export default function CampaignActionPanel({
         <div className={s.timerActions}>
           <button
             className={s.timerDoneBtn}
-            onClick={() => { doneRef.current = true; handleTimerDone({ ...timer, totalSecs: 0 }) }}
+            onClick={() => { doneRef.current = true; handleTimerDone(timer, timer.totalSecs) }}
           >
             Done
           </button>
@@ -190,7 +210,7 @@ export default function CampaignActionPanel({
             className={s.sacrificeBtn}
             disabled={!canSacrifice}
             title={`Finish instantly — enemy takes full damage, you take ${selfDmg} HP (${Math.round(timeFrac * 100)}% remaining × ${SACRIFICE_MULT}×)`}
-            onClick={() => { doneRef.current = true; handleTimerDone({ ...timer, totalSecs: 0 }, selfDmg) }}
+            onClick={() => { doneRef.current = true; handleTimerDone(timer, Math.max(0, timer.totalSecs - remaining), selfDmg) }}
           >
             Sacrifice{selfDmg > 0 ? ` (−${selfDmg} HP)` : ''}
           </button>
@@ -261,12 +281,14 @@ export default function CampaignActionPanel({
   return (
     <div className={s.panel}>
       {weapons.map(({ weaponId, weapon, weaponLevel, campaign, balance }) => {
-        const mediumDmg = Math.round(calcTileDamage(MEDIUM_TILE, 'Light', weapon, weaponLevel) * balance.mult)
-        const stepDmg   = Math.round(calcTileDamage(STEP_TILE, 'Heavy', weapon, weaponLevel) * balance.mult)
+        const baseMediumDmg = calcTileDamage(MEDIUM_TILE, 'Light', weapon, weaponLevel)
+        const baseStepDmg   = calcTileDamage(STEP_TILE, 'Heavy', weapon, weaponLevel)
         const weaponName = weapon ? localizeWeaponName(weapon, t) : ''
 
         if (campaign.medium) {
           const nextChunk = campaign.medium.chunks.find(c => !c.done)
+          const affinity = calcActionAffinity(enemyAffinities, { kind: 'medium', contentType: nextChunk?.content_type })
+          const mediumDmg = Math.round(baseMediumDmg * balance.mult * affinity.mult)
           return (
             <button
               key={weaponId}
@@ -280,6 +302,7 @@ export default function CampaignActionPanel({
               <span className={s.tileLabel}>Medium</span>
               <span className={s.tileDmg}>⚔ {mediumDmg}</span>
               <BalanceBadge balance={balance} />
+              <AffinityBadge tiers={affinity.tiers} />
               {nextChunk && (
                 <>
                   <span className={s.tileTag}>{prodBadge(nextChunk.content_type)}</span>
@@ -292,6 +315,8 @@ export default function CampaignActionPanel({
 
         if (campaign.heavy) {
           const nextPart = campaign.heavy.parts.find(p => !p.done)
+          const affinity = calcActionAffinity(enemyAffinities, { kind: 'heavy', contentType: campaign.heavy.product_type })
+          const stepDmg = Math.round(baseStepDmg * balance.mult * affinity.mult)
           return (
             <button
               key={weaponId}
@@ -305,6 +330,7 @@ export default function CampaignActionPanel({
               <span className={s.tileLabel}>Heavy</span>
               <span className={s.tileDmg}>⚔ {stepDmg}</span>
               <BalanceBadge balance={balance} />
+              <AffinityBadge tiers={affinity.tiers} />
               <span className={s.tileTag}>{prodBadge(campaign.heavy.product_type)}</span>
               {nextPart && <span className={s.tileNameHint}>{nextPart.name}</span>}
             </button>
@@ -313,6 +339,8 @@ export default function CampaignActionPanel({
 
         if (campaign.research) {
           const research = campaign.research
+          const affinity = calcActionAffinity(enemyAffinities, { kind: 'research' })
+          const stepDmg = Math.round(baseStepDmg * balance.mult * affinity.mult)
           return (
             <button
               key={weaponId}
@@ -326,6 +354,7 @@ export default function CampaignActionPanel({
               <span className={s.tileLabel}>Research</span>
               <span className={s.tileDmg}>⚔ {stepDmg}</span>
               <BalanceBadge balance={balance} />
+              <AffinityBadge tiers={affinity.tiers} />
               <span className={s.tileHint}>{research.done_steps} step{research.done_steps !== 1 ? 's' : ''} done</span>
             </button>
           )

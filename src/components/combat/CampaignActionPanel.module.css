@@ -82,6 +82,18 @@
   opacity: 0.6;
 }
 
+.tileAffinity {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 4px;
+}
+
+.tileAffinityTag {
+  font-size: 0.60rem;
+  font-weight: 700;
+}
+
 .tileNameHint {
   font-size: 0.60rem;
   color: var(--color-text-dim);

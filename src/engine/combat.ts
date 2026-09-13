@@ -1,6 +1,7 @@
 import type {
   CombatPhase, MoveType, WorkflowGraph, WorkflowTile,
   Enemy, WeaponInstance, Stats, MobAffinities, MobAffinityConditions, LocationTheme,
+  AtomicStage, MediumContentType, HeavyContentType,
 } from '../types/game'
 import { LOCATION_THEMES } from '../data/locationThemes'
 import { WEAPONS, calcWeaponScaledDamage } from '../data/weapons'
@@ -77,6 +78,23 @@ const AFFINITY_MULTS: Record<keyof MobAffinities, number> = {
   hate:    0.5,
 }
 
+// Display labels/colors for affinity tiers — shared by EnemyCenterpiece's
+// hover tooltip and CampaignActionPanel's per-tile badge. Kept here (a
+// non-component module) rather than in a component file, so exporting them
+// doesn't break React Fast Refresh.
+export const AFFINITY_TIER_LABEL: Record<keyof MobAffinities, string> = {
+  love:    'Love ×2.0',
+  like:    'Like ×1.5',
+  dislike: 'Dislike ×0.7',
+  hate:    'Hate ×0.5',
+}
+export const AFFINITY_TIER_COLOR: Record<keyof MobAffinities, string> = {
+  love:    '#44cc88',
+  like:    '#88cc66',
+  dislike: '#cc9944',
+  hate:    '#cc4444',
+}
+
 // ── Helpers ───────────────────────────────────────────────────────────────
 
 function log(state: CombatState, text: string, color?: string): CombatState {
@@ -135,6 +153,38 @@ export function calcAffinityMultiplier(tile: WorkflowTile, enemy: Enemy): number
     if (matched) mult *= AFFINITY_MULTS[tier]
   }
   return mult
+}
+
+export interface ActionAffinityInfo {
+  mult: number
+  tiers: (keyof MobAffinities)[]
+}
+
+export type ActionAffinityKind =
+  | { kind: 'medium'; contentType?: MediumContentType }
+  | { kind: 'heavy'; contentType?: HeavyContentType }
+  | { kind: 'research' }
+
+// Same LOVE/LIKE/DISLIKE/HATE tiers as calcAffinityMultiplier, but for the
+// Medium/Heavy/Research campaign actions, which carry no WorkflowTile (no
+// emotion/transformation axis in that data model — only stage + content type).
+export function calcActionAffinity(
+  affinities: MobAffinities | undefined,
+  action: ActionAffinityKind,
+): ActionAffinityInfo {
+  if (!affinities) return { mult: 1, tiers: [] }
+  const stage: AtomicStage = action.kind === 'research' ? 'Research' : 'Produce'
+  let mult = 1
+  const tiers: (keyof MobAffinities)[] = []
+  for (const [tier, conditions] of Object.entries(affinities) as [keyof MobAffinities, MobAffinityConditions][]) {
+    if (!conditions) continue
+    const stageMatch = conditions.stages?.includes(stage) ?? false
+    const typeMatch =
+      (action.kind === 'medium' && action.contentType != null && (conditions.mediumTypes?.includes(action.contentType) ?? false)) ||
+      (action.kind === 'heavy'  && action.contentType != null && (conditions.heavyTypes?.includes(action.contentType) ?? false))
+    if (stageMatch || typeMatch) { mult *= AFFINITY_MULTS[tier]; tiers.push(tier) }
+  }
+  return { mult, tiers }
 }
 
 // Sum of all weapon perk bonuses that match the current tile.

@@ -116,10 +116,12 @@ export interface WeaponInstance extends Weapon {
 
 // ── Enemy affinity system ─────────────────────────────────────────────────
 export interface MobAffinityConditions {
-  products?: ContentProductType[]
+  products?: ContentProductType[]        // legacy WorkflowTile matching only
   transformations?: ContentTransformation[]
   emotions?: EmotionType[]
   stages?: AtomicStage[]
+  mediumTypes?: MediumContentType[]      // new-format Medium chunk content-type matching
+  heavyTypes?: HeavyContentType[]        // new-format Heavy campaign product-type matching
 }
 
 export interface MobAffinities {
