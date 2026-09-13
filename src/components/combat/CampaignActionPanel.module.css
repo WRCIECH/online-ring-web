@@ -326,6 +326,25 @@
   gap: 10px;
 }
 
+.reviewTextarea {
+  width: 260px;
+  min-height: 70px;
+  resize: vertical;
+  padding: 8px 10px;
+  border-radius: 7px;
+  border: 1px solid var(--color-sep);
+  background: rgba(255,255,255,0.04);
+  color: var(--color-text);
+  font-family: inherit;
+  font-size: 0.78rem;
+  line-height: 1.4;
+}
+
+.reviewTextarea:focus {
+  outline: none;
+  border-color: rgba(255,255,255,0.3);
+}
+
 .confirmYes {
   padding: 7px 22px;
   border-radius: 7px;
@@ -338,9 +357,14 @@
   transition: background 0.1s, border-color 0.1s;
 }
 
-.confirmYes:hover {
+.confirmYes:hover:not(:disabled) {
   background: rgba(80,200,100,0.24);
   border-color: rgba(80,200,100,0.80);
+}
+
+.confirmYes:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
 }
 
 .confirmNo {

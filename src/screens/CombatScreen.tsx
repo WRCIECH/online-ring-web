@@ -726,6 +726,9 @@ export default function CombatScreen() {
           onSacrifice={(selfDmg) => {
             dispatch({ type: 'CAMPAIGN_SELF_DAMAGE', amount: selfDmg })
           }}
+          onReviewSubmit={(weaponId, mode, itemName, text, itemId) => {
+            store.addReview(weaponId, mode, itemName, text, itemId)
+          }}
         />
       )}
 

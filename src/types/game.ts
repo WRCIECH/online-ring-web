@@ -273,28 +273,19 @@ export interface ResearchModeState {
   done_steps: number
 }
 
-// ── Audience profiles ─────────────────────────────────────────────────────
-export type AudienceSectionKey =
-  | 'sociological_trends'
-  | 'long_term_trends'
-  | 'short_term_trends'
-  | 'needs_explanations'
-  | 'identities_values'
-  | 'attitudes_beliefs'
-  | 'symbols_slogans'
-  | 'heroes_enemies'
-  | 'myths_reflexes'
-  | 'narratives_frames'
+// ── Review journal ──────────────────────────────────────────────────────────
+// A player-authored reflection written after finishing a Medium chunk, a Heavy
+// part, or a whole Research effort. Purely archival — no gameplay effect.
+export type ReviewMode = 'medium' | 'heavy' | 'research'
 
-export interface AudienceItem {
+export interface ContentReview {
   id: string
+  weaponId: string
+  mode: ReviewMode
+  itemId?: string      // MediumChunk/HeavyPart id; absent for research (no per-completion entity exists)
+  itemName: string     // the chunk/part name, or "Research" for a finished research effort
   text: string
-}
-
-export interface AudienceProfile {
-  id: string
-  name: string
-  sections: Record<AudienceSectionKey, AudienceItem[]>
+  created_at: number
 }
 
 // ── Game state ────────────────────────────────────────────────────────────
@@ -361,6 +352,6 @@ export interface GameState {
   completed_regions: string[]   // region IDs whose final boss was defeated
   current_region_id: string     // region currently selected on the world map
   game_won?: boolean            // true when region_6 final boss is defeated
-  // Audience research profiles
-  audiences: AudienceProfile[]
+  // Review journal — personal reflections written after finishing content
+  reviews: ContentReview[]
 }

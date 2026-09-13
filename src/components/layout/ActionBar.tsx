@@ -1,12 +1,12 @@
 import { useState } from 'react'
 import { createPortal } from 'react-dom'
-import { useNavigate } from 'react-router-dom'
 import CharacterOverlay from '../overlays/CharacterOverlay'
 import CampaignOverlay from '../overlays/CampaignOverlay'
 import AnalyticsOverlay from '../overlays/AnalyticsOverlay'
 import RewardsOverlay from '../overlays/RewardsOverlay'
 import CodexOverlay from '../overlays/CodexOverlay'
 import MusicOverlay from '../overlays/MusicOverlay'
+import ReviewsOverlay from '../overlays/ReviewsOverlay'
 import { useT } from '../../i18n'
 import s from './ActionBar.module.css'
 
@@ -16,13 +16,13 @@ interface Props {
 
 export default function ActionBar({ canLevel = true }: Props) {
   const t = useT()
-  const navigate = useNavigate()
   const [showStats,     setShowStats]     = useState(false)
   const [showContent,   setShowContent]   = useState(false)
   const [showAnalytics, setShowAnalytics] = useState(false)
   const [showRewards,   setShowRewards]   = useState(false)
   const [showCodex,     setShowCodex]     = useState(false)
   const [showMusic,     setShowMusic]     = useState(false)
+  const [showReviews,   setShowReviews]   = useState(false)
 
   return (
     <>
@@ -74,14 +74,12 @@ export default function ActionBar({ canLevel = true }: Props) {
             <circle cx="16" cy="15" r="3"/>
           </svg>
         </button>
-        {/* Audience profiles */}
-        <button className={s.btn} data-tooltip="Audience" onClick={() => navigate('/audience')}>
+        {/* Review journal */}
+        <button className={s.btn} data-tooltip={(t.ui as Record<string, string>).btn_reviews ?? 'Reviews'} onClick={() => setShowReviews(true)}>
           <svg viewBox="0 0 20 20" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
-            <circle cx="7" cy="7" r="2.5"/>
-            <circle cx="13" cy="7" r="2.5"/>
-            <path d="M2 17c0-2.5 2-4 5-4"/>
-            <path d="M18 17c0-2.5-2-4-5-4"/>
-            <path d="M7 13c0-2.5 1.3-4 3-4s3 1.5 3 4"/>
+            <rect x="4" y="2" width="12" height="16" rx="1.5"/>
+            <path d="M7 6h6M7 9h6M7 12h3.5"/>
+            <path d="M13.2 12.2l2.3-2.3a1 1 0 0 1 1.4 1.4l-2.3 2.3-1.7.4z"/>
           </svg>
         </button>
       </div>
@@ -91,6 +89,7 @@ export default function ActionBar({ canLevel = true }: Props) {
       {showRewards   && createPortal(<RewardsOverlay   onClose={() => setShowRewards(false)}  />, document.body)}
       {showCodex     && createPortal(<CodexOverlay     onClose={() => setShowCodex(false)}    />, document.body)}
       {showMusic     && createPortal(<MusicOverlay     onClose={() => setShowMusic(false)}    />, document.body)}
+      {showReviews   && createPortal(<ReviewsOverlay   onClose={() => setShowReviews(false)}  />, document.body)}
     </>
   )
 }

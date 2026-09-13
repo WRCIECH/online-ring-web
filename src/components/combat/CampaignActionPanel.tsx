@@ -91,6 +91,7 @@ interface Props {
   onResearchComplete:    (weaponId: string) => void
   onSuperhit:            (damage: number) => void
   onSacrifice:           (selfDmg: number) => void
+  onReviewSubmit:        (weaponId: string, mode: ModeKind, itemName: string, text: string, itemId?: string) => void
 }
 
 function fmtSecs(sec: number): string {
@@ -101,13 +102,15 @@ function fmtSecs(sec: number): string {
 
 export default function CampaignActionPanel({
   weapons, superhitCharges, playerHp, canAct, enemyAffinities,
-  onMediumChunk, onMediumChunkComplete, onHeavyPart, onHeavyPartComplete, onResearchStep, onResearchComplete, onSuperhit, onSacrifice,
+  onMediumChunk, onMediumChunkComplete, onHeavyPart, onHeavyPartComplete, onResearchStep, onResearchComplete, onSuperhit, onSacrifice, onReviewSubmit,
 }: Props) {
   const t = useT()
   const [timer, setTimer]         = useState<TimerCtx | null>(null)
   const [confirmDmg, setConfirmDmg] = useState<number | null>(null)
   const [modeStart, setModeStart] = useState<ModeStartCtx | null>(null)
   const [finish, setFinish]       = useState<FinishCtx | null>(null)
+  const [reviewPrompt, setReviewPrompt] = useState<FinishCtx | null>(null)
+  const [reviewText, setReviewText] = useState('')
   const [remaining, setRemaining] = useState(0)
   const doneRef = useRef(false)
 
@@ -159,6 +162,7 @@ export default function CampaignActionPanel({
     if (finish.mode === 'medium')        onMediumChunkComplete(finish.weaponId, finish.itemId!)
     else if (finish.mode === 'heavy')    onHeavyPartComplete(finish.weaponId, finish.itemId!)
     else                                 onResearchComplete(finish.weaponId)
+    setReviewPrompt(finish)
     setFinish(null)
   }
 
@@ -234,6 +238,38 @@ export default function CampaignActionPanel({
         <div className={s.confirmBtns}>
           <button className={s.confirmYes} onClick={handleFinishYes}>Yes — done</button>
           <button className={s.confirmNo}  onClick={() => setFinish(null)}>Not yet</button>
+        </div>
+      </div>
+    )
+  }
+
+  // ── Review journal ────────────────────────────────────────────────────────
+  // A purely archival, optional reflection — never blocks progress, never
+  // affects damage. See src/components/overlays/ReviewsOverlay.tsx.
+  if (reviewPrompt) {
+    return (
+      <div className={s.confirmView}>
+        <div className={s.confirmContentName}>{reviewPrompt.name}</div>
+        <div className={s.confirmLabel}>Write your take (optional)</div>
+        <textarea
+          className={s.reviewTextarea}
+          value={reviewText}
+          onChange={e => setReviewText(e.target.value)}
+          placeholder="What did you learn? What would you do differently?"
+          autoFocus
+        />
+        <div className={s.confirmBtns}>
+          <button
+            className={s.confirmYes}
+            disabled={!reviewText.trim()}
+            onClick={() => {
+              onReviewSubmit(reviewPrompt.weaponId, reviewPrompt.mode, reviewPrompt.name, reviewText.trim(), reviewPrompt.itemId)
+              setReviewPrompt(null); setReviewText('')
+            }}
+          >
+            Save
+          </button>
+          <button className={s.confirmNo} onClick={() => { setReviewPrompt(null); setReviewText('') }}>Skip</button>
         </div>
       </div>
     )
