@@ -347,7 +347,6 @@ const en: TranslationBundle = {
     mult_repeatScaling: 'Repeat penalty',
     mult_affinity:      'Affinity',
     mult_bonusPool:     'Bonus pool',
-    mult_perk:          'Weapon perk',
     // Labels for HUD buff badges (still shown individually even though math pools them)
     mult_theme:         'Location theme',
 
@@ -355,7 +354,6 @@ const en: TranslationBundle = {
     mult_repeatScaling_desc: 'Penalty for repeating a completed tile — grows with each repeat: −20% · −35% · −50% · −60% · −70% · −75% · −80% · −85% · −90% (cap).',
     mult_affinity_desc:      'Bonus or penalty based on how well your content type matches what the enemy loves or hates.',
     mult_bonusPool_desc:     'Combined bonus from location theme and campaign mastery — these rewards add together rather than multiply.',
-    mult_perk_desc:          'Conditional damage bonus from a weapon perk — fires when the tile\'s content or transformation matches the perk\'s target.',
 
     // Weapon structure preview (EquipOverlay)
     draw_format:         'Format',

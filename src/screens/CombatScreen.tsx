@@ -597,19 +597,6 @@ export default function CombatScreen() {
 
       {(() => {
         const tui = t.ui as Record<string, string>
-        const perkBadges = (weapon?.perks ?? []).map((p, i) => {
-          const active = selectedTile != null && (
-            (p.type === 'product'        && selectedTile.content_type        === p.target) ||
-            (p.type === 'transformation' && selectedTile.content_transformation === p.target)
-          )
-          return {
-            key: `perk_${i}`,
-            label: `${p.type === 'product' ? '📄' : '↺'} ${p.target} +${Math.round(p.bonus * 100)}%`,
-            cls: active ? s.badgePerk : s.badgePerkDim,
-            tooltip: `${tui.mult_perk ?? 'Weapon perk'}: +${Math.round(p.bonus * 100)}% damage when tile uses ${p.target}.`,
-          }
-        })
-
         const badges = [
           state.campaignDoneMult > 1.0 && {
             key: 'campaignDone',
@@ -617,7 +604,6 @@ export default function CombatScreen() {
             cls: s.badgeStreak,
             tooltip: tui.mult_campaignDone_desc,
           },
-          ...perkBadges,
         ].filter(Boolean) as Array<{ key: string; label: string; cls: string; tooltip: string }>
 
         if (badges.length === 0) return null

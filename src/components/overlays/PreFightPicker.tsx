@@ -1,8 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useGameStore } from '../../store/gameStore'
 import { isNodeAvailable } from '../../data/generators/campaignGenerator'
-import type { LocationData, CampaignNode, WeaponInstance } from '../../types/game'
-import { WEAPONS } from '../../data/weapons'
+import type { LocationData, CampaignNode } from '../../types/game'
 import WeaponIcon from '../WeaponIcon'
 import { useT, localizeWeaponName } from '../../i18n'
 import s from './PreFightPicker.module.css'
@@ -114,8 +113,6 @@ export default function PreFightPicker({ loc, onConfirm, onCancel }: Props) {
                 const wc = store.weapon_campaigns[w.instance_id]
                 const nodeCount = getAvailableContent(w.instance_id).length
                 const isSelected = w.instance_id === pickerWeaponId
-                const wi = WEAPONS[w.instance_id] as WeaponInstance | undefined
-                const perks = wi?.perks ?? []
                 return (
                   <button
                     key={w.instance_id}
@@ -127,15 +124,6 @@ export default function PreFightPicker({ loc, onConfirm, onCancel }: Props) {
                       <span className={s.weaponName}>{localizeWeaponName(w, t)}</span>
                       {wc?.campaign_name && (
                         <span className={s.weaponCampaign}>{wc.campaign_name}</span>
-                      )}
-                      {perks.length > 0 && (
-                        <div className={s.perkRow}>
-                          {perks.map((p, i) => (
-                            <span key={i} className={s.perkBadge}>
-                              {p.target} +{Math.round(p.bonus * 100)}%
-                            </span>
-                          ))}
-                        </div>
                       )}
                     </div>
                     <span className={s.nodeCount}>{nodeCount}</span>

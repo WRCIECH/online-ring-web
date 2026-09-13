@@ -342,7 +342,6 @@ const pl: TranslationBundle = {
     mult_repeatScaling: 'Kara za powtórkę',
     mult_affinity:      'Powinowactwo',
     mult_bonusPool:     'Pula bonusów',
-    mult_perk:          'Perk broni',
     // Etykiety na odznakach HUD (nadal pokazywane osobno mimo łączenia w matemtyce)
     mult_theme:         'Klimat lokacji',
 
@@ -350,7 +349,6 @@ const pl: TranslationBundle = {
     mult_repeatScaling_desc: 'Kara za powtórzenie ukończonego kafelka — rośnie z każdą powtórką: −20% · −35% · −50% · −60% · −70% · −75% · −80% · −85% · −90% (limit).',
     mult_affinity_desc:      'Bonus lub kara wynikająca z powinowactwa typu treści do preferencji przeciwnika.',
     mult_bonusPool_desc:     'Łączny bonus z klimatu lokacji i mistrzostwa kampanii — te premie sumują się zamiast się mnożyć.',
-    mult_perk_desc:          'Warunkowy bonus do obrażeń z perka broni — aktywuje się, gdy kafelek pasuje do produktu lub transformacji perka.',
 
     // Podgląd struktury broni (EquipOverlay)
     draw_format:         'Format',
