@@ -265,11 +265,9 @@ export interface HeavyModeState {
 }
 
 // ── Research mode ─────────────────────────────────────────────────────────
-// No cap — research can be worked forever. cycle_steps is a fixed per-weapon
-// interval (from poise_weight); every time done_steps crosses a multiple of
-// it, a reward cycle completes and grants superhits again.
+// No cap, no target — research can be worked forever. Each step grants a
+// superhit immediately; there is nothing to divide progress against.
 export interface ResearchModeState {
-  cycle_steps: number
   done_steps: number
 }
 

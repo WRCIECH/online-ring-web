@@ -455,25 +455,17 @@ export default function CampaignOverlay({ onClose }: Props) {
 
                       {/* ── Research panel ── */}
                       {campaign.research && (() => {
-                        const { done_steps, cycle_steps } = campaign.research
-                        const cyclesDone = Math.floor(done_steps / cycle_steps)
-                        const cycleProgress = done_steps % cycle_steps
+                        const { done_steps } = campaign.research
                         return (
                           <div className={s.modePanel}>
                             <div className={s.heavyCard}>
                               <div className={s.heavyProductType}>Research — no limit, work forever</div>
                               <div className={s.heavyProgress}>
-                                <span className={s.heavyProgressLabel}>Next ✦ in</span>
-                                <span className={s.heavyProgressTrack}>
-                                  <span
-                                    className={s.heavyProgressFill}
-                                    style={{ width: `${Math.min(100, (cycleProgress / cycle_steps) * 100)}%` }}
-                                  />
-                                </span>
-                                <span>{cycleProgress}/{cycle_steps}</span>
+                                <span className={s.heavyProgressLabel}>Steps done</span>
+                                <span>{done_steps}</span>
                               </div>
                             </div>
-                            <div className={s.modeComplete}>✦ {cyclesDone} superhit cycle{cyclesDone !== 1 ? 's' : ''} earned so far</div>
+                            <div className={s.modeComplete}>✦ {done_steps} superhit{done_steps !== 1 ? 's' : ''} earned so far</div>
                           </div>
                         )
                       })()}

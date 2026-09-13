@@ -4,7 +4,7 @@ import { DEFAULT_MUSIC_TRACKS } from '../data/combatMusic'
 import { ENEMIES } from '../data/enemies'
 import { saveGame, loadGame } from '../engine/save'
 import { registerWeapon, calcWeaponSellPrice } from '../data/weapons'
-import { INITIAL_GAME_TIME_SECONDS, ESTUS_START, ESTUS_HEAL_HP, statLevelCost, weaponUpgradeCost, MAX_ACTIVE_CAMPAIGNS, RESEARCH_COMPLETE_SUPERHITS } from '../data/constants'
+import { INITIAL_GAME_TIME_SECONDS, ESTUS_START, ESTUS_HEAL_HP, statLevelCost, weaponUpgradeCost, MAX_ACTIVE_CAMPAIGNS } from '../data/constants'
 import { rollWeapon } from '../data/generators/weaponGenerator'
 import { WEAPON_CLASSES, ALL_WEAPON_CLASSES, type CampaignActionType } from '../data/generators/weaponClasses'
 import { CLASS_DEFINITIONS } from '../data/classes'
@@ -1065,16 +1065,12 @@ export const useGameStore = create<GameStore>((set, get) => ({
     set(s => {
       const campaign = s.weapon_campaigns[weaponId]
       if (!campaign?.research) return s
-      const research = campaign.research
-      const done_steps = research.done_steps + 1
-      const hitMilestone = done_steps % research.cycle_steps === 0
-      const updated = { ...campaign, research: { ...research, done_steps } }
+      const done_steps = campaign.research.done_steps + 1
+      const updated = { ...campaign, research: { ...campaign.research, done_steps } }
       const prevCharges = (s.weapon_pending_superhits ?? {})[weaponId] ?? 0
       return {
         weapon_campaigns: { ...s.weapon_campaigns, [weaponId]: updated },
-        ...(hitMilestone ? {
-          weapon_pending_superhits: { ...(s.weapon_pending_superhits ?? {}), [weaponId]: prevCharges + RESEARCH_COMPLETE_SUPERHITS },
-        } : {}),
+        weapon_pending_superhits: { ...(s.weapon_pending_superhits ?? {}), [weaponId]: prevCharges + 1 },
       }
     })
     get().save()

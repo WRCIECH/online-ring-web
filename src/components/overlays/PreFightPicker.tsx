@@ -17,25 +17,33 @@ export default function PreFightPicker({ loc, onConfirm, onCancel }: Props) {
   const store = useGameStore()
   const t = useT()
 
-  type ContentItem = { id: string; name: string; level?: 1 | 2; parentName?: string; hasWorkflow?: boolean; isCurrent?: boolean; streak?: number }
+  type ContentItem = { id: string; name: string; typeLabel?: string; level?: 1 | 2; parentName?: string; hasWorkflow?: boolean; isCurrent?: boolean; streak?: number }
+
+  function prodLabel(type: string): string {
+    return (t.content.product as Record<string, { badge_label: string }>)[type]?.badge_label ?? type
+  }
+
+  // New-format weapons (medium/heavy/research) only ever have ONE workable
+  // item at a time — chunks/parts must be done in order, so there's nothing
+  // to actually choose between. Returns that single item, not the whole list.
+  function isNewFormat(weaponId: string): boolean {
+    const c = store.weapon_campaigns[weaponId]
+    return !!(c?.medium || c?.heavy || c?.research)
+  }
 
   function getAvailableContent(weaponId: string): ContentItem[] {
     const c = store.weapon_campaigns[weaponId]
     if (!c) return []
-    // New-format: exactly one of medium/heavy/research
     if (c.medium) {
-      return c.medium.chunks
-        .filter(ch => !ch.done)
-        .map(ch => ({ id: ch.id, name: ch.name }))
+      const next = c.medium.chunks.find(ch => !ch.done)
+      return next ? [{ id: next.id, name: next.name, typeLabel: prodLabel(next.content_type) }] : []
     }
     if (c.heavy) {
-      return c.heavy.parts
-        .filter(p => !p.done)
-        .map(p => ({ id: p.id, name: p.name }))
+      const next = c.heavy.parts.find(p => !p.done)
+      return next ? [{ id: next.id, name: next.name, typeLabel: prodLabel(c.heavy.product_type) }] : []
     }
     if (c.research) {
-      const toNext = c.research.cycle_steps - (c.research.done_steps % c.research.cycle_steps)
-      return [{ id: '_research', name: `Research (${toNext} to next ✦)` }]
+      return [{ id: '_research', name: `Research (${c.research.done_steps} steps done)` }]
     }
     // Old-format: named node tree
     return c.nodes
@@ -52,6 +60,15 @@ export default function PreFightPicker({ loc, onConfirm, onCancel }: Props) {
           streak: store.content_streak[n.id] ?? 0,
         }
       })
+  }
+
+  // Total remaining work items for the weapon-list badge — distinct from
+  // getAvailableContent, which only ever surfaces the single next workable one.
+  function getRemainingCount(weaponId: string): number {
+    const c = store.weapon_campaigns[weaponId]
+    if (c?.medium) return c.medium.chunks.filter(ch => !ch.done).length
+    if (c?.heavy)  return c.heavy.parts.filter(p => !p.done).length
+    return getAvailableContent(weaponId).length
   }
 
   // Weapons that have an activated campaign with at least one available content item
@@ -117,7 +134,7 @@ export default function PreFightPicker({ loc, onConfirm, onCancel }: Props) {
             ) : (
               eligibleWeapons.map(w => {
                 const wc = store.weapon_campaigns[w.instance_id]
-                const nodeCount = getAvailableContent(w.instance_id).length
+                const nodeCount = getRemainingCount(w.instance_id)
                 const isSelected = w.instance_id === pickerWeaponId
                 const wi = WEAPONS[w.instance_id] as WeaponInstance | undefined
                 const perks = wi?.perks ?? []
@@ -157,6 +174,24 @@ export default function PreFightPicker({ loc, onConfirm, onCancel }: Props) {
               <div className={s.emptyMsg}>{t.ui.prefight_select_weapon_first ?? 'Select a weapon first.'}</div>
             ) : availableContent.length === 0 ? (
               <div className={s.emptyMsg}>{t.ui.prefight_no_nodes ?? 'No available content nodes for this weapon.'}</div>
+            ) : isNewFormat(pickerWeaponId) ? (
+              // Only one item can ever be worked on next (chunks/parts are done in
+              // strict order) — show it as info, not as a choice.
+              (() => {
+                const item = availableContent[0]
+                return (
+                  <div className={s.nodeCardStatic}>
+                    <div className={s.nodeCardMain}>
+                      <span className={s.nodeName}>{item.name}</span>
+                    </div>
+                    {item.typeLabel && (
+                      <div className={s.nodeBadges}>
+                        <span className={s.badgeLevel}>{item.typeLabel}</span>
+                      </div>
+                    )}
+                  </div>
+                )
+              })()
             ) : (
               availableContent.map(item => {
                 const isSelected  = item.id === pickerContentId

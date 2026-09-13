@@ -27,9 +27,6 @@ export const MEDIUM_CHUNK_SECS = 600
 /** Heavy part / Research step timer, in seconds — set in stone (25 min). */
 export const CAMPAIGN_STEP_SECS = 1500
 
-/** Superhit charges granted for finishing the final Research step. */
-export const RESEARCH_COMPLETE_SUPERHITS = 3
-
 // ── Equip load ───────────────────────────────────────────────────────────────
 
 /** Equip load contributed by each active (non-published) content item. */

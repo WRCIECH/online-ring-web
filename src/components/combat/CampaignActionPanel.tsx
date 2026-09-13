@@ -280,7 +280,7 @@ export default function CampaignActionPanel({
         >
           <span className={s.tileLabel}>Research</span>
           <span className={s.tileDmg}>⚔ {stepDmg}</span>
-          <span className={s.tileHint}>{research.done_steps % research.cycle_steps}/{research.cycle_steps} to next ✦</span>
+          <span className={s.tileHint}>{research.done_steps} step{research.done_steps !== 1 ? 's' : ''} done</span>
         </button>
       )}
 
