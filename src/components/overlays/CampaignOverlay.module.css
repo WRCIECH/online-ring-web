@@ -969,6 +969,28 @@
   padding: 2px 7px;
 }
 
+.statChipBalanceBonus {
+  font-family: var(--font-meta);
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: #6adf8a;
+  background: rgba(106, 223, 138, 0.08);
+  border: 1px solid rgba(106, 223, 138, 0.25);
+  border-radius: 3px;
+  padding: 2px 7px;
+}
+
+.statChipBalancePenalty {
+  font-family: var(--font-meta);
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: #e0764a;
+  background: rgba(224, 118, 74, 0.08);
+  border: 1px solid rgba(224, 118, 74, 0.25);
+  border-radius: 3px;
+  padding: 2px 7px;
+}
+
 .statChipResearch {
   position: relative;
   font-family: var(--font-meta);

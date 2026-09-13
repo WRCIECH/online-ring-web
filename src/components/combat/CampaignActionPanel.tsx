@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { calcTileDamage } from '../../engine/combat'
-import { SACRIFICE_MULT, MEDIUM_CHUNK_SECS, CAMPAIGN_STEP_SECS, SUPERHIT_DMG } from '../../data/constants'
+import type { WeaponBalanceInfo } from '../../engine/weaponBalance'
+import { SACRIFICE_MULT, MEDIUM_CHUNK_SECS, CAMPAIGN_STEP_SECS, SUPERHIT_DMG, WEAPON_BALANCE_WINDOW_DAYS } from '../../data/constants'
 import type { WeaponCampaign, WeaponInstance, WorkflowTile } from '../../types/game'
 import { useT, localizeWeaponName } from '../../i18n'
 import s from './CampaignActionPanel.module.css'
@@ -39,6 +40,26 @@ export interface WeaponEntry {
   weapon: WeaponInstance | undefined
   weaponLevel: number
   campaign: WeaponCampaign
+  balance: WeaponBalanceInfo
+}
+
+// Visible usage-balance readout — rewards spreading work evenly across active
+// weapons instead of grinding one favorite (see src/engine/weaponBalance.ts).
+function BalanceBadge({ balance }: { balance: WeaponBalanceInfo }) {
+  const pct = Math.round((balance.mult - 1) * 100)
+  const activeCount = Math.max(1, Math.round(1 / balance.idealShare))
+  const title = `Used ${Math.round(balance.ratio * 100)}% of the last ${WEAPON_BALANCE_WINDOW_DAYS} days' work on this weapon — ideal is ${Math.round(balance.idealShare * 100)}% across ${activeCount} active weapon${activeCount !== 1 ? 's' : ''}`
+
+  if (!balance.warm) {
+    return <span className={s.tileBalanceNeutral} title="Still gathering usage data — bonuses/penalties kick in once you've logged enough work">⚖ balancing…</span>
+  }
+  if (pct > 2) {
+    return <span className={s.tileBalanceBonus} title={title}>⚖ +{pct}%</span>
+  }
+  if (pct < -2) {
+    return <span className={s.tileBalancePenalty} title={title}>⚖ {pct}%</span>
+  }
+  return <span className={s.tileBalanceNeutral} title={title}>⚖ balanced</span>
 }
 
 interface Props {
@@ -239,9 +260,9 @@ export default function CampaignActionPanel({
   // has exactly one of medium/heavy/research — plus one shared, global Superhit tile.
   return (
     <div className={s.panel}>
-      {weapons.map(({ weaponId, weapon, weaponLevel, campaign }) => {
-        const mediumDmg = Math.round(calcTileDamage(MEDIUM_TILE, 'Light', weapon, weaponLevel))
-        const stepDmg   = Math.round(calcTileDamage(STEP_TILE, 'Heavy', weapon, weaponLevel))
+      {weapons.map(({ weaponId, weapon, weaponLevel, campaign, balance }) => {
+        const mediumDmg = Math.round(calcTileDamage(MEDIUM_TILE, 'Light', weapon, weaponLevel) * balance.mult)
+        const stepDmg   = Math.round(calcTileDamage(STEP_TILE, 'Heavy', weapon, weaponLevel) * balance.mult)
         const weaponName = weapon ? localizeWeaponName(weapon, t) : ''
 
         if (campaign.medium) {
@@ -258,6 +279,7 @@ export default function CampaignActionPanel({
               <span className={s.tileWeaponName}>{weaponName}</span>
               <span className={s.tileLabel}>Medium</span>
               <span className={s.tileDmg}>⚔ {mediumDmg}</span>
+              <BalanceBadge balance={balance} />
               {nextChunk && (
                 <>
                   <span className={s.tileTag}>{prodBadge(nextChunk.content_type)}</span>
@@ -282,6 +304,7 @@ export default function CampaignActionPanel({
               <span className={s.tileWeaponName}>{weaponName}</span>
               <span className={s.tileLabel}>Heavy</span>
               <span className={s.tileDmg}>⚔ {stepDmg}</span>
+              <BalanceBadge balance={balance} />
               <span className={s.tileTag}>{prodBadge(campaign.heavy.product_type)}</span>
               {nextPart && <span className={s.tileNameHint}>{nextPart.name}</span>}
             </button>
@@ -302,6 +325,7 @@ export default function CampaignActionPanel({
               <span className={s.tileWeaponName}>{weaponName}</span>
               <span className={s.tileLabel}>Research</span>
               <span className={s.tileDmg}>⚔ {stepDmg}</span>
+              <BalanceBadge balance={balance} />
               <span className={s.tileHint}>{research.done_steps} step{research.done_steps !== 1 ? 's' : ''} done</span>
             </button>
           )

@@ -1,7 +1,8 @@
 import { useReducer, useEffect, useCallback, useState, useMemo, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { combatReducer, initCombatState, getReachableTiles, previewMove, formatMultiplierPct, calcTileDamage } from '../engine/combat'
-import { ESTUS_MOB_DROP_CHANCE } from '../data/constants'
+import { calcWeaponBalance } from '../engine/weaponBalance'
+import { ESTUS_MOB_DROP_CHANCE, MEDIUM_CHUNK_SECS, CAMPAIGN_STEP_SECS } from '../data/constants'
 import { useGameStore, selectAvailableNodes } from '../store/gameStore'
 import { ENEMIES } from '../data/enemies'
 import { WEAPONS } from '../data/weapons'
@@ -445,17 +446,20 @@ export default function CombatScreen() {
 
   // Every activated weapon with a new-format (medium/heavy/research) campaign gets
   // its own tile, shown simultaneously — up to MAX_ACTIVE_CAMPAIGNS at once.
-  const newFormatWeapons = store.weapon_instances
+  const activeWeaponIds = store.weapon_instances
     .filter(w => {
       const c = store.weapon_campaigns[w.instance_id]
       return !!(c?.activated && (c.medium || c.heavy || c.research))
     })
-    .map(w => ({
-      weaponId: w.instance_id,
-      weapon: WEAPONS[w.instance_id] as WeaponInstance | undefined,
-      weaponLevel: store.weapon_level[w.instance_id] ?? 0,
-      campaign: store.weapon_campaigns[w.instance_id]!,
-    }))
+    .map(w => w.instance_id)
+
+  const newFormatWeapons = activeWeaponIds.map(weaponId => ({
+    weaponId,
+    weapon: WEAPONS[weaponId] as WeaponInstance | undefined,
+    weaponLevel: store.weapon_level[weaponId] ?? 0,
+    campaign: store.weapon_campaigns[weaponId]!,
+    balance: calcWeaponBalance(store.weapon_usage_log ?? [], weaponId, activeWeaponIds),
+  }))
 
   // ── Selected tile (derived) ───────────────────────────────────────────────
   const selectedTile = state.selectedTileId
@@ -687,14 +691,16 @@ export default function CombatScreen() {
           superhitCharges={globalSuperhitCharges}
           playerHp={state.playerHp}
           canAct={isPlayerTurn}
-          onMediumChunk={(_weaponId, damage) => {
+          onMediumChunk={(weaponId, damage) => {
             dispatch({ type: 'CAMPAIGN_HIT', damage, label: '✍ Medium', color: '#60c0e0' })
+            store.logWeaponUsage(weaponId, MEDIUM_CHUNK_SECS / 60)
           }}
           onMediumChunkComplete={(weaponId, chunkId) => {
             store.completeMediumChunk(weaponId, chunkId)
           }}
-          onHeavyPart={(_weaponId, damage) => {
+          onHeavyPart={(weaponId, damage) => {
             dispatch({ type: 'CAMPAIGN_HIT', damage, label: '📝 Heavy work', color: '#e0a060' })
+            store.logWeaponUsage(weaponId, CAMPAIGN_STEP_SECS / 60)
           }}
           onHeavyPartComplete={(weaponId, partId) => {
             store.completeHeavyPart(weaponId, partId)
@@ -702,6 +708,7 @@ export default function CombatScreen() {
           onResearchStep={(weaponId, damage) => {
             dispatch({ type: 'CAMPAIGN_HIT', damage, label: '🔎 Research', color: '#88ccdd' })
             store.completeResearchStep(weaponId)
+            store.logWeaponUsage(weaponId, CAMPAIGN_STEP_SECS / 60)
           }}
           onResearchComplete={(weaponId) => {
             store.finishResearch(weaponId)

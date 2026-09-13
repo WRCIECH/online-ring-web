@@ -347,6 +347,9 @@ export interface GameState {
   reward_used_count: Partial<Record<RewardTier, number>>
   // Global Superhit charge pool — shared across all weapons, not per-weapon
   pending_superhits: number
+  // Rolling log of work-session minutes per weapon, used to compute the usage-balance
+  // multiplier. Pruned to WEAPON_BALANCE_WINDOW_DAYS on every write — never grows unbounded.
+  weapon_usage_log: { weaponId: string; minutes: number; timestamp: number }[]
   // Music playlist
   run_music_seed?: number   // rolled at startRun; undefined in old saves → treated as 0
   music_tracks?:   string[] // YouTube video IDs; undefined in old saves → uses DEFAULT_MUSIC_TRACKS

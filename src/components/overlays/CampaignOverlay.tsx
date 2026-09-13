@@ -2,7 +2,8 @@ import { useState, useEffect } from 'react'
 import { useGameStore } from '../../store/gameStore'
 import { LEVEL_MULT, weaponUpgradeCost, calcWeaponScaledDamage, calcWeaponSellPrice } from '../../data/weapons'
 import { WEAPON_CLASSES } from '../../data/generators/weaponClasses'
-import { MAX_ACTIVE_CAMPAIGNS, MEDIUM_CHUNK_SECS, CAMPAIGN_STEP_SECS } from '../../data/constants'
+import { calcWeaponBalance } from '../../engine/weaponBalance'
+import { MAX_ACTIVE_CAMPAIGNS, MEDIUM_CHUNK_SECS, CAMPAIGN_STEP_SECS, WEAPON_BALANCE_WINDOW_DAYS } from '../../data/constants'
 import { MODIFICATION_STATS, statMediumTypes, statHeavyTypes } from '../../data/statModifications'
 import type { WeaponCampaign, WeaponInstance, StatKey, MediumContentType, HeavyContentType } from '../../types/game'
 import WeaponIcon from '../WeaponIcon'
@@ -71,6 +72,19 @@ export default function CampaignOverlay({ onClose }: Props) {
   const isConfirmSell = confirmSellId === wid
 
   const activeCampaignCount = Object.values(store.weapon_campaigns).filter(c => c.activated).length
+
+  // Usage-balance readout — same calculation CombatScreen applies to damage, shown
+  // here so the player can plan which weapon to work on before fighting with it.
+  const isNewFormatActivated = !!(campaign?.activated && (campaign.medium || campaign.heavy || campaign.research))
+  const activeWeaponIds = store.weapon_instances
+    .filter(w => {
+      const c = store.weapon_campaigns[w.instance_id]
+      return !!(c?.activated && (c.medium || c.heavy || c.research))
+    })
+    .map(w => w.instance_id)
+  const balance = isNewFormatActivated
+    ? calcWeaponBalance(store.weapon_usage_log ?? [], wid, activeWeaponIds)
+    : null
 
   function prodLabel(type: string): string {
     return (t.content.product as Record<string, { badge_label: string }>)[type]?.badge_label ?? type
@@ -242,6 +256,21 @@ export default function CampaignOverlay({ onClose }: Props) {
                             <span className={s.statChip}>{mins}m / {unit}</span>
                           </>
                         )
+                      })()}
+                      {balance && (() => {
+                        const pct = Math.round((balance.mult - 1) * 100)
+                        const activeCount = Math.max(1, Math.round(1 / balance.idealShare))
+                        const title = `Used ${Math.round(balance.ratio * 100)}% of the last ${WEAPON_BALANCE_WINDOW_DAYS} days' work on this weapon — ideal is ${Math.round(balance.idealShare * 100)}% across ${activeCount} active weapon${activeCount !== 1 ? 's' : ''}`
+                        if (!balance.warm) {
+                          return <span className={s.statChip} title="Still gathering usage data — bonuses/penalties kick in once you've logged enough work">⚖ balancing…</span>
+                        }
+                        if (pct > 2) {
+                          return <span className={s.statChipBalanceBonus} title={title}>⚖ +{pct}% dmg</span>
+                        }
+                        if (pct < -2) {
+                          return <span className={s.statChipBalancePenalty} title={title}>⚖ {pct}% dmg</span>
+                        }
+                        return <span className={s.statChip} title={title}>⚖ balanced</span>
                       })()}
                     </div>
                     <div className={s.weaponInfoActions}>

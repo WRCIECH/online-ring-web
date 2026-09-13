@@ -4,7 +4,7 @@ import { DEFAULT_MUSIC_TRACKS } from '../data/combatMusic'
 import { ENEMIES } from '../data/enemies'
 import { saveGame, loadGame } from '../engine/save'
 import { registerWeapon, calcWeaponSellPrice } from '../data/weapons'
-import { INITIAL_GAME_TIME_SECONDS, ESTUS_START, ESTUS_HEAL_HP, statLevelCost, weaponUpgradeCost, MAX_ACTIVE_CAMPAIGNS, RESEARCH_FINISH_SUPERHITS } from '../data/constants'
+import { INITIAL_GAME_TIME_SECONDS, ESTUS_START, ESTUS_HEAL_HP, statLevelCost, weaponUpgradeCost, MAX_ACTIVE_CAMPAIGNS, RESEARCH_FINISH_SUPERHITS, WEAPON_BALANCE_WINDOW_DAYS } from '../data/constants'
 import { rollWeapon } from '../data/generators/weaponGenerator'
 import { WEAPON_CLASSES, ALL_WEAPON_CLASSES, type CampaignActionType } from '../data/generators/weaponClasses'
 import { CLASS_DEFINITIONS } from '../data/classes'
@@ -258,6 +258,7 @@ function initialState(): GameState {
     reward_names: {},
     reward_used_count: {},
     pending_superhits: 0,
+    weapon_usage_log: [],
     run_music_seed: 0,
     music_tracks: DEFAULT_MUSIC_TRACKS,
     audiences: [],
@@ -346,6 +347,7 @@ export interface GameStore extends GameState {
   completeHeavyPart:      (weaponId: string, partId: string) => void
   completeResearchStep:   (weaponId: string) => void
   finishResearch:         (weaponId: string) => void
+  logWeaponUsage:         (weaponId: string, minutes: number) => void
   consumeSuperhitCharge:  () => void
 
   // External rewards
@@ -597,6 +599,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
       content_streak: {},
       active_content_id: null,
       pending_superhits: 0,
+      weapon_usage_log: [],
       stat_modifications_used: {},
       completed_regions: [],
       current_region_id: 'region_0',
@@ -1078,6 +1081,17 @@ export const useGameStore = create<GameStore>((set, get) => ({
         weapon_campaigns: { ...s.weapon_campaigns, [weaponId]: updated },
         pending_superhits: (s.pending_superhits ?? 0) + RESEARCH_FINISH_SUPERHITS,
       }
+    })
+    get().save()
+  },
+
+  // Records minutes of work on a weapon for the usage-balance mechanic (see
+  // src/engine/weaponBalance.ts). Pruned to the rolling window on every write.
+  logWeaponUsage: (weaponId, minutes) => {
+    set(s => {
+      const cutoff = Date.now() - WEAPON_BALANCE_WINDOW_DAYS * 24 * 60 * 60 * 1000
+      const pruned = (s.weapon_usage_log ?? []).filter(e => e.timestamp >= cutoff)
+      return { weapon_usage_log: [...pruned, { weaponId, minutes, timestamp: Date.now() }] }
     })
     get().save()
   },
