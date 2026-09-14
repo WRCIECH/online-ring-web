@@ -45,12 +45,22 @@ function pickName(stage: AtomicStage): string {
   return pool[Math.floor(Math.random() * pool.length)]
 }
 
+// Rolls an integer in [min,max], centered on `mean`, with most mass near the
+// center and rare extremes — approximates a bell curve by averaging 3
+// independent uniform draws (Irwin-Hall) instead of a single flat roll.
+function rollBellCentered(mean: number, spread: number, min: number, max: number): number {
+  const u = (Math.random() + Math.random() + Math.random()) / 3
+  const offset = (u - 0.5) * 2 * spread
+  return Math.max(min, Math.min(max, Math.round(mean + offset)))
+}
+
 export function calcWorkflowTileCounts(
   weaponClass: WeaponClass,
   _rarity: WeaponRarity,
 ): { research: number; produce: number } {
   const cls = WEAPON_CLASSES[weaponClass]
-  const research = Math.max(1, Math.round(cls.poise_weight * cls.research_weight))
+  const meanResearch = cls.poise_weight * cls.research_weight
+  const research = Math.max(1, rollBellCentered(meanResearch, 2, 1, cls.poise_weight - 1))
   const produce  = Math.max(1, cls.poise_weight - research)
   return { research, produce }
 }

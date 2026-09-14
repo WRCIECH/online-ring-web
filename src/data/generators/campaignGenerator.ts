@@ -89,9 +89,25 @@ export const ALL_MEDIUM_TYPES: MediumContentType[] = [
 
 export const ALL_HEAVY_TYPES: HeavyContentType[] = ['Text', 'Audio/Video', 'Software', 'Community']
 
-// Shared 3–15 linear-item count formula for both Medium chunks and Heavy parts.
+// Rolls an integer in [min,max], centered on `mean`, with most mass near the
+// center and rare extremes — approximates a bell curve by averaging 3
+// independent uniform draws (Irwin-Hall) instead of a single flat roll.
+function rollBellCentered(mean: number, spread: number, min: number, max: number): number {
+  const u = (Math.random() + Math.random() + Math.random()) / 3
+  const offset = (u - 0.5) * 2 * spread
+  return Math.max(min, Math.min(max, Math.round(mean + offset)))
+}
+
+// Medium chunk count — a long linear list of small pieces.
 function linearItemCount(poiseWeight: number): number {
-  return Math.max(3, Math.min(15, Math.round(poiseWeight * 0.9)))
+  return rollBellCentered(poiseWeight * 0.9, 4, 3, 15)
+}
+
+// Heavy part count — a single big, focused piece of work, so it should read
+// as much shorter than Medium's chunk list. Mean ~5-6 for most Heavy classes
+// (poise_weight 10-18), still scaling a bit with the class's weight.
+function heavyItemCount(poiseWeight: number): number {
+  return rollBellCentered(2 + poiseWeight * 0.25, 2, 3, 9)
 }
 
 export function generateMediumChunks(weapon: WeaponInstance): MediumModeState {
@@ -114,7 +130,7 @@ export function generateHeavyParts(weapon: WeaponInstance): HeavyModeState {
     : ALL_HEAVY_TYPES
   const product_type = pool[Math.floor(Math.random() * pool.length)]
   const pw = weapon.poise_weight ?? 8
-  const count = linearItemCount(pw)
+  const count = heavyItemCount(pw)
 
   const parts: HeavyPart[] = Array.from({ length: count }, (_, i) => ({
     id: genId(),

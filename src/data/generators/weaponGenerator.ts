@@ -28,10 +28,25 @@ function rollRarity(forceMin?: WeaponRarity): WeaponRarity {
 }
 
 const AFFIXES: Affix[] = [
-  { id: 'dmg_15', label: '+15% damage', damage_mult: 1.15 },
-  { id: 'dmg_25', label: '+25% damage', damage_mult: 1.25 },
+  { id: 'dmg_8',  label: '+8% damage',  damage_mult: 1.08 },
   { id: 'dmg_10', label: '+10% damage', damage_mult: 1.10 },
+  { id: 'dmg_12', label: '+12% damage', damage_mult: 1.12 },
+  { id: 'dmg_15', label: '+15% damage', damage_mult: 1.15 },
+  { id: 'dmg_18', label: '+18% damage', damage_mult: 1.18 },
+  { id: 'dmg_20', label: '+20% damage', damage_mult: 1.20 },
+  { id: 'dmg_25', label: '+25% damage', damage_mult: 1.25 },
 ]
+
+// Fisher-Yates — unlike sort(() => Math.random() - 0.5), this is an unbiased
+// shuffle, which matters now that AFFIXES (7) outnumbers the max draw (5).
+function shuffled<T>(arr: T[]): T[] {
+  const result = [...arr]
+  for (let i = result.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [result[i], result[j]] = [result[j], result[i]]
+  }
+  return result
+}
 
 function rollAffixes(rarity: WeaponRarity): Affix[] {
   const counts: Record<WeaponRarity, [number, number]> = {
@@ -40,7 +55,7 @@ function rollAffixes(rarity: WeaponRarity): Affix[] {
   const [min, max] = counts[rarity]
   if (min === 0) return []
   const n = min + Math.floor(Math.random() * (max - min + 1))
-  return [...AFFIXES].sort(() => Math.random() - 0.5).slice(0, n)
+  return shuffled(AFFIXES).slice(0, n)
 }
 
 const RARITY_PREFIXES: Record<WeaponRarity, string[]> = {
