@@ -44,13 +44,14 @@ export const WEAPON_BALANCE_WINDOW_DAYS = 7
 export const WEAPON_BALANCE_WARMUP_MINUTES_PER_WEAPON = 25
 
 /** Damage-multiplier swing per 100% relative deviation from a weapon's ideal share
- *  (1 / active-weapon-count). E.g. 0.35 = a weapon sitting at 2× its ideal share
- *  (100% over) takes a −35% damage penalty before clamping. */
-export const WEAPON_BALANCE_SCALE = 0.35
+ *  (1 / active-weapon-count). E.g. 0.8 = a weapon sitting at 2× its ideal share
+ *  (100% over) takes a −80% damage penalty before clamping. Sized so a weapon at
+ *  either extreme (never touched, or the only one worked) reaches the ±80% cap below. */
+export const WEAPON_BALANCE_SCALE = 0.8
 
 /** Hard floor/ceiling on the resulting multiplier, however extreme the imbalance. */
-export const WEAPON_BALANCE_MIN_MULT = 0.6
-export const WEAPON_BALANCE_MAX_MULT = 1.4
+export const WEAPON_BALANCE_MIN_MULT = 0.2
+export const WEAPON_BALANCE_MAX_MULT = 1.8
 
 // ── Equip load ───────────────────────────────────────────────────────────────
 
