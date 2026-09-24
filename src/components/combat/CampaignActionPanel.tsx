@@ -317,7 +317,7 @@ export default function CampaignActionPanel({
   return (
     <div className={s.panel}>
       {weapons.map(({ weaponId, weapon, weaponLevel, campaign, balance }) => {
-        const baseMediumDmg = calcTileDamage(MEDIUM_TILE, 'Light', weapon, weaponLevel)
+        const baseMediumDmg = calcTileDamage(MEDIUM_TILE, 'Heavy', weapon, weaponLevel)
         const baseStepDmg   = calcTileDamage(STEP_TILE, 'Heavy', weapon, weaponLevel)
         const weaponName = weapon ? localizeWeaponName(weapon, t) : ''
 

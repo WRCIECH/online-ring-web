@@ -1,6 +1,6 @@
 import type {
   CombatPhase, MoveType, WorkflowGraph, WorkflowTile,
-  Enemy, WeaponInstance, Stats, MobAffinities, MobAffinityConditions, LocationTheme,
+  Enemy, WeaponInstance, Stats, MobAffinities, LocationTheme,
   AtomicStage, MediumContentType, HeavyContentType,
 } from '../types/game'
 import { LOCATION_THEMES } from '../data/locationThemes'
@@ -78,6 +78,13 @@ const AFFINITY_MULTS: Record<keyof MobAffinities, number> = {
   hate:    0.5,
 }
 
+// When more than one tier matches the same action (e.g. an enemy loves your
+// stage but hates your content format), only the single strongest tier
+// applies — never the product of several. love/hate (the ±strong tiers) take
+// precedence over the milder like/dislike; love edges out hate on the rare
+// case both match.
+const AFFINITY_TIER_PRIORITY: (keyof MobAffinities)[] = ['love', 'hate', 'like', 'dislike']
+
 // Display labels/colors for affinity tiers — shared by EnemyCenterpiece's
 // hover tooltip and CampaignActionPanel's per-tile badge. Kept here (a
 // non-component module) rather than in a component file, so exporting them
@@ -140,19 +147,19 @@ export function calcTileDamage(
 }
 
 // Mob-affinity mult only (love/like/dislike/hate from the enemy definition).
+// Only the single strongest matching tier applies — see AFFINITY_TIER_PRIORITY.
 export function calcAffinityMultiplier(tile: WorkflowTile, enemy: Enemy): number {
   const { affinities } = enemy
   if (!affinities) return 1
-  let mult = 1
-  for (const [tier, conditions] of Object.entries(affinities) as [keyof MobAffinities, MobAffinityConditions][]) {
+  for (const tier of AFFINITY_TIER_PRIORITY) {
+    const conditions = affinities[tier]
     if (!conditions) continue
     const matched =
       (tile.content_type != null && conditions.products?.includes(tile.content_type)) ||
-      (tile.status       != null && conditions.emotions?.includes(tile.status))       ||
       (conditions.stages?.includes(tile.type))
-    if (matched) mult *= AFFINITY_MULTS[tier]
+    if (matched) return AFFINITY_MULTS[tier]
   }
-  return mult
+  return 1
 }
 
 export interface ActionAffinityInfo {
@@ -166,25 +173,25 @@ export type ActionAffinityKind =
   | { kind: 'research' }
 
 // Same LOVE/LIKE/DISLIKE/HATE tiers as calcAffinityMultiplier, but for the
-// Medium/Heavy/Research campaign actions, which carry no WorkflowTile (no
-// emotion/transformation axis in that data model — only stage + content type).
+// Medium/Heavy/Research campaign actions, which carry no WorkflowTile (only
+// stage + content type). Only the single strongest matching tier applies —
+// see AFFINITY_TIER_PRIORITY.
 export function calcActionAffinity(
   affinities: MobAffinities | undefined,
   action: ActionAffinityKind,
 ): ActionAffinityInfo {
   if (!affinities) return { mult: 1, tiers: [] }
   const stage: AtomicStage = action.kind === 'research' ? 'Research' : 'Produce'
-  let mult = 1
-  const tiers: (keyof MobAffinities)[] = []
-  for (const [tier, conditions] of Object.entries(affinities) as [keyof MobAffinities, MobAffinityConditions][]) {
+  for (const tier of AFFINITY_TIER_PRIORITY) {
+    const conditions = affinities[tier]
     if (!conditions) continue
     const stageMatch = conditions.stages?.includes(stage) ?? false
     const typeMatch =
       (action.kind === 'medium' && action.contentType != null && (conditions.mediumTypes?.includes(action.contentType) ?? false)) ||
       (action.kind === 'heavy'  && action.contentType != null && (conditions.heavyTypes?.includes(action.contentType) ?? false))
-    if (stageMatch || typeMatch) { mult *= AFFINITY_MULTS[tier]; tiers.push(tier) }
+    if (stageMatch || typeMatch) return { mult: AFFINITY_MULTS[tier], tiers: [tier] }
   }
-  return { mult, tiers }
+  return { mult: 1, tiers: [] }
 }
 
 // +20% if tile content/stage matches the location theme's focus.
