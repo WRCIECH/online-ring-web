@@ -40,12 +40,10 @@ export function AffinityHoverTarget({ description, affinities, children }: Affin
 
   function formatConditions(cond: NonNullable<MobAffinities[keyof MobAffinities]>): string {
     return [
-      ...(cond.products       ?? []),
-      ...(cond.transformations ?? []),
-      ...(cond.emotions       ?? []),
-      ...(cond.stages         ?? []),
-      ...(cond.mediumTypes    ?? []),
-      ...(cond.heavyTypes     ?? []),
+      ...(cond.products    ?? []),
+      ...(cond.stages      ?? []),
+      ...(cond.mediumTypes ?? []),
+      ...(cond.heavyTypes  ?? []),
     ].map(labelFor).join(', ')
   }
 
