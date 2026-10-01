@@ -383,7 +383,7 @@ export default function CampaignActionPanel({
               className={[s.tile, s.tileHeavy, !canAct ? s.tileDim : ''].filter(Boolean).join(' ')}
               disabled={!canAct}
               onClick={() => setModeStart({
-                weaponId, mode: 'research', name: 'Research', damage: stepDmg, secs: CAMPAIGN_STEP_SECS,
+                weaponId, mode: 'research', name: campaign.campaign_name || 'Research', damage: stepDmg, secs: CAMPAIGN_STEP_SECS,
               })}
             >
               <span className={s.tileWeaponName}>{weaponName}</span>
@@ -391,6 +391,7 @@ export default function CampaignActionPanel({
               <span className={s.tileDmg}>⚔ {stepDmg}</span>
               <BalanceBadge balance={balance} />
               <AffinityBadge tiers={affinity.tiers} />
+              {campaign.campaign_name && <span className={s.tileNameHint}>{campaign.campaign_name}</span>}
               <span className={s.tileHint}>{research.done_steps} step{research.done_steps !== 1 ? 's' : ''} done</span>
             </button>
           )
