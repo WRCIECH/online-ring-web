@@ -386,15 +386,11 @@ export default function CampaignOverlay({ onClose }: Props) {
                                   <div key={c.id} className={[s.mediumPiece, isLocked ? s.mediumPieceLocked : ''].filter(Boolean).join(' ')}>
                                     <div className={s.mediumPieceLeft}>
                                       <span className={s.mediumPieceNum}>{isLocked ? '🔒' : i + 1}</span>
-                                      {isActivated ? (
-                                        <span className={s.mediumPieceName}>{c.name}</span>
-                                      ) : (
-                                        <input
-                                          className={s.pieceNameInput}
-                                          value={c.name}
-                                          onChange={e => store.renameMediumChunk(wid, c.id, e.target.value)}
-                                        />
-                                      )}
+                                      <input
+                                        className={s.pieceNameInput}
+                                        value={c.name}
+                                        onChange={e => store.renameMediumChunk(wid, c.id, e.target.value)}
+                                      />
                                     </div>
                                     <div className={s.mediumPieceRight}>
                                       <div className={s.mediumPieceLevels}>
@@ -468,15 +464,11 @@ export default function CampaignOverlay({ onClose }: Props) {
                                   <div key={p.id} className={[s.mediumPiece, isLocked ? s.mediumPieceLocked : ''].filter(Boolean).join(' ')}>
                                     <div className={s.mediumPieceLeft}>
                                       <span className={s.mediumPieceNum}>{isLocked ? '🔒' : i + 1}</span>
-                                      {isActivated ? (
-                                        <span className={s.mediumPieceName}>{p.name}</span>
-                                      ) : (
-                                        <input
-                                          className={s.pieceNameInput}
-                                          value={p.name}
-                                          onChange={e => store.renameHeavyPart(wid, p.id, e.target.value)}
-                                        />
-                                      )}
+                                      <input
+                                        className={s.pieceNameInput}
+                                        value={p.name}
+                                        onChange={e => store.renameHeavyPart(wid, p.id, e.target.value)}
+                                      />
                                     </div>
                                     <div className={s.mediumPieceRight}>
                                       {p.done && <span className={[s.levelBadge, s.levelDone].join(' ')}>✓ Done</span>}
